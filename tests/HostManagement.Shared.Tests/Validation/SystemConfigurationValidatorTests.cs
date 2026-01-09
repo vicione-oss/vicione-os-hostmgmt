@@ -1,0 +1,133 @@
+﻿using System.Net;
+using AwesomeAssertions;
+using Xunit;
+using HostManagement.Shared.Contracts;
+using HostManagement.Shared.Contracts.Network;
+using HostManagement.Shared.Validation;
+
+namespace HostManagement.Shared.Tests.Validation;
+
+public class SystemConfigurationValidatorTests
+{
+    [Fact]
+    public async Task ShouldReturnValidationError_WhenValidationCancelled()
+    {
+        // Arrange
+        var expectedValidationEntry = new ValidationEntry(ValidationConstants.CancelledResult);
+
+        // Act
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+
+        var result = await new SystemConfigurationValidator()
+            .ValidateAsync(new SystemConfiguration(), cts.Token);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Entries.Count.Should().Be(1);
+        result.Entries.Should().Contain(expectedValidationEntry);
+    }
+
+    [Fact]
+    public async Task ShouldAddValidationError_WhenExceptionOccurs()
+    {
+        // Arrange
+        var currentConfig = new SystemConfiguration();
+        SystemConfiguration? invalidProposedConfig = null;
+
+        var expectedValidationEntry = new ValidationEntry(
+            $"Validation failed." +
+            Environment.NewLine +
+            $"Object reference not set to an instance of an object.",
+            ErrorCodes.ValidationFailed);
+
+        // Act
+        var validationResultObsolete = await SystemConfigurationValidator
+            .Validate(currentConfig, invalidProposedConfig!);
+
+        var validationResult = await new SystemConfigurationValidator()
+            .ValidateAsync(invalidProposedConfig!);
+
+        // Assert
+        validationResultObsolete.IsValid.Should().BeFalse();
+        validationResultObsolete.Entries.Count.Should().Be(1);
+        validationResultObsolete.Entries.Should().Contain(expectedValidationEntry);
+
+        validationResult.IsValid.Should().BeFalse();
+        validationResult.Entries.Count.Should().Be(1);
+        validationResult.Entries.Should().Contain(expectedValidationEntry);
+    }
+
+    [Fact]
+    public async Task ShouldReturnValidationResult_WhenValidateAsyncCalled()
+    {
+        // Arrange
+        var systemConfiguration = new SystemConfiguration
+        {
+            NetworkInterfacesSettings = new()
+            {
+                NetworkInterfaces =
+                [
+                    ValidationTestData.Interface.Static,
+                    ValidationTestData.Interface.DHCP
+                ]
+            },
+            NetworkDNSSettings = new()
+            {
+                Hostname = ValidationTestData.Hostname.Simple,
+                DNSSuffixEnabled = true,
+                DNSSuffix = ValidationTestData.PrimarySuffix.FQDN,
+                StaticHostsEnabled = true,
+                StaticHosts =
+                [
+                    ValidationTestData.StaticHost.StaticHost1,
+                    ValidationTestData.StaticHost.StaticHost2
+                ],
+                SearchDomainsEnabled = true,
+                SearchDomains =
+                [
+                    ValidationTestData.SearchDomain.Simple,
+                    ValidationTestData.SearchDomain.FQDN
+                ],
+                NameServersEnabled = true,
+                NameServers =
+                [
+                    IPAddress.Parse(ValidationTestData.NameServer.IPv4),
+                    IPAddress.Parse(ValidationTestData.NameServer.IPv6)
+                ]
+            },
+            NetworkProxySettings = new NetworkProxySettings() with
+            {
+                HTTP = ValidationTestData.Proxy.HTTP,
+                DoNotProxyListEnabled = true,
+                DoNotProxyList =
+                [
+                    ValidationTestData.NoProxyItem.IPv4,
+                    ValidationTestData.NoProxyItem.IPv4Port,
+                    ValidationTestData.NoProxyItem.IPv6,
+                    ValidationTestData.NoProxyItem.IPv6Port,
+                    ValidationTestData.NoProxyItem.IPv6LinkLocal,
+                    ValidationTestData.NoProxyItem.IPv6LinkLocalPort,
+                    ValidationTestData.NoProxyItem.Simple,
+                    ValidationTestData.NoProxyItem.FQDN
+                ]
+            },
+            NetworkNTPSettings = new()
+            {
+                NTPServersEnabled = true,
+                NTPServers =
+                [
+                    ValidationTestData.NTPServer.IPv4,
+                    ValidationTestData.NTPServer.FQDN
+                ]
+            }
+        };
+
+        // Act
+        var result = await new SystemConfigurationValidator().ValidateAsync(systemConfiguration);
+
+        // Assert
+        result.Should().BeOfType<ValidationResult>();
+        result.EntriesString.Should().NotBe(ValidationConstants.CancelledResult);
+    }
+}

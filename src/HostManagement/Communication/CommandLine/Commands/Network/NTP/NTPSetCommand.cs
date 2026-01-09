@@ -1,0 +1,57 @@
+﻿using System.CommandLine;
+using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Shared.Contracts;
+
+namespace HostManagement.Communication.CommandLine.Commands.Network.NTP;
+
+/// <summary>
+/// Represents the NTP set command.
+/// </summary>
+internal sealed class NTPSetCommand : ConfigCommandBase
+{
+    /// <summary>
+    /// Initializes a new <see cref="NTPSetCommand"/>.
+    /// </summary>
+    /// <param name="ntpServersOption">The NTP servers option.</param>
+    public NTPSetCommand(Option<string[]> ntpServersOption) : base(
+        CommandLineStrings_Common.SetCommandName,
+        CommandLineStrings_NTP.NTPSetCommandDescription)
+    {
+        Add(ntpServersOption);
+
+        SetAction((parseResult, cancellationToken) =>
+        {
+            return SetHandler(
+                parseResult.GetRequiredValue(ntpServersOption),
+                cancellationToken);
+        });
+    }
+
+    private static async Task SetHandler(string[] ntpServers, CancellationToken cancellationToken)
+    {
+        if (await GetConfiguration(cancellationToken) is not SystemConfiguration config)
+            return;
+
+        config.NetworkNTPSettings.NTPServers.Clear();
+
+        var output = new ListOutput();
+
+        foreach (var ntpServer in ntpServers)
+        {
+            config.NetworkNTPSettings.NTPServers.Add(ntpServer);
+            output.With(ntpServer);
+        }
+
+        if (!await SetConfiguration(config, cancellationToken))
+            return;
+
+        if (!config.NetworkNTPSettings.NTPServersEnabled)
+            output.WithWarning(CommandLineStrings_NTP.ServersCurrentlyDisabled);
+
+        var title = output.ItemCount == 1
+            ? CommandLineStrings_NTP.ServerSet
+            : CommandLineStrings_NTP.ServersSet;
+
+        output.WithTitle(title).WriteLine();
+    }
+}

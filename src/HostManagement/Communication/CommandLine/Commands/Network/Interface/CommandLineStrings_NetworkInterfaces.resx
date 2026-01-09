@@ -1,0 +1,396 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CommonInfo" xml:space="preserve">
+    <value>Common Information</value>
+  </data>
+  <data name="DHCP" xml:space="preserve">
+    <value>DHCP</value>
+  </data>
+  <data name="DHCPAlreadyDisabled" xml:space="preserve">
+    <value>DHCP is already disabled for '{0}'.</value>
+  </data>
+  <data name="DHCPAlreadyEnabled" xml:space="preserve">
+    <value>DHCP is already enabled for '{0}'.</value>
+  </data>
+  <data name="DHCPCommandDescription" xml:space="preserve">
+    <value>Configure DHCP of a specified network interface.</value>
+  </data>
+  <data name="DHCPCommandName" xml:space="preserve">
+    <value>dhcp</value>
+  </data>
+  <data name="DHCPDisableCommandDescription" xml:space="preserve">
+    <value>Disable DHCP of the specified network interface.</value>
+  </data>
+  <data name="DHCPDisabled" xml:space="preserve">
+    <value>DHCP has been disabled for '{0}'.</value>
+  </data>
+  <data name="DHCPEnableCommandDescription" xml:space="preserve">
+    <value>Enable DHCP of the specified network interface.</value>
+  </data>
+  <data name="DHCPEnabled" xml:space="preserve">
+    <value>DHCP has been enabled for '{0}'.</value>
+  </data>
+  <data name="DHCPIsDisabled" xml:space="preserve">
+    <value>DHCP is currently disabled for '{0}'.</value>
+  </data>
+  <data name="DHCPIsEnabled" xml:space="preserve">
+    <value>DHCP is currently enabled for '{0}'.</value>
+  </data>
+  <data name="DHCPLease" xml:space="preserve">
+    <value>DHCP Lease</value>
+  </data>
+  <data name="DHCPLeaseExpires" xml:space="preserve">
+    <value>Lease expires</value>
+  </data>
+  <data name="DHCPLeaseNotAvailable" xml:space="preserve">
+    <value>No DHCP lease information is available.</value>
+  </data>
+  <data name="DHCPLeaseObtained" xml:space="preserve">
+    <value>Lease obtained</value>
+  </data>
+  <data name="DHCPLeaseRenewed" xml:space="preserve">
+    <value>DHCP Lease renewed</value>
+  </data>
+  <data name="DHCPListCommandDescription" xml:space="preserve">
+    <value>List the DHCP enabled state of all available network interfaces.</value>
+  </data>
+  <data name="DHCPRenewLeaseCommandDescription" xml:space="preserve">
+    <value>Renew DHCP lease of the specified network interface.</value>
+  </data>
+  <data name="DHCPRenewLeaseCommandName" xml:space="preserve">
+    <value>renew-lease</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="Gateway" xml:space="preserve">
+    <value>Gateway</value>
+  </data>
+  <data name="GatewayAdded" xml:space="preserve">
+    <value>Gateway '{0}' has been added to network interface '{1}'.</value>
+  </data>
+  <data name="GatewayAlreadyDefined" xml:space="preserve">
+    <value>Gateway '{0}' is already defined.</value>
+  </data>
+  <data name="GatewayCommandDescription" xml:space="preserve">
+    <value>Configure the default gateway.</value>
+  </data>
+  <data name="GatewayCommandName" xml:space="preserve">
+    <value>gateway</value>
+  </data>
+  <data name="GatewayIsNotConfigured" xml:space="preserve">
+    <value>A default gateway is not configured.</value>
+  </data>
+  <data name="GatewayRemoveCommandDescription" xml:space="preserve">
+    <value>Remove the default gateway.</value>
+  </data>
+  <data name="GatewayRemoved" xml:space="preserve">
+    <value>Gateway '{0}' has been removed.</value>
+  </data>
+  <data name="GatewaySet" xml:space="preserve">
+    <value>Gateway '{0}' has been changed to '{1}' for network interface '{2}'.</value>
+  </data>
+  <data name="GatewaySetCommandDescription" xml:space="preserve">
+    <value>Remove the existing default gateway and set a new one. Only one default gateway can be specified.</value>
+  </data>
+  <data name="InterfaceAlreadyDisabled" xml:space="preserve">
+    <value>Network interface '{0}' is already disabled.</value>
+  </data>
+  <data name="InterfaceAlreadyEnabled" xml:space="preserve">
+    <value>Network interface '{0}' is already enabled.</value>
+  </data>
+  <data name="InterfaceDisabled" xml:space="preserve">
+    <value>Network interface '{0}' has been disabled.</value>
+  </data>
+  <data name="InterfaceEnabled" xml:space="preserve">
+    <value>Network interface '{0}' has been enabled.</value>
+  </data>
+  <data name="InterfaceHasDHCP" xml:space="preserve">
+    <value>Specified network interface has DHCP enabled. DNS addresses can not be configured.</value>
+  </data>
+  <data name="InterfaceIPAdded" xml:space="preserve">
+    <value>IP address '{0} ({1})' has been added to network interface '{2}'.</value>
+  </data>
+  <data name="InterfaceIPAlreadyDefined" xml:space="preserve">
+    <value>IP address '{0} ({1})' is already defined.</value>
+  </data>
+  <data name="InterfaceIPModified" xml:space="preserve">
+    <value>IP address and/or netmask of network interface '{0}' have been changed from '{1} ({2})' to '{3} ({4})'.</value>
+  </data>
+  <data name="InterfaceIPNotFound" xml:space="preserve">
+    <value>IP address '{0}' of network interface '{1}' was not found.</value>
+  </data>
+  <data name="InterfaceIPRemoved" xml:space="preserve">
+    <value>IP address '{0}' has been removed from the network interface '{1}'.</value>
+  </data>
+  <data name="InterfaceIPsNotSet" xml:space="preserve">
+    <value>No IP addresses specified for network interface '{0}'.</value>
+  </data>
+  <data name="InterfaceIsDisabled" xml:space="preserve">
+    <value>Network interface '{0}' is disabled.</value>
+  </data>
+  <data name="InterfaceIsEnabled" xml:space="preserve">
+    <value>Network interface '{0}' is enabled.</value>
+  </data>
+  <data name="InterfaceMACAlreadyDefined" xml:space="preserve">
+    <value>Physical address (MAC) '{0}' is already defined.</value>
+  </data>
+  <data name="InterfaceMACInvalidLength" xml:space="preserve">
+    <value>Physical address (MAC) '{0}' has invalid length.</value>
+  </data>
+  <data name="InterfaceMACSet" xml:space="preserve">
+    <value>Physical address (MAC) '{0}' has been changed to '{1}' for network interface '{2}'.</value>
+  </data>
+  <data name="InterfaceNotFound" xml:space="preserve">
+    <value>Network interface '{0}' was not found.</value>
+  </data>
+  <data name="Interfaces" xml:space="preserve">
+    <value>Interfaces</value>
+  </data>
+  <data name="InterfacesNotFound" xml:space="preserve">
+    <value>Network interfaces were not found.</value>
+  </data>
+  <data name="IPAddCommandDescription" xml:space="preserve">
+    <value>Add a new IPv4 address and netmask to the specified network interface.</value>
+  </data>
+  <data name="IPAddress" xml:space="preserve">
+    <value>IP address</value>
+  </data>
+  <data name="IPAddresses" xml:space="preserve">
+    <value>IP addresses</value>
+  </data>
+  <data name="IPAddressMustHave4Octets" xml:space="preserve">
+    <value>{0} must have exactly 4 octets, but found {1}.</value>
+  </data>
+  <data name="IPCommandDescription" xml:space="preserve">
+    <value>Configure IPv4 address and netmask of a specified network interface.</value>
+  </data>
+  <data name="IPCommandName" xml:space="preserve">
+    <value>ip</value>
+  </data>
+  <data name="IPModifyCommandDescription" xml:space="preserve">
+    <value>Modify the IPv4 address and/or netmask of the specified network interface.</value>
+  </data>
+  <data name="IPRemoveCommandDescription" xml:space="preserve">
+    <value>Remove the IPv4 address of the specified network interface.</value>
+  </data>
+  <data name="IPv4" xml:space="preserve">
+    <value>IPv4</value>
+  </data>
+  <data name="IPv4CommandDescription" xml:space="preserve">
+    <value>Configure IPv4 settings of a specified network interface.</value>
+  </data>
+  <data name="IPv4CommandName" xml:space="preserve">
+    <value>ipv4</value>
+  </data>
+  <data name="ListInterfacesCommandDescription" xml:space="preserve">
+    <value>List all network interfaces with their configuration.</value>
+  </data>
+  <data name="ListInterfacesCommandName" xml:space="preserve">
+    <value>list-interfaces</value>
+  </data>
+  <data name="NetworkInterfaceCommandDescription" xml:space="preserve">
+    <value>Configure a specified network interface.</value>
+  </data>
+  <data name="NetworkInterfaceCommandName" xml:space="preserve">
+    <value>interface</value>
+  </data>
+  <data name="NetworkInterfaceDisableCommandDescription" xml:space="preserve">
+    <value>Disable the specified network interface.</value>
+  </data>
+  <data name="NetworkInterfaceEnableCommandDescription" xml:space="preserve">
+    <value>Enable the specified network interface.</value>
+  </data>
+  <data name="NetworkInterfaceMACCommandDescription" xml:space="preserve">
+    <value>Get or set the MAC address of the specified network interface.</value>
+  </data>
+  <data name="NetworkInterfaceMACCommandName" xml:space="preserve">
+    <value>mac</value>
+  </data>
+  <data name="NetworkInterfaceStatusCommandDescription" xml:space="preserve">
+    <value>Show enabled status of the specified network interface.</value>
+  </data>
+  <data name="OriginalPhysicalAddress" xml:space="preserve">
+    <value>Original physical address</value>
+  </data>
+  <data name="PhysicalAddress" xml:space="preserve">
+    <value>Physical address</value>
+  </data>
+  <data name="SubnetMask" xml:space="preserve">
+    <value>Subnet mask</value>
+  </data>
+  <data name="Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="VLAN" xml:space="preserve">
+    <value>VLAN</value>
+  </data>
+  <data name="VLANAlreadyDisabled" xml:space="preserve">
+    <value>VLAN is already disabled for network interface '{0}'.</value>
+  </data>
+  <data name="VLANAlreadyEnabled" xml:space="preserve">
+    <value>VLAN is already enabled for network interface '{0}'.</value>
+  </data>
+  <data name="VLANCommandDescription" xml:space="preserve">
+    <value>Configure VLAN settings of a specified network interface.</value>
+  </data>
+  <data name="VLANCommandName" xml:space="preserve">
+    <value>vlan</value>
+  </data>
+  <data name="VLANCurrentlyDisabled" xml:space="preserve">
+    <value>VLAN is currently disabled for network interface '{0}'.</value>
+  </data>
+  <data name="VLANDisableCommandDescription" xml:space="preserve">
+    <value>Disable VLAN for the specified network interface.</value>
+  </data>
+  <data name="VLANDisabled" xml:space="preserve">
+    <value>VLAN has been disabled for network interface '{0}'.</value>
+  </data>
+  <data name="VLANEnableCommandDescription" xml:space="preserve">
+    <value>Enable VLAN for the specified network interface (assuming a valid VLAN-ID is configured).</value>
+  </data>
+  <data name="VLANEnabled" xml:space="preserve">
+    <value>VLAN has been enabled for network interface '{0}'.</value>
+  </data>
+  <data name="VLANID" xml:space="preserve">
+    <value>VLAN ID</value>
+  </data>
+  <data name="VLANIDAdded" xml:space="preserve">
+    <value>VLAN ID '{0}' has been added to network interface '{1}'.</value>
+  </data>
+  <data name="VLANIDRemoved" xml:space="preserve">
+    <value>VLAN ID '{0}' has been removed from network interface '{1}'.</value>
+  </data>
+  <data name="VLANIDSet" xml:space="preserve">
+    <value>VLAN ID '{0}' has been changed to '{1}' for network interface '{2}'.</value>
+  </data>
+  <data name="VLANListCommandDescription" xml:space="preserve">
+    <value>List the existing VLAN configuration of all available network interfaces.</value>
+  </data>
+  <data name="VLANNotConfigured" xml:space="preserve">
+    <value>VLAN is not configured for network interface '{0}'.</value>
+  </data>
+  <data name="VLANRemoveCommandDescription" xml:space="preserve">
+    <value>Remove the existing VLAN ID and disable VLAN of the specified network interface.</value>
+  </data>
+  <data name="VLANSetCommandDescription" xml:space="preserve">
+    <value>Remove the existing VLAN ID and set a new one to the specified network interface.</value>
+  </data>
+</root>

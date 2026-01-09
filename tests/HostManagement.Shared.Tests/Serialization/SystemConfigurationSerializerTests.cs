@@ -1,0 +1,449 @@
+﻿using System.Net;
+using System.Text;
+using System.Text.Json;
+using AwesomeAssertions;
+using Xunit;
+using HostManagement.Shared.Contracts;
+using HostManagement.Shared.Enums;
+using HostManagement.Shared.Serialization;
+
+namespace HostManagement.Shared.Tests.Serialization;
+
+public class SystemConfigurationSerializerTests
+{
+    private static readonly IPAddress s_ipAddress = IPAddress.Parse("120.86.52.18");
+    private static readonly SystemConfiguration s_sampleSystemConfiguration = new()
+    {
+        Version = 1,
+        NetworkInterfacesSettings = new()
+        {
+            NetworkInterfaces =
+            [
+                new()
+                {
+                    CommonInformation = new()
+                    {
+                        Enabled = true,
+                        Name = "lan1",
+                        PhysicalAddress = "01:23:45:67:89:AB"
+                    },
+                    IPv4 = new()
+                    {
+                        Gateway = s_ipAddress,
+                        DHCPEnabled = true,
+                        DHCPLease = new()
+                        {
+                            LeaseObtained = new DateTimeOffset(2025, 06, 23, 12, 34, 56, TimeSpan.FromHours(2)),
+                            LeaseExpires = new DateTimeOffset(2025, 06, 30, 12, 34, 56, TimeSpan.FromHours(2)),
+                            Gateway = s_ipAddress,
+                            NetworkDNSSettings = new()
+                            {
+                                Hostname = "hostname",
+                                MulticastDNSEnabled = true,
+                                StaticHostsEnabled = true,
+                                StaticHosts =
+                                [
+                                    new()
+                                    {
+                                        Hostname = "statichost",
+                                        IPAddress = s_ipAddress
+                                    },
+                                ],
+                                NameServersEnabled = true,
+                                NameServers = [s_ipAddress],
+                                DNSSuffixEnabled = true,
+                                DNSSuffix = "dnsSuffix",
+                                SearchDomainsEnabled = true,
+                                SearchDomains = ["searchDomain"]
+                            },
+                            IPv4Detail = new()
+                            {
+                                IPAddress = s_ipAddress,
+                                Netmask = s_ipAddress
+                            }
+                        },
+                        IPv4Details =
+                        [
+                            new()
+                            {
+                                IPAddress = s_ipAddress,
+                                Netmask = s_ipAddress,
+                            }
+                        ],
+                        VLANEnabled = true,
+                        VLANID = 1,
+                    },
+                },
+            ],
+        },
+        NetworkDNSSettings = new()
+        {
+            Hostname = "hostname",
+            MulticastDNSEnabled = true,
+            StaticHostsEnabled = true,
+            StaticHosts =
+            [
+                new()
+                {
+                    Hostname = "statichost",
+                    IPAddress = s_ipAddress,
+                },
+            ],
+            NameServersEnabled = true,
+            NameServers = [s_ipAddress],
+            DNSSuffixEnabled = true,
+            DNSSuffix = "dnsSuffix",
+            SearchDomainsEnabled = true,
+            SearchDomains = ["searchDomain"]
+        },
+        NetworkProxySettings = new()
+        {
+            HTTP = new()
+            {
+                Enabled = true,
+                Password = "httpPassword",
+                Port = 80,
+                Server = "httpServer",
+                Username = "httpUser",
+            },
+            HTTPS = new()
+            {
+                Enabled = true,
+                Password = "httpsPassword",
+                Port = 443,
+                Server = "httpsServer",
+                Username = "httpsUser",
+            },
+            FTP = new()
+            {
+                Enabled = true,
+                Password = "ftpPassword",
+                Port = 21,
+                Server = "ftpServer",
+                Username = "ftpUser",
+            },
+            SFTP = new()
+            {
+                Enabled = true,
+                Password = "sftpPassword",
+                Port = 22,
+                Server = "sftpServer",
+                Username = "sftpUser",
+            },
+            SOCKS = new()
+            {
+                Enabled = true,
+                Password = "socksPassword",
+                Port = 1080,
+                Server = "socksServer",
+                Username = "socksUser",
+            },
+            DoNotProxyListEnabled = true,
+            DoNotProxyList = ["InternalProxy"]
+        },
+        NetworkNTPSettings = new()
+        {
+            FallbackNTPServers = ["fallbackNTPServer"],
+            NTPServersEnabled = true,
+            NTPServers = ["NTPServer"],
+        },
+        Services =
+        [
+            new()
+            {
+                Name = "TestService",
+                State = ServiceState.Enabled,
+            },
+        ]
+    };
+
+    private static readonly string s_sampleNonIndentedSystemConfigurationJson =
+        GetSampleNonIndentedSystemConfigurationJson();
+
+    private static string GetSampleNonIndentedSystemConfigurationJson()
+    {
+        var sampleJsonWithIndentation =
+        """
+        {
+          "Version": 1,
+          "NetworkInterfacesSettings": {
+            "NetworkInterfaces": [
+              {
+                "CommonInformation": {
+                  "Enabled": true,
+                  "Name": "lan1",
+                  "PhysicalAddress": "01:23:45:67:89:AB"
+                },
+                "IPv4": {
+                  "Gateway": "120.86.52.18",
+                  "DHCPEnabled": true,
+                  "DHCPLease": {
+                    "LeaseObtained": "2025-06-23T12:34:56+02:00",
+                    "LeaseExpires": "2025-06-30T12:34:56+02:00",
+                    "Gateway": "120.86.52.18",
+                    "NetworkDNSSettings": {
+                      "Hostname": "hostname",
+                      "MulticastDNSEnabled": true,
+                      "StaticHostsEnabled": true,
+                      "StaticHosts": [
+                        {
+                          "IPAddress": "120.86.52.18",
+                          "Hostname": "statichost"
+                        }
+                      ],
+                      "NameServersEnabled": true,
+                      "NameServers": [
+                        "120.86.52.18"
+                      ],
+                      "DNSSuffixEnabled": true,
+                      "DNSSuffix": "dnsSuffix",
+                      "SearchDomainsEnabled": true,
+                      "SearchDomains": [
+                        "searchDomain"
+                      ]
+                    },
+                    "IPv4Detail": {
+                      "IPAddress": "120.86.52.18",
+                      "Netmask": "120.86.52.18"
+                    }
+                  },
+                  "IPv4Details": [
+                    {
+                      "IPAddress": "120.86.52.18",
+                      "Netmask": "120.86.52.18"
+                    }
+                  ],
+                  "VLANEnabled": true,
+                  "VLANID": 1
+                }
+              }
+            ]
+          },
+          "NetworkDNSSettings": {
+            "Hostname": "hostname",
+            "MulticastDNSEnabled": true,
+            "StaticHostsEnabled": true,
+            "StaticHosts": [
+              {
+                "IPAddress": "120.86.52.18",
+                "Hostname": "statichost"
+              }
+            ],
+            "NameServersEnabled": true,
+            "NameServers": [
+              "120.86.52.18"
+            ],
+            "DNSSuffixEnabled": true,
+            "DNSSuffix": "dnsSuffix",
+            "SearchDomainsEnabled": true,
+            "SearchDomains": [
+              "searchDomain"
+            ]
+          },
+          "NetworkProxySettings": {
+            "FTP": {
+              "Enabled": true,
+              "Server": "ftpServer",
+              "Port": 21,
+              "Username": "ftpUser",
+              "Password": "ftpPassword"
+            },
+            "HTTP": {
+              "Enabled": true,
+              "Server": "httpServer",
+              "Port": 80,
+              "Username": "httpUser",
+              "Password": "httpPassword"
+            },
+            "HTTPS": {
+              "Enabled": true,
+              "Server": "httpsServer",
+              "Port": 443,
+              "Username": "httpsUser",
+              "Password": "httpsPassword"
+            },
+            "SFTP": {
+              "Enabled": true,
+              "Server": "sftpServer",
+              "Port": 22,
+              "Username": "sftpUser",
+              "Password": "sftpPassword"
+            },
+            "SOCKS": {
+              "Enabled": true,
+              "Server": "socksServer",
+              "Port": 1080,
+              "Username": "socksUser",
+              "Password": "socksPassword"
+            },
+            "DoNotProxyListEnabled": true,
+            "DoNotProxyList": [
+              "InternalProxy"
+            ]
+          },
+          "NetworkNTPSettings": {
+            "FallbackNTPServers": [
+              "fallbackNTPServer"
+            ],
+            "NTPServersEnabled": true,
+            "NTPServers": [
+              "NTPServer"
+            ]
+          },
+          "Services": [
+            {
+              "Name": "TestService",
+              "State": "Enabled"
+            }
+          ]
+        }
+        """;
+
+        // Serialize JSON again to ensure it matches the expected format (non-indented).
+        using var doc = JsonDocument.Parse(sampleJsonWithIndentation);
+        return JsonSerializer.Serialize(doc.RootElement);
+    }
+
+    public class Deserialize
+    {
+        [Fact]
+        public void ShouldThrow_WhenJsonContainsLiteralNull()
+        {
+            // Arrange
+            var literalNullJson = "null";
+
+            // Act
+            var result = () => SystemConfigurationSerializer.Deserialize(literalNullJson);
+
+            // Assert
+            result.Should()
+                .Throw<InvalidOperationException>()
+                .WithMessage(
+                    "JSON string could not be deserialized to 'SystemConfiguration'." +
+                    Environment.NewLine +
+                    $"JSON string was: '{literalNullJson}'");
+        }
+
+        [Fact]
+        public void ShouldReturnSystemConfiguration_WhenJsonValid()
+        {
+            // Act
+            var result = SystemConfigurationSerializer.Deserialize(s_sampleNonIndentedSystemConfigurationJson);
+
+            // Assert
+            result.Should().BeOfType<SystemConfiguration>();
+        }
+    }
+
+    public class DeserializeAsync
+    {
+        [Fact]
+        public void ShouldThrow_WhenJsonContainsLiteralNull()
+        {
+            // Arrange
+            var literalNullJson = "null";
+
+            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(literalNullJson));
+            stream.Position = 0;
+
+            // Act
+            var result = async () => await SystemConfigurationSerializer.DeserializeAsync(stream);
+
+            // Assert
+            result.Should()
+                .ThrowAsync<InvalidOperationException>()
+                .WithMessage("UTF-8 JSON stream could not be deserialized to 'SystemConfiguration'.");
+        }
+
+        [Fact]
+        public async Task ShouldReturnSystemConfiguration_WhenJsonValid()
+        {
+            // Arrange
+            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(s_sampleNonIndentedSystemConfigurationJson));
+            stream.Position = 0;
+
+            // Act
+            var result = await SystemConfigurationSerializer.DeserializeAsync(stream);
+
+            // Assert
+            result.Should().BeOfType<SystemConfiguration>();
+        }
+    }
+
+    public class Serialize
+    {
+        [Fact]
+        public void ShouldSerializeSystemConfiguration_WhenCalled()
+        {
+            // Act
+            var result = SystemConfigurationSerializer.Serialize(s_sampleSystemConfiguration);
+
+            // Assert
+            result.Should().Be(s_sampleNonIndentedSystemConfigurationJson);
+        }
+    }
+
+    public class SerializeAsync
+    {
+        [Fact]
+        public async Task ShouldSerializeSystemConfiguration_WhenCalled()
+        {
+            // Arrange
+            using var stream = new MemoryStream();
+
+            // Act
+            await SystemConfigurationSerializer.SerializeAsync(stream, s_sampleSystemConfiguration);
+
+            var result = Encoding.UTF8.GetString(stream.ToArray());
+
+            // Assert
+            result.Should().Be(s_sampleNonIndentedSystemConfigurationJson);
+        }
+    }
+
+    public class DeserializeObsolete
+    {
+        [Fact]
+        public void ShouldThrow_WhenJsonContainsLiteralNull()
+        {
+            // Act
+            var literalNullJson = "null";
+
+            var result = async () => await SystemConfigurationSerializer
+                .Deserialize(literalNullJson, new CancellationToken());
+
+            // Assert
+            result.Should()
+                .ThrowAsync<InvalidOperationException>()
+                .WithMessage(
+                    "JSON string could not be deserialized to 'SystemConfiguration'." +
+                    Environment.NewLine +
+                    $"JSON string was: '{literalNullJson}'");
+        }
+
+        [Fact]
+        public async Task ShouldReturnSystemConfiguration_WhenJsonValid()
+        {
+            // Act
+            var result = await SystemConfigurationSerializer
+                .Deserialize(s_sampleNonIndentedSystemConfigurationJson, new CancellationToken());
+
+            // Assert
+            result.Should().BeOfType<SystemConfiguration>();
+        }
+    }
+
+    public class SerializeObsolete
+    {
+        [Fact]
+        public async Task ShouldSerializeSystemConfiguration_WhenCalled()
+        {
+            // Act
+            var result = await SystemConfigurationSerializer
+                .Serialize(s_sampleSystemConfiguration, new CancellationToken());
+
+            // Assert
+            result.Should().Be(s_sampleNonIndentedSystemConfigurationJson);
+        }
+    }
+}

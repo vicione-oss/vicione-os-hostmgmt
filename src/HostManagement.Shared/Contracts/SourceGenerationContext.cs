@@ -1,0 +1,18 @@
+﻿using System.Text.Json.Serialization;
+using HostManagement.Shared.Contracts.NetworkStatus;
+using HostManagement.Shared.Contracts.System;
+
+namespace HostManagement.Shared.Contracts;
+
+/// <summary>
+/// Represents the <see cref="SourceGenerationContext"/>.
+/// </summary>
+[JsonSourceGenerationOptions(
+    RespectNullableAnnotations = true,
+    RespectRequiredConstructorParameters = true,
+    UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
+    UseStringEnumConverter = true)]
+[JsonSerializable(typeof(SystemConfiguration))]
+[JsonSerializable(typeof(NetworkStatusInformation))]
+[JsonSerializable(typeof(SignedDebianPackage))]
+public partial class SourceGenerationContext : JsonSerializerContext;

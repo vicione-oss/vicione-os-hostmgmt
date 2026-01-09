@@ -1,0 +1,201 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="GatewayCanNotBeBroadcast" xml:space="preserve">
+    <value>Gateway of {0} can not be a broadcast address ('{1}').</value>
+  </data>
+  <data name="GatewayCanNotBeLoopback" xml:space="preserve">
+    <value>Gateway of {0} can not be a loopback address ('{1}').</value>
+  </data>
+  <data name="GatewayCanNotBeMulticast" xml:space="preserve">
+    <value>Gateway of {0} can not be a multicast address ('{1}').</value>
+  </data>
+  <data name="GatewayCanNotBeNotRoutable" xml:space="preserve">
+    <value>Gateway of {0} can not be the non-routable address ('{1}').</value>
+  </data>
+  <data name="GatewayCanNotBeSubnetBroadcastAddress" xml:space="preserve">
+    <value>Gateway of network interface '{0}' can not be the broadcast address of the subnet ('{1}').</value>
+  </data>
+  <data name="GatewayCanNotBeSubnetNetworkAddress" xml:space="preserve">
+    <value>Gateway of network interface '{0}' can not be the network address of the subnet ('{1}').</value>
+  </data>
+  <data name="GatewayIdenticalWithIP" xml:space="preserve">
+    <value>Gateway of network interface '{0}' can not be identical to the IP address.</value>
+  </data>
+  <data name="GatewayInDifferentSubnet" xml:space="preserve">
+    <value>Gateway of network interface '{0}' can not be in a different subnet. Expected '{1}' but got '{2}'.</value>
+  </data>
+  <data name="InterfaceHasNoIPAddresses" xml:space="preserve">
+    <value>Network interface '{0}' has no IP addresses specified although DHCP is disabled.</value>
+  </data>
+  <data name="IPAddressIsNoValidIPv4Address" xml:space="preserve">
+    <value>IP address '{0}' of {1} is no valid IPv4 address.</value>
+  </data>
+  <data name="InterfaceNonUniqueGateway" xml:space="preserve">
+    <value>Network interfaces can not have multiple default gateways. Affected interfaces are: {0}.</value>
+  </data>
+  <data name="InterfacesHaveConflictingIPs" xml:space="preserve">
+    <value>Network interfaces have conflicting IP addresses with the default gateway '{0}'. Affected interfaces are: {1}.</value>
+  </data>
+  <data name="InterfacesHaveDuplicateIPs" xml:space="preserve">
+    <value>Network interfaces have duplicate IP addresses. Affected IP addresses are: {0}.</value>
+  </data>
+  <data name="InterfacesHaveDuplicateMACs" xml:space="preserve">
+    <value>Network interfaces have duplicate MAC addresses. Affected MAC addresses are: {0}.</value>
+  </data>
+  <data name="InterfacesHaveDuplicateNames" xml:space="preserve">
+    <value>Network interfaces have duplicate names. Affected interfaces are: {0}.</value>
+  </data>
+  <data name="InterfacesHaveDuplicateVLANID" xml:space="preserve">
+    <value>Network interfaces have duplicate VLAN IDs. Affected interfaces are: {0}.</value>
+  </data>
+  <data name="InterfaceVLANIDInvalid" xml:space="preserve">
+    <value>VLAN ID '{0}' of {1} is invalid (expected 1 to 4094).</value>
+  </data>
+  <data name="LoopbackInterfaceCanNotBeSpecified" xml:space="preserve">
+    <value>Loopback interface can not be specified.</value>
+  </data>
+  <data name="MACAddressCanNotBeMulticast" xml:space="preserve">
+    <value>MAC address '{0}' of {1} can not be a multicast address, expected first octet to be 'X0', 'X2', 'X4', 'X6', 'X8', 'XA', 'XC' or 'XE' (where X is 0-9, a-f, A-F).</value>
+  </data>
+  <data name="MACAddressEmpty" xml:space="preserve">
+    <value>MAC address of {0} can not be empty or whitespace.</value>
+  </data>
+  <data name="MACAddressInvalidCharacter" xml:space="preserve">
+    <value>MAC address '{0}' of {1} has an invalid character (expected 0-9, a-f, A-F).</value>
+  </data>
+  <data name="MACAddressInvalidLength" xml:space="preserve">
+    <value>MAC address '{0}' of {1} has invalid length (expected 12).</value>
+  </data>
+  <data name="MACAddressInvalidOctetCount" xml:space="preserve">
+    <value>MAC address '{0}' of {1} has an invalid octet count (expected 6).</value>
+  </data>
+  <data name="MACAddressOctetInvalidLength" xml:space="preserve">
+    <value>MAC address '{0}' of {1} has an octet with invalid length (expected 2).</value>
+  </data>
+  <data name="NetmaskInvalid" xml:space="preserve">
+    <value>Netmask '{0}' of {1} is invalid (expected contiguous 1-bits at the top, e.g. '255.255.255.0', '255.255.255.128', '128.0.0.0' etc.).</value>
+  </data>
+  <data name="NetmaskRangeInvalid" xml:space="preserve">
+    <value>Netmask '{0}' of {1} defines a subnet that does not include the host IP '{2}' (available hosts: {3}).</value>
+  </data>
+  <data name="NoNetworkInterfaces" xml:space="preserve">
+    <value>No network interfaces specified.</value>
+  </data>
+</root>

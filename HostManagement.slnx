@@ -1,0 +1,33 @@
+<Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/PipeCommunicationSample/PipeCommunicationSample.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitlab-ci.yml" />
+    <File Path="CHANGELOG.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="NuGet.Config" />
+    <File Path="README.md" />
+    <File Path="THIRD-PARTY-NOTICES.md" />
+    <File Path="VERSION" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/HostManagement.Common/HostManagement.Common.csproj" />
+    <Project Path="src/HostManagement.Configuration/HostManagement.Configuration.csproj" />
+    <Project Path="src/HostManagement.Scripts/HostManagement.Scripts.csproj" />
+    <Project Path="src/HostManagement.Shared.Communication.SourceGeneration/HostManagement.Shared.Communication.SourceGeneration.csproj" />
+    <Project Path="src/HostManagement.Shared.Communication/HostManagement.Shared.Communication.csproj" />
+    <Project Path="src/HostManagement.Shared/HostManagement.Shared.csproj" />
+    <Project Path="src/HostManagement/HostManagement.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/HostManagement.Common.Tests/HostManagement.Common.Tests.csproj" />
+    <Project Path="tests/HostManagement.Configuration.Tests/HostManagement.Configuration.Tests.csproj" />
+    <Project Path="tests/HostManagement.Scripts.Tests/HostManagement.Scripts.Tests.csproj" />
+    <Project Path="tests/HostManagement.Shared.Communication.Tests/HostManagement.Shared.Communication.Tests.csproj" />
+    <Project Path="tests/HostManagement.Shared.Tests/HostManagement.Shared.Tests.csproj" />
+    <Project Path="tests/HostManagement.Tests/HostManagement.Tests.csproj" />
+  </Folder>
+</Solution>
