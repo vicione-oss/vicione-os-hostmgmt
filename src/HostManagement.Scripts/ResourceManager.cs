@@ -1,6 +1,7 @@
 ﻿using System.IO.Abstractions;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using HostManagement.Scripts.Enums;
 using HostManagement.Scripts.Extensions;
 
 namespace HostManagement.Scripts;
@@ -354,6 +355,9 @@ public sealed partial class ResourceManager
 
     private void DeployScript(ResourceInformation resourceInfo)
     {
+        if (resourceInfo.Name.Equals(ScriptIdentifier.UnitTesting.ToString()))
+            return;
+
         if (!_fileSystem.Directory.Exists(resourceInfo.DeployDirectoryStructure))
         {
             _ = _fileSystem.Directory.CreateDirectory(resourceInfo.DeployDirectoryStructure);

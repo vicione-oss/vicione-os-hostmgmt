@@ -205,4 +205,11 @@ public enum ScriptIdentifier
     /// </summary>
     InstallDebianPackage,
     #endregion
+
+    #region Test
+    /// <summary>
+    /// For unit testing purposes only.
+    /// </summary>
+    UnitTesting
+    #endregion
 }
