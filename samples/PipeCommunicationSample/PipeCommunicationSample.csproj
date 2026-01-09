@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\HostManagement.Shared.Communication\HostManagement.Shared.Communication.csproj" />
+    <ProjectReference Include="..\..\src\HostManagement.Shared\HostManagement.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

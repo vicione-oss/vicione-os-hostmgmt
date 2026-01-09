@@ -1,0 +1,379 @@
+# Changelog
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.10.0] - [Unreleased]
+
+### Added
+
+- Added a 'set-config' flag (file) to determine after first boot (HM started via `--prepare-system-configuration` flag) if the service (HM started via `--daemon` flag) needs to set the configuration
+- Added version information to system configuration
+- Added `restart system` functionality
+- Added `reset system` functionality
+- Added internal validation for service configuration (relevant for persistence of config in `SystemConfiguration.json`)
+  - Only **non-wildcard** services from `HOSTMANAGEMENT__CONFIGURABLE_SERVICES` are valid
+- Added `ServiceControlResult` (replaced `RestartServiceResult`)
+- Added start/stop service functionality for all services in `HOSTMANAGEMENT__CONFIGURABLE_SERVICES`
+
+### Changed
+
+- Updated .NET SDK to version `9.0.300`
+- Bypassed setting service states at boot time (HM started via `--prepare-system-configuration`)
+- Changed MAC address validation to allow "unconfigured" but disallows setting it
+- Disallowed setting proxy detail that is "unconfigured"
+- Removed read-only information from system configuration before saving it in `SystemConfiguration.json`
+- Changed persisting of system configuration only on user triggered requests
+- Restricts restart of service to defined services in `HOSTMANAGEMENT__CONFIGURABLE_SERVICES`
+- Changed simple status information of network interface to real status information
+
+### Removed
+
+- Removed loading `SystemConfiguration.json` when get config called
+- Removed persisting config after get config called
+- Removed functionality to create `SystemConfiguration.json` on startup (with configurable delay in seconds)
+- Removed now obsolete `--apply-now`-option to `set_service.sh`
+- Removed need to implement `PrepareConfiguration` if not needed
+- Removed `RestartServiceResult` (uses now `ServiceControlResult`)
+
+## [0.9.0] - 2025-04-30
+
+### Added
+
+- Added functionality to set permissions and ownership of the named pipe via environment variables
+  - `HOSTMANAGEMENT__PIPE__USER`
+  - `HOSTMANAGEMENT__PIPE__GROUP`
+  - `HOSTMANAGEMENT__PIPE__CHMOD`
+- Added validation for search domains and combined hostname and DNS suffix length
+- Added validation for no-proxy list
+- Added unit test for `ScriptOptions`
+- Added extension method for `SystemConfiguration` to get interface by name
+- Added `CliMessageHelper` which provides console messages that are used multiple times (e.g. network interface not found)
+- Added functionality to set network interface ignore list (blacklist) via environment variable `HOSTMANAGEMENT__IGNORED_NETWORK_INTERFACES`
+- Added new CLI output handling
+  - Added various output types like list, key-value or table output
+  - Added consistent formatting (configurable in `CliOutputBase.Configuration`)
+- Added some CLI messages where they were missing (e.g. feature already enabled/disabled or feature not configured)
+- Added `--apply-now`-option to `set_service.sh`, allowing the desired service state to be applied immediately or after restart of the system
+- Added flag and functionality to skip apply (`--prepare-system-configuration`)
+- Added handling of a 'DefaultSystemConfiguration.json' (in the context of prepare configuration)
+- Added functionality to bypass script validation functions via environment variable `HOSTMANAGEMENT__BYPASS_VALIDATION_CHECKS`
+
+### Changed
+
+- Changed default permissions of named pipe (from `rwxr-xr-x` to `rw-rw-r--`)
+- Changed default ownership of named pipe (from `root:root` to `vicione-suite:vicione-suite`)
+- Updated .NET SDK to version `9.0.203`
+- Improved configuration and handling of services enable, disable and restart functionality
+- Improved validation for hostname, static hosts, name servers and DNS suffix
+- Refactored `ScriptOptions`
+- Improved CLI messages for various commands
+- Improved `SystemConfigurationManager` and renamed it to `SystemConfigurationService`
+- Improved service handling
+  - Service state is `Enabled` if `is-active` and `is-enabled` to prevent misinterpretation if service is active but not enabled
+  - Changing services states will check and apply `is-active` and `is-enabled` separately
+- Changed CLI output to use new CLI output handling
+  - Changed `ConsoleLogger` to be able to use long log level strings for console output (e.g. "WARNING" instead of "WRN"; short log levels are still the default)
+  - Changed coloring of warnings/errors etc. to only color the word and not the whole message
+  - Moved CLI strings from command handler methods to resources
+- Switched from load/apply configuration to get/set configuration
+- Improved Get/Set result creation with new static methods
+- Improved the validation of VLAN settings so that duplicate IDs across network interfaces are detected as errors
+- Improved script code
+- Separated set configuration into prepare/apply steps
+- Refactored and improved code of system config adapters
+- Refactored `Program.cs` (CLI logic now in `CommandLineRunner` and service logic in `ServiceRunner`)
+- Refactored `ApplicationPaths` and `EnvironmentVariables`
+- Bypassed setting MAC address at boot time
+
+### Removed
+
+- Removed obsolete `CommandLineStringBuilder` (functionality now in `CliComplexOutputBase` and `CliOutputBase`)
+- Removed obsolete `CliMessageHelper`
+- Removed obsolete method `ApplyLastSavedConfiguration`
+
+### Fixed
+
+- Fixed dns information getter script
+- Fixed logging in `FileSystemWrapper`
+- Fixed not saving json on warning in `SystemConfigurationService`
+- Fixed outdated xml comments in `SystemConfigurationService`
+- Fixed network base information
+- Fixed empty NTP result list
+- Fixed validation error for VLAN ID 0 when VLAN disabled
+
+## [0.8.0] - 2025-03-03
+
+### Added
+
+- Added validation for DNS suffix
+- Added IP address validation logic to cli commands (ip's must have 4 octets)
+- Added MAC address interface settings
+- Added functionality to create `SystemConfiguration.json` on startup (with configurable delay in seconds)
+- Added MAC address CLI command, handling and validation
+- Added functionality to renew DHCP lease of a specified network interface
+- Added revert config functionality if apply config failed
+- Added `restart Linux services` functionality
+- Added `RespectNullableAnnotations` attribute to `Shared.Communication.SourceGenerationContext` to prevent setting null to non-nullable properties
+
+### Changed
+
+- Improved `ScriptResponse`
+- Updated NuGet packages
+  - `FluentAssertions` from `6.12.2` to `7.1.0` (fixed due to license changes)
+  - `xunit` from `2.9.2` to `2.9.3`
+  - `xunit.runner.visualstudio` from `2.8.2` to `3.0.1`
+  - `coverlet.collector` from `6.0.2` to `6.0.4`
+  - `Microsoft.Extensions.Configuration.EnvironmentVariables` from `9.0.0` to `9.0.1`
+  - `Microsoft.Extensions.Configuration.EnvironmentVariables.Abstractions` from `9.0.0` to `9.0.1`
+  - `TestableIO.System.IO.Abstractions` from `21.1.3` to `21.3.1`
+  - `TestableIO.System.IO.Abstractions.Wrappers` from `21.1.3` to `21.3.1`
+- Improved error messages in scripts showing exit code of called 3rd-party tools.
+- Improved DNS suffix commands and messages
+- Improved DHCP CLI commands
+- Uses `OperationResult` base type and implemented ordering
+- Improved CLI commands
+- Switched getting network status information to individual interfaces
+- Updated .NET SDK to version `9.0.200`
+- Improved `NetworkInterfaceCommandGroupProvider`
+  - Added enable/disable commands instead of "-e" option
+  - Added status command
+- Improved performance for configuration getter scripts
+- Improved format of `InvalidOperationException` in `SourceGeneratedTypeSerializer`
+- Improved JSON compatibility using `JsonConstructor` instead of `JsonRequired` attribute (lists can now be left out in JSON and are still initialized in code)
+
+### Removed
+
+- Removed redundant `JsonRequired` attribute for name and state in `ServiceDetail`
+
+### Fixed
+
+- Fixed DHCP enabled behaviour
+  - Removed validation for cases where DHCP gets enabled and manually configured IPv4 details were previously configured (IPv4 details are still only applied when DHCP is disabled)
+  - Removed clearing of IPv4 details when DHCP gets enabled (preserving manually configured IPv4 details in `SystemConfiguration.json`)
+- Fixed typo in CLI VLAN disabled message
+- Fixed validation not preventing conflicts between IP addresses specified for network interfaces and the default gateway
+- Fixed missing interface name in CLI interface status command
+- Fixed not using correct type name for `InvalidOperationException` in `SourceGeneratedTypeSerializer`
+
+## [0.7.0] - 2025-01-31
+
+### Added
+
+- Added check for invalid environment variables at startup
+- Added `NameServersEnabled` functionality
+- Added separate script to restart `systemd-timesyncd` (NTP service)
+- Added new overloads to `ScriptOptions` to work with `IPAddress`
+- Added `static hosts` functionality
+- Added `get network status information` functionality
+- Added `VLAN` interface settings functionality
+- Added `enable and disable Linux services` functionality
+- Added `MulticastDNSEnabled` functionality
+
+### Changed
+
+- Changed ViciOne Suite package version comparison to use new type `DebianPackageVersion` instead of .NET `Version` type
+- Suppresses warning on install ViciOne Suite via apt
+- Changed DHCP lease information to use `DateTimeOffset` instead of `DateTime`
+- Updated .NET SDK to version `9.0.102`
+- Aligned CLI "items" command order with other commands
+  - resulting order: 'add', 'remove', 'set', 'clear', 'modify', 'list'
+  - 'enable' and 'disable' are sorted before those commands
+- Moved `ConfigurationHelper` to namespace `Helper` and renamed it to `NamedPipeRequestHelper`
+- Renamed `CommonStrings` to `CommandLineStrings`
+- Improved error message if getting ViciOne versions failed
+- Improved persistence of network interfaces state
+- Improved script 'wait_for_service.sh'
+- Improved install scripts for .deb-files
+- Changed applying network settings from restarting `systemd-networkd` service to calling `netplan apply` instead
+- Improved result message format when a script has warnings or errors
+- Moved `GetSequenceHashCode` method to new `IEnumerableExtensions` class
+- Changed `GetHashCode` method to support more than 8 properties
+- Changed scripts for getting DNS settings and DHCP lease information
+- Refactored FQDN validation
+- Improved hostname validation
+- Improved gateway CLI commands to allow setting default gateway to a specific interface
+- Hides `install-pre-release` CLI command
+
+### Fixed
+
+- Fixed errors occurring if virtual network interfaces configured on target
+  - Network interface state detection failed for states different than `UP`, `LOWERLAYERUP`, `DOWN` and `LOWERLAYERDOWN`
+  - Physical network address detection failed
+  - DHCP enabled state detection failed
+- Fixed non-optional constructor parameters set to null during deserialization, when not present or set to null in json
+- Fixed equality comparison of `IPv4Settings` contract
+- Fixed gateway validation logic to allow a single default gateway even if some interfaces have DHCP enabled
+
+## [0.6.0] - 2024-12-13
+
+### Added
+
+- Added compatibility warning to netplan yaml file
+- Regard console lifetime when running as service
+
+### Changed
+
+- Simplified `ScriptRunner` by removing the ultimate timeout
+- Improved exception handling and logging for named pipe requests
+- Improved exception logging for file system operations
+- Updated target framework to .NET 9
+- Changed assembly name from `HostManagement` to `hostmanagement`
+- Improved script response exception handling
+
+### Fixed
+
+- Disabled auto apply of system configuration on start up (temporary hotfix)
+- Disabled call to persist network interface state via a service-file (temporary hotfix)
+
+## [0.5.0] - 2024-11-18
+
+### Added
+
+- Added DHCP lease obtained and expires output to CLI
+- Added `CommandLineStringBuilder` to help format CLI output
+- Added extended DHCP lease information
+- Added `DateTimeConverter` for `DateTime` JSON deserialization
+- Added possibility to extract CLI help
+- Added possibility to apply a `SystemConfiguration.json` on service startup
+
+### Changed
+
+- Refactored CLI `ListNetworkInterfacesCommandGroupProvider`
+- Added required option `--daemon` to start as service (if not given, CLI will print help)
+- Updated .NET SDK to version `8.0.404`
+- Adjusted pre-release version handling to new format (`0.21.0~1428429` instead of `0.21.0.1428429`)
+- Changed `DateTimeConverter` to use UTC time
+- Adjusted pre-release version handling of installed suite version
+
+### Removed
+
+- Removed option (`--bypass`) to bypass named pipe communication by direct API call between CLI and daemon
+
+### Fixed
+
+- Fixed a problem with virtual network names
+- Fixed a problem with multiple DNS addresses in a DHCP lease
+- Fixed a problem with multiple domain names in a DHCP lease
+- Fixed a problem with time stamps in a DHCP lease
+
+## [0.4.0] - 2024-10-24
+
+### Added
+
+- Added NTP scripts
+- Added colored output to `ConsoleLogger`
+- Added ability to read environment variables such as log level
+- Added deployment of scripts to a directory when service starts
+- Added redeployment of scripts when named pipe request is received
+- Added missing NoProxyList functionality
+- Added `CommandHelper` to construct new commands enabling usage of simpler Handlers (e.g. no redundant null checks necessary anymore)
+- Added manually configured DNS settings to `list-interfaces` CLI output
+- Added application paths to `HostManagement.Configuration` project
+- Added version information class `VersionInfo`
+- Added script for loading version file from the ViciOne Suite repository
+- Added script to get system architecture
+- Added script to get current ViciOne Suite version
+- Added environment variables for ViciOne Suite repository
+- Added functionality to get list of compatible ViciOne Suite versions to install
+- Added new project `HostManagement.Common` for common logic (helper, utils, abstractions etc.)
+- Added script for loading .deb-file from the ViciOne Suite repository
+- Added script for installing .deb-file
+- Added functionality to install suite version
+  - Added environment variable for suite download directory (`HOSTMANAGEMENT__SUITE_DOWNLOAD_DIRECTORY`)
+  - Added topic and result type to install suite versions
+  - Added CLI command to install a suite version
+- Added search domains enabled handling
+- Added scripts for hostname handling
+- Added functionality to get/set hostname
+- Added possibility to accept multiple CLI arguments for one option without repeating the option name
+
+### Changed
+
+- Changed `ConsoleEx` to use `ConsoleLogger`
+- Use log level defined in environment variable `LOGGING__LOGLEVEL__DEFAULT` or default log level `Warning` if not set
+- Improved log messages of pipe send and receive
+- Adjusts script usage to be called from a directory
+- Replaced `ConsoleEx` call with direct usage of `ConsoleLogger` in `ConfigurationHelper`
+- Improved CLI description of set commands to indicate that all items are cleared before setting new ones
+- Improved formatting of log messages
+- Enabled setting configuration of SystemConfiguration.json path defined in environment variable `HOSTMANAGEMENT_SYSTEMCONFIGURATION_PATH`
+- Moved application configuration (environment variables) to own project (`HostManagement.Configuration`)
+- Moved resource deploy directory (see `ResourceManager`) to environment variables
+- Updated .NET SDK to version `8.0.403`
+- Changed `ConfigurationResult` to more general result type
+- Moved `ScriptOptions` to more general namespace
+- Moved `IPUtils` to `HostManagement.Common` (now `IPUtilities`)
+- Moved `IOHelper` to `HostManagement.Common` (now `FileSystemWrapper`)
+- Enhanced DNS scripts for using search domains
+- Enabled search domains functionality
+- Enhanced dns scripts to get/set DNS-Suffix
+- Enhanced dns CLI and handler functionality
+
+### Fixed
+
+- Adds workaround for errors "Already in a connected state", "Broken pipe" and halt of the client
+- Fixes black log messages text if terminal has black background
+- Fixed wrong type for exception message in `LoadSystemConfigurationRequestHandler`
+- Fixed argument handling in ConfigurationResult (added check for no arguments)
+- Fixed `JsonSerializer` not throwing when type mismatch or member missing or unknown
+- Fixes an error that leads to missing exception messages of messages logged via the `ConsoleLogger`
+- Fixed a problem with an uninstalled ViciOne Suite version which was uninstalled with apt remove (version was still available)
+
+## [0.3.0] - 2024-08-29
+
+### Added
+
+- Added `ScriptOptions` overloads to use non string arguments
+- Added unit tests for `ScriptResponse`
+- Added named pipe communication between CLI and service
+
+### Changed
+
+- Moved script call to separate method and improved exception handling in `NetworkInterfacesConfigurationAdapter`
+- Improved XML comments of `ScriptRunner`
+- Simplified `GetValueForOption` call in `NoProxyListCommandGroupProvider`
+- Updated .NET Runtime to 8.0.8 (SDK 8.0.400)
+
+### Fixed
+
+- Fixed unhandled exception in `LoadSystemConfigurationRequestHandler`
+- Fixed IPv4 console output spacing
+- Fixed IPv4 IP modify command showing incorrect message when IP already defined
+
+## [0.2.0] - 2024-08-09
+
+### Added
+
+- Added functionality to get proxy settings
+- Added additional proxy validation
+- Added utility class for CIDR conversion
+- Added DHCP lease object and handling
+
+### Changed
+
+- Improved proxy validation to allow unit tests
+- Improved network interfaces validation to allow unit tests
+- Switched to `systemd-networkd` instead of `ifupdown` (`networking`) as network manager using `netplan`
+- Moved DNS settings contract parallel to proxy settings
+
+### Fixed
+
+- Fixed `ScriptRunner` not using overwritten timeout
+- Fixed returning on warning early in `SystemConfigurationManager`
+
+## [0.1.0] - 2024-07-25
+
+- Initial Release
+  - Implemented getting and setting of network interfaces' common information
+  - Implemented getting and setting of IPv4 settings
+
+[0.1.0]: https://gitlab.i40.ifm-datalink.net/acx/vo-suite/hostmgmt/-/tags/v0.1.0
+[0.2.0]: https://gitlab.i40.ifm-datalink.net/acx/vo-suite/hostmgmt/-/tags/v0.2.0
+[0.3.0]: https://gitlab.i40.ifm-datalink.net/acx/vo-suite/hostmgmt/-/tags/v0.3.0
+[0.4.0]: https://gitlab.i40.ifm-datalink.net/acx/vo-suite/hostmgmt/-/tags/v0.4.0
+[0.5.0]: https://gitlab.i40.ifm-datalink.net/acx/vo-suite/hostmgmt/-/tags/v0.5.0
+[0.6.0]: https://gitlab.i40.ifm-datalink.net/acx/vo-suite/hostmgmt/-/tags/v0.6.0
+[0.7.0]: https://gitlab.i40.ifm-datalink.net/acx/vo-suite/hostmgmt/-/tags/v0.7.0
+[0.8.0]: https://gitlab.i40.ifm-datalink.net/acx/vo-suite/hostmgmt/-/tags/v0.8.0
+[0.9.0]: https://gitlab.i40.ifm-datalink.net/acx/vo-suite/hostmgmt/-/tags/v0.9.0

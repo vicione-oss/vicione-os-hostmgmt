@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>HostManagement.Shared.Communication</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HostManagement.Shared\HostManagement.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,714 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AddIPToDisableDHCP" xml:space="preserve">
+    <value>Add a new IP address to disable DHCP.</value>
+  </data>
+  <data name="AllNetworkInterfacesHaveDHCP" xml:space="preserve">
+    <value>All network interfaces have DHCP enabled. A gateway can not be configured.</value>
+  </data>
+  <data name="CliHelpExtractorHostManagementDescription" xml:space="preserve">
+    <value># Host Management CLI Documentation - v{0}
+
+`HostManagement` provides a standardized interface to read and change system settings on Debian version 11 and later.
+
+Currently the following features are supported:
+
+* Change network settings
+* Install `ViciOne Suite`
+
+## Usage
+
+1. Execute `HostManagement` in daemon mode, for example as a Linux service (`HostManagement --daemon`).
+1. Execute `HostManagement` CLI application that communicates via named pipe with previously started service (`HostManagement [command] [options]`).
+
+**Hint:** `HostManagement` needs privileged execution rights to be able to change system settings (e.g. change network settings).
+
+## Commands and Options
+</value>
+    <comment>Markdown formatted description for CliHelpExtracter</comment>
+  </data>
+  <data name="CommonInfo" xml:space="preserve">
+    <value>Common Information</value>
+  </data>
+  <data name="DefaultGatewayAvailable" xml:space="preserve">
+    <value>Default gateway available</value>
+  </data>
+  <data name="DefaultRouteConfigured" xml:space="preserve">
+    <value>Default route configured</value>
+  </data>
+  <data name="DHCP" xml:space="preserve">
+    <value>DHCP</value>
+  </data>
+  <data name="DHCPAlreadyDisabled" xml:space="preserve">
+    <value>DHCP is already disabled for '{0}'.</value>
+  </data>
+  <data name="DHCPAlreadyEnabled" xml:space="preserve">
+    <value>DHCP is already enabled for '{0}'.</value>
+  </data>
+  <data name="DHCPDisabled" xml:space="preserve">
+    <value>DHCP has been disabled for '{0}'.</value>
+  </data>
+  <data name="DHCPEnabled" xml:space="preserve">
+    <value>DHCP has been enabled for '{0}'.</value>
+  </data>
+  <data name="DHCPIsDisabled" xml:space="preserve">
+    <value>DHCP is currently disabled for '{0}'.</value>
+  </data>
+  <data name="DHCPIsEnabled" xml:space="preserve">
+    <value>DHCP is currently enabled for '{0}'.</value>
+  </data>
+  <data name="DHCPLease" xml:space="preserve">
+    <value>DHCP Lease</value>
+  </data>
+  <data name="DHCPLeaseExpires" xml:space="preserve">
+    <value>Lease expires</value>
+  </data>
+  <data name="DHCPLeaseNotAvailable" xml:space="preserve">
+    <value>No DHCP lease information is available.</value>
+  </data>
+  <data name="DHCPLeaseObtained" xml:space="preserve">
+    <value>Lease obtained</value>
+  </data>
+  <data name="disabled" xml:space="preserve">
+    <value>disabled</value>
+  </data>
+  <data name="DNS" xml:space="preserve">
+    <value>DNS</value>
+  </data>
+  <data name="DNSFunctional" xml:space="preserve">
+    <value>DNS functional</value>
+  </data>
+  <data name="DNSHostnameSet" xml:space="preserve">
+    <value>Hostname set to '{0}'</value>
+  </data>
+  <data name="DNSNameServerAdded" xml:space="preserve">
+    <value>Name server added</value>
+  </data>
+  <data name="DNSNameServerAlreadyDefined" xml:space="preserve">
+    <value>Name server '{0}' is already defined.</value>
+  </data>
+  <data name="DNSNameServerCouldNotBeRemoved" xml:space="preserve">
+    <value>Name server '{0}' could not be removed.</value>
+  </data>
+  <data name="DNSNameServerModified" xml:space="preserve">
+    <value>Name server has been changed from '{0}' to '{1}'.</value>
+  </data>
+  <data name="DNSNameServerNotFound" xml:space="preserve">
+    <value>Name server '{0}' was not found.</value>
+  </data>
+  <data name="DNSNameServerRemoved" xml:space="preserve">
+    <value>Name server removed</value>
+  </data>
+  <data name="DNSNameServers" xml:space="preserve">
+    <value>Name Servers</value>
+  </data>
+  <data name="DNSNameServersAdded" xml:space="preserve">
+    <value>Name servers added</value>
+  </data>
+  <data name="DNSNameServersAlreadyDisabled" xml:space="preserve">
+    <value>Name servers are already disabled.</value>
+  </data>
+  <data name="DNSNameServersAlreadyEnabled" xml:space="preserve">
+    <value>Name servers are already enabled.</value>
+  </data>
+  <data name="DNSNameServersCleared" xml:space="preserve">
+    <value>Name servers have been cleared.</value>
+  </data>
+  <data name="DNSNameServersCurrentlyDisabled" xml:space="preserve">
+    <value>Name servers are currently disabled.</value>
+  </data>
+  <data name="DNSNameServersDisabled" xml:space="preserve">
+    <value>Name servers have been disabled.</value>
+  </data>
+  <data name="DNSNameServersEnabled" xml:space="preserve">
+    <value>Name servers have been enabled.</value>
+  </data>
+  <data name="DNSNameServerSet" xml:space="preserve">
+    <value>Name server set</value>
+  </data>
+  <data name="DNSNameServersNotConfigured" xml:space="preserve">
+    <value>No name servers are configured.</value>
+  </data>
+  <data name="DNSNameServersRemoved" xml:space="preserve">
+    <value>Name servers removed</value>
+  </data>
+  <data name="DNSNameServersSet" xml:space="preserve">
+    <value>Name servers set</value>
+  </data>
+  <data name="DNSSearchDomainAdded" xml:space="preserve">
+    <value>Search domain added</value>
+  </data>
+  <data name="DNSSearchDomainAlreadyDefined" xml:space="preserve">
+    <value>Search domain '{0}' is already defined.</value>
+  </data>
+  <data name="DNSSearchDomainCouldNotBeRemoved" xml:space="preserve">
+    <value>Search domain '{0}' could not be removed.</value>
+  </data>
+  <data name="DNSSearchDomainModified" xml:space="preserve">
+    <value>Search domain has been changed from '{0}' to '{1}'.</value>
+  </data>
+  <data name="DNSSearchDomainNotFound" xml:space="preserve">
+    <value>Search domain '{0}' was not found.</value>
+  </data>
+  <data name="DNSSearchDomainRemoved" xml:space="preserve">
+    <value>Search domain removed</value>
+  </data>
+  <data name="DNSSearchDomains" xml:space="preserve">
+    <value>Search Domains</value>
+  </data>
+  <data name="DNSSearchDomainsAdded" xml:space="preserve">
+    <value>Search domains added</value>
+  </data>
+  <data name="DNSSearchDomainsAlreadyDisabled" xml:space="preserve">
+    <value>Search domains are already disabled.</value>
+  </data>
+  <data name="DNSSearchDomainsAlreadyEnabled" xml:space="preserve">
+    <value>Search domains are already enabled.</value>
+  </data>
+  <data name="DNSSearchDomainsCleared" xml:space="preserve">
+    <value>Search domains have been cleared.</value>
+  </data>
+  <data name="DNSSearchDomainsCurrentlyDisabled" xml:space="preserve">
+    <value>Search domains are currently disabled.</value>
+  </data>
+  <data name="DNSSearchDomainsDisabled" xml:space="preserve">
+    <value>Search domains have been disabled.</value>
+  </data>
+  <data name="DNSSearchDomainsEnabled" xml:space="preserve">
+    <value>Search domains have been enabled.</value>
+  </data>
+  <data name="DNSSearchDomainSet" xml:space="preserve">
+    <value>Search domain set</value>
+  </data>
+  <data name="DNSSearchDomainsNotConfigured" xml:space="preserve">
+    <value>No search domains are configured.</value>
+  </data>
+  <data name="DNSSearchDomainsRemoved" xml:space="preserve">
+    <value>Search domains removed</value>
+  </data>
+  <data name="DNSSearchDomainsSet" xml:space="preserve">
+    <value>Search domains set</value>
+  </data>
+  <data name="DNSStaticHostAdded" xml:space="preserve">
+    <value>Static host mapping added</value>
+  </data>
+  <data name="DNSStaticHostAlreadyDefined" xml:space="preserve">
+    <value>Static host mapping '{0}  {1}' is already defined.</value>
+  </data>
+  <data name="DNSStaticHostCouldNotBeRemoved" xml:space="preserve">
+    <value>Static host mapping '{0}  {1}' could not be removed.</value>
+  </data>
+  <data name="DNSStaticHostNotFound" xml:space="preserve">
+    <value>Static host mapping '{0}  {1}' was not found.</value>
+  </data>
+  <data name="DNSStaticHostRemoved" xml:space="preserve">
+    <value>Static host mapping removed</value>
+  </data>
+  <data name="DNSStaticHosts" xml:space="preserve">
+    <value>Static Hosts</value>
+  </data>
+  <data name="DNSStaticHostsAlreadyDisabled" xml:space="preserve">
+    <value>Static hosts are already disabled.</value>
+  </data>
+  <data name="DNSStaticHostsAlreadyEnabled" xml:space="preserve">
+    <value>Static hosts are already enabled.</value>
+  </data>
+  <data name="DNSStaticHostsCleared" xml:space="preserve">
+    <value>Static hosts have been cleared.</value>
+  </data>
+  <data name="DNSStaticHostsCurrentlyDisabled" xml:space="preserve">
+    <value>Static hosts are currently disabled.</value>
+  </data>
+  <data name="DNSStaticHostsDisabled" xml:space="preserve">
+    <value>Static hosts have been disabled.</value>
+  </data>
+  <data name="DNSStaticHostsEnabled" xml:space="preserve">
+    <value>Static hosts have been enabled.</value>
+  </data>
+  <data name="DNSStaticHostsNotConfigured" xml:space="preserve">
+    <value>No static hosts are configured.</value>
+  </data>
+  <data name="DNSSuffix" xml:space="preserve">
+    <value>Primary DNS Suffix</value>
+  </data>
+  <data name="DNSSuffixAlreadyDisabled" xml:space="preserve">
+    <value>Primary DNS suffix is already disabled.</value>
+  </data>
+  <data name="DNSSuffixAlreadyEnabled" xml:space="preserve">
+    <value>Primary DNS suffix is already enabled.</value>
+  </data>
+  <data name="DNSSuffixCurrentlyDisabled" xml:space="preserve">
+    <value>Primary DNS suffix is currently disabled.</value>
+  </data>
+  <data name="DNSSuffixDisabled" xml:space="preserve">
+    <value>Primary DNS suffix has been disabled.</value>
+  </data>
+  <data name="DNSSuffixEnabled" xml:space="preserve">
+    <value>Primary DNS suffix has been enabled.</value>
+  </data>
+  <data name="DNSSuffixNotConfigured" xml:space="preserve">
+    <value>No primary DNS suffix is configured.</value>
+  </data>
+  <data name="DNSSuffixRemoved" xml:space="preserve">
+    <value>Primary DNS suffix removed</value>
+  </data>
+  <data name="DNSSuffixSet" xml:space="preserve">
+    <value>Primary DNS suffix set</value>
+  </data>
+  <data name="DoNotProxyItemCouldNotBeRemoved" xml:space="preserve">
+    <value>No-proxy list item '{0}' could not be removed.</value>
+  </data>
+  <data name="DoNotProxyItemNotFound" xml:space="preserve">
+    <value>No-proxy list item '{0}' was not found.</value>
+  </data>
+  <data name="DoNotProxyItemsAdded" xml:space="preserve">
+    <value>Following items were added to the list of ignored URLs by the proxy</value>
+  </data>
+  <data name="DoNotProxyItemsRemoved" xml:space="preserve">
+    <value>Following items were removed from the list of ignored URLs by the proxy</value>
+  </data>
+  <data name="DoNotProxyItemsSet" xml:space="preserve">
+    <value>Following items were set for the list of ignored URLs by the proxy</value>
+  </data>
+  <data name="DoNotProxyListCleared" xml:space="preserve">
+    <value>List of ignored URLs by the proxy has been cleared.</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="enabledLower" xml:space="preserve">
+    <value>enabled</value>
+  </data>
+  <data name="ERROR" xml:space="preserve">
+    <value>ERROR</value>
+  </data>
+  <data name="ErrorMessageEmpty" xml:space="preserve">
+    <value>An error was supposed to be displayed, but the original error message was empty.</value>
+  </data>
+  <data name="ErrorMessageInvalidFormat" xml:space="preserve">
+    <value>An error was supposed to be displayed, but the original error message had an invalid format.</value>
+  </data>
+  <data name="Gateway" xml:space="preserve">
+    <value>Gateway</value>
+  </data>
+  <data name="GatewayAdded" xml:space="preserve">
+    <value>Specified gateway '{0}' has been added to network interface '{1}'.</value>
+  </data>
+  <data name="GatewayAlreadyDefined" xml:space="preserve">
+    <value>Specified gateway '{0}' is already defined.</value>
+  </data>
+  <data name="GatewayIsNotConfigured" xml:space="preserve">
+    <value>A default gateway is not configured.</value>
+  </data>
+  <data name="GatewayRemoved" xml:space="preserve">
+    <value>Specified gateway '{0}' has been removed.</value>
+  </data>
+  <data name="GatewaySet" xml:space="preserve">
+    <value>Specified gateway '{0}' has been changed to '{1}' for network interface '{2}'.</value>
+  </data>
+  <data name="Hostname" xml:space="preserve">
+    <value>Hostname</value>
+  </data>
+  <data name="IndentationLevelNegative" xml:space="preserve">
+    <value>Indentation can not be negative.</value>
+  </data>
+  <data name="INFORMATION" xml:space="preserve">
+    <value>INFORMATION</value>
+  </data>
+  <data name="InformationMessageEmpty" xml:space="preserve">
+    <value>An information was supposed to be displayed, but the original information message was empty.</value>
+  </data>
+  <data name="InformationMessageInvalidFormat" xml:space="preserve">
+    <value>An information was supposed to be displayed, but the original information message had an invalid format.</value>
+  </data>
+  <data name="InterfaceState" xml:space="preserve">
+    <value>Interface state</value>
+  </data>
+  <data name="InternetAvailable" xml:space="preserve">
+    <value>Internet available</value>
+  </data>
+  <data name="IPAddress" xml:space="preserve">
+    <value>IP address</value>
+  </data>
+  <data name="IPAddresses" xml:space="preserve">
+    <value>IP addresses</value>
+  </data>
+  <data name="IPAddressMustHave4Octets" xml:space="preserve">
+    <value>{0} must have exactly 4 octets, but found {1}.</value>
+  </data>
+  <data name="IPv4" xml:space="preserve">
+    <value>IPv4</value>
+  </data>
+  <data name="MulticastDNSAlreadyDisabled" xml:space="preserve">
+    <value>Multicast DNS is already disabled.</value>
+  </data>
+  <data name="MulticastDNSAlreadyEnabled" xml:space="preserve">
+    <value>Multicast DNS is already enabled.</value>
+  </data>
+  <data name="MulticastDNSDisabled" xml:space="preserve">
+    <value>Multicast DNS has been disabled.</value>
+  </data>
+  <data name="MulticastDNSEnabled" xml:space="preserve">
+    <value>Multicast DNS has been enabled.</value>
+  </data>
+  <data name="MulticastDNSIsDisabled" xml:space="preserve">
+    <value>Multicast DNS is disabled.</value>
+  </data>
+  <data name="MulticastDNSIsEnabled" xml:space="preserve">
+    <value>Multicast DNS is enabled.</value>
+  </data>
+  <data name="NamedPipeMessageWasNull" xml:space="preserve">
+    <value>Named pipe message was null.</value>
+  </data>
+  <data name="NetworkInterfaceAlreadyDisabled" xml:space="preserve">
+    <value>Network interface '{0}' is already disabled.</value>
+  </data>
+  <data name="NetworkInterfaceAlreadyEnabled" xml:space="preserve">
+    <value>Network interface '{0}' is already enabled.</value>
+  </data>
+  <data name="NetworkInterfaceHasDHCP" xml:space="preserve">
+    <value>Specified network interface has DHCP enabled. DNS addresses can not be configured.</value>
+  </data>
+  <data name="NetworkInterfaceIPAdded" xml:space="preserve">
+    <value>IP address '{0}' has been added to network interface '{1}'.</value>
+  </data>
+  <data name="NetworkInterfaceIPAlreadyDefined" xml:space="preserve">
+    <value>IP address '{0}' is already defined.</value>
+  </data>
+  <data name="NetworkInterfaceIPModified" xml:space="preserve">
+    <value>IP address of network interface '{0}' has been changed from '{1}' to '{2}'.</value>
+  </data>
+  <data name="NetworkInterfaceIPNotFound" xml:space="preserve">
+    <value>Specified IP address '{0}' of network interface '{1}' was not found.</value>
+  </data>
+  <data name="NetworkInterfaceIPRemoved" xml:space="preserve">
+    <value>IP address '{0}' has been removed from the network interface '{1}'.</value>
+  </data>
+  <data name="NetworkInterfaceIsDisabled" xml:space="preserve">
+    <value>Network interface '{0}' is disabled.</value>
+  </data>
+  <data name="NetworkInterfaceIsEnabled" xml:space="preserve">
+    <value>Network interface '{0}' is enabled.</value>
+  </data>
+  <data name="NetworkInterfaceMACAlreadyDefined" xml:space="preserve">
+    <value>Physical address (MAC) '{0}' is already defined.</value>
+  </data>
+  <data name="NetworkInterfaceMACInvalidLength" xml:space="preserve">
+    <value>Physical address (MAC) '{0}' has invalid length.</value>
+  </data>
+  <data name="NetworkInterfaceMACSet" xml:space="preserve">
+    <value>Physical address (MAC) '{0}' has been changed to '{1}' for network interface '{2}'.</value>
+  </data>
+  <data name="NetworkInterfaceNotFound" xml:space="preserve">
+    <value>Specified network interface '{0}' was not found.</value>
+  </data>
+  <data name="NetworkInterfacesNotFound" xml:space="preserve">
+    <value>Network interfaces were not found.</value>
+  </data>
+  <data name="DoNotProxyListDisabled" xml:space="preserve">
+    <value>No-proxy list has been disabled.</value>
+  </data>
+  <data name="DoNotProxyListEnabled" xml:space="preserve">
+    <value>No-proxy list has been enabled.</value>
+  </data>
+  <data name="NotSet" xml:space="preserve">
+    <value>'not set'</value>
+  </data>
+  <data name="NTPServerCouldNotBeRemoved" xml:space="preserve">
+    <value>NTP server '{0}' could not be removed.</value>
+  </data>
+  <data name="NTPServerModified" xml:space="preserve">
+    <value>NTP server has been changed from '{0}' to '{1}'.</value>
+  </data>
+  <data name="NTPServerNotFound" xml:space="preserve">
+    <value>NTP server '{0}' was not found.</value>
+  </data>
+  <data name="NTPServersAdded" xml:space="preserve">
+    <value>NTP servers added</value>
+  </data>
+  <data name="NTPServersCleared" xml:space="preserve">
+    <value>NTP servers have been cleared.</value>
+  </data>
+  <data name="NTPServersRemoved" xml:space="preserve">
+    <value>NTP servers removed</value>
+  </data>
+  <data name="NTPServersSet" xml:space="preserve">
+    <value>NTP servers set</value>
+  </data>
+  <data name="PhysicalAddress" xml:space="preserve">
+    <value>Physical address</value>
+  </data>
+  <data name="ServiceAlreadyDisabled" xml:space="preserve">
+    <value>Service '{0}' is already disabled.</value>
+  </data>
+  <data name="ServiceAlreadyEnabled" xml:space="preserve">
+    <value>Service '{0}' is already enabled.</value>
+  </data>
+  <data name="ServiceConfigurationNotAllowed" xml:space="preserve">
+    <value>Configuration of service '{0}' is not allowed.</value>
+  </data>
+  <data name="ServiceDisabled" xml:space="preserve">
+    <value>Service '{0}' has been disabled.</value>
+  </data>
+  <data name="ServiceEnabled" xml:space="preserve">
+    <value>Service '{0}' has been enabled.</value>
+  </data>
+  <data name="ServiceRestarted" xml:space="preserve">
+    <value>Service '{0}' has been restarted.</value>
+  </data>
+  <data name="SubnetMask" xml:space="preserve">
+    <value>Subnet mask</value>
+  </data>
+  <data name="ViciOneSuiteInstalledSuccessfully" xml:space="preserve">
+    <value>ViciOne Suite '{0}' installed successfully.</value>
+  </data>
+  <data name="VLANAlreadyDisabled" xml:space="preserve">
+    <value>VLAN is already disabled for network interface '{0}'.</value>
+  </data>
+  <data name="VLANAlreadyEnabled" xml:space="preserve">
+    <value>VLAN is already enabled for network interface '{0}'.</value>
+  </data>
+  <data name="VLANCurrentlyDisabled" xml:space="preserve">
+    <value>VLAN is currently disabled for network interface '{0}'.</value>
+  </data>
+  <data name="VLANDisabled" xml:space="preserve">
+    <value>VLAN has been disabled for network interface '{0}'.</value>
+  </data>
+  <data name="VLANEnabled" xml:space="preserve">
+    <value>VLAN has been enabled for network interface '{0}'.</value>
+  </data>
+  <data name="VLANIDAdded" xml:space="preserve">
+    <value>VLAN ID '{0}' has been added to network interface '{1}'.</value>
+  </data>
+  <data name="VLANIDRemoved" xml:space="preserve">
+    <value>VLAN ID '{0}' has been removed from network interface '{1}'.</value>
+  </data>
+  <data name="VLANIDSet" xml:space="preserve">
+    <value>VLAN ID '{0}' has been changed to '{1}' for network interface '{2}'.</value>
+  </data>
+  <data name="VLANNotConfigured" xml:space="preserve">
+    <value>VLAN is not configured for network interface '{0}'.</value>
+  </data>
+  <data name="WARNING" xml:space="preserve">
+    <value>WARNING</value>
+  </data>
+  <data name="WarningMessageEmpty" xml:space="preserve">
+    <value>A warning was supposed to be displayed, but the original warning message was empty.</value>
+  </data>
+  <data name="WarningMessageInvalidFormat" xml:space="preserve">
+    <value>A warning was supposed to be displayed, but the original warning message had an invalid format.</value>
+  </data>
+  <data name="DHCPLeaseRenewed" xml:space="preserve">
+    <value>DHCP Lease renewed</value>
+  </data>
+  <data name="Interfaces" xml:space="preserve">
+    <value>Interfaces</value>
+  </data>
+  <data name="NetworkInterfaceDisabled" xml:space="preserve">
+    <value>Network interface '{0}' has been disabled.</value>
+  </data>
+  <data name="NetworkInterfaceEnabled" xml:space="preserve">
+    <value>Network interface '{0}' has been enabled.</value>
+  </data>
+  <data name="VLANID" xml:space="preserve">
+    <value>VLAN ID</value>
+  </data>
+  <data name="DoNotProxyItemAdded" xml:space="preserve">
+    <value>Following item was added to the list of ignored URLs by the proxy</value>
+  </data>
+  <data name="NTPFallbackServers" xml:space="preserve">
+    <value>Fallback NTP servers</value>
+  </data>
+  <data name="NTPServerAdded" xml:space="preserve">
+    <value>NTP server added</value>
+  </data>
+  <data name="NTPServerAlreadyDefined" xml:space="preserve">
+    <value>NTP server '{0}' is already defined.</value>
+  </data>
+  <data name="NTPServerRemoved" xml:space="preserve">
+    <value>NTP server removed</value>
+  </data>
+  <data name="NTPServers" xml:space="preserve">
+    <value>NTP servers</value>
+  </data>
+  <data name="NTPServerSet" xml:space="preserve">
+    <value>NTP server set</value>
+  </data>
+  <data name="NTPServersNotConfigured" xml:space="preserve">
+    <value>No NTP servers are configured.</value>
+  </data>
+  <data name="DoNotProxyListAlreadyEnabled" xml:space="preserve">
+    <value>No-proxy list is already enabled.</value>
+  </data>
+  <data name="DoNotProxyListCurrentlyDisabled" xml:space="preserve">
+    <value>No-proxy list is currently disabled.</value>
+  </data>
+  <data name="DoNotProxyItemRemoved" xml:space="preserve">
+    <value>Following item was removed from the list of ignored URLs by the proxy</value>
+  </data>
+  <data name="DoNotProxyItemSet" xml:space="preserve">
+    <value>Following item was set for the list of ignored URLs by the proxy</value>
+  </data>
+  <data name="DoNotProxyListNotConfigured" xml:space="preserve">
+    <value>No-proxy list is not configured.</value>
+  </data>
+  <data name="DoNotProxyList" xml:space="preserve">
+    <value>No-proxy list</value>
+  </data>
+  <data name="DoNotProxyListAlreadyDisabled" xml:space="preserve">
+    <value>No-proxy list is already disabled.</value>
+  </data>
+  <data name="DoNotProxyItemAlreadyDefined" xml:space="preserve">
+    <value>No-proxy item '{0}' is already defined.</value>
+  </data>
+  <data name="ProxyConfigured" xml:space="preserve">
+    <value>{0} proxy has been configured.</value>
+  </data>
+  <data name="ScriptsDeployed" xml:space="preserve">
+    <value>Scripts redeployed successfully.</value>
+  </data>
+  <data name="Services" xml:space="preserve">
+    <value>Services</value>
+  </data>
+  <data name="ViciOneSuiteVersions" xml:space="preserve">
+    <value>ViciOne Suite Versions</value>
+  </data>
+  <data name="MultiPropertyListTooManyValues" xml:space="preserve">
+    <value>Only up to 5 additional key-value formatted properties are allowed.</value>
+  </data>
+  <data name="TableOutputTooManyValues" xml:space="preserve">
+    <value>Only up to 14 additional values are allowed.</value>
+  </data>
+  <data name="SystemResetFailed" xml:space="preserve">
+    <value>System could not be resetted.</value>
+  </data>
+  <data name="SystemRestartFailed" xml:space="preserve">
+    <value>System could not be restarted.</value>
+  </data>
+  <data name="ServiceEmpty" xml:space="preserve">
+    <value>Service can not be empty.</value>
+  </data>
+  <data name="ServiceStarted" xml:space="preserve">
+    <value>Service '{0}' has been started.</value>
+  </data>
+  <data name="ServiceStopped" xml:space="preserve">
+    <value>Service '{0}' has been stopped.</value>
+  </data>
+</root>

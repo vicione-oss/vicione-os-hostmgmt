@@ -1,0 +1,104 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>hostmanagement</AssemblyName>
+    <RootNamespace>HostManagement</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HostManagement.Common\HostManagement.Common.csproj" />
+    <ProjectReference Include="..\HostManagement.Configuration\HostManagement.Configuration.csproj" />
+    <ProjectReference Include="..\HostManagement.Scripts\HostManagement.Scripts.csproj" />
+    <ProjectReference Include="..\HostManagement.Shared.Communication\HostManagement.Shared.Communication.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="AppManagement\" />
+    <Folder Include="Monitoring\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
+    <PackageReference Include="System.CommandLine" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Communication\CommandLine\CommandLineStrings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CommandLineStrings.resx</DependentUpon>
+    </Compile>
+    <Compile Update="NetworkStatus\NetworkStatusResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>NetworkStatusResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="RenewDHCPLease\RenewDHCPLeaseResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>RenewDHCPLeaseResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="SystemConfig\InternalValidation\InternalValidationResultMessages.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>InternalValidationResultMessages.resx</DependentUpon>
+    </Compile>
+    <Compile Update="SystemConfig\SystemConfigResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SystemConfigResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Service\ServiceResources.Designer.cs">
+      <DependentUpon>ServiceResources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="System\SystemResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SystemResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="ViciOneSuite\ViciOneSuiteResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ViciOneSuiteResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Communication\CommandLine\CommandLineStrings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CommandLineStrings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="NetworkStatus\NetworkStatusResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>NetworkStatusResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="RenewDHCPLease\RenewDHCPLeaseResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>RenewDHCPLeaseResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="SystemConfig\InternalValidation\InternalValidationResultMessages.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>InternalValidationResultMessages.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="SystemConfig\SystemConfigResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>SystemConfigResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Service\ServiceResources.resx">
+      <LastGenOutput>ServiceResources.Designer.cs</LastGenOutput>
+      <Generator>ResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="System\SystemResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>SystemResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="ViciOneSuite\ViciOneSuiteResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ViciOneSuiteResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

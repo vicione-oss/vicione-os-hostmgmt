@@ -1,0 +1,360 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="DNSNameServerCanNotBeBroadcast" xml:space="preserve">
+    <value>Name server '{0}' can not be a broadcast address ('{1}').</value>
+  </data>
+  <data name="DNSNameServerCanNotBeLinkLocal" xml:space="preserve">
+    <value>Name server '{0}' can not be a link-local address ('{1}').</value>
+  </data>
+  <data name="DNSNameServerCanNotBeMulticast" xml:space="preserve">
+    <value>Name server '{0}' can not be a multicast address ('{1}').</value>
+  </data>
+  <data name="DNSNameServersNotUnique" xml:space="preserve">
+    <value>Name servers are not unique. Affected IP addresses are: {0}.</value>
+  </data>
+  <data name="DNSStaticHostIPAddressCanNotBeBroadcast" xml:space="preserve">
+    <value>Static host IP address '{0}' can not be a broadcast address ('{1}').</value>
+  </data>
+  <data name="DNSStaticHostIPAddressCanNotBeLinkLocal" xml:space="preserve">
+    <value>Static host IP address '{0}' can not be a link-local address ('{1}').</value>
+  </data>
+  <data name="DNSStaticHostIPAddressCanNotBeLoopback" xml:space="preserve">
+    <value>Static host IP address '{0}' can not be a loopback address ('{1}').</value>
+  </data>
+  <data name="DNSStaticHostIPAddressCanNotBeMulticast" xml:space="preserve">
+    <value>Static host IP address '{0}' can not be a multicast address ('{1}').</value>
+  </data>
+  <data name="DNSStaticHostsHaveDuplicateEntries" xml:space="preserve">
+    <value>Static hosts do not have unique entries. Affected entries are: {0}.</value>
+  </data>
+  <data name="DNSSuffixCanNotBeEmpty" xml:space="preserve">
+    <value>DNS suffix can not be empty or whitespace.</value>
+  </data>
+  <data name="DomainLabelCanNotHaveOnlyDigits" xml:space="preserve">
+    <value>{0} '{1}' can not have only digits.</value>
+  </data>
+  <data name="DomainLabelHasInvalidCharacter" xml:space="preserve">
+    <value>{0} '{1}' has an invalid character (expected start/end character to be letter or digit; other characters can also be a hyphen).</value>
+  </data>
+  <data name="DomainLabelHasTooManyCharacters" xml:space="preserve">
+    <value>{0} '{1}' has too many characters (expected max. 63 characters including dots).</value>
+  </data>
+  <data name="DoNotProxyItemCanNotBeBroadcast" xml:space="preserve">
+    <value>DoNotProxy IP address '{0}' can not be a broadcast address ('{1}').</value>
+  </data>
+  <data name="DoNotProxyItemCanNotBeEmpty" xml:space="preserve">
+    <value>A DoNotProxy item can not be empty or whitespace.</value>
+  </data>
+  <data name="DoNotProxyItemCanNotBeMulticast" xml:space="preserve">
+    <value>DoNotProxy IP address '{0}' can not be a multicast address ('{1}').</value>
+  </data>
+  <data name="DoNotProxyItemHasEmptyZoneIdentifier" xml:space="preserve">
+    <value>DoNotProxy item '{0}' has an empty zone identifier.</value>
+  </data>
+  <data name="DoNotProxyItemHasMissingPort" xml:space="preserve">
+    <value>DoNotProxy item '{0}' has a missing proxy port.</value>
+  </data>
+  <data name="DoNotProxyItemHasZoneIdentifierWithInvalidCharacter" xml:space="preserve">
+    <value>Zone identifier '{0}' of DoNotProxy item '{1}' has an invalid character (expected 0-9, a-f, A-F, _ or -).</value>
+  </data>
+  <data name="DoNotProxyItemHasZoneIdentifierWithUnknownInterfaceName" xml:space="preserve">
+    <value>Zone identifier '{0}' of DoNotProxy item '{1}' has an unknown interface name.</value>
+  </data>
+  <data name="DoNotProxyItemIsNoValidIPv4Address" xml:space="preserve">
+    <value>DoNotProxy item '{0}' is no valid IPv4 address.</value>
+  </data>
+  <data name="DoNotProxyItemIsNoValidIPv6Address" xml:space="preserve">
+    <value>DoNotProxy item '{0}' is no valid IPv6 address.</value>
+  </data>
+  <data name="DoNotProxyItemZoneIdentifierInvalidCharacterCount" xml:space="preserve">
+    <value>Zone identifier '{0}' of DoNotProxy item '{1}' has an invalid character count (expected max. 15 characters).</value>
+  </data>
+  <data name="FQDNHasConsecutiveDots" xml:space="preserve">
+    <value>{0} '{1}' can not have consecutive dots.</value>
+  </data>
+  <data name="FQDNHasInvalidDomainLabelCharacter" xml:space="preserve">
+    <value>{0} '{1}' has a domain label with an invalid character (expected start/end character to be letter or digit; other characters can also be a hyphen). Affected domain label is: '{2}'.</value>
+  </data>
+  <data name="FQDNHasInvalidDomainLabelCharacterCount" xml:space="preserve">
+    <value>{0} '{1}' has a domain label with an invalid character count (expected 1 to 63 characters). Affected domain label is: '{2}'.</value>
+  </data>
+  <data name="FQDNHasInvalidTopLevelDomainCharacterCount" xml:space="preserve">
+    <value>{0} '{1}' has a top-level domain with an invalid character count (expected 2 to 63 characters).</value>
+  </data>
+  <data name="FQDNHasLeadingTrailingDots" xml:space="preserve">
+    <value>{0} '{1}' can not have leading or trailing dots.</value>
+  </data>
+  <data name="FQDNHasMoreThanOneNumericLabel" xml:space="preserve">
+    <value>{0} '{1}' can not have more than one numerical label.</value>
+  </data>
+  <data name="FQDNHasTooManyCharacters" xml:space="preserve">
+    <value>{0} '{1}' has too many characters (expected max. 253 characters including dots).</value>
+  </data>
+  <data name="FQDNMustHaveAtLeastTwoDomainLabels" xml:space="preserve">
+    <value>{0} '{1}' must have at least two domain labels (e.g. "example.com").</value>
+  </data>
+  <data name="HostnameAndSuffixHaveTooManyCharacters" xml:space="preserve">
+    <value>Fully Qualified Domain Name (FQDN) consisting of hostname '{0}' and primary DNS suffix '{1}' has too many characters (expected max. 253 characters including dots).</value>
+  </data>
+  <data name="HostnameCanNotBeEmpty" xml:space="preserve">
+    <value>Hostname can not be empty or whitespace.</value>
+  </data>
+  <data name="HostnameHasTooManyCharacters" xml:space="preserve">
+    <value>Hostname '{0}' has too many characters (expected max. 63 characters including dots).</value>
+  </data>
+  <data name="LoopbackInterfaceCanNotBeSpecified" xml:space="preserve">
+    <value>Loopback interface can not be specified.</value>
+  </data>
+  <data name="MACAddressEmpty" xml:space="preserve">
+    <value>Physical address (MAC) of {0} can not be empty or whitespace.</value>
+  </data>
+  <data name="MACAddressInvalidCharacter" xml:space="preserve">
+    <value>Physical address (MAC) '{0}' of {1} has an invalid character (expected 0-9, a-f, A-F).</value>
+  </data>
+  <data name="MACAddressInvalidLength" xml:space="preserve">
+    <value>Physical address (MAC) '{0}' of {1} has invalid length (expected 12).</value>
+  </data>
+  <data name="MACAddressInvalidOctetCount" xml:space="preserve">
+    <value>Physical address (MAC) '{0}' of {1} has invalid octet count (expected 6).</value>
+  </data>
+  <data name="MACAddressOctetInvalidLength" xml:space="preserve">
+    <value>Physical address (MAC) '{0}' of {1} has an octet with invalid length (expected 2).</value>
+  </data>
+  <data name="NetworkInterfaceConflictingGatewayIP" xml:space="preserve">
+    <value>Network interfaces have conflicting IP addresses with the default gateway '{0}'. Affected interfaces are: {1}.</value>
+  </data>
+  <data name="NetworkInterfaceInvalidIPAddress" xml:space="preserve">
+    <value>Network interface '{0}' has an invalid IP address. Affected IP address is: {1}.</value>
+  </data>
+  <data name="NetworkInterfaceInvalidNetmask" xml:space="preserve">
+    <value>Network interface '{0}' has an invalid netmask. Affected IP address is: {1}.</value>
+  </data>
+  <data name="NetworkInterfaceInvalidVLANID" xml:space="preserve">
+    <value>Network interface '{0}' has an invalid VLAN ID (expected 1 to 4094). Affected VLAN ID is: {1}.</value>
+  </data>
+  <data name="NetworkInterfaceNoIPAddressesSpecified" xml:space="preserve">
+    <value>Network interface '{0}' has no IP addresses specified although DHCP is disabled.</value>
+  </data>
+  <data name="NetworkInterfaceNonUniqueGateway" xml:space="preserve">
+    <value>Network interfaces can not have multiple default gateways. Affected interfaces are: {0}.</value>
+  </data>
+  <data name="NetworkInterfaceNonUniqueIP" xml:space="preserve">
+    <value>Network interfaces do not have unique IP addresses. Affected IP addresses are: {0}.</value>
+  </data>
+  <data name="NetworkInterfaceNonUniqueMAC" xml:space="preserve">
+    <value>Network interfaces do not have unique physical addresses (MACs). Affected physical addresses are: {0}.</value>
+  </data>
+  <data name="NetworkInterfaceNonUniqueName" xml:space="preserve">
+    <value>Network interfaces do not have unique names. Affected names are: {0}.</value>
+  </data>
+  <data name="NetworkInterfaceNonUniqueVLANID" xml:space="preserve">
+    <value>Network interfaces do not have unique VLAN IDs. Affected interfaces are: {0}.</value>
+  </data>
+  <data name="NetworkInterfaceNotFound" xml:space="preserve">
+    <value>Network interface '{0}' was not found.</value>
+  </data>
+  <data name="NoNetworkInterfaces" xml:space="preserve">
+    <value>No network interfaces specified.</value>
+  </data>
+  <data name="NTPServerCanNotBeEmpty" xml:space="preserve">
+    <value>NTP server can not be empty or whitespace.</value>
+  </data>
+  <data name="NTPServerCanNotBeLinkLocal" xml:space="preserve">
+    <value>NTP server '{0}' can not be a link-local address ('{1}').</value>
+  </data>
+  <data name="NTPServerCanNotBeMulticast" xml:space="preserve">
+    <value>NTP server '{0}' can not be a multicast address ('{1}').</value>
+  </data>
+  <data name="NTPServerDomainNameConsecutiveDots" xml:space="preserve">
+    <value>NTP server '{0}' domain name can not have consecutive dots.</value>
+  </data>
+  <data name="NTPServerDomainNameLeadingTrailingDots" xml:space="preserve">
+    <value>NTP server '{0}' domain name can not have leading or trailing dots.</value>
+  </data>
+  <data name="NTPServerDomainNameMoreThanOneNumericLabel" xml:space="preserve">
+    <value>NTP server '{0}' domain name can not have more than one numerical domain label.</value>
+  </data>
+  <data name="NTPServerDomainNameTooManyCharacters" xml:space="preserve">
+    <value>NTP server '{0}' has a domain name with too many characters (expected less than 254 characters including dots and top-level domain).</value>
+  </data>
+  <data name="NTPServerInvalidDomainLabelCharacter" xml:space="preserve">
+    <value>NTP server '{0}' has a domain label with an invalid character (expected start/end character to be letter or digit; other characters can also be a hyphen). Affected domain label is: '{1}'.</value>
+  </data>
+  <data name="NTPServerInvalidDomainLabelCharacterCount" xml:space="preserve">
+    <value>NTP server '{0}' has a domain label with an invalid character count (expected 1 to 63 characters). Affected domain label is: '{1}'.</value>
+  </data>
+  <data name="NTPServerInvalidTopLevelDomainCharacterCount" xml:space="preserve">
+    <value>NTP server '{0}' has a top-level domain with an invalid character count (expected 2 to 63 characters).</value>
+  </data>
+  <data name="NTPServerIsNoValidIPv4Address" xml:space="preserve">
+    <value>NTP server '{0}' is no valid IPv4 address.</value>
+  </data>
+  <data name="NTPServerMustHaveAtLeastTwoDomainLabels" xml:space="preserve">
+    <value>NTP server '{0}' must have at least two domain labels (e.g. "example.com").</value>
+  </data>
+  <data name="NTPServersAreNotUnique" xml:space="preserve">
+    <value>NTP servers are not unique. Affected servers are: {0}.</value>
+  </data>
+  <data name="ProxyPasswordCanNotBeEmpty" xml:space="preserve">
+    <value>Proxy password can not be empty or whitespace.</value>
+  </data>
+  <data name="ProxyPasswordCanNotBeNullWhenUserGiven" xml:space="preserve">
+    <value>Proxy password can not be null when user given.</value>
+  </data>
+  <data name="ProxyPortCanNotBeGreaterThanMaximum" xml:space="preserve">
+    <value>Proxy port '{0}' can not be greater than '{1}'.</value>
+  </data>
+  <data name="ProxyPortCanNotBeNull" xml:space="preserve">
+    <value>Proxy port can not be null.</value>
+  </data>
+  <data name="ProxyPortCanNotBeSmallerThanMinimum" xml:space="preserve">
+    <value>Proxy port '{0}' can not be smaller than '{1}'.</value>
+  </data>
+  <data name="ProxyPortMustBeNumber" xml:space="preserve">
+    <value>Proxy port '{0}' must be a number.</value>
+  </data>
+  <data name="ProxyServerCanNotBeEmpty" xml:space="preserve">
+    <value>Proxy server can not be empty or whitespace.</value>
+  </data>
+  <data name="ProxyServerCanNotBeNull" xml:space="preserve">
+    <value>Proxy server can not be null.</value>
+  </data>
+  <data name="ProxyServerNotWellFormedUri" xml:space="preserve">
+    <value>Proxy server is not a well formed URI.</value>
+  </data>
+  <data name="ProxyServerTransportProtocolInvalid" xml:space="preserve">
+    <value>Proxy server transport protocol is invalid. Expected '{0}' but got '{1}'.</value>
+  </data>
+  <data name="ProxyServerTransportProtocolNotSpecified" xml:space="preserve">
+    <value>No proxy server transport protocol specified.</value>
+  </data>
+  <data name="ProxyServerURLInvalid" xml:space="preserve">
+    <value>Proxy server URL is invalid. Format: [protocol]://[hostname]:[port] or [protocol]://[user]:[password]@[hostname]:[port].</value>
+  </data>
+  <data name="ProxyUserCanNotBeEmpty" xml:space="preserve">
+    <value>Proxy username can not be empty or whitespace.</value>
+  </data>
+  <data name="ProxyUserCanNotBeNullWhenPasswordGiven" xml:space="preserve">
+    <value>Proxy username can not be null when password given.</value>
+  </data>
+  <data name="ValidationFailed" xml:space="preserve">
+    <value>Validation failed.</value>
+  </data>
+</root>
