@@ -115,7 +115,7 @@ main() {
 
     url_info="${url_schema}://${url_info%%/*}"
 
-    if [[ "$url" == *"jfrog"* ]]; then
+    if [[ "$url" == *"artifactory"* ]]; then
         repository_path="${url#*/artifactory/}"
         url_info="${url_info}/artifactory/api/storage/${repository_path}/${deb_file}"
     elif [[ "$url" == *"nexus"* ]]; then

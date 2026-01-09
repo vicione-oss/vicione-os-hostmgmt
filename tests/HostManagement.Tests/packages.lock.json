@@ -281,10 +281,10 @@
       "hostmanagement": {
         "type": "Project",
         "dependencies": {
-          "HostManagement.Common": "[1.1.0, )",
-          "HostManagement.Configuration": "[1.1.0, )",
-          "HostManagement.Scripts": "[1.1.0, )",
-          "HostManagement.Shared.Communication": "[1.1.0, )",
+          "HostManagement.Common": "[1.1.1, )",
+          "HostManagement.Configuration": "[1.1.1, )",
+          "HostManagement.Scripts": "[1.1.1, )",
+          "HostManagement.Shared.Communication": "[1.1.1, )",
           "Microsoft.Extensions.Configuration.EnvironmentVariables": "[9.0.7, )",
           "System.CommandLine": "[2.0.0-beta4.22272.1, )"
         }
@@ -320,8 +320,8 @@
       "hostmanagement.shared.communication": {
         "type": "Project",
         "dependencies": {
-          "HostManagement.Shared": "[1.1.0, )",
-          "HostManagement.Shared.Communication.SourceGeneration": "[1.1.0, )"
+          "HostManagement.Shared": "[1.1.1, )",
+          "HostManagement.Shared.Communication.SourceGeneration": "[1.1.1, )"
         }
       },
       "hostmanagement.shared.communication.sourcegeneration": {

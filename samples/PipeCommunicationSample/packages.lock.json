@@ -41,8 +41,8 @@
       "hostmanagement.shared.communication": {
         "type": "Project",
         "dependencies": {
-          "HostManagement.Shared": "[1.1.0, )",
-          "HostManagement.Shared.Communication.SourceGeneration": "[1.1.0, )"
+          "HostManagement.Shared": "[1.1.1, )",
+          "HostManagement.Shared.Communication.SourceGeneration": "[1.1.1, )"
         }
       },
       "hostmanagement.shared.communication.sourcegeneration": {
