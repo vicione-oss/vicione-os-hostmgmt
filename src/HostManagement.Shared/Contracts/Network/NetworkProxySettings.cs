@@ -1,0 +1,71 @@
+﻿using HostManagement.Shared.Extensions;
+
+namespace HostManagement.Shared.Contracts.Network;
+
+/// <summary>
+/// Represents the <see cref="NetworkProxySettings"/>.
+/// </summary>
+public sealed record NetworkProxySettings
+{
+    /// <summary>
+    /// The FTP proxy settings.
+    /// </summary>
+    public NetworkProxyDetail FTP { get; set; } = new();
+
+    /// <summary>
+    /// The HTTP proxy settings.
+    /// </summary>
+    public NetworkProxyDetail HTTP { get; set; } = new();
+
+    /// <summary>
+    /// The HTTPS proxy settings.
+    /// </summary>
+    public NetworkProxyDetail HTTPS { get; set; } = new();
+
+    /// <summary>
+    /// The SFTP proxy settings.
+    /// </summary>
+    public NetworkProxyDetail SFTP { get; set; } = new();
+
+    /// <summary>
+    /// The SOCKS proxy settings.
+    /// </summary>
+    public NetworkProxyDetail SOCKS { get; set; } = new();
+
+    /// <summary>
+    /// The enabled state of the DoNotProxyList.
+    /// </summary>
+    public bool DoNotProxyListEnabled { get; set; }
+
+    /// <summary>
+    /// The list of IP addresses that should be ignored by proxy.
+    /// </summary>
+    public List<string> DoNotProxyList { get; init; } = [];
+
+    /// <inheritdoc/>
+    public override int GetHashCode()
+    {
+        var hashCode = new HashCode();
+
+        hashCode.Add(HTTP);
+        hashCode.Add(HTTPS);
+        hashCode.Add(FTP);
+        hashCode.Add(SFTP);
+        hashCode.Add(SOCKS);
+        hashCode.Add(DoNotProxyListEnabled);
+        hashCode.Add(DoNotProxyList.GetSequenceHashCode());
+
+        return hashCode.ToHashCode();
+    }
+
+    /// <inheritdoc/>
+    public bool Equals(NetworkProxySettings? other) =>
+        other is not null &&
+        HTTP == other.HTTP &&
+        HTTPS == other.HTTPS &&
+        FTP == other.FTP &&
+        SFTP == other.SFTP &&
+        SOCKS == other.SOCKS &&
+        DoNotProxyListEnabled == other.DoNotProxyListEnabled &&
+        DoNotProxyList.SequenceEqual(other.DoNotProxyList);
+}

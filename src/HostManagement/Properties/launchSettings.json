@@ -1,0 +1,12 @@
+﻿{
+  "profiles": {
+    "HostManagement": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development",
+        "LOGGING__LOGLEVEL__DEFAULT" : "Debug"
+      }
+    }
+  }
+}
