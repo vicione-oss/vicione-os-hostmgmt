@@ -162,12 +162,9 @@ internal sealed partial class SystemService(
         }
         catch (Exception ex)
         {
-            var message =
-                ServicesResources.UpdateSystemFailed +
-                Environment.NewLine +
-                ex.Message;
+            var message = ServicesResources.UpdateSystemFailed;
 
-            LogError(_logger, message);
+            LogException(_logger, message, ex);
 
             return new SystemControlResult
             {
@@ -213,12 +210,9 @@ internal sealed partial class SystemService(
         }
         catch (Exception ex)
         {
-            var message =
-                ServicesResources.ResetSystemFailed +
-                Environment.NewLine +
-                ex.Message;
+            var message = ServicesResources.ResetSystemFailed;
 
-            LogError(_logger, message);
+            LogException(_logger, message, ex);
 
             return new SystemControlResult
             {
@@ -264,12 +258,9 @@ internal sealed partial class SystemService(
         }
         catch (Exception ex)
         {
-            var message =
-                ServicesResources.RestartSystemFailed +
-                Environment.NewLine +
-                ex.Message;
+            var message = ServicesResources.RestartSystemFailed;
 
-            LogError(_logger, message);
+            LogException(_logger, message, ex);
 
             return new SystemControlResult
             {
@@ -315,12 +306,9 @@ internal sealed partial class SystemService(
         }
         catch (Exception ex)
         {
-            var message =
-                ServicesResources.ShutdownSystemFailed +
-                Environment.NewLine +
-                ex.Message;
+            var message = ServicesResources.ShutdownSystemFailed;
 
-            LogError(_logger, message);
+            LogException(_logger, message, ex);
 
             return new SystemControlResult
             {
