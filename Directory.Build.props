@@ -19,9 +19,8 @@
   <!-- Eigenschaften für alle Projekte des Repos -->
   <PropertyGroup>
     <Nullable>enable</Nullable>
-    <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
     <!-- Allgemeine Informationen -->
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RuntimeIdentifiers>linux-x64;linux-arm64</RuntimeIdentifiers>
     <InvariantGlobalization>true</InvariantGlobalization>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -45,7 +44,6 @@
     <RestoreLockedMode Condition="'$(CI)' == 'true'">true</RestoreLockedMode>
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <DisableImplicitLibraryPacksFolder>true</DisableImplicitLibraryPacksFolder>
-    <NuGetAuditMode>all</NuGetAuditMode> <!-- Remove with dotnet 10 -->
   </PropertyGroup>
 
   <!-- Zusätzliche Eigenschaften für alle Projekte im Ordner src (außer für SourceGeneration) -->

@@ -1,3 +1,3 @@
 [tools]
-dotnet = "9.0.307"  # Match SDK version from main branch
+dotnet = "10.0.103"  # Pin SDK version
 node = "20"
