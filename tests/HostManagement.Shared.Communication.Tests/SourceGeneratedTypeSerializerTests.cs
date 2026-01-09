@@ -551,7 +551,7 @@ public class SourceGeneratedTypeSerializerTests
 
         [Theory]
         [MemberData(nameof(ValidMemberData))]
-        public void ShouldReturnGetSystemConfigurationResult_WhenJsonValid<TType>(
+        public void ShouldReturnResultType_WhenJsonValid<TType>(
             JsonTypeInfo<TType> jsonTypeInfo,
             string json)
         {
@@ -567,7 +567,7 @@ public class SourceGeneratedTypeSerializerTests
     {
         [Theory]
         [MemberData(nameof(ValidMemberData))]
-        public void ShouldSerializeResult_WhenCalled<TType>(
+        public void ShouldSerializeResultType_WhenCalled<TType>(
             JsonTypeInfo<TType> jsonTypeInfo,
             string json)
         {
