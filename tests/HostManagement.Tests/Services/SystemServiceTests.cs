@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
+using HostManagement.Scripts;
 using HostManagement.Scripts.Enums;
 using HostManagement.Services;
 using HostManagement.Shared.Contracts.System;
@@ -156,9 +157,12 @@ public class SystemServiceTests
                 var expectedMessage = $"{InstallFailedMessage} ('{package.FilePath}').";
 
                 var result = new Result();
+                var scriptOptions = new ScriptOptions();
+                scriptOptions.Add(ScriptOptionNames.InstallDebianPackage.DebianPackage, package.FilePath);
+
                 var scriptHandler = Substitute.For<IScriptHandler>();
                 scriptHandler
-                    .ExecuteInstallDebianPackageScript(package.FilePath)
+                    .ExecuteInstallDebianPackageScript(Arg.Any<ScriptOptions>())
                     .Returns(Task.FromResult(operationStatus));
 
                 if (operationStatus is OperationStatus.Warning)
@@ -195,9 +199,12 @@ public class SystemServiceTests
                 var (package, publicKeyBase64) = await CreateSignedPackageTestFilesAsync();
                 var logger = GetLoggerSubstitute();
 
+                var scriptOptions = new ScriptOptions();
+                scriptOptions.Add(ScriptOptionNames.InstallDebianPackage.DebianPackage, package.FilePath);
+
                 var scriptHandler = Substitute.For<IScriptHandler>();
                 scriptHandler
-                    .ExecuteInstallDebianPackageScript(package.FilePath)
+                    .ExecuteInstallDebianPackageScript(scriptOptions)
                     .Returns(Task.FromResult(OperationStatus.Success));
 
                 var sut = new SystemService(logger, scriptHandler, new Result());
@@ -264,8 +271,11 @@ public class SystemServiceTests
             var logger = GetLoggerSubstitute();
             var expectedException = new InvalidOperationException("invalid operation exception");
 
+            var scriptOptions = new ScriptOptions();
+            scriptOptions.Add(ScriptOptionNames.UpdateSystem.FilePath, PathToUpdateFile);
+
             var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler.ExecuteUpdateSystemScript(PathToUpdateFile).ThrowsAsync(expectedException);
+            scriptHandler.ExecuteUpdateSystemScript(Arg.Any<ScriptOptions>()).ThrowsAsync(expectedException);
 
             var sut = new SystemService(logger, scriptHandler, new Result());
 
@@ -296,8 +306,13 @@ public class SystemServiceTests
             var result = new Result();
             result.AddScriptError(ScriptIdentifier.UpdateSystem, expectedScriptMessage);
 
+            var scriptOptions = new ScriptOptions();
+            scriptOptions.Add(ScriptOptionNames.UpdateSystem.FilePath, PathToUpdateFile);
+
             var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler.ExecuteUpdateSystemScript(PathToUpdateFile).Returns(Task.FromResult(OperationStatus.Error));
+            scriptHandler
+                .ExecuteUpdateSystemScript(Arg.Any<ScriptOptions>())
+                .Returns(Task.FromResult(OperationStatus.Error));
 
             var sut = new SystemService(logger, scriptHandler, result);
 
@@ -325,8 +340,12 @@ public class SystemServiceTests
         {
             // Arrange
             var logger = GetLoggerSubstitute();
+
+            var scriptOptions = new ScriptOptions();
+            scriptOptions.Add(ScriptOptionNames.UpdateSystem.FilePath, PathToUpdateFile);
+
             var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler.ExecuteUpdateSystemScript(PathToUpdateFile).Returns(Task.FromResult(OperationStatus.Success));
+            scriptHandler.ExecuteUpdateSystemScript(scriptOptions).Returns(Task.FromResult(OperationStatus.Success));
 
             var sut = new SystemService(logger, scriptHandler, new Result());
 
