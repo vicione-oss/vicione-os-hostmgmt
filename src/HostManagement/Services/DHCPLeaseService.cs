@@ -67,8 +67,8 @@ internal sealed partial class DHCPLeaseService(ILogger logger)
     /// </summary>
     /// <param name="interfaceName">The interface name for which the DHCP lease shall be renewed.</param>
     /// <param name="cancellationToken">A token to cancel the request.</param>
-    /// <returns><see cref="RenewDHCPLeaseResult"/></returns>
-    internal async Task<RenewDHCPLeaseResult> RenewDHCPLease(string interfaceName, CancellationToken cancellationToken)
+    /// <returns><see cref="GetDHCPLeaseInformationResult"/></returns>
+    internal async Task<GetDHCPLeaseInformationResult> RenewDHCPLease(string interfaceName, CancellationToken cancellationToken)
     {
         try
         {
@@ -83,7 +83,7 @@ internal sealed partial class DHCPLeaseService(ILogger logger)
             if (dhcpLease.LeaseObtained is null)
                 LogAndReturnRenewDHCPLeaseFailed(ServicesResources.DHCPLeaseEmpty);
 
-            return new RenewDHCPLeaseResult
+            return new GetDHCPLeaseInformationResult
             {
                 Status = OperationStatus.Success,
                 Message = string.Empty,
@@ -96,7 +96,7 @@ internal sealed partial class DHCPLeaseService(ILogger logger)
 
             RenewDHCPLeaseCanceled(_logger, message);
 
-            return new RenewDHCPLeaseResult
+            return new GetDHCPLeaseInformationResult
             {
                 Status = OperationStatus.Warning,
                 Message = message,
@@ -217,14 +217,14 @@ internal sealed partial class DHCPLeaseService(ILogger logger)
         };
     }
 
-    private RenewDHCPLeaseResult LogAndReturnRenewDHCPLeaseFailed(string additionalMessage)
+    private GetDHCPLeaseInformationResult LogAndReturnRenewDHCPLeaseFailed(string additionalMessage)
     {
         var simpleMessage = ServicesResources.RenewDHCPLeaseFailed;
         var message = simpleMessage + Environment.NewLine + additionalMessage;
 
         RenewDHCPLeaseFailed(_logger, message);
 
-        return new RenewDHCPLeaseResult
+        return new GetDHCPLeaseInformationResult
         {
             Status = OperationStatus.Error,
             Message = simpleMessage,

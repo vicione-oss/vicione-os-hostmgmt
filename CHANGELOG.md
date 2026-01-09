@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed cli command `NoProxyListClearCommand` not disabling the feature on clear
+- Fixed `RenewDHCPLease` request not able to support new result type `GetDHCPLeaseInformationResult` (old but obsolete `RenewDHCPLeaseResult` still works)
 
 ## [1.2.0] - 2025-12-02
 

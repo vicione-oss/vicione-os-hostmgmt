@@ -13,7 +13,7 @@ public record RenewDHCPLeaseResult : OperationResult, IOperationResultFactory<Re
     /// Initializes a new <see cref="RenewDHCPLeaseResult"/>.
     /// </summary>
     public RenewDHCPLeaseResult()
-        : base(nameof(RenewDHCPLeaseResult))
+        : base(nameof(GetDHCPLeaseInformationResult))
     {
     }
 
@@ -23,7 +23,7 @@ public record RenewDHCPLeaseResult : OperationResult, IOperationResultFactory<Re
     public required DHCPLease? DHCPLease { get; init; }
 
     /// <inheritdoc/>
-    protected override string ExpectedType => nameof(RenewDHCPLeaseResult);
+    protected override string ExpectedType => nameof(GetDHCPLeaseInformationResult);
 
     /// <inheritdoc/>
     public static RenewDHCPLeaseResult CreateErrorResult(string message) => new()

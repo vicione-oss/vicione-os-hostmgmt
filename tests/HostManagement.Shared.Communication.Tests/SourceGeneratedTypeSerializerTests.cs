@@ -246,7 +246,7 @@ public class SourceGeneratedTypeSerializerTests
         [ "GetNetworkStatusInformationResult", s_getNetworkContext, $$"""{"ResultType":"","Status":"Warning","Message":"Warning","NetworkStatusInformation":{{s_sampleNetworkStatusJson}}}""" ],
         [ "GetNTPFallbackInformationResult", s_getNTPFallbackContext, $$"""{"ResultType":"","Status":"Warning","Message":"Warning","FallbackNTPServers":{{s_sampleFallbackNTPInformationJson}}}""" ],
         [ "GetServiceStateResult", s_getServiceStateContext, """{"ResultType":"","Status":"Warning","Message":"Warning","ActiveState":"active"}""" ],
-        [ "RenewDHCPLeaseResult", s_renewDHCPLeaseContext, """{"ResultType":"","Status":"Warning","Message":"Warning","DHCPLease":null}""" ],
+        [ "GetDHCPLeaseInformationResult", s_renewDHCPLeaseContext, """{"ResultType":"","Status":"Warning","Message":"Warning","DHCPLease":null}""" ],
         [ "ServiceControlResult", s_serviceControlContext, """{"ResultType":"","Status":"Warning","Message":"Warning"}""" ],
         [ "SystemControlResult", s_updateSystemContext, """{"ResultType":"","Status":"Warning","Message":"Warning"}""" ],
         [ "SystemControlResult", s_restartSystemContext, """{"ResultType":"","Status":"Warning","Message":"Warning"}""" ],
@@ -266,7 +266,7 @@ public class SourceGeneratedTypeSerializerTests
         [ "GetNetworkStatusInformationResult", s_getNetworkContext, $$"""{"ResultType":"Mismatch","Status":"Warning","Message":"Warning","NetworkStatusInformation":{{s_sampleNetworkStatusJson}}}""" ],
         [ "GetNTPFallbackInformationResult", s_getNTPFallbackContext, $$"""{"ResultType":"Mismatch","Status":"Warning","Message":"Warning","FallbackNTPServers":{{s_sampleFallbackNTPInformationJson}}}""" ],
         [ "GetServiceStateResult", s_getServiceStateContext, """{"ResultType":"Mismatch","Status":"Warning","Message":"Warning","ActiveState":"active"}""" ],
-        [ "RenewDHCPLeaseResult", s_renewDHCPLeaseContext, """{"ResultType":"Mismatch","Status":"Warning","Message":"Warning","DHCPLease":null}""" ],
+        [ "GetDHCPLeaseInformationResult", s_renewDHCPLeaseContext, """{"ResultType":"Mismatch","Status":"Warning","Message":"Warning","DHCPLease":null}""" ],
         [ "ServiceControlResult", s_serviceControlContext, """{"ResultType":"Mismatch","Status":"Warning","Message":"Warning"}""" ],
         [ "SystemControlResult", s_updateSystemContext, """{"ResultType":"Mismatch","Status":"Warning","Message":"Warning"}""" ],
         [ "SystemControlResult", s_restartSystemContext, """{"ResultType":"Mismatch","Status":"Warning","Message":"Warning"}""" ],
@@ -355,12 +355,12 @@ public class SourceGeneratedTypeSerializerTests
         [s_getServiceStateContext, """{"ResultType":"GetServiceStateResult","Status":"Warning","ActiveState":"failed"}"""],
         [s_getServiceStateContext, """{"ResultType":"GetServiceStateResult","Message":"Warning","ActiveState":"failed"}"""],
 
-        [s_renewDHCPLeaseContext, """{"ResultType":"RenewDHCPLeaseResult","Status":"Warning"}"""],
-        [s_renewDHCPLeaseContext, """{"ResultType":"RenewDHCPLeaseResult","Message":"Warning"}"""],
-        [s_renewDHCPLeaseContext, """{"ResultType":"RenewDHCPLeaseResult","DHCPLease":null}"""],
-        [s_renewDHCPLeaseContext, """{"ResultType":"RenewDHCPLeaseResult","Status":"Warning","Message":"Warning"}"""],
-        [s_renewDHCPLeaseContext, """{"ResultType":"RenewDHCPLeaseResult","Status":"Warning","DHCPLease":null}"""],
-        [s_renewDHCPLeaseContext, """{"ResultType":"RenewDHCPLeaseResult","Message":"Warning","DHCPLease":null}"""],
+        [s_renewDHCPLeaseContext, """{"ResultType":"GetDHCPLeaseInformationResult","Status":"Warning"}"""],
+        [s_renewDHCPLeaseContext, """{"ResultType":"GetDHCPLeaseInformationResult","Message":"Warning"}"""],
+        [s_renewDHCPLeaseContext, """{"ResultType":"GetDHCPLeaseInformationResult","DHCPLease":null}"""],
+        [s_renewDHCPLeaseContext, """{"ResultType":"GetDHCPLeaseInformationResult","Status":"Warning","Message":"Warning"}"""],
+        [s_renewDHCPLeaseContext, """{"ResultType":"GetDHCPLeaseInformationResult","Status":"Warning","DHCPLease":null}"""],
+        [s_renewDHCPLeaseContext, """{"ResultType":"GetDHCPLeaseInformationResult","Message":"Warning","DHCPLease":null}"""],
 
         [s_serviceControlContext, """{"ResultType":"ServiceControlResult","Status":"Warning"}"""],
         [s_serviceControlContext, """{"ResultType":"ServiceControlResult","Message":"Warning"}"""],
@@ -410,8 +410,8 @@ public class SourceGeneratedTypeSerializerTests
         [s_getServiceStateContext, """{"ResultType":"GetServiceStateResult","Status":"Warning","Message":"Warning","ActiveState":"active","AdditionalMember":"Additional"}"""],
         [s_getServiceStateContext, """{"ResultType":"GetServiceStateResult","Status":"Warning","Message":"Warning","AdditionalMember":"Additional","ActiveState":"active"}"""],
 
-        [s_renewDHCPLeaseContext, $$"""{"ResultType":"RenewDHCPLeaseResult","Status":"Warning","Message":"Warning","DHCPLease":{{s_sampleDHCPLeaseJson}},"AdditionalMember":"Additional"}"""],
-        [s_renewDHCPLeaseContext, $$"""{"ResultType":"RenewDHCPLeaseResult","Status":"Warning","Message":"Warning","AdditionalMember":"Additional","DHCPLease":{{s_sampleDHCPLeaseJson}}}"""],
+        [s_renewDHCPLeaseContext, $$"""{"ResultType":"GetDHCPLeaseInformationResult","Status":"Warning","Message":"Warning","DHCPLease":{{s_sampleDHCPLeaseJson}},"AdditionalMember":"Additional"}"""],
+        [s_renewDHCPLeaseContext, $$"""{"ResultType":"GetDHCPLeaseInformationResult","Status":"Warning","Message":"Warning","AdditionalMember":"Additional","DHCPLease":{{s_sampleDHCPLeaseJson}}}"""],
 
         [s_serviceControlContext, """{"ResultType":"ServiceControlResult","Status":"Warning","Message":"Warning","AdditionalMember":"Additional"}"""],
         [s_serviceControlContext, """{"ResultType":"ServiceControlResult","AdditionalMember":"Additional","Status":"Warning","Message":"Warning"}"""],
@@ -467,7 +467,7 @@ public class SourceGeneratedTypeSerializerTests
 
         [s_getServiceStateContext, """{"ResultType":"GetServiceStateResult","Status":"Warning","Message":"Warning","ActiveState":"active"}"""],
 
-        [s_renewDHCPLeaseContext, $$"""{"ResultType":"RenewDHCPLeaseResult","Status":"Warning","Message":"Warning","DHCPLease":{{s_sampleDHCPLeaseJson}}}"""],
+        [s_renewDHCPLeaseContext, $$"""{"ResultType":"GetDHCPLeaseInformationResult","Status":"Warning","Message":"Warning","DHCPLease":{{s_sampleDHCPLeaseJson}}}"""],
         [s_serviceControlContext, """{"ResultType":"ServiceControlResult","Status":"Success","Message":"Success"}"""],
         [s_updateSystemContext, """{"ResultType":"SystemControlResult","Status":"Success","Message":"Success"}"""],
         [s_restartSystemContext, """{"ResultType":"SystemControlResult","Status":"Success","Message":"Success"}"""],

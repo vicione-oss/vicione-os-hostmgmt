@@ -11,15 +11,15 @@ namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 /// <summary>
 /// Represents the <see cref="RenewDHCPLeaseRequestHandler"/>.
 /// </summary>
-internal sealed class RenewDHCPLeaseRequestHandler(ILogger logger) : RequestHandler<RenewDHCPLeaseResult>
+internal sealed class RenewDHCPLeaseRequestHandler(ILogger logger) : RequestHandler<GetDHCPLeaseInformationResult>
 {
     /// <summary>
     /// The topic of the <see cref="RenewDHCPLeaseRequestHandler"/>.
     /// </summary>
     public override string Topic => Topics.RenewDHCPLease;
 
-    public override JsonTypeInfo<RenewDHCPLeaseResult> TypedJsonTypeInfo
-        => SourceGenerationContext.Default.RenewDHCPLeaseResult;
+    public override JsonTypeInfo<GetDHCPLeaseInformationResult> TypedJsonTypeInfo
+        => SourceGenerationContext.Default.GetDHCPLeaseInformationResult;
 
     /// <summary>
     /// Handles the renew DHCP lease request.
@@ -42,7 +42,7 @@ internal sealed class RenewDHCPLeaseRequestHandler(ILogger logger) : RequestHand
         catch (JsonException)
         {
             throw new InvalidOperationException(
-                $"{nameof(RenewDHCPLeaseResult)} could not be serialized into a string.");
+                $"{nameof(GetDHCPLeaseInformationResult)} could not be serialized into a string.");
         }
     }
 }
