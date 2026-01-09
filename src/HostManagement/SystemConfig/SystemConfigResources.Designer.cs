@@ -79,6 +79,33 @@ namespace HostManagement.SystemConfig {
         }
         
         /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die System configuration has been cached. ähnelt.
+        /// </summary>
+        internal static string ConfigCached {
+            get {
+                return ResourceManager.GetString("ConfigCached", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die System configuration cache has been invalidated. ähnelt.
+        /// </summary>
+        internal static string ConfigCacheInvalidated {
+            get {
+                return ResourceManager.GetString("ConfigCacheInvalidated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Failed to invalidate system configuration cache. ähnelt.
+        /// </summary>
+        internal static string ConfigCacheInvalidationFailed {
+            get {
+                return ResourceManager.GetString("ConfigCacheInvalidationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die System configuration was null. ähnelt.
         /// </summary>
         internal static string ConfigWasNull {
@@ -111,6 +138,15 @@ namespace HostManagement.SystemConfig {
         internal static string GetConfigFailed {
             get {
                 return ResourceManager.GetString("GetConfigFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Get system configuration from cache succeeded. ähnelt.
+        /// </summary>
+        internal static string GetConfigFromCacheSucceeded {
+            get {
+                return ResourceManager.GetString("GetConfigFromCacheSucceeded", resourceCulture);
             }
         }
         

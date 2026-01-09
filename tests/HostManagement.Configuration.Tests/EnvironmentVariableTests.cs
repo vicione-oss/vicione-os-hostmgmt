@@ -601,6 +601,86 @@ public sealed class EnvironmentVariableTests
         }
     }
 
+    public sealed class GetLongValue
+    {
+        private const string EnvironmentVariableKey = "HOSTMANAGEMENT:SYSTEM_CONFIGURATION_CACHE_LIFETIME_SECONDS";
+        private const string EnvironmentVariableValue = "42";
+
+        private const long ConfiguredDefaultValue = 30L;
+
+        private const string ExpectedInvalidVariableString = "HOSTMANAGEMENT__SYSTEM_CONFIGURATION_CACHE_LIFETIME_SECONDS";
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ShouldReturnDefaultValue_WhenKeyNotExistsAndDefaultValueLong(bool isRequired)
+        {
+            var config = CreateConfiguration([]);
+            var variable = new EnvironmentVariable<long>(
+                config,
+                EnvironmentVariableKey,
+                ConfiguredDefaultValue,
+                isRequired);
+
+            variable.IsInvalid.Should().Be(isRequired);
+            variable.Value.Should().Be(ConfiguredDefaultValue);
+            AssertInvalidVariableString(variable, isRequired, ExpectedInvalidVariableString);
+        }
+
+        [Theory]
+        [InlineData(false, "")]
+        [InlineData(false, "  ")]
+        [InlineData(true, "")]
+        [InlineData(true, "  ")]
+        public void ShouldReturnDefaultValue_WhenValueIsEmpty(bool isRequired, string emptyValue)
+        {
+            var config = CreateConfiguration([new(EnvironmentVariableKey, emptyValue)]);
+            var variable = new EnvironmentVariable<long>(
+                config,
+                EnvironmentVariableKey,
+                ConfiguredDefaultValue,
+                isRequired);
+
+            variable.IsInvalid.Should().Be(isRequired);
+            variable.Value.Should().Be(ConfiguredDefaultValue);
+            AssertInvalidVariableString(variable, isRequired, ExpectedInvalidVariableString);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ShouldReturnDefaultValue_WhenLongCouldNotBeParsed(bool isRequired)
+        {
+            var config = CreateConfiguration([new(EnvironmentVariableKey, "noLong")]);
+            var variable = new EnvironmentVariable<long>(
+                config,
+                EnvironmentVariableKey,
+                ConfiguredDefaultValue,
+                isRequired);
+
+            variable.IsInvalid.Should().Be(isRequired);
+            variable.Value.Should().Be(ConfiguredDefaultValue);
+            AssertInvalidVariableString(variable, isRequired, ExpectedInvalidVariableString);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ShouldReturnValueAndAlwaysBeValid_WhenValueLong(bool isRequired)
+        {
+            var config = CreateConfiguration([new(EnvironmentVariableKey, EnvironmentVariableValue)]);
+            var variable = new EnvironmentVariable<long>(
+                config,
+                EnvironmentVariableKey,
+                ConfiguredDefaultValue,
+                isRequired);
+
+            variable.IsInvalid.Should().BeFalse();
+            variable.Value.Should().Be(42L);
+            variable.InvalidVariableString.Should().BeEmpty();
+        }
+    }
+
     public sealed class UnsupportedType
     {
         private const string UnsupportedEnvironmentVariableKey = "HOSTMANAGEMENT:UNSUPPORTED";

@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added functionality to reset network interfaces to factory default settings
 - Added possibility to create a template of `SystemConfiguration.json` and validate it
+- Added caching for system configuration
+  - Configurable automatic invalidation via `HOSTMANAGEMENT__SYSTEM_CONFIGURATION_CACHE_LIFETIME_SECONDS` (default 30 seconds)
+  - Added invalidation after setting the config (or revert config)
 
 ### Changed
 

@@ -5,6 +5,7 @@ using HostManagement.Configuration;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Contracts;
 using HostManagement.SystemConfig;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
@@ -12,6 +13,7 @@ using InternalSystemConfiguration = HostManagement.SystemConfig.Contracts.System
 
 namespace HostManagement.Tests.SystemConfig;
 
+[Collection("Non Parallel Tests")]
 public class SystemConfigurationServiceTests
 {
     private const string Lan1 = "lan1";
@@ -24,6 +26,10 @@ public class SystemConfigurationServiceTests
 
     private const string TestHostname = "test-host";
     private const string TestExceptionMessage = "Test exception";
+
+    public SystemConfigurationServiceTests() => SystemConfigurationCache.Instance.ResetForTests();
+
+    public void Dispose() => SystemConfigurationCache.Instance.ResetForTests();
 
     private static InternalSystemConfiguration CreateInternalConfig()
         => new()
@@ -108,7 +114,7 @@ public class SystemConfigurationServiceTests
             }
         };
 
-    public sealed class GetConfiguration
+    public sealed class GetConfiguration : SystemConfigurationServiceTests
     {
         [Fact]
         public async Task ShouldReturnSuccess_WhenScriptsSucceed()
@@ -140,6 +146,9 @@ public class SystemConfigurationServiceTests
         [Fact]
         public async Task ShouldReturnWarning_WhenScriptsReturnWarning()
         {
+            // Reset cache, so config is read again via scripts
+            SystemConfigurationCache.Instance.ResetForTests();
+
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
@@ -168,7 +177,7 @@ public class SystemConfigurationServiceTests
         }
     }
 
-    public sealed class GetConfigurationFromJson
+    public sealed class GetConfigurationFromJson : SystemConfigurationServiceTests
     {
         [Fact]
         public async Task ShouldReturnError_WhenNoJsonFileExists()
@@ -253,7 +262,7 @@ public class SystemConfigurationServiceTests
         }
     }
 
-    public sealed class PrepareConfiguration
+    public sealed class PrepareConfiguration : SystemConfigurationServiceTests
     {
         private const string PrepareConfigNotPossible = "Prepare system configuration not possible.";
 
@@ -415,7 +424,7 @@ public class SystemConfigurationServiceTests
         }
     }
 
-    public sealed class SetConfiguration
+    public sealed class SetConfiguration : SystemConfigurationServiceTests
     {
         private const string RevertConfig = "Revert system configuration";
 
@@ -439,6 +448,9 @@ public class SystemConfigurationServiceTests
         [Fact]
         public async Task ShouldReturnError_WhenGetConfigurationReturnsError()
         {
+            // Reset cache, so config is read again via scripts
+            SystemConfigurationCache.Instance.ResetForTests();
+
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesScript()
@@ -618,7 +630,7 @@ public class SystemConfigurationServiceTests
         }
     }
 
-    public sealed class ResetNetworkInterface
+    public sealed class ResetNetworkInterface : SystemConfigurationServiceTests
     {
         [Fact]
         public async Task ShouldReturnError_WhenDefaultConfigurationDoesNotExist()
@@ -725,6 +737,7 @@ public class SystemConfigurationServiceTests
         internal MockFileSystem FileSystem { get; } = new();
         internal IPersistence Persistence { get; } = Substitute.For<IPersistence>();
         internal IScriptHandler ScriptHandler { get; } = Substitute.For<IScriptHandler>();
+        internal ILogger Logger { get; } = Substitute.For<ILogger>();
         internal SystemConfigurationService Sut { get; }
 
         internal SystemConfigurationServiceContext()
@@ -749,7 +762,7 @@ public class SystemConfigurationServiceTests
             ScriptHandler.ExecuteSetNetworkNTPSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
             ScriptHandler.ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
             ScriptHandler.ExecuteApplyNetplanConfigurationScript().ReturnsForAnyArgs(OperationStatus.Success);
-            Sut = new(FileSystem, Persistence, ScriptHandler);
+            Sut = new(FileSystem, Persistence, ScriptHandler, Logger);
 
             Environment.SetEnvironmentVariable("CONFIGURABLE_SERVICES", ServiceName);
         }

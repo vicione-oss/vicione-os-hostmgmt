@@ -123,6 +123,15 @@
   <data name="AffectedConfigWasJsonConfig" xml:space="preserve">
     <value>Affected system configuration was: '{0}'</value>
   </data>
+  <data name="ConfigCached" xml:space="preserve">
+    <value>System configuration has been cached.</value>
+  </data>
+  <data name="ConfigCacheInvalidated" xml:space="preserve">
+    <value>System configuration cache has been invalidated.</value>
+  </data>
+  <data name="ConfigCacheInvalidationFailed" xml:space="preserve">
+    <value>Failed to invalidate system configuration cache.</value>
+  </data>
   <data name="ConfigWasNull" xml:space="preserve">
     <value>System configuration was null.</value>
   </data>
@@ -134,6 +143,9 @@
   </data>
   <data name="GetConfigFailed" xml:space="preserve">
     <value>Get system configuration failed.</value>
+  </data>
+  <data name="GetConfigFromCacheSucceeded" xml:space="preserve">
+    <value>Get system configuration from cache succeeded.</value>
   </data>
   <data name="GetConfigFromJsonFailed" xml:space="preserve">
     <value>Get system configuration from '{0}' failed.</value>
