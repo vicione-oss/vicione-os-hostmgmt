@@ -4,7 +4,9 @@ using System.Text.Json.Serialization.Metadata;
 using HostManagement.Scripts;
 using HostManagement.Scripts.Enums;
 using HostManagement.Shared.Communication.Enums;
+using HostManagement.Shared.Contracts.NetworkStatus;
 using HostManagement.SystemConfig.Contracts;
+using SharedCommunicationSourceGenerationContext = HostManagement.Shared.Communication.Contracts.SourceGenerationContext;
 
 namespace HostManagement;
 
@@ -25,6 +27,9 @@ internal sealed class ScriptHandler(Result? result = default) : IScriptHandler
     public async Task<OperationStatus> ExecuteApplyNetplanConfigurationScript()
         => await ExecuteScript(ScriptIdentifier.ApplyNetplanConfiguration, includeWarnings: false);
 
+    public async Task<OperationStatus> ExecuteIsNetworkInterfaceAvailableScript(string interfaceName)
+        => await ExecuteScript(ScriptIdentifier.IsNetworkInterfaceAvailable, interfaceName);
+
     public async Task<(OperationStatus, string)> ExecuteGetArchitectureScript()
         => await ExecuteScriptAndReturnRawStandardOutput(ScriptIdentifier.CommonSystemArchitectureGet);
 
@@ -32,6 +37,14 @@ internal sealed class ScriptHandler(Result? result = default) : IScriptHandler
         => await ExecuteScriptAndReturnDeserializedType(
             ScriptHandlerJsonContext.Default.ListNetworkInterfaceCommonInformation,
             ScriptIdentifier.NetworkInterfacesCommonInformationGet);
+
+    public async Task<(OperationStatus, NetworkStatusInformation)> ExecuteGetNetworkStatusInformationScript(
+        ScriptOptions scriptOptions)
+        => await ExecuteScriptAndReturnDeserializedType(
+            SharedCommunicationSourceGenerationContext.Default.NetworkStatusInformation,
+            ScriptIdentifier.NetworkStatusInformationGet,
+            scriptOptions.Options,
+            () => NetworkStatusInformation.Empty);
 
     public async Task<(OperationStatus, string)> ExecuteGetOriginalPhysicalAddressScript(string interfaceName)
         => await ExecuteScriptAndReturnRawStandardOutput(ScriptIdentifier.OriginalPhysicalAddressGet, interfaceName);

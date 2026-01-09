@@ -220,6 +220,7 @@ public sealed class ScriptRunner
 
             // Network
             ScriptIdentifier.ApplyNetplanConfiguration => resourceManager.GetResource("apply_netplan_configuration"),
+            ScriptIdentifier.IsNetworkInterfaceAvailable => resourceManager.GetResource("is_network_interface_available"),
             ScriptIdentifier.NetworkInterfacesGet => resourceManager.GetResource("get_network_interfaces"),
             ScriptIdentifier.OriginalPhysicalAddressGet => resourceManager.GetResource("get_original_physical_address"),
             ScriptIdentifier.NetworkInterfacesCommonInformationGet => resourceManager.GetResource("get_network_interfaces_common_information"),

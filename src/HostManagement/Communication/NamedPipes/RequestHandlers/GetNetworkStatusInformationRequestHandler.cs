@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using Microsoft.Extensions.Logging;
-using HostManagement.NetworkStatus;
+using HostManagement.Services;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Serialization;
@@ -36,8 +36,10 @@ internal sealed class GetNetworkStatusInformationRequestHandler(ILogger logger)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(messageContent, nameof(messageContent));
 
-            var manager = new NetworkStatusInformationManager(logger);
-            var result = await manager.GetNetworkStatusInformation(messageContent, cancellationToken);
+            var scriptResult = new Result();
+            var scriptHandler = new ScriptHandler(scriptResult);
+            var service = new NetworkStatusService(logger, scriptHandler, scriptResult);
+            var result = await service.GetNetworkStatusInformation(messageContent, cancellationToken);
 
             return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
         }

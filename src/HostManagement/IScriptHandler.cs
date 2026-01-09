@@ -1,4 +1,5 @@
 ﻿using HostManagement.Shared.Communication.Enums;
+using HostManagement.Shared.Contracts.NetworkStatus;
 using HostManagement.SystemConfig.Contracts;
 
 namespace HostManagement;
@@ -21,6 +22,13 @@ internal interface IScriptHandler
     Task<OperationStatus> ExecuteApplyNetplanConfigurationScript();
 
     /// <summary>
+    /// Executes the script to check if a network interface is available.
+    /// </summary>
+    /// <param name="interfaceName">The interface name.</param>
+    /// <returns><see cref="OperationStatus"/></returns>
+    Task<OperationStatus> ExecuteIsNetworkInterfaceAvailableScript(string interfaceName);
+
+    /// <summary>
     /// Executes a script to get the system architecture (e.g. amd64, arm64).
     /// </summary>
     /// <returns><see cref="OperationStatus"/> and the string of the architecture.</returns>
@@ -32,6 +40,13 @@ internal interface IScriptHandler
     /// <returns><see cref="OperationStatus"/> and a list of
     /// <see cref="NetworkInterfaceCommonInformation"/> of all network interfaces.</returns>
     Task<(OperationStatus, List<NetworkInterfaceCommonInformation>)> ExecuteGetNetworkInterfacesCommonInformationScript();
+
+    /// <summary>
+    /// Executes the script to get the network status information.
+    /// </summary>
+    /// <param name="scriptOptions">The script options to execute the script.</param>
+    /// <returns><see cref="OperationStatus"/> and <see cref="NetworkStatusInformation"/>.</returns>
+    Task<(OperationStatus, NetworkStatusInformation)> ExecuteGetNetworkStatusInformationScript(ScriptOptions scriptOptions);
 
     /// <summary>
     /// Executes the script to get the original physical address of a network interface.
