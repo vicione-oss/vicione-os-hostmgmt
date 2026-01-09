@@ -1,29 +1,159 @@
 # HostManagement
 
-Das Projekt **HostManagement (HM)** ist eine AOT kompilierte .NET-Anwendung für Debian. Es dient der Bereitstellung einer einheitlichen Schnittstelle zur Systemkonfiguration und ermöglicht die Kommunikation mit übergeordneten Anwendungen (z. B. **ViciOne Suite**) über Named Pipes.
+The **HostManagement (HM)** project is an AOT-compiled .NET application for Debian. It provides a unified interface for system configuration and enables communication with higher-level applications (e.g. **ViciOne Suite**) via named pipes.
+
+**Main Goals** of the project are:
+
+* Provide a unified interface for system configuration for Linux and Docker/Kubernetes.
+* Delivery as an AOT-compiled command-line application for efficiency.
+* Efficient communication with the higher-level application via named pipes.
+* Provide comprehensive validations for system configuration to minimize errors and ensure reliability.
+
+A description of the conceptual ideas and design decisions can be found under: [Concept]
 
 | | | |
 | :- | :- | :- |
-| **[Hauptziele des Projektes](#hauptziele-des-projektes)** <br> Übersicht / Ziele | **[Projektstruktur](#projektstruktur)** <br> Hauptkomponenten / Projektstruktur | **[Deployment](#deployment)** <br> Toolchain installieren / Veröffentlichung |
-| **[Installation](#installation)** <br> Abhängigkeiten / Installation Debian-Paket | **[Benutzung](#benutzung)** <br> Service / Kommandozeile / Umgebungsvariablen / Logging / GitHub Copilot | |
+| **[Getting Started](#getting-started)** <br> Quick Start / Target Environments | **[Usage](#usage)** <br> CLI / Service / Environment Variables / Logging | **[Project Structure](#project-structure)** <br> Main Components / Project Structure Details |
+| **[Contributing](#contributing)** <br> Development / Publishing / Toolchain / GitHub Copilot | **[License](#license)** <br> License Status | |
 
-## Hauptziele des Projektes
+## Getting Started
 
-* Bereitstellung einer einheitlichen Schnittstelle zur Systemkonfiguration für Linux und Docker/Kubernetes.
-* Implementierung permanenter, konfigurierbarer Health-Checks des Systems und der übergeordneten Anwendung.
-* Effiziente Kommunikation mit der übergeordneten Anwendung über Named Pipes. Das **HostManagement** ist der Server, die **ViciOne Suite** ist der Client.
-* Auf Flash Systemen sollen alle Elemente die häufig schreiben im RAM oder einer RAM-Disk liegen.
-* Minimalistisches Design und hohe Effizienz, um die Größe des Tools und der zugehörigen Bibliotheken zu minimieren.
-* Bereitstellung als AOT-kompilierte Command-Line-Anwendung.
-* Bereitstellung umfassender Validierungen für Benutzereingaben und Systemkonfigurationen, um Fehler zu minimieren und die Zuverlässigkeit zu gewährleisten.
-* Unterstützung mehrerer Sprachen für die Validierungen der UI.
-* Da das **HostManagement** erhöhte Rechte besitzt ist sicherzustellen, dass nur die zugehörige übergeordnete Anwendung oder ein Shellscript mit gleichen oder höheren Rechten Zugriff auf das **HostManagement** hat.
+### Quick Start
 
-Eine Beschreibung der konzeptionellen Ideen und Designentscheidungen findet sich unter: [Konzept]
+* Prerequisites
+  * Debian 12 with `systemd`
+  * Sudo privileges
+  * Environment file for **minimum feature set** configured
 
-## Projektstruktur
+    ```bash
+    sudo install -d -m 0755 /etc/hostmanagement/conf.d
+    printf "HOSTMANAGEMENT__TARGET_ENVIRONMENT='debian'\n" | sudo tee /etc/hostmanagement/conf.d/50-hostmanagement.conf > /dev/null
+    ```
 
-Das Projekt ist in mehrere Hauptkomponenten unterteilt:
+    > [!note]
+    > The value `debian` enables the **minimum feature set**. For detailed instructions on other target environments (e.g. **EdgeS ViciOne**) see [Target Environments](#target-environments).
+
+* Install **HostManagement daemon**
+  * Download the latest `.deb` package from the [Releases page](https://gitlab.com/vicione-oss/vicione/os/hostmgmt/-/releases/permalink/latest):
+  * Install the package:
+    * For x64/amd64
+
+      ```bash
+      sudo apt install ./hostmanagement_<version>_amd64.deb
+      ```
+
+    * For arm64
+
+      ```bash
+      sudo apt install ./hostmanagement_<version>_arm64.deb
+      ```
+
+    > [!note]
+    > If installation was successful the status can be checked with `systemctl status hostmanagement`
+
+* Run **HostManagement CLI**, e.g.
+
+    ```bash
+    sudo hostmanagement service status -n ssh
+    ```
+
+### Target Environments
+
+The following target environments are supported:
+
+> [!note]
+> Dependencies differ per environment. Dependencies like core, text/shell and system utilities that are present in every Linux distribution are not listed.
+
+#### Debian (debian)
+
+Currently the functionality is limited to managing systemd units only.
+
+The dependencies are:
+
+* `wget` (licensed under GPL-3.0)
+
+#### EdgeS ViciOne (edges-vicione)
+
+Offers the complete functionality needed to be able to work with the ViciOne Suite.
+
+The dependencies are:
+
+* `netplan` (all network managers except `systemd-networkd` must be disabled; licensed under GPL-3.0)
+* `wget` (licensed under GPL-3.0)
+* `fw_printenv` (internal tool without license)
+* `systemd`
+  * `systemd-networkd` enabled
+  * `systemd-resolved` enabled (DNS name resolution incl. service discovery in local networks via mDNS)
+
+## Usage
+
+### HostManagement CLI
+
+**HostManagement** is normally started as a Linux service after successful installation. The command line interface can be used to communicate with the previously started service via named pipes.
+
+`sudo hostmanagement [command] [options]`
+
+> [!important]
+> Elevated privileges are required.
+
+> [!note]
+> To show help and usage information, use the options `-?, -h, --help`.
+
+#### Example "service status" command
+
+The command
+
+```bash
+sudo hostmanagement service status -n ssh
+```
+
+will print the current active state of the service, e.g. `active`, `inactive` etc.
+
+### HostManagement Service
+
+**HostManagement** is normally started as a Linux service after successful installation. If it shall be started manually via terminal, follow the steps below.
+
+> [!important]
+> Elevated privileges are required.
+
+> [!note]
+> Only **one** service instance can be active at a time.
+
+1. Make sure to stop a running **HostManagement** service
+
+    ```bash
+    sudo systemctl stop hostmanagement.service
+    ```
+
+1. Start the daemon mode and specify all required environment variables (for the wanted target environment)
+
+    ```bash
+    sudo -E env HOSTMANAGEMENT__TARGET_ENVIRONMENT='debian' hostmanagement --daemon
+    ```
+
+    > [!note]
+    > For a list of supported environment variables refer to [Environment Variables](#environment-variables) below.
+
+### Environment Variables
+
+A list of environment variables defined for **HostManagement** can be found in [/docs/EnvironmentVariables.md](/docs/EnvironmentVariables.md).
+
+### Logging
+
+By default, **HostManagement** logs messages from log level `Warning`. The log level can be adjusted via the environment variable `LOGGING__LOGLEVEL__DEFAULT`.
+
+> [!note]
+> Possible log levels are `Trace`, `Debug`, `Information`, `Warning`, `Error`, `Critical`, `None`.
+
+Logs can be viewed using the `journalctl` command:
+
+```bash
+sudo journalctl -u hostmanagement --output=short-precise
+```
+
+## Project Structure
+
+The project is divided into several main components:
 
 ```mermaid
 
@@ -43,213 +173,183 @@ flowchart TD
 <details>
   <summary markdown="span">
 
-  `Details Projektstruktur`
+  `Project Structure Details`
 
   </summary>
 
-  ```text
+  <pre>
   HostManagement                           <-- HostManagement Solution
-  ├── HostManagement                       <-- Hauptprojekt für das Host Management (HM)
-  │   ├── Communication                    <-- Hier werden alle Kommunikationskanäle definiert
-  │   │   ├── CommandLine                  <-- CLI-Implementierung (Kommunikation über Named Pipes)
-  │   │   │   ├── Commands                 <-- Commands der CLI
-  │   │   │   ├── Output                   <-- Output-Formatierung für die CLI
-  │   │   │   └── Validators               <-- Validatoren für die CLI
-  │   │   └── NamedPipes                   <-- Named Pipes Implementierung (zur Kommunikation mit der ViciOne Suite)
-  │   │       ├── Client                   <-- Client-Implementierung
-  │   │       └── RequestHandlers          <-- Request Handler für die Named Pipes (zum Laden/Anwenden von Settings etc.)
-  │   ├── Services                         <-- Services für DHCP, Netzwerkstatus-Informationen, NTP, physikalische Adressen, System und systemd units
-  │   ├── SystemConfig                     <-- Klassen zur Modifikation der Konfiguration des Systems
-  │   │   ├── Network                      <-- Netzwerk-Konfigurationsadapter
-  │   │   └── Service                      <-- Service-Konfigurationsadapter
-  │   ├── ViciOneSuite                     <-- ViciOne Suite spezifische Funktionen (Version, Installation)
+  ├── HostManagement                       <-- Main project for Host Management (HM)
+  │   ├── Communication                    <-- All communication channels are defined here
+  │   │   ├── CommandLine                  <-- CLI implementation (communication via named pipes)
+  │   │   │   ├── Commands                 <-- CLI commands
+  │   │   │   ├── Output                   <-- Output formatting for the CLI
+  │   │   │   └── Validators               <-- Validators for the CLI
+  │   │   └── NamedPipes                   <-- Named pipes implementation (for communication with the ViciOne Suite)
+  │   │       ├── Client                   <-- Client implementation
+  │   │       └── RequestHandlers          <-- Request handlers for the named pipes (for loading/applying settings etc.)
+  │   ├── Services                         <-- Services for DHCP, network status information, NTP, physical addresses, system and systemd units
+  │   ├── SystemConfig                     <-- Classes to modify the system configuration
+  │   │   ├── Network                      <-- Network configuration adapter
+  │   │   └── Service                      <-- Service configuration adapter
+  │   ├── ViciOneSuite                     <-- ViciOne Suite-specific functions (version, installation)
   │   │
-  │   └── Program.cs                       <-- Einstiegspunkt des Tools
+  │   └── Program.cs                       <-- Entry point of the tool
   │
   │
-  ├── HostManagement.Common                <-- Unterprojekt für Helper, Utilities, Abstractions etc.
-  │   ├── Utilities                        <-- Utility-Klassen
-  │   └── Wrappers                         <-- Wrapper für System-Funktionen
+  ├── HostManagement.Common                <-- Subproject for helpers, utilities, abstractions, etc.
+  │   ├── Utilities                        <-- Utility classes
+  │   └── Wrappers                         <-- Wrappers for system functions
   │
   │
-  ├── HostManagement.Configuration         <-- Unterprojekt für Anwendungs-Konfigurationen (Umgebungsvariablen, anwendungsspezifische Pfade etc.)
+  ├── HostManagement.Configuration         <-- Subproject for application configurations (environment variables, application-specific paths, etc.)
   │
   │
-  ├── HostManagement.Scripts               <-- Unterprojekt für die Scripts, die mit dem Basissystem kommunizieren
-  │   ├── Enums                            <-- Sammelordner für Enums
-  │   ├── Extensions                       <-- Extensions (z. B. für string-Anpassungen bzgl. Unix-LineEndings)
-  │   ├── Resources                        <-- Alle deploybaren Ressourcen (Scripte etc.)
-  │   │   └── Scripts                      <-- Shell-Scripte - alle Scripte zur Kommunikation mit dem Basissystem
+  ├── HostManagement.Scripts               <-- Subproject for the scripts that communicate with the base system
+  │   ├── Enums                            <-- Collection folder for enums
+  │   ├── Extensions                       <-- Extensions (e.g. for string adjustments regarding Unix line endings)
+  │   ├── Resources                        <-- All deployable resources (scripts, etc.)
+  │   │   └── Scripts                      <-- Shell scripts - all scripts for communicating with the base system
   │   │       ├── shared
-  │   │       │   ├── Common               <-- Scripte zur allgemeinen Verwendung
-  │   │       │   ├── System               <-- Scripte für System-Operationen
-  │   │       │   └── SystemdUnit          <-- Scripte zum steuern von systemd units
+  │   │       │   ├── Common               <-- Scripts for general use
+  │   │       │   ├── System               <-- Scripts for system operations
+  │   │       │   └── SystemdUnit          <-- Scripts to control systemd units
   │   │       └── targets
   │   │           ├── debian
-  │   │           │   ├── Common           <-- Symlink zu Scripten aus shared
-  │   │           │   ├── System           <-- Debian-spezifische System-Scripte
-  │   │           │   └── SystemdUnit      <-- Symlink zu Scripten aus shared
+  │   │           │   ├── Common           <-- Symlink to scripts from shared
+  │   │           │   ├── System           <-- Debian-specific system scripts
+  │   │           │   └── SystemdUnit      <-- Symlink to scripts from shared
   │   │           └── edges-vicione
-  │   │               ├── Common           <-- Symlink zu Scripten aus shared
-  │   │               ├── Network          <-- Untergruppe für Netzwerkscripte
-  │   │               ├── System           <-- EdgeS ViciOne-spezifische System-Scripte
-  │   │               ├── SystemdUnit      <-- Symlink zu Scripten aus shared
-  │   │               └── ViciOne          <-- ViciOne-spezifische Scripte
+  │   │               ├── Common           <-- Symlink to scripts from shared
+  │   │               ├── Network          <-- Subgroup for network scripts
+  │   │               ├── System           <-- EdgeS ViciOne-specific system scripts
+  │   │               ├── SystemdUnit      <-- Symlink to scripts from shared
+  │   │               └── ViciOne          <-- ViciOne-specific scripts
   │   │
-  │   ├── ResourceManager.cs               <-- Verantwortlich für Deployment/Aufrufbarkeit der Scripte
-  │   ├── ScriptOptionNames.cs             <-- Alle Namen der Optionen für die jeweiligen Scripte (z. B.: "--ip-address")
-  │   ├── ScriptResponse.cs                <-- Die Script-Antwort inkl. ExitCode und Warnungen/Fehlern
-  │   └── ScriptRunner.cs                  <-- Führt alle Scripte aus
+  │   ├── ResourceManager.cs               <-- Responsible for deployment/invokability of the scripts
+  │   ├── ScriptOptionNames.cs             <-- All option names for the respective scripts (e.g. "--ip-address")
+  │   ├── ScriptResponse.cs                <-- The script response incl. exit code and warnings/errors
+  │   └── ScriptRunner.cs                  <-- Executes all scripts
   │
   │
-  ├── HostManagement.Shared                <-- Unterprojekt für die Komponenten, die im HostManagement und in der ViciOne Suite genutzt werden
-  │   ├── Contracts                        <-- Datenmodell der Systemkonfiguration
-  │   ├── Serialization                    <-- Serialisierungs-Logik
-  │   └── Validation                       <-- Validierung der Systemkonfiguration
-  │       └── Validators                   <-- Ordner für Validierungsklassen
+  ├── HostManagement.Shared                <-- Subproject for the components used in HostManagement and in the ViciOne Suite
+  │   ├── Contracts                        <-- Data model of the system configuration
+  │   ├── Serialization                    <-- Serialization logic
+  │   └── Validation                       <-- Validation of the system configuration
+  │       └── Validators                   <-- Folder for validation classes
   │
   │
-  ├── HostManagement.Shared.Communication  <-- Unterprojekt für Named Pipe Kommunikation zwischen HostManagement und ViciOne Suite
-  │   ├── Contracts                        <-- Datenmodell für die Kommunikation
-  │   └── Serialization                    <-- Serialisierungs-Logik
+  ├── HostManagement.Shared.Communication  <-- Subproject for named pipe communication between HostManagement and ViciOne Suite
+  │   ├── Contracts                        <-- Data model for communication
+  │   └── Serialization                    <-- Serialization logic
   │
   │
-  └── HostManagement.Shared.Communication.SourceGeneration  <-- Source Generator für die Kommunikation
-  ```
+  └── HostManagement.Shared.Communication.SourceGeneration  <-- Source generator for communication
+  </pre>
 
 </details>
 
 ### HostManagement
 
-Dies ist das Hauptprojekt des Tools und enthält die **Kernlogik** für die **Systemkonfiguration**.
+This is the main project of the tool and contains the **core logic** for **system configuration**.
 
-Es umfasst die Definitionen der Befehle für die **Kommandozeile** und die Logik für die Kommunikation über **Named Pipes**.
+It includes the definitions of the commands for the **command line** and the logic for communication via **named pipes**.
 
 ### HostManagement.Common
 
-`HostManagement.Common` enthält **gemeinsame Logik** innerhalb des **HostManagement** (Helper, Utilities, Abstractions etc.).
+`HostManagement.Common` contains **shared logic** within **HostManagement** (helpers, utilities, abstractions etc.).
 
 ### HostManagement.Configuration
 
-`HostManagement.Configuration` enthält Anwendungs-Konfigurationen wie **Umgebungsvariablen** oder **anwendungsspezifische Pfade**.
+`HostManagement.Configuration` contains application configurations such as **environment variables** or **application-specific paths**.
 
 ### HostManagement.Scripts
 
-Dieser Teil der Anwendung ist für die Ausführung der **Shell-Skripte** verantwortlich und kann angepasst werden, falls eine neue Unix-Plattform unterstützt werden soll.
+This part of the application is responsible for executing the **shell scripts** and can be adapted if a new Unix platform is to be supported.
 
-`HostManagement.Scripts` ist die einzige **Schnittstelle** zum **Betriebssystem** und führt alle Lese- und Schreiboperationen der Systemkonfiguration durch. Es dient auch als Datenquelle für das **Monitoring** und die **Health-Checks**.
+`HostManagement.Scripts` is the only **interface** to the **operating system** and performs all read and write operations of the system configuration. It also serves as a data source for **monitoring** and **health checks**.
 
-Wird ein **Shell-Skript** ausgeführt, gibt dieses eine Antwort ([ScriptResponse]) zurück, welche angibt, ob die durchgeführten Aktionen erfolgreich waren und ob Warnungen oder Fehler aufgetreten sind.
+When a **shell script** is executed, it returns a response ([ScriptResponse]) indicating whether the actions performed were successful and whether warnings or errors occurred.
 
 ### HostManagement.Shared
 
-`HostManagement.Shared` enthält eine gemeinsame **Bibliothek** für alle **Validierungen** (z. B.: [DNS Validation]) und das **Datenmodell** der **Systemkonfiguration**. Diese Bibliothek wird sowohl vom **HostManagement** als auch von der **ViciOne Suite** verwendet.
+`HostManagement.Shared` contains a shared **library** for all **validations** (e.g. [DNS Validation]) and the **data model** of the **system configuration**. This library is used by both **HostManagement** and the **ViciOne Suite**.
 
 ### HostManagement.Shared.Communication
 
-`HostManagement.Shared.Communication` enthält eine gemeinsame **Bibliothek** für die **Kommunikation** über **Named Pipes**. Diese Bibliothek wird sowohl vom **HostManagement** als auch von der **ViciOne Suite** verwendet.
+`HostManagement.Shared.Communication` contains a shared **library** for **communication** via **named pipes**. This library is used by both **HostManagement** and the **ViciOne Suite**.
 
-## Deployment
+## Contributing
 
-### Installieren der Toolchain
+### Development
 
-Eine Anleitung zum Installieren der Toolchain, z. B. in VMWare, siehe [hier](/docs/InstallToolchain.md).
+* Target Framework: .NET 10 (AOT), .NET Standard 2.0 (for source generation)
+* Supported Runtime: Linux (Debian 12) x64/arm64
+* Recommended IDEs: [Visual Studio 2026] or [Visual Studio Code]
 
-### Veröffentlichen
+#### Windows
 
-* Für Linux x64
+Add the following NuGet sources:
 
-    ```bash
-    dotnet publish -r linux-x64
-    ```
+* `dotnet nuget add source https://jfrog.i40.ifm-datalink.net/artifactory/api/nuget/v3/vicione-nuget.org-proxy/index.json -n JFrogNuGetProxy -u <user> -p <token> --protocol-version 3`
+* `dotnet nuget add source https://jfrog.i40.ifm-datalink.net/artifactory/api/nuget/v3/vicione-nuget/index.json -n JFrogViciOne -u <user> -p <token> --protocol-version 3`
 
-* Für Linux ARM 64
+#### Linux
 
-    ```bash
-    dotnet publish -r linux-arm64
-    ```
+Add the following NuGet sources:
 
-**Hinweis:** AOT-Kompilierung ist für `dotnet publish` konfiguriert. `dotnet build` ignoriert die AOT-Einstellung.
+* `dotnet nuget add source https://jfrog.i40.ifm-datalink.net/artifactory/api/nuget/v3/vicione-nuget.org-proxy/index.json -n JFrogNuGetProxy -u <user> -p <token> --protocol-version 3 --store-password-in-clear-text`
+* `dotnet nuget add source https://jfrog.i40.ifm-datalink.net/artifactory/api/nuget/v3/vicione-nuget/index.json -n JFrogViciOne -u <user> -p <token> --protocol-version 3 --store-password-in-clear-text`
 
-## Installation
+To be able to build and publish, the following steps are required:
 
-Das HostManagement unterstützt die folgenden Umgebungen:
+1. Install [**.NET SDK**][InstallNetSdk]
+1. For the `dotnet publish` command, install `clang` and `zlib1g-dev`
+    1. `sudo apt-get install clang`
+    1. `sudo apt-get install zlib1g-dev`
 
-* EdgeS ViciOne
-* Debian (aktuell ist der Funktionsumfang eingeschränkt auf die Verwaltung von systemd units)
+### Publishing
 
-Die Abhängigkeiten unterscheiden sich je Umgebung, die Einrichtung und Benutzung ist jedoch auf allen Umgebungen gleich.
+* For Linux x64
 
-### Abhängigkeiten
+  ```bash
+  dotnet publish -r linux-x64
+  ```
 
-**Hinweis:** Nicht aufgelistet sind core, text/shell und system utils, die in jeder Linux Distribution vorhanden sind.
+* For Linux ARM 64
 
-#### EdgeS ViciOne
+  ```bash
+  dotnet publish -r linux-arm64
+  ```
 
-* `netplan` (alle Netzwerkmanager außer `systemd-networkd` müssen deaktiviert sein; Lizenziert unter GPL-3.0)
-* `wget` (Lizenziert unter GPL-3.0)
-* `fw_printenv` (internes tool ohne Lizenz)
-* `systemd`
-  * `systemd-networkd` enabled
-  * `systemd-resolved` enabled (DNS Namensauflösung inkl. Diensterkennung in lokalen Netzwerken über mDNS)
+> [!note]
+> AOT compilation is configured for `dotnet publish`, `dotnet build` ignores the AOT setting.
 
-#### Debian
+### Install the Toolchain
 
-* `wget` (Lizenziert unter GPL-3.0)
-
-### Einrichtung
-
-* Download der aktuellen Version aus vicione-oss/vicione/os/deb-packaging> -> Pipelines -> Stage `Packaging`
-* Installation des Debian-Paketes mit `sudo apt install ./<PackageName>`
-
-## Benutzung
-
-> **Hinweis:** Das `HostManagement` benötigt erweiterte Rechte, um Einstellungen am System vornehmen zu können (z. B.: Ändern der Netzwerkeinstellungen).
-
-1. Ausführung des `HostManagement` im **daemon mode**, zum Beispiel als Linux-Service
-
-    `hostmanagement --daemon`
-
-1. Ausführung des `HostManagement` als **CLI**-Anwendung, welche mit dem zuvor über Named Pipes gestarteten Dienst kommuniziert
-
-    `hostmanagement [command] [options]`
-
-    **Beispiel "HTTP-Proxy":**
-
-    ```bash
-    hostmanagement network proxy http -e <true/false> -s <server> -p <port> -u <username> -pw <password>
-    hostmanagement network proxy http --enabled <true/false> --server <server> --port <port> --username <username> --password <password>
-    ```
-
-### Umgebungsvariablen
-
-Eine Auflistung der Umgebungsvariablen welche für das HostManagement definiert sind, befindet sich [hier](/docs/EnvironmentVariables.md).
-
-### Log Level
-
-Das HostManagement gibt standardmäßig Log-Meldungen ab Log-Level `Warning` aus. Das Log-Level kann über die Umgebungsvariable `LOGGING__LOGLEVEL__DEFAULT` angepasst werden. Mögliche Log-Level sind die Log-Level des Enums `Microsoft.Extensions.Logging.LogLevel`.
-
-Beispiel **Service**:
-
-```bash
-LOGGING__LOGLEVEL__DEFAULT=Information sudo -E hostmanagement --daemon
-```
-
-Beispiel **Client**:
-
-```bash
-LOGGING__LOGLEVEL__DEFAULT=Information sudo -E hostmanagement network list-interfaces
-```
+Instructions for installing the toolchain, e.g. in VMware, can be found in [/docs/InstallToolchain.md](/docs/InstallToolchain.md).
 
 ### GitHub Copilot
 
-Das Projekt nutzt benutzerdefinierte GitHub Copilot Anweisungen ([`copilot-instructions.md`]) sowie Anweisungen für die Arbeit mit Unit-Tests ([`testing.instructions.md`]).
+The project uses custom GitHub Copilot instructions:
 
-Benutzerdefinierte lokale Anweisungen können in `.github/instructions/user-defined.instructions.md` hinterlegt werden. Diese Datei ist in der [`.gitignore`] ausgenommen und wird nicht mit eingecheckt.
+* Global instructions: [`copilot-instructions.md`]
+* Testing instructions: [`testing.instructions.md`]
 
+Additional, local instructions can be stored in `.github/instructions/user-defined.instructions.md`.  
+This file is excluded via [`.gitignore`] and is not committed.
+
+## License
+
+This project is licensed under the MIT License.  
+The full license text is available in [`LICENSE.txt`](./LICENSE.txt).
+
+[Concept]: docs/Concept.md
 [`copilot-instructions.md`]: .github/copilot-instructions.md
 [DNS Validation]: docs/DNSValidation.md
 [`.gitignore`]: .gitignore
-[Konzept]: docs/Concept.md
+[InstallNetSdk]: https://learn.microsoft.com/en-us/dotnet/core/install/linux-debian#install-the-sdk
 [ScriptResponse]: docs/ScriptResponse.md
 [`testing.instructions.md`]: .github/instructions/testing.instructions.md
+[Visual Studio 2026]: https://visualstudio.microsoft.com/vs/
+[Visual Studio Code]: https://code.visualstudio.com/Download
