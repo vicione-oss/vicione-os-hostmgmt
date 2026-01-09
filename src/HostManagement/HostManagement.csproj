@@ -1,0 +1,180 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>hostmanagement</AssemblyName>
+    <RootNamespace>HostManagement</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HostManagement.Common\HostManagement.Common.csproj" />
+    <ProjectReference Include="..\HostManagement.Configuration\HostManagement.Configuration.csproj" />
+    <ProjectReference Include="..\HostManagement.Scripts\HostManagement.Scripts.csproj" />
+    <ProjectReference Include="..\HostManagement.Shared.Communication\HostManagement.Shared.Communication.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
+    <PackageReference Include="System.CommandLine" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Communication\CommandLine\CommandLineStrings_Common.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CommandLineStrings_Common.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Communication\CommandLine\Commands\Deployment\CommandLineStrings_Deployment.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CommandLineStrings_Deployment.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Communication\CommandLine\Commands\Network\DNS\CommandLineStrings_DNS.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CommandLineStrings_DNS.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Communication\CommandLine\Commands\Network\CommandLineStrings_Network.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CommandLineStrings_Network.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Communication\CommandLine\Commands\Network\Interface\CommandLineStrings_NetworkInterfaces.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CommandLineStrings_NetworkInterfaces.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Communication\CommandLine\Commands\Network\NTP\CommandLineStrings_NTP.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CommandLineStrings_NTP.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Communication\CommandLine\Output\CommandLineStrings_Output.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CommandLineStrings_Output.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Communication\CommandLine\Commands\Network\Proxy\CommandLineStrings_Proxy.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CommandLineStrings_Proxy.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Communication\CommandLine\Commands\System\CommandLineStrings_System.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CommandLineStrings_System.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Communication\CommandLine\Commands\Service\CommandLineStrings_Systemd.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CommandLineStrings_Systemd.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Communication\CommandLine\Commands\ViciOneSuite\CommandLineStrings_ViciOneSuite.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CommandLineStrings_ViciOneSuite.resx</DependentUpon>
+    </Compile>
+    <Compile Update="NetworkStatus\NetworkStatusResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>NetworkStatusResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="SystemConfig\InternalValidation\InternalValidationResultMessages.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>InternalValidationResultMessages.resx</DependentUpon>
+    </Compile>
+    <Compile Update="SystemConfig\SystemConfigResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SystemConfigResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Services\ServicesResources.Designer.cs">
+      <DependentUpon>ServicesResources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="System\SystemResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SystemResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="ViciOneSuite\ViciOneSuiteResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ViciOneSuiteResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Communication\CommandLine\CommandLineStrings_Common.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CommandLineStrings_Common.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Communication\CommandLine\Commands\Deployment\CommandLineStrings_Deployment.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CommandLineStrings_Deployment.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Communication\CommandLine\Commands\Network\DNS\CommandLineStrings_DNS.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CommandLineStrings_DNS.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Communication\CommandLine\Commands\Network\CommandLineStrings_Network.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CommandLineStrings_Network.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Communication\CommandLine\Commands\Network\Interface\CommandLineStrings_NetworkInterfaces.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CommandLineStrings_NetworkInterfaces.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Communication\CommandLine\Commands\Network\NTP\CommandLineStrings_NTP.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CommandLineStrings_NTP.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Communication\CommandLine\Output\CommandLineStrings_Output.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CommandLineStrings_Output.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Communication\CommandLine\Commands\Network\Proxy\CommandLineStrings_Proxy.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CommandLineStrings_Proxy.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Communication\CommandLine\Commands\System\CommandLineStrings_System.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CommandLineStrings_System.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Communication\CommandLine\Commands\Service\CommandLineStrings_Systemd.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CommandLineStrings_Systemd.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Communication\CommandLine\Commands\ViciOneSuite\CommandLineStrings_ViciOneSuite.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CommandLineStrings_ViciOneSuite.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="NetworkStatus\NetworkStatusResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>NetworkStatusResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="SystemConfig\InternalValidation\InternalValidationResultMessages.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>InternalValidationResultMessages.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="SystemConfig\SystemConfigResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>SystemConfigResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Services\ServicesResources.resx">
+      <LastGenOutput>ServicesResources.Designer.cs</LastGenOutput>
+      <Generator>ResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="System\SystemResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>SystemResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="ViciOneSuite\ViciOneSuiteResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ViciOneSuiteResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

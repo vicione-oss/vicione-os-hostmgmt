@@ -1,0 +1,55 @@
+﻿using System.CommandLine;
+using HostManagement.Communication.CommandLine.Commands.Network.Interface;
+using HostManagement.Communication.CommandLine.Helper;
+using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Shared.Contracts;
+using HostManagement.Shared.Contracts.NetworkStatus;
+using HostManagement.Shared.Extensions;
+
+namespace HostManagement.Communication.CommandLine.Commands.Network;
+
+/// <summary>
+/// Represents the network status command.
+/// </summary>
+internal sealed class NetworkStatusCommand : ConfigCommandBase
+{
+    /// <summary>
+    /// Initializes a new <see cref="NetworkStatusCommand"/>.
+    /// </summary>
+    public NetworkStatusCommand() : base(
+        CommandLineStrings_Network.NetworkStatusCommandName,
+        CommandLineStrings_Network.NetworkStatusCommandDescription)
+    {
+        var interfaceNameArgument = new Argument<string>("name")
+        {
+            Arity = ArgumentArity.ExactlyOne
+        };
+
+        AddArgument(interfaceNameArgument);
+        this.SetHandler(NetworkTestHandler, interfaceNameArgument);
+    }
+
+    private static async Task NetworkTestHandler(string interfaceName)
+    {
+        if (await GetConfiguration() is not SystemConfiguration config)
+            return;
+
+        if (config.GetNetworkInterface(interfaceName) is null)
+        {
+            SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.InterfaceNotFound, interfaceName);
+
+            return;
+        }
+
+        if (await NamedPipeRequestHelper.GetNetworkStatusInformation(interfaceName) is not NetworkStatusInformation networkStatus)
+            return;
+
+        new KeyValueOutput()
+            .With(new(CommandLineStrings_Network.InterfaceState, networkStatus.InterfaceState))
+            .With(new(CommandLineStrings_Network.DefaultRouteConfigured, networkStatus.IsDefaultRouteConfigured))
+            .With(new(CommandLineStrings_Network.DefaultGatewayAvailable, networkStatus.IsDefaultGatewayAvailable))
+            .With(new(CommandLineStrings_Network.InternetAvailable, networkStatus.IsInternetAvailable))
+            .With(new(CommandLineStrings_Network.DNSFunctional, networkStatus.IsDNSFunctional))
+            .WriteLine();
+    }
+}

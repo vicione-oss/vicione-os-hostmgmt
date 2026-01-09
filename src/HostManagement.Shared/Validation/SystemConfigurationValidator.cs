@@ -1,0 +1,89 @@
+﻿using HostManagement.Shared.Contracts;
+using HostManagement.Shared.Validation.Validators;
+using HostManagement.Shared.Validation.Validators.DNS;
+using HostManagement.Shared.Validation.Validators.NetworkInterfaces;
+using HostManagement.Shared.Validation.Validators.NTP;
+using HostManagement.Shared.Validation.Validators.Proxy;
+
+namespace HostManagement.Shared.Validation;
+
+/// <summary>
+/// Represents the validator for a <see cref="SystemConfiguration"/> object.
+/// </summary>
+public sealed class SystemConfigurationValidator : IValidator<SystemConfiguration>
+{
+    /// <summary>
+    /// Validates the specified <see cref="SystemConfiguration"/> asynchronously.
+    /// </summary>
+    /// <param name="configuration">The <see cref="SystemConfiguration"/>.</param>
+    /// <param name="cancellationToken">A token to cancel the validation.</param>
+    /// <inheritdoc/>
+    public async Task<ValidationResult> ValidateAsync(
+        SystemConfiguration configuration,
+        CancellationToken cancellationToken = default)
+    {
+        var result = new ValidationResult();
+
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            result.AddResult(
+                await new NetworkInterfacesSettingsValidator()
+                    .ValidateAsync(configuration.NetworkInterfacesSettings, cancellationToken)
+                    .ConfigureAwait(false));
+
+            result.AddResult(
+                await new NetworkDNSSettingsValidator()
+                    .ValidateAsync(configuration.NetworkDNSSettings, cancellationToken)
+                    .ConfigureAwait(false));
+
+            result.AddResult(
+                await new NetworkProxySettingsValidator()
+                    .ValidateAsync(
+                        configuration.NetworkProxySettings,
+                        configuration.NetworkInterfacesSettings.NetworkInterfaces,
+                        cancellationToken)
+                    .ConfigureAwait(false));
+
+            result.AddResult(
+                await new NetworkNTPSettingsValidator()
+                    .ValidateAsync(configuration.NetworkNTPSettings, cancellationToken)
+                    .ConfigureAwait(false));
+
+            return result;
+        }
+        catch (OperationCanceledException)
+        {
+            return ValidationResult.CreateWithError(ValidationResults.ValidationCancelled);
+        }
+        catch (Exception ex)
+        {
+            result.AddError(
+                ValidationResults.ValidationFailed +
+                Environment.NewLine +
+                ex.Message);
+
+            return result;
+        }
+    }
+
+    /// <summary>
+    /// Validates the <paramref name="proposed"/> <see cref="SystemConfiguration"/> taking into
+    /// account the <paramref name="current"/> <see cref="SystemConfiguration"/>.
+    /// </summary>
+    /// <param name="current">The current <see cref="SystemConfiguration"/>.</param>
+    /// <param name="proposed">The proposed <see cref="SystemConfiguration"/>.</param>
+    /// <returns><see cref="ValidationResult"/></returns>
+    [Obsolete("Use instance method ValidateAsync instead. This method will be removed in a future version.", false)]
+    public static async Task<ValidationResult> Validate(
+        SystemConfiguration current,
+        SystemConfiguration proposed)
+    {
+        _ = current;
+
+        return await new SystemConfigurationValidator()
+            .ValidateAsync(proposed)
+            .ConfigureAwait(false);
+    }
+}

@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Provides contracts needed for communication with the ViciOne HostManagement via named pipes.</Description>
+    <RootNamespace>HostManagement.Shared.Communication</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference
+      Include="..\HostManagement.Shared.Communication.SourceGeneration\HostManagement.Shared.Communication.SourceGeneration.csproj"
+      OutputItemType="Analyzer"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HostManagement.Shared\HostManagement.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,107 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>HostManagement.Scripts</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\Scripts\Common\check_group_exists.sh" />
+    <None Remove="Resources\Scripts\Common\check_user_exists.sh" />
+    <None Remove="Resources\Scripts\Common\get_system_architecture.sh" />
+    <None Remove="Resources\Scripts\Common\set_execute_permission.sh" />
+    <None Remove="Resources\Scripts\Common\set_ownership.sh" />
+    <None Remove="Resources\Scripts\Common\wait_for_service.sh" />
+    <None Remove="Resources\Scripts\Network\apply_netplan_configuration.sh" />
+    <None Remove="Resources\Scripts\Network\DNS\get_hostname.sh" />
+    <None Remove="Resources\Scripts\Network\DNS\get_network_dns_settings.sh" />
+    <None Remove="Resources\Scripts\Network\DNS\set_hostname.sh" />
+    <None Remove="Resources\Scripts\Network\DNS\set_network_multicast_dns_settings.sh" />
+    <None Remove="Resources\Scripts\Network\DNS\set_network_dns_settings.sh" />
+    <None Remove="Resources\Scripts\Network\DNS\set_static_hosts.sh" />
+    <None Remove="Resources\Scripts\Network\get_network_interfaces_common_information.sh" />
+    <None Remove="Resources\Scripts\Network\get_network_interface_ipv4_dhcp_lease.sh" />
+    <None Remove="Resources\Scripts\Network\get_network_interface_ipv4_settings.sh" />
+    <None Remove="Resources\Scripts\Network\get_network_status_information.sh" />
+    <None Remove="Resources\Scripts\Network\get_original_physical_address.sh" />
+    <None Remove="Resources\Scripts\Network\Helper\convert_ipv4_cidr_to_netmask.sh" />
+    <None Remove="Resources\Scripts\Network\Helper\get_network_interfaces.sh" />
+    <None Remove="Resources\Scripts\Network\Helper\get_network_vlan_name.sh" />
+    <None Remove="Resources\Scripts\Network\Helper\is_dhcp_enabled.sh" />
+    <None Remove="Resources\Scripts\Network\Helper\is_network_interface_available.sh" />
+    <None Remove="Resources\Scripts\Network\NTP\get_network_ntp_fallback_information.sh" />
+    <None Remove="Resources\Scripts\Network\NTP\get_network_ntp_settings.sh" />
+    <None Remove="Resources\Scripts\Network\NTP\set_network_ntp_settings.sh" />
+    <None Remove="Resources\Scripts\Network\Proxy\get_network_proxy_settings.sh" />
+    <None Remove="Resources\Scripts\Network\Proxy\set_network_proxy_settings.sh" />
+    <None Remove="Resources\Scripts\Network\renew_dhcp_lease.sh" />
+    <None Remove="Resources\Scripts\Network\set_network_interface_ipv4_settings.sh" />
+    <None Remove="Resources\Scripts\SystemdUnit\get_systemd_unit_state.sh" />
+    <None Remove="Resources\Scripts\SystemdUnit\set_systemd_unit_state.sh" />
+    <None Remove="Resources\Scripts\System\reset_system.sh" />
+    <None Remove="Resources\Scripts\System\restart_system.sh" />
+    <None Remove="Resources\Scripts\System\shutdown_system.sh" />
+    <None Remove="Resources\Scripts\System\update_system.sh" />
+    <None Remove="Resources\Scripts\ViciOne\Install\get_authorization_data.sh" />
+    <None Remove="Resources\Scripts\ViciOne\Install\get_hostmanagement_installed_version.sh" />
+    <None Remove="Resources\Scripts\ViciOne\Install\get_installed_package_version.sh" />
+    <None Remove="Resources\Scripts\ViciOne\Install\get_vicione_suite_installed_version.sh" />
+    <None Remove="Resources\Scripts\ViciOne\Install\get_vicione_suite_deb_file.sh" />
+    <None Remove="Resources\Scripts\ViciOne\Install\get_vicione_suite_versions.sh" />
+    <None Remove="Resources\Scripts\ViciOne\Install\install_deb_file.sh" />
+    <None Remove="Resources\Scripts\ViciOne\Install\is_repository_reachable.sh" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Scripts\Common\check_group_exists.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Common\check_user_exists.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Common\get_system_architecture.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Common\set_execute_permission.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Common\set_ownership.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Common\wait_for_service.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Network\apply_netplan_configuration.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Network\DNS\get_hostname.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Network\DNS\get_network_dns_settings.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Network\DNS\set_hostname.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Network\DNS\set_network_multicast_dns_settings.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Network\DNS\set_network_dns_settings.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Network\DNS\set_static_hosts.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Network\get_network_interfaces_common_information.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Network\get_network_interface_ipv4_dhcp_lease.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Network\get_network_interface_ipv4_settings.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Network\get_network_status_information.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Network\get_original_physical_address.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Network\Helper\convert_ipv4_cidr_to_netmask.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Network\Helper\get_network_interfaces.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Network\Helper\get_network_vlan_name.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Network\Helper\is_dhcp_enabled.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Network\Helper\is_network_interface_available.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Network\NTP\get_network_ntp_fallback_information.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Network\NTP\get_network_ntp_settings.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Network\NTP\set_network_ntp_settings.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Network\Proxy\get_network_proxy_settings.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Network\Proxy\set_network_proxy_settings.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Network\renew_dhcp_lease.sh" />
+    <EmbeddedResource Include="Resources\Scripts\Network\set_network_interface_ipv4_settings.sh" />
+    <EmbeddedResource Include="Resources\Scripts\SystemdUnit\get_systemd_unit_state.sh" />
+    <EmbeddedResource Include="Resources\Scripts\SystemdUnit\set_systemd_unit_state.sh" />
+    <EmbeddedResource Include="Resources\Scripts\System\reset_system.sh" />
+    <EmbeddedResource Include="Resources\Scripts\System\restart_system.sh" />
+    <EmbeddedResource Include="Resources\Scripts\System\shutdown_system.sh" />
+    <EmbeddedResource Include="Resources\Scripts\System\update_system.sh" />
+    <EmbeddedResource Include="Resources\Scripts\ViciOne\Install\get_authorization_data.sh" />
+    <EmbeddedResource Include="Resources\Scripts\ViciOne\Install\get_hostmanagement_installed_version.sh" />
+    <EmbeddedResource Include="Resources\Scripts\ViciOne\Install\get_installed_package_version.sh" />
+    <EmbeddedResource Include="Resources\Scripts\ViciOne\Install\get_vicione_suite_installed_version.sh" />
+    <EmbeddedResource Include="Resources\Scripts\ViciOne\Install\get_vicione_suite_deb_file.sh" />
+    <EmbeddedResource Include="Resources\Scripts\ViciOne\Install\get_vicione_suite_versions.sh" />
+    <EmbeddedResource Include="Resources\Scripts\ViciOne\Install\install_deb_file.sh" />
+    <EmbeddedResource Include="Resources\Scripts\ViciOne\Install\is_repository_reachable.sh" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="TestableIO.System.IO.Abstractions" />
+    <PackageReference Include="TestableIO.System.IO.Abstractions.Wrappers" />
+  </ItemGroup>
+
+</Project>

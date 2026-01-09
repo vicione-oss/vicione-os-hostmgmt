@@ -1,0 +1,80 @@
+﻿using Microsoft.Extensions.Logging;
+using HostManagement.Shared.Communication.Contracts;
+using HostManagement.Shared.Communication.Enums;
+
+namespace HostManagement.Services;
+
+/// <summary>
+/// Represents the NTP service.
+/// </summary>
+/// <param name="logger">An <see cref="ILogger"/> implementation.</param>
+internal sealed partial class NTPService(ILogger logger)
+{
+    private readonly ILogger _logger = logger;
+
+    /// <summary>
+    /// Gets the NTP fallback servers.
+    /// </summary>
+    /// <param name="cancellationToken">A token to cancel the request.</param>
+    /// <returns><see cref="GetNTPFallbackInformationResult"/></returns>
+    internal async Task<GetNTPFallbackInformationResult> GetNTPFallbackInformation(CancellationToken cancellationToken)
+    {
+        var result = new Result();
+
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var (status, fallbackNTPServers) = await new ScriptHandler(result)
+                    .ExecuteGetNetworkNTPFallbackInformationScript();
+
+            if (status == OperationStatus.Error)
+                LogAndReturnGetNTPFallbackServersFailed(result.Messages);
+
+            return new GetNTPFallbackInformationResult
+            {
+                Status = OperationStatus.Success,
+                Message = string.Empty,
+                FallbackNTPServers = [.. fallbackNTPServers]
+            };
+        }
+        catch (OperationCanceledException)
+        {
+            var message = ServicesResources.GetNTPFallbackServersCanceled;
+
+            GetNTPFallbackServersCanceled(_logger, message);
+
+            return new GetNTPFallbackInformationResult
+            {
+                Status = OperationStatus.Warning,
+                Message = message,
+                FallbackNTPServers = []
+            };
+        }
+        catch (Exception ex)
+        {
+            return LogAndReturnGetNTPFallbackServersFailed(ex.Message);
+        }
+    }
+
+    private GetNTPFallbackInformationResult LogAndReturnGetNTPFallbackServersFailed(string additionalMessage)
+    {
+        var simpleMessage = ServicesResources.GetNTPFallbackServersFailed;
+        var message = simpleMessage + Environment.NewLine + additionalMessage;
+
+        GetNTPFallbackServersFailed(_logger, message);
+
+        return new GetNTPFallbackInformationResult
+        {
+            Status = OperationStatus.Error,
+            Message = simpleMessage,
+            FallbackNTPServers = [],
+        };
+    }
+
+    [LoggerMessage(LogLevel.Warning, "{InnerMessage}")]
+    private static partial void GetNTPFallbackServersCanceled(ILogger logger, string? innerMessage);
+
+    [LoggerMessage(LogLevel.Error, "{InnerMessage}")]
+    private static partial void GetNTPFallbackServersFailed(ILogger logger, string? innerMessage);
+}
