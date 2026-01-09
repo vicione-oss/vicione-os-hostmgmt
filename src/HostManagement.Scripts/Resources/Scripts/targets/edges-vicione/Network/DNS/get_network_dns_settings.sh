@@ -17,6 +17,12 @@ err() {
 trap 'err "Unknown error in line $LINENO: Command: $BASH_COMMAND (Exit-Code: $?)." 99' ERR
 
 #######################################
+# Error codes
+#######################################
+
+readonly ERR_CODE_1="No netplan files matching '50-*.yaml' found in '%s'."
+
+#######################################
 # Constants
 #######################################
 
@@ -42,7 +48,6 @@ HOSTS_FILE_CONTENT=""
 INTERFACE_NAME=""
 NAMESERVERS_ENABLED="false"
 NAMESERVERS_JSON=()
-NETWORK_INTERFACES=""
 MULTICAST_DNS_ENABLED="false"
 SEARCH_DOMAINS_ENABLED="false"
 SEARCH_DOMAINS_JSON=()
@@ -182,7 +187,18 @@ load_current_hosts_file() {
 }
 
 set_configuration_path() {
-    CONFIGURATION_PATH="${DIRECTORY_NETPLAN}/50-${INTERFACE_NAME}.yaml"
+    # get the first matching 50-*.yaml file
+    CONFIGURATION_PATH=$(ls "${DIRECTORY_NETPLAN}"/50-*.yaml 2>/dev/null | head -n1 || true)
+
+    if [[ -z "$CONFIGURATION_PATH" ]]; then
+        err "$(printf "$ERR_CODE_1" "${DIRECTORY_NETPLAN}")" 1
+    fi
+
+    # derive INTERFACE_NAME from filename
+    local filename
+    filename=$(basename "$CONFIGURATION_PATH") # 50-lan1.yaml
+    filename=${filename%.yaml}                 # 50-lan1
+    INTERFACE_NAME=${filename#50-}             # lan1
 }
 
 #######################################
@@ -194,11 +210,7 @@ main() {
     local json_output
 
     hostname=$(Scripts/Network/DNS/get_hostname.sh)
-    NETWORK_INTERFACES=$(Scripts/Network/Helper/get_network_interfaces.sh)
 
-    read -r first_line <<< "$NETWORK_INTERFACES"
-    INTERFACE_NAME=$(awk '{sub(/@.*/, "", $1); print $1}' <<< "$first_line")
-    
     set_configuration_path
     load_configuration_content
 
