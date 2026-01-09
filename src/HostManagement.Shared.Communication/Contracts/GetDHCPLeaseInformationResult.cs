@@ -1,11 +1,12 @@
-﻿using HostManagement.Shared.Contracts.Network;
+﻿using HostManagement.Shared.Communication.Enums;
+using HostManagement.Shared.Contracts.Network;
 
 namespace HostManagement.Shared.Communication.Contracts;
 
 /// <summary>
 /// Represents the result of getting the DHCP lease information.
 /// </summary>
-public record GetDHCPLeaseInformationResult : OperationResult
+public record GetDHCPLeaseInformationResult : OperationResult, IOperationResultFactory<GetDHCPLeaseInformationResult>
 {
     /// <summary>
     /// Initializes a new <see cref="GetDHCPLeaseInformationResult"/>.
@@ -22,4 +23,12 @@ public record GetDHCPLeaseInformationResult : OperationResult
 
     /// <inheritdoc/>
     protected override string ExpectedType => nameof(GetDHCPLeaseInformationResult);
+
+    /// <inheritdoc/>
+    public static GetDHCPLeaseInformationResult CreateErrorResult(string message) => new()
+    {
+        Status = OperationStatus.Error,
+        Message = message,
+        DHCPLease = null
+    };
 }

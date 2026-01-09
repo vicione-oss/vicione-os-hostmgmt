@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using Microsoft.Extensions.Logging;
 using HostManagement.Configuration;
 using HostManagement.Shared.Communication;
@@ -11,12 +12,15 @@ namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 /// <summary>
 /// Represents the <see cref="GetServiceStateRequestHandler"/>.
 /// </summary>
-internal sealed class GetServiceStateRequestHandler(ILogger logger) : IRequestHandler
+internal sealed class GetServiceStateRequestHandler(ILogger logger) : RequestHandler<GetServiceStateResult>
 {
     /// <summary>
     /// The topic of the <see cref="GetServiceStateRequestHandler"/>.
     /// </summary>
-    public string Topic => Topics.GetServiceState;
+    public override string Topic => Topics.GetServiceState;
+
+    public override JsonTypeInfo<GetServiceStateResult> TypedJsonTypeInfo
+        => SourceGenerationContext.Default.GetServiceStateResult;
 
     /// <summary>
     /// Handles the get service state request.
@@ -25,7 +29,7 @@ internal sealed class GetServiceStateRequestHandler(ILogger logger) : IRequestHa
     /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <returns>The response.</returns>
     /// <exception cref="InvalidOperationException"/>
-    public async Task<string> Handle(string messageContent, CancellationToken cancellationToken)
+    public override async Task<string> Handle(string messageContent, CancellationToken cancellationToken)
     {
         try
         {
@@ -44,8 +48,7 @@ internal sealed class GetServiceStateRequestHandler(ILogger logger) : IRequestHa
 
             var result = await service.GetSystemdUnitActiveState(messageContent);
 
-            return SourceGeneratedTypeSerializer
-                .Serialize(result, SourceGenerationContext.Default.GetServiceStateResult);
+            return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
         }
         catch (JsonException)
         {

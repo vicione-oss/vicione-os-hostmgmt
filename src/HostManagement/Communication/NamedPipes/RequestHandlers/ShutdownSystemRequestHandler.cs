@@ -1,8 +1,9 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
+using Microsoft.Extensions.Logging;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Serialization;
-using Microsoft.Extensions.Logging;
 using HostManagement.Services;
 
 namespace HostManagement.Communication.NamedPipes.RequestHandlers;
@@ -11,14 +12,15 @@ namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 /// Represents the <see cref="ShutdownSystemRequestHandler"/>
 /// </summary>
 /// <param name="logger">An <see cref="ILogger"/> implementation.</param>
-internal sealed class ShutdownSystemRequestHandler(ILogger logger) : IRequestHandler
+internal sealed class ShutdownSystemRequestHandler(ILogger logger) : RequestHandler<SystemControlResult>
 {
-    private readonly ILogger _logger = logger;
-
     /// <summary>
     /// The topic of the <see cref="ShutdownSystemRequestHandler"/>.
     /// </summary>
-    public string Topic => Topics.ShutdownSystem;
+    public override string Topic => Topics.ShutdownSystem;
+
+    public override JsonTypeInfo<SystemControlResult> TypedJsonTypeInfo
+        => SourceGenerationContext.Default.SystemControlResult;
 
     /// <summary>
     /// Handles the shutdown system request.
@@ -27,17 +29,16 @@ internal sealed class ShutdownSystemRequestHandler(ILogger logger) : IRequestHan
     /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <returns>The response.</returns>
     /// <exception cref="InvalidOperationException"/>
-    public async Task<string> Handle(string messageContent, CancellationToken cancellationToken = default)
+    public override async Task<string> Handle(string messageContent, CancellationToken cancellationToken = default)
     {
         try
         {
             var scriptResult = new Result();
             var scriptHandler = new ScriptHandler(scriptResult);
-            var service = new SystemService(_logger, scriptHandler, scriptResult);
+            var service = new SystemService(logger, scriptHandler, scriptResult);
             var result = await service.ShutdownSystem();
 
-            return SourceGeneratedTypeSerializer
-                .Serialize(result, SourceGenerationContext.Default.SystemControlResult);
+            return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
         }
         catch (JsonException)
         {

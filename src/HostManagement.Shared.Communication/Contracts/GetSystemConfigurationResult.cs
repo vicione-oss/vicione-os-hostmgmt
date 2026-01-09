@@ -6,7 +6,7 @@ namespace HostManagement.Shared.Communication.Contracts;
 /// <summary>
 /// Represents the result of getting a system configuration.
 /// </summary>
-public record GetSystemConfigurationResult : OperationResult
+public record GetSystemConfigurationResult : OperationResult, IOperationResultFactory<GetSystemConfigurationResult>
 {
     /// <summary>
     /// Initializes a new <see cref="GetSystemConfigurationResult"/>.

@@ -1,5 +1,7 @@
-﻿using HostManagement.Shared.Communication;
+﻿using System.Text.Json.Serialization.Metadata;
 using Microsoft.Extensions.Logging;
+using HostManagement.Shared.Communication;
+using HostManagement.Shared.Communication.Contracts;
 
 namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 
@@ -15,6 +17,8 @@ internal sealed partial class EchoRequestHandler(PipeServer server, ILogger logg
     /// </summary>
     public string Topic => Topics.Echo;
 
+    public JsonTypeInfo JsonTypeInfo => throw new NotImplementedException();
+
     private static async Task FireEventMessages(PipeServer server)
     {
         const int Duration = 3;
@@ -27,6 +31,8 @@ internal sealed partial class EchoRequestHandler(PipeServer server, ILogger logg
 
         await server.PublishEvent("test", "tadaaaaa!");
     }
+
+    public OperationResult CreateErrorInstance(string message) => throw new NotImplementedException();
 
     /// <summary>
     /// Handles the echo request.

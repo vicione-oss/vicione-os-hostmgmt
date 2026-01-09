@@ -1,11 +1,13 @@
-﻿using HostManagement.Shared.Contracts.NetworkStatus;
+﻿using HostManagement.Shared.Communication.Enums;
+using HostManagement.Shared.Contracts.NetworkStatus;
 
 namespace HostManagement.Shared.Communication.Contracts;
 
 /// <summary>
 /// Represents the result of getting network status information.
 /// </summary>
-public record GetNetworkStatusInformationResult : OperationResult
+public record GetNetworkStatusInformationResult
+    : OperationResult, IOperationResultFactory<GetNetworkStatusInformationResult>
 {
     /// <summary>
     /// Initializes a new <see cref="GetNetworkStatusInformationResult"/>.
@@ -22,4 +24,12 @@ public record GetNetworkStatusInformationResult : OperationResult
 
     /// <inheritdoc/>
     protected override string ExpectedType => nameof(GetNetworkStatusInformationResult);
+
+    /// <inheritdoc/>
+    public static GetNetworkStatusInformationResult CreateErrorResult(string message) => new()
+    {
+        Status = OperationStatus.Error,
+        Message = message,
+        NetworkStatusInformation = NetworkStatusInformation.Empty
+    };
 }

@@ -1,32 +1,27 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
+using Microsoft.Extensions.Logging;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Serialization;
 using HostManagement.ViciOneSuite;
-using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 
 /// <summary>
 /// Represents the <see cref="GetViciOneSuiteVersionsRequestHandler"/>.
 /// </summary>
-internal sealed class GetViciOneSuiteVersionsRequestHandler : IRequestHandler
+/// <param name="logger">An <see cref="ILogger"/> implementation.</param>
+internal sealed class GetViciOneSuiteVersionsRequestHandler(ILogger logger)
+    : RequestHandler<GetViciOneSuiteVersionsResult>
 {
-    private readonly ILogger _logger;
-
-    /// <summary>
-    /// Initializes a new <see cref="GetViciOneSuiteVersionsRequestHandler"/>.
-    /// </summary>
-    /// <param name="logger">An <see cref="ILogger"/> implementation.</param>
-    public GetViciOneSuiteVersionsRequestHandler(ILogger logger)
-    {
-        _logger = logger;
-    }
-
     /// <summary>
     /// The topic of the <see cref="GetViciOneSuiteVersionsRequestHandler"/>.
     /// </summary>
-    public string Topic => Topics.GetViciOneSuiteVersions;
+    public override string Topic => Topics.GetViciOneSuiteVersions;
+
+    public override JsonTypeInfo<GetViciOneSuiteVersionsResult> TypedJsonTypeInfo
+        => SourceGenerationContext.Default.GetViciOneSuiteVersionsResult;
 
     /// <summary>
     /// Handles the get suite versions request.
@@ -35,15 +30,14 @@ internal sealed class GetViciOneSuiteVersionsRequestHandler : IRequestHandler
     /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <returns>The response.</returns>
     /// <exception cref="InvalidOperationException"/>
-    public async Task<string> Handle(string messageContent, CancellationToken cancellationToken)
+    public override async Task<string> Handle(string messageContent, CancellationToken cancellationToken)
     {
         try
         {
-            var manager = new ViciOneSuiteManager(_logger);
+            var manager = new ViciOneSuiteManager(logger);
             var result = await manager.GetNonPreReleaseSuiteVersions(cancellationToken);
 
-            return SourceGeneratedTypeSerializer
-                .Serialize(result, SourceGenerationContext.Default.GetViciOneSuiteVersionsResult);
+            return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
         }
         catch (JsonException)
         {

@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using Microsoft.Extensions.Logging;
 using HostManagement.Services;
 using HostManagement.Shared.Communication;
@@ -7,12 +8,16 @@ using HostManagement.Shared.Communication.Serialization;
 
 namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 
-internal sealed class GetOriginalPhysicalAddressRequestHandler(ILogger logger) : IRequestHandler
+internal sealed class GetOriginalPhysicalAddressRequestHandler(ILogger logger)
+    : RequestHandler<GetOriginalPhysicalAddressResult>
 {
     /// <summary>
     /// The topic of the <see cref="GetOriginalPhysicalAddressRequestHandler"/>.
     /// </summary>
-    public string Topic => Topics.GetOriginalPhysicalAddress;
+    public override string Topic => Topics.GetOriginalPhysicalAddress;
+
+    public override JsonTypeInfo<GetOriginalPhysicalAddressResult> TypedJsonTypeInfo
+        => SourceGenerationContext.Default.GetOriginalPhysicalAddressResult;
 
     /// <summary>
     /// Handles the get original physical address request.
@@ -21,7 +26,7 @@ internal sealed class GetOriginalPhysicalAddressRequestHandler(ILogger logger) :
     /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <returns>The response.</returns>
     /// <exception cref="InvalidOperationException"/>
-    public async Task<string> Handle(string messageContent, CancellationToken cancellationToken)
+    public override async Task<string> Handle(string messageContent, CancellationToken cancellationToken)
     {
         try
         {
@@ -30,8 +35,7 @@ internal sealed class GetOriginalPhysicalAddressRequestHandler(ILogger logger) :
             var service = new PhysicalAddressService(logger);
             var result = await service.GetOriginalPhysicalAddress(messageContent, cancellationToken);
 
-            return SourceGeneratedTypeSerializer
-                .Serialize(result, SourceGenerationContext.Default.GetOriginalPhysicalAddressResult);
+            return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
         }
         catch (JsonException)
         {

@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using Microsoft.Extensions.Logging;
 using HostManagement.Configuration;
 using HostManagement.Shared.Communication;
@@ -12,14 +13,15 @@ namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 /// Represents the <see cref="StopServiceRequestHandler"/>
 /// </summary>
 /// <param name="logger">An <see cref="ILogger"/> implementation.</param>
-internal sealed class StopServiceRequestHandler(ILogger logger) : IRequestHandler
+internal sealed class StopServiceRequestHandler(ILogger logger) : RequestHandler<ServiceControlResult>
 {
-    private readonly ILogger _logger = logger;
-
     /// <summary>
     /// The topic of the <see cref="StopServiceRequestHandler"/>.
     /// </summary>
-    public string Topic => Topics.StopService;
+    public override string Topic => Topics.StopService;
+
+    public override JsonTypeInfo<ServiceControlResult> TypedJsonTypeInfo
+        => SourceGenerationContext.Default.ServiceControlResult;
 
     /// <summary>
     /// Handles the stop service request.
@@ -28,7 +30,7 @@ internal sealed class StopServiceRequestHandler(ILogger logger) : IRequestHandle
     /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <returns>The response.</returns>
     /// <exception cref="InvalidOperationException"/>
-    public async Task<string> Handle(string messageContent, CancellationToken cancellationToken = default)
+    public override async Task<string> Handle(string messageContent, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -38,15 +40,14 @@ internal sealed class StopServiceRequestHandler(ILogger logger) : IRequestHandle
             var scriptHandler = new ScriptHandler(scriptResult);
 
             var service = new SystemdUnitService(
-                _logger,
+                logger,
                 scriptHandler,
                 scriptResult,
                 EnvironmentVariables.ConfigurableServices);
 
             var result = await service.StopSystemdUnit(messageContent);
 
-            return SourceGeneratedTypeSerializer
-                .Serialize(result, SourceGenerationContext.Default.ServiceControlResult);
+            return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
         }
         catch (JsonException)
         {

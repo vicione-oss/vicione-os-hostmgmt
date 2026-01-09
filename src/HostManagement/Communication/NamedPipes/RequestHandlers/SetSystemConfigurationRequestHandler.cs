@@ -1,23 +1,27 @@
 ﻿using System.IO.Abstractions;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using HostManagement.Shared.Communication;
+using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Serialization;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Serialization;
 using HostManagement.SystemConfig;
-using CommunicationJsonContext = HostManagement.Shared.Communication.Contracts.SourceGenerationContext;
 
 namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 
 /// <summary>
 /// Represents the <see cref="SetSystemConfigurationRequestHandler"/>
 /// </summary>
-internal sealed class SetSystemConfigurationRequestHandler : IRequestHandler
+internal sealed class SetSystemConfigurationRequestHandler : RequestHandler<SetSystemConfigurationResult>
 {
     /// <summary>
     /// The topic of the <see cref="SetSystemConfigurationRequestHandler"/>.
     /// </summary>
-    public string Topic => Topics.SetSystemConfiguration;
+    public override string Topic => Topics.SetSystemConfiguration;
+
+    public override JsonTypeInfo<SetSystemConfigurationResult> TypedJsonTypeInfo
+        => Shared.Communication.Contracts.SourceGenerationContext.Default.SetSystemConfigurationResult;
 
     /// <summary>
     /// Handles the set system configuration request.
@@ -26,7 +30,7 @@ internal sealed class SetSystemConfigurationRequestHandler : IRequestHandler
     /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <returns>The response.</returns>
     /// <exception cref="InvalidOperationException"/>
-    public async Task<string> Handle(string messageContent, CancellationToken cancellationToken)
+    public override async Task<string> Handle(string messageContent, CancellationToken cancellationToken)
     {
         try
         {
@@ -39,8 +43,7 @@ internal sealed class SetSystemConfigurationRequestHandler : IRequestHandler
             var result = await configurationService
                 .SetConfiguration(configToApply, shouldPersistConfiguration: true, cancellationToken);
 
-            return SourceGeneratedTypeSerializer
-                .Serialize(result, CommunicationJsonContext.Default.SetSystemConfigurationResult);
+            return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
         }
         catch (JsonException)
         {

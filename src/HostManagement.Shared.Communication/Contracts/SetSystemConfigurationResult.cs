@@ -5,7 +5,7 @@ namespace HostManagement.Shared.Communication.Contracts;
 /// <summary>
 /// Represents the result of setting a system configuration.
 /// </summary>
-public record SetSystemConfigurationResult : OperationResult
+public record SetSystemConfigurationResult : OperationResult, IOperationResultFactory<SetSystemConfigurationResult>
 {
     /// <summary>
     /// Initializes a new <see cref="SetSystemConfigurationResult"/>.

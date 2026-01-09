@@ -1,4 +1,7 @@
-﻿using HostManagement.Communication.NamedPipes.Extensions;
+﻿using System.Text.Json;
+using HostManagement.Communication.NamedPipes.Extensions;
+using HostManagement.Configuration;
+using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
 
 namespace HostManagement.Communication.NamedPipes.RequestHandlers;
@@ -6,9 +9,11 @@ namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 /// <summary>
 /// Represents an <see cref="RequestHandlerRegistry"/>.
 /// </summary>
-internal sealed class RequestHandlerRegistry
+/// <param name="targetEnvironment">The target environment.</param>
+internal sealed class RequestHandlerRegistry(TargetEnvironment targetEnvironment)
 {
     private readonly Dictionary<string, IRequestHandler> _handlers = [];
+    private readonly TargetEnvironment _targetEnvironment = targetEnvironment;
 
     /// <summary>
     /// Handles a named pipe message request.
@@ -19,11 +24,31 @@ internal sealed class RequestHandlerRegistry
     public async Task<NamedPipeMessage> HandleRequest(NamedPipeMessage message, CancellationToken cancellationToken)
     {
         if (!_handlers.TryGetValue(message.Topic, out var handler))
-            return message.CreateDefaultResponse($"No handler registered for topic {message.Topic}.");
+            return message.CreateDefaultResponse($"No handler registered for topic '{message.Topic}'.");
 
         try
         {
-            var response = await handler.Handle(message.Content, cancellationToken).ConfigureAwait(false);
+            string response;
+
+            if (IsHandlerSupported(handler))
+            {
+                response = await handler.Handle(message.Content, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                response = JsonSerializer.Serialize(
+                    handler.CreateErrorInstance($"Handler with topic '{message.Topic}' not supported on this platform."),
+                    handler.JsonTypeInfo);
+            }
+
+            return message.CreateResponse(response);
+        }
+        catch (ArgumentException ex) when (ex.Message.Contains("messageContent"))
+        {
+            var response = JsonSerializer.Serialize(
+                handler.CreateErrorInstance("Error processing request. Message content was missing or empty."),
+                handler.JsonTypeInfo);
+
             return message.CreateResponse(response);
         }
         catch (Exception ex)
@@ -41,5 +66,65 @@ internal sealed class RequestHandlerRegistry
     {
         if (!_handlers.TryAdd(handler.Topic, handler))
             throw new InvalidOperationException($"A handler for topic '{handler.Topic}' is already registered.");
+    }
+
+    private bool IsHandlerSupported(IRequestHandler handler)
+    {
+        var topic = handler.Topic;
+
+#if DEBUG
+        // Testing purposes
+        if (topic is Topics.Echo)
+            return true;
+#endif
+
+        return _targetEnvironment switch
+        {
+            TargetEnvironment.Debian => topic switch
+            {
+                Topics.RedeployScripts => true,
+
+                Topics.GetServiceState => true,
+                Topics.StartService => true,
+                Topics.StopService => true,
+                Topics.RestartService => true,
+
+                Topics.InstallSignedDebianPackage => true,
+
+                _ => false
+            },
+            TargetEnvironment.EdgeSViciOne => topic switch
+            {
+                Topics.RedeployScripts => true,
+
+                Topics.GetServiceState => true,
+                Topics.StartService => true,
+                Topics.StopService => true,
+                Topics.RestartService => true,
+
+                Topics.InstallSignedDebianPackage => true,
+                Topics.GetViciOneSuiteVersions => true,
+                Topics.InstallViciOneSuiteVersion => true,
+
+                Topics.GetSystemConfiguration => true,
+                Topics.SetSystemConfiguration => true,
+
+                Topics.GetOriginalPhysicalAddress => true,
+                Topics.GetNetworkStatusInformation => true,
+                Topics.GetDHCPLeaseInformation => true,
+                Topics.GetNTPFallbackInformation => true,
+
+                Topics.ResetSystem => true,
+                Topics.RestartSystem => true,
+                Topics.ShutdownSystem => true,
+                Topics.UpdateSystem => true,
+
+                Topics.RenewDHCPLease => true,
+
+                _ => false
+            },
+            TargetEnvironment.Unknown => false,
+            _ => false
+        };
     }
 }

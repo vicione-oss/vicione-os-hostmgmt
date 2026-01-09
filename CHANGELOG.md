@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced '\u0027' string in log output with actual apostrophe
 - Aligned cli proxy commands with other commands, e.g. separate enable/disable commands etc.
 - Moved call to `restart_system.sh` from scripts to C#
+- Moved target environment handling from `PipeServer` to `RequestHandlerRegistry`
+  - Improved response when request handler not supported on the platform
+  - Improved response when request is missing required message content
 
 ### Fixed
 

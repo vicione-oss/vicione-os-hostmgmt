@@ -1,5 +1,6 @@
 ﻿using System.IO.Abstractions;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Serialization;
@@ -10,12 +11,15 @@ namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 /// <summary>
 /// Represents the <see cref="GetSystemConfigurationRequestHandler"/>.
 /// </summary>
-internal sealed class GetSystemConfigurationRequestHandler : IRequestHandler
+internal sealed class GetSystemConfigurationRequestHandler : RequestHandler<GetSystemConfigurationResult>
 {
     /// <summary>
     /// The topic of the <see cref="GetSystemConfigurationRequestHandler"/>.
     /// </summary>
-    public string Topic => Topics.GetSystemConfiguration;
+    public override string Topic => Topics.GetSystemConfiguration;
+
+    public override JsonTypeInfo<GetSystemConfigurationResult> TypedJsonTypeInfo
+        => SourceGenerationContext.Default.GetSystemConfigurationResult;
 
     /// <summary>
     /// Handles the get system configuration request.
@@ -24,7 +28,7 @@ internal sealed class GetSystemConfigurationRequestHandler : IRequestHandler
     /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <returns>The response.</returns>
     /// <exception cref="InvalidOperationException"/>
-    public async Task<string> Handle(string messageContent, CancellationToken cancellationToken)
+    public override async Task<string> Handle(string messageContent, CancellationToken cancellationToken)
     {
         try
         {
@@ -33,8 +37,7 @@ internal sealed class GetSystemConfigurationRequestHandler : IRequestHandler
 
             var result = await configurationService.GetConfiguration(cancellationToken);
 
-            return SourceGeneratedTypeSerializer
-                .Serialize(result, SourceGenerationContext.Default.GetSystemConfigurationResult);
+            return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
         }
         catch (JsonException)
         {

@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using Microsoft.Extensions.Logging;
 using HostManagement.Configuration;
 using HostManagement.Shared.Communication;
@@ -6,7 +7,6 @@ using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Serialization;
 using HostManagement.Shared.Contracts.System;
 using HostManagement.Services;
-using CommunicationJsonContext = HostManagement.Shared.Communication.Contracts.SourceGenerationContext;
 using SharedJsonContext = HostManagement.Shared.Contracts.SourceGenerationContext;
 
 namespace HostManagement.Communication.NamedPipes.RequestHandlers;
@@ -15,12 +15,15 @@ namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 /// Represents the <see cref="InstallSignedDebianPackageRequestHandler"/>.
 /// </summary>
 /// <param name="logger">An <see cref="ILogger"/> implementation.</param>
-internal sealed class InstallSignedDebianPackageRequestHandler(ILogger logger) : IRequestHandler
+internal sealed class InstallSignedDebianPackageRequestHandler(ILogger logger) : RequestHandler<SystemControlResult>
 {
     /// <summary>
     /// The topic of the <see cref="InstallSignedDebianPackageRequestHandler"/>.
     /// </summary>
-    public string Topic => Topics.InstallSignedDebianPackage;
+    public override string Topic => Topics.InstallSignedDebianPackage;
+
+    public override JsonTypeInfo<SystemControlResult> TypedJsonTypeInfo
+        => SourceGenerationContext.Default.SystemControlResult;
 
     /// <summary>
     /// Handles the install signed Debian package request.
@@ -29,7 +32,7 @@ internal sealed class InstallSignedDebianPackageRequestHandler(ILogger logger) :
     /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <returns>The response.</returns>
     /// <exception cref="InvalidOperationException"/>
-    public async Task<string> Handle(string messageContent, CancellationToken cancellationToken)
+    public override async Task<string> Handle(string messageContent, CancellationToken cancellationToken)
     {
         try
         {
@@ -50,8 +53,7 @@ internal sealed class InstallSignedDebianPackageRequestHandler(ILogger logger) :
                 EnvironmentVariables.PublicKeys,
                 cancellationToken);
 
-            return SourceGeneratedTypeSerializer
-                .Serialize(result, CommunicationJsonContext.Default.SystemControlResult);
+            return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
         }
         catch (JsonException)
         {

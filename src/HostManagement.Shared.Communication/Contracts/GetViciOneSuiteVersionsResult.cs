@@ -1,10 +1,12 @@
-﻿namespace HostManagement.Shared.Communication.Contracts;
+﻿using HostManagement.Shared.Communication.Enums;
+
+namespace HostManagement.Shared.Communication.Contracts;
 
 /// <summary>
 /// Represents the result of getting a list of compatible ViciOne Suite versions.
 /// </summary>
 [Obsolete("This will be removed in a future version.", false)]
-public record GetViciOneSuiteVersionsResult : OperationResult
+public record GetViciOneSuiteVersionsResult : OperationResult, IOperationResultFactory<GetViciOneSuiteVersionsResult>
 {
     /// <summary>
     /// Initializes a new <see cref="GetViciOneSuiteVersionsResult"/>.
@@ -21,4 +23,12 @@ public record GetViciOneSuiteVersionsResult : OperationResult
 
     /// <inheritdoc/>
     protected override string ExpectedType => nameof(GetViciOneSuiteVersionsResult);
+
+    /// <inheritdoc/>
+    public static GetViciOneSuiteVersionsResult CreateErrorResult(string message) => new()
+    {
+        Status = OperationStatus.Error,
+        Message = message,
+        SuiteVersions = []
+    };
 }

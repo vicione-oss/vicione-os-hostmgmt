@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using HostManagement.Scripts;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
@@ -10,12 +11,15 @@ namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 /// <summary>
 /// Represents the <see cref="RedeployScriptsRequestHandler"/>.
 /// </summary>
-internal sealed class RedeployScriptsRequestHandler : IRequestHandler
+internal sealed class RedeployScriptsRequestHandler : RequestHandler<RedeployScriptsResult>
 {
     /// <summary>
     /// The topic of the <see cref="RedeployScriptsRequestHandler"/>.
     /// </summary>
-    public string Topic => Topics.RedeployScripts;
+    public override string Topic => Topics.RedeployScripts;
+
+    public override JsonTypeInfo<RedeployScriptsResult> TypedJsonTypeInfo
+        => SourceGenerationContext.Default.RedeployScriptsResult;
 
     /// <summary>
     /// Handles the redeploy scripts request.
@@ -24,7 +28,7 @@ internal sealed class RedeployScriptsRequestHandler : IRequestHandler
     /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <returns>The response.</returns>
     /// <exception cref="InvalidOperationException"/>
-    public Task<string> Handle(string messageContent, CancellationToken cancellationToken)
+    public override Task<string> Handle(string messageContent, CancellationToken cancellationToken)
     {
         RedeployScriptsResult result;
 
@@ -62,8 +66,7 @@ internal sealed class RedeployScriptsRequestHandler : IRequestHandler
 
         try
         {
-            var serializeResult = SourceGeneratedTypeSerializer
-                .Serialize(result, SourceGenerationContext.Default.RedeployScriptsResult);
+            var serializeResult = SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
 
             return Task.FromResult(serializeResult);
         }
