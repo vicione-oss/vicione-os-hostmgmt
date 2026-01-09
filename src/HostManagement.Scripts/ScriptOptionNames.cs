@@ -260,6 +260,11 @@ public static class ScriptOptionNames
         /// The script argument for the multicast DNS (mDNS) enabled.
         /// </summary>
         public const string MulticastDNSEnabled = "--multicast-dns-enabled";
+
+        /// <summary>
+        /// The script argument for the interfaces.
+        /// </summary>
+        public const string Interfaces = "--interfaces";
     }
 
     /// <summary>

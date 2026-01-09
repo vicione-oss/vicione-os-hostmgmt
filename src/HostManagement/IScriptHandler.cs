@@ -35,6 +35,19 @@ internal interface IScriptHandler
     Task<(OperationStatus, string)> ExecuteGetArchitectureScript();
 
     /// <summary>
+    /// Executes a script to get all network interfaces.
+    /// </summary>
+    /// <remarks>
+    /// This returns a raw string evaluated via `ip -br link show` command, e.g.:
+    /// <para>
+    /// <![CDATA[ens33            UP             00:50:56:36:6d:33 <BROADCAST,MULTICAST,UP,LOWER_UP>]]><br/>
+    /// <![CDATA[ens36            UP             00:50:56:36:6d:36 <BROADCAST,MULTICAST,UP,LOWER_UP>]]>
+    /// </para>
+    /// </remarks>
+    /// <returns><see cref="OperationStatus"/> and the string of interfaces.</returns>
+    Task<(OperationStatus, string)> ExecuteGetNetworkInterfacesScript();
+
+    /// <summary>
     /// Executes the script to get the common information of all network interfaces.
     /// </summary>
     /// <returns><see cref="OperationStatus"/> and a list of

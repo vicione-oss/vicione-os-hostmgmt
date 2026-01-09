@@ -115,11 +115,22 @@ internal sealed class NetworkDNSConfigurationAdapter(
             config.NetworkDNSSettings.MulticastDNSEnabled.HasValue &&
             config.NetworkDNSSettings.MulticastDNSEnabled.Value != _currentConfig.NetworkDNSSettings?.MulticastDNSEnabled)
         {
+            var (status, rawInterfacesString) = await _scriptHandler
+                .ExecuteGetNetworkInterfacesScript()
+                .ConfigureAwait(false);
+
+            if (status is OperationStatus.Error)
+                return OperationStatus.Error;
+
             var scriptOptions = new ScriptOptions();
 
             scriptOptions.Add(
                 ScriptOptionNames.NetworkMulticastDNS.MulticastDNSEnabled,
                 config.NetworkDNSSettings.MulticastDNSEnabled.Value);
+
+            scriptOptions.Add(
+                ScriptOptionNames.NetworkMulticastDNS.Interfaces,
+                rawInterfacesString);
 
             return await _scriptHandler
                 .ExecuteSetNetworkMulticastDNSSettingsScript(scriptOptions)
