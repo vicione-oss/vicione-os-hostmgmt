@@ -94,10 +94,19 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
         {
             foreach (var proposedInterface in config.NetworkInterfacesSettings.NetworkInterfaces)
             {
+                var interfaceName = proposedInterface.CommonInformation?.Name ?? string.Empty;
+
+                status = await _scriptHandler
+                    .ExecuteIsNetworkInterfaceAvailableScript(interfaceName)
+                    .ConfigureAwait(false);
+
+                if (status is OperationStatus.Warning or OperationStatus.Error)
+                    return OperationStatus.Error;
+
                 var scriptOptions = new ScriptOptions();
 
                 AddVLANScriptOptions(scriptOptions, proposedInterface.IPv4);
-                AddInterfaceNameScriptOption(scriptOptions, proposedInterface.CommonInformation?.Name);
+                AddInterfaceNameScriptOption(scriptOptions, interfaceName);
 
                 if (!string.IsNullOrWhiteSpace(proposedInterface.CommonInformation?.PhysicalAddress))
                 {
@@ -144,16 +153,11 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
         }
     }
 
-    private static void AddInterfaceNameScriptOption(
-        ScriptOptions scriptOptions,
-        string? interfaceName)
+    private static void AddInterfaceNameScriptOption(ScriptOptions scriptOptions, string interfaceName)
     {
-        if (!string.IsNullOrWhiteSpace(interfaceName))
-        {
-            scriptOptions.Add(
-                ScriptOptionNames.Network.InterfaceName,
-                interfaceName);
-        }
+        scriptOptions.Add(
+            ScriptOptionNames.Network.InterfaceName,
+            interfaceName);
     }
 
     private void AddMACAddressScriptOption(ScriptOptions scriptOptions, string? physicalAddress)

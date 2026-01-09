@@ -17,12 +17,6 @@ err() {
 trap 'err "Unknown error in line $LINENO: Command: $BASH_COMMAND (Exit-Code: $?)." 99' ERR
 
 #######################################
-# Error codes
-#######################################
-
-readonly ERR_CODE_1="The interface '%s' does not exist."
-
-#######################################
 # Methods
 #######################################
 
@@ -36,13 +30,7 @@ main() {
         usage
     fi
 
-    INTERFACE_NAME="${1:-}"
-
-    if ! Scripts/Network/Helper/is_network_interface_available.sh "$INTERFACE_NAME"; then
-        err "$(printf "$ERR_CODE_1" "$INTERFACE_NAME")" 1
-    fi
-
-    networkctl reconfigure "$INTERFACE_NAME"
+    networkctl reconfigure "$1"
 }
 
 main "$@"

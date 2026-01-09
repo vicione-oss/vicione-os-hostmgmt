@@ -21,7 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `HOSTMANAGEMENT__SUITE_REPOSITORY__ENDPOINT`
   - `HOSTMANAGEMENT__SUITE_REPOSITORY__USERNAME`
   - `HOSTMANAGEMENT__SUITE_REPOSITORY__PASSWORD`
-- Moved call to `is_network_interface_available.sh` from `get_network_status_information.sh` to C#
+- Moved call to `is_network_interface_available.sh` to C#
+  - from `get_network_status_information.sh`
+  - from `renew_dhcp_lease.sh`
+  - from `set_network_interface_ipv4_settings.sh`
 
 ### Fixed
 

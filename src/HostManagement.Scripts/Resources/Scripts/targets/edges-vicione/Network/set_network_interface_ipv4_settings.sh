@@ -20,15 +20,14 @@ trap 'err "Unknown error in line $LINENO: Command: $BASH_COMMAND (Exit-Code: $?)
 # Error codes
 #######################################
 
-readonly ERR_CODE_1="The interface '%s' does not exist."
-readonly ERR_CODE_2="Only one gateway can be defined. The gateway '%s' is already in use."
-readonly ERR_CODE_3="Unsupported flag '%s'."
-readonly ERR_CODE_4="An VLAN-ID must be greater than or equal to 1 and less than or equal to 4094."
-readonly ERR_CODE_5="The specified MAC address is not valid."
-readonly ERR_CODE_6="Unsupported value '%s'."
-readonly ERR_CODE_7="Missing arguments for '%s'."
-readonly ERR_CODE_8="No network interface was specified."
-readonly ERR_CODE_9="Please enter the required parameters."
+readonly ERR_CODE_1="Only one gateway can be defined. The gateway '%s' is already in use."
+readonly ERR_CODE_2="Unsupported flag '%s'."
+readonly ERR_CODE_3="An VLAN-ID must be greater than or equal to 1 and less than or equal to 4094."
+readonly ERR_CODE_4="The specified MAC address is not valid."
+readonly ERR_CODE_5="Unsupported value '%s'."
+readonly ERR_CODE_6="Missing arguments for '%s'."
+readonly ERR_CODE_7="No network interface was specified."
+readonly ERR_CODE_8="Please enter the required parameters."
 
 #######################################
 # Constants
@@ -155,41 +154,37 @@ assert_flag_has_arguments() {
     local flag_name="$3"
 
     if [[ "$argument_count" -eq 0 || "$first_argument" == --* ]]; then
-        err "$(printf "$ERR_CODE_7" "$flag_name")" 7
+        err "$(printf "$ERR_CODE_6" "$flag_name")" 6
     fi
 }
 
 check_bool_value() {
     if [[ "$1" != "$VALUE_TRUE" && "$1" != "$VALUE_FALSE" ]]; then
-        err "$(printf "$ERR_CODE_6" "$1")" 6
+        err "$(printf "$ERR_CODE_5" "$1")" 5
     fi
 }
 
 check_for_existing_gateway() {
     if [[ -n "$GATEWAY" ]]; then
-        err "$(printf "$ERR_CODE_2" "$GATEWAY")" 2
+        err "$(printf "$ERR_CODE_1" "$GATEWAY")" 1
     fi
 }
 
 check_for_netplan_base_configuration() {
     if [[ -z "$FILE_CONTENT" ]]; then
-        err "$ERR_CODE_9" 9
+        err "$ERR_CODE_8" 8
     fi
 }
 
 check_for_network_interface() {
     if [[ -z "$INTERFACE_NAME" ]]; then
-        err "$ERR_CODE_8" 8
-    fi
-
-    if ! Scripts/Network/Helper/is_network_interface_available.sh "$INTERFACE_NAME"; then
-        err "$(printf "$ERR_CODE_1" "$INTERFACE_NAME")" 1
+        err "$ERR_CODE_7" 7
     fi
 }
 
 check_mac_address() {
     if [[ ! "$MAC_ADDRESS" =~ ^([a-fA-F0-9]{2}:){5}[a-fA-F0-9]{2}$ ]]; then
-        err "$ERR_CODE_5" 5
+        err "$ERR_CODE_4" 4
     fi
 }
 
@@ -202,7 +197,7 @@ set_vlan_id() {
     # 4095:   Reserved for internal usage
 
     if [[ "$vlan_id" -lt 1 || "$vlan_id" -gt 4094 ]]; then
-        err "$ERR_CODE_4" 4
+        err "$ERR_CODE_3" 3
     fi
 
     VLAN_ID="$vlan_id"
@@ -267,7 +262,7 @@ main() {
                 GATEWAY="$1"
                 ;;
             *)
-                err "$(printf "$ERR_CODE_3" "$flag_name")" 3
+                err "$(printf "$ERR_CODE_2" "$flag_name")" 2
                 ;;
         esac
         shift
