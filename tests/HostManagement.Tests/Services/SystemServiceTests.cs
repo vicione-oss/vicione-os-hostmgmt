@@ -1,24 +1,24 @@
 ﻿using System.Text;
 using AwesomeAssertions;
+using HostManagement.Scripts;
+using HostManagement.Scripts.Enums;
+using HostManagement.Services;
+using HostManagement.Shared.Communication.Enums;
+using HostManagement.Shared.Contracts.System;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
-using HostManagement.Scripts;
-using HostManagement.Scripts.Enums;
-using HostManagement.Services;
-using HostManagement.Shared.Contracts.System;
-using HostManagement.Shared.Communication.Enums;
 
 namespace HostManagement.Tests.Services;
 
 public class SystemServiceTests
 {
-    private const string InstallFailedMessage = "Installing signed Debian package failed";
-
     [Collection("Non Parallel Tests")]
     public class InstallSignedDebianPackage
     {
+        private const string InstallFailedMessage = "Installing signed Debian package failed";
+
         private static readonly string s_unitTestDir = Path.Combine(Path.GetTempPath(), "_hm-unit-test");
 
         [Fact]
@@ -354,7 +354,7 @@ public class SystemServiceTests
 
             // Assert
             systemControlResult.Status.Should().Be(OperationStatus.Success);
-            systemControlResult.Message.Should().BeEmpty();
+            systemControlResult.Message.Should().Contain("The system will restart now.");
         }
     }
 
@@ -440,12 +440,13 @@ public class SystemServiceTests
 
             // Assert
             systemControlResult.Status.Should().Be(OperationStatus.Success);
-            systemControlResult.Message.Should().BeEmpty();
+            systemControlResult.Message.Should().Contain("The system will restart now.");
         }
     }
 
     public class RestartSystem
     {
+        private const string RestartFlag = "--restart";
         private const string SystemCouldNotBeRestartedMessage = "System could not be restarted.";
 
         [Fact]
@@ -456,7 +457,9 @@ public class SystemServiceTests
             var expectedException = new InvalidOperationException("invalid operation exception");
 
             var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler.ExecuteRestartSystemScript().ThrowsAsync(expectedException);
+            scriptHandler
+                .ExecuteShutdownSystemScript(Arg.Is<ScriptOptions>(so => so.Options.Contains(RestartFlag)))
+                .ThrowsAsync(expectedException);
 
             var sut = new SystemService(logger, scriptHandler, new Result());
 
@@ -482,13 +485,15 @@ public class SystemServiceTests
         {
             // Arrange
             var logger = GetLoggerSubstitute();
-            var expectedScriptMessage = "A script error.";
+            var expectedScriptMessage = "A script error during system restart.";
 
             var result = new Result();
-            result.AddScriptError(ScriptIdentifier.RestartSystem, expectedScriptMessage);
+            result.AddScriptError(ScriptIdentifier.ShutdownSystem, expectedScriptMessage);
 
             var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler.ExecuteRestartSystemScript().Returns(Task.FromResult(OperationStatus.Error));
+            scriptHandler
+                .ExecuteShutdownSystemScript(Arg.Is<ScriptOptions>(so => so.Options.Contains(RestartFlag)))
+                .Returns(Task.FromResult(OperationStatus.Error));
 
             var sut = new SystemService(logger, scriptHandler, result);
 
@@ -511,27 +516,44 @@ public class SystemServiceTests
                 .Contain(expectedScriptMessage);
         }
 
-        [Fact]
-        public async Task ShouldReturnSuccess_WhenRestartSystemSucceeds()
+        [Theory]
+        [InlineData("")]
+        [InlineData("  ")]
+        [InlineData("-5")]
+        [InlineData("0")]
+        [InlineData("10")]
+        public async Task ShouldReturnSuccess_WhenRestartSystemSucceeds(string delayInSecondsMessageContent)
         {
             // Arrange
+            var delayFlag = "--delay";
             var logger = GetLoggerSubstitute();
+            var expectedMessage = delayInSecondsMessageContent switch
+            {
+                "" or "  " or "-5" or "0" => "The system will restart now.",
+                _ => $"The system will restart in {delayInSecondsMessageContent} seconds."
+            };
+
             var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler.ExecuteRestartSystemScript().Returns(Task.FromResult(OperationStatus.Success));
+            scriptHandler
+                .ExecuteShutdownSystemScript(Arg.Is<ScriptOptions>(so =>
+                    so.Options.Contains(RestartFlag) &&
+                    so.Options.Contains(delayFlag)))
+                .Returns(Task.FromResult(OperationStatus.Success));
 
             var sut = new SystemService(logger, scriptHandler, new Result());
 
             // Act
-            var systemControlResult = await sut.RestartSystem();
+            var systemControlResult = await sut.RestartSystem(delayInSecondsMessageContent);
 
             // Assert
             systemControlResult.Status.Should().Be(OperationStatus.Success);
-            systemControlResult.Message.Should().BeEmpty();
+            systemControlResult.Message.Should().Be(expectedMessage);
         }
     }
 
     public class ShutdownSystem
     {
+        private const string RestartFlag = "--restart";
         private const string SystemCouldNotBeShutDownMessage = "System could not be shut down.";
 
         [Fact]
@@ -542,7 +564,9 @@ public class SystemServiceTests
             var expectedException = new InvalidOperationException("invalid operation exception");
 
             var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler.ExecuteShutdownSystemScript().ThrowsAsync(expectedException);
+            scriptHandler
+                .ExecuteShutdownSystemScript(Arg.Is<ScriptOptions>(so => !so.Options.Contains(RestartFlag)))
+                .ThrowsAsync(expectedException);
 
             var sut = new SystemService(logger, scriptHandler, new Result());
 
@@ -568,13 +592,15 @@ public class SystemServiceTests
         {
             // Arrange
             var logger = GetLoggerSubstitute();
-            var expectedScriptMessage = "A script error.";
+            var expectedScriptMessage = "A script error during system shutdown.";
 
             var result = new Result();
             result.AddScriptError(ScriptIdentifier.ShutdownSystem, expectedScriptMessage);
 
             var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler.ExecuteShutdownSystemScript().Returns(Task.FromResult(OperationStatus.Error));
+            scriptHandler
+                .ExecuteShutdownSystemScript(Arg.Is<ScriptOptions>(so => !so.Options.Contains(RestartFlag)))
+                .Returns(Task.FromResult(OperationStatus.Error));
 
             var sut = new SystemService(logger, scriptHandler, result);
 
@@ -597,22 +623,38 @@ public class SystemServiceTests
                 .Contain(expectedScriptMessage);
         }
 
-        [Fact]
-        public async Task ShouldReturnSuccess_WhenShutdownSystemSucceeds()
+        [Theory]
+        [InlineData("")]
+        [InlineData("  ")]
+        [InlineData("-5")]
+        [InlineData("0")]
+        [InlineData("10")]
+        public async Task ShouldReturnSuccess_WhenShutdownSystemSucceeds(string delayInSecondsMessageContent)
         {
             // Arrange
+            var delayFlag = "--delay";
             var logger = GetLoggerSubstitute();
+            var expectedMessage = delayInSecondsMessageContent switch
+            {
+                "" or "  " or "-5" or "0" => "The system will shutdown now.",
+                _ => $"The system will shutdown in {delayInSecondsMessageContent} seconds."
+            };
+
             var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler.ExecuteShutdownSystemScript().Returns(Task.FromResult(OperationStatus.Success));
+            scriptHandler
+                .ExecuteShutdownSystemScript(Arg.Is<ScriptOptions>(so =>
+                    !so.Options.Contains(RestartFlag) &&
+                    so.Options.Contains(delayFlag)))
+                .Returns(Task.FromResult(OperationStatus.Success));
 
             var sut = new SystemService(logger, scriptHandler, new Result());
 
             // Act
-            var systemControlResult = await sut.ShutdownSystem();
+            var systemControlResult = await sut.ShutdownSystem(delayInSecondsMessageContent);
 
             // Assert
             systemControlResult.Status.Should().Be(OperationStatus.Success);
-            systemControlResult.Message.Should().BeEmpty();
+            systemControlResult.Message.Should().Be(expectedMessage);
         }
     }
 

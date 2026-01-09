@@ -204,14 +204,9 @@ internal interface IScriptHandler
     Task<OperationStatus> ExecuteResetSystemScript();
 
     /// <summary>
-    /// Executes the script to restart the system.
+    /// Executes the script to shutdown or restart the system.
     /// </summary>
+    /// <param name="scriptOptions">The script options to execute the script.</param>
     /// <returns><see cref="OperationStatus"/></returns>
-    Task<OperationStatus> ExecuteRestartSystemScript();
-
-    /// <summary>
-    /// Executes the script to shutdown the system.
-    /// </summary>
-    /// <returns><see cref="OperationStatus"/></returns>
-    Task<OperationStatus> ExecuteShutdownSystemScript();
+    Task<OperationStatus> ExecuteShutdownSystemScript(ScriptOptions scriptOptions);
 }

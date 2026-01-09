@@ -379,6 +379,23 @@ public static class ScriptOptionNames
     }
 
     /// <summary>
+    /// Option names for the shutdown system script.
+    /// </summary>
+    /// <remarks>The script can be used to shutdown or restart the system.</remarks>
+    public static class ShutdownSystem
+    {
+        /// <summary>
+        /// The script argument for the shutdown delay in seconds (optional).
+        /// </summary>
+        public const string Delay = "--delay";
+
+        /// <summary>
+        /// The script argument to specify whether to restart the system after shutdown (optional).
+        /// </summary>
+        public const string Restart = "--restart";
+    }
+
+    /// <summary>
     /// Option names for the update system script.
     /// </summary>
     public static class UpdateSystem

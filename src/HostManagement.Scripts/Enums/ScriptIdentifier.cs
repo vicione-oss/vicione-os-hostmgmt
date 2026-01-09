@@ -37,12 +37,7 @@ public enum ScriptIdentifier
     ResetSystem,
 
     /// <summary>
-    /// Script to restart the system.
-    /// </summary>
-    RestartSystem,
-
-    /// <summary>
-    /// Script to shutdown the system.
+    /// Script to shutdown or restart the system.
     /// </summary>
     ShutdownSystem,
 

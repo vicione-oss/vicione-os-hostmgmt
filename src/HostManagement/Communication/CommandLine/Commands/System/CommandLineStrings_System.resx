@@ -129,6 +129,9 @@
   <data name="InstallPackageSuccessfull" xml:space="preserve">
     <value>Signed Debian package installed successfully ('{0}').</value>
   </data>
+  <data name="OptionalDelayCanBeSpecified" xml:space="preserve">
+    <value>An optional delay in seconds can be specified.</value>
+  </data>
   <data name="ResetFailed" xml:space="preserve">
     <value>System could not be resetted.</value>
   </data>
@@ -160,7 +163,7 @@
     <value>restart</value>
   </data>
   <data name="SystemShutdownCommandDescription" xml:space="preserve">
-    <value>Shuts down the system.</value>
+    <value>Shutdown the system.</value>
   </data>
   <data name="SystemShutdownCommandName" xml:space="preserve">
     <value>shutdown</value>

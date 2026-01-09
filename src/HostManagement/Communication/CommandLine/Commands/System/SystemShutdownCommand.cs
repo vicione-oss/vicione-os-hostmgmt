@@ -12,14 +12,24 @@ internal sealed class SystemShutdownCommand : Command
     /// <summary>
     /// Initializes a new <see cref="SystemShutdownCommand"/>.
     /// </summary>
-    public SystemShutdownCommand() : base(
+    /// <param name="delayArgument">The delay argument.</param>
+    public SystemShutdownCommand(Argument<int> delayArgument) : base(
         CommandLineStrings_System.SystemShutdownCommandName,
-        CommandLineStrings_System.SystemShutdownCommandDescription)
+        CommandLineStrings_System.SystemShutdownCommandDescription +
+        " " +
+        CommandLineStrings_System.OptionalDelayCanBeSpecified)
     {
-        SetAction((parseResult, cancellationToken) => ShutdownHandler(cancellationToken));
+        Add(delayArgument);
+
+        SetAction((parseResult, cancellationToken) =>
+        {
+            return ShutdownHandler(
+                parseResult.GetValue(delayArgument),
+                cancellationToken);
+        });
     }
 
-    private static async Task ShutdownHandler(CancellationToken cancellationToken)
+    private static async Task ShutdownHandler(int delayInSeconds, CancellationToken cancellationToken)
     {
         SimpleOutput.WriteLineWarning(CommandLineStrings_System.SystemCanNotRestartRemotely);
         Console.Write(CommandLineStrings_System.DoYouWantToShutdownTheSystem);
@@ -30,13 +40,7 @@ internal sealed class SystemShutdownCommand : Command
         if (!choice.Equals("y", StringComparison.OrdinalIgnoreCase))
             return;
 
-        Console.WriteLine(CommandLineStrings_System.SystemWillShutdownNow);
-        await Task.Delay(500, cancellationToken);
-
-        if (!await NamedPipeRequestHelper.ShutdownSystem(cancellationToken))
-        {
-            SimpleOutput.WriteLine(CommandLineStrings_System.ShutdownFailed);
-            return;
-        }
+        if (await NamedPipeRequestHelper.ShutdownSystem(delayInSeconds, cancellationToken) is string message)
+            SimpleOutput.WriteLine(message);
     }
 }

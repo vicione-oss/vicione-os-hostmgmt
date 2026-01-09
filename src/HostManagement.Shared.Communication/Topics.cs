@@ -133,11 +133,17 @@ public static partial class Topics
     /// <summary>
     /// The topic to restart the system.
     /// </summary>
+    /// <remarks>
+    /// A delay in seconds can be specified as the message content.
+    /// </remarks>
     public const string RestartSystem = "RestartSystem";
 
     /// <summary>
     /// The topic to shutdown the system.
     /// </summary>
+    /// <remarks>
+    /// A delay in seconds can be specified as the message content.
+    /// </remarks>
     public const string ShutdownSystem = "ShutdownSystem";
 
     /// <summary>

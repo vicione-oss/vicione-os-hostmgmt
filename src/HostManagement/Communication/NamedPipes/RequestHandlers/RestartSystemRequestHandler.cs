@@ -36,7 +36,7 @@ internal sealed class RestartSystemRequestHandler(ILogger logger) : RequestHandl
             var scriptResult = new Result();
             var scriptHandler = new ScriptHandler(scriptResult);
             var service = new SystemService(logger, scriptHandler, scriptResult);
-            var result = await service.RestartSystem();
+            var result = await service.RestartSystem(messageContent);
 
             return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
         }

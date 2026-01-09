@@ -36,7 +36,7 @@ internal sealed class ShutdownSystemRequestHandler(ILogger logger) : RequestHand
             var scriptResult = new Result();
             var scriptHandler = new ScriptHandler(scriptResult);
             var service = new SystemService(logger, scriptHandler, scriptResult);
-            var result = await service.ShutdownSystem();
+            var result = await service.ShutdownSystem(messageContent);
 
             return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
         }
