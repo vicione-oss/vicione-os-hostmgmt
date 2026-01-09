@@ -6,7 +6,7 @@
 #
 # This script is intended for internal use only.
 #
-# The script returns 0 if ok or warning, non zero for error.
+# The script returns 0 if ok, non zero for error.
 # ###
 
 set -eEuo pipefail
@@ -96,12 +96,6 @@ set_u_boot_flag() {
     fi
 }
 
-restart_system() {
-    if ! output=$(Scripts/System/restart_system.sh 2>&1); then
-        err "$output" 1
-    fi
-}
-
 #######################################
 # Argument handling
 #######################################
@@ -129,7 +123,8 @@ main() {
     clean_up_update_directory
     move_update_file_to_update_directory
     set_u_boot_flag
-    restart_system
+
+    # System restart is required if script called manually!
 }
 
 main "$@"
