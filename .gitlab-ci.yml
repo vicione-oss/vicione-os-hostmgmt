@@ -1,5 +1,5 @@
 include:
-  - project: 'acx/tooling/templates'
+  - project: 'vicione-oss/tooling/templates'
     file: '/CI-Templates/v2/dotnet.yml'
 
 variables:
@@ -115,10 +115,6 @@ default:
     paths:
       - hostmanagement_*.deb
       - artifacts.list
-  tags:
-    - linux
-    - docker
-    - x64
   when: manual
   rules:
     - <<: *rules_merge_request_manual
@@ -146,8 +142,6 @@ Markdown:
     - <<: *rules_web
       changes:
         - "**/*.md"
-  tags:
-    - docker
 
 #################### Build stage
 
@@ -181,9 +175,7 @@ Create artifacts arm64:
       - artifacts.tar.gz
     expire_in: 30 days
   tags:
-    - linux
-    - docker
-    - arm64
+    - saas-linux-small-arm64
   when: manual
   rules:
     - <<: *rules_tag_manual
@@ -210,10 +202,6 @@ Create artifacts x64:
     paths:
       - artifacts.tar.gz
     expire_in: 30 days
-  tags:
-    - linux
-    - docker
-    - x64
   when: manual
   rules:
     - <<: *rules_tag_manual
@@ -233,9 +221,6 @@ Versioning:
     reports:
       dotenv: version.env
     expire_in: 30 days
-  tags:
-    - linux
-    - docker
   when: manual
   rules:
     - <<: *rules_tag_manual
@@ -252,7 +237,7 @@ trigger deb packaging:
     APP_VERSION: ${APP_VERSION}
     APP_TAG: ${APP_TAG}
   trigger:
-    project: 'acx/vicione/os/deb-packaging'
+    project: 'vicione-oss/vicione/os/deb-packaging'
     strategy: depend
   needs:
     - "Create artifacts arm64"
