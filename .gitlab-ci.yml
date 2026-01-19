@@ -4,6 +4,12 @@ include:
 
 variables:
   DOTNET_VERSION: 9.0.307
+  # Package Registry settings
+  PACKAGE_NAME: "ci-artifacts"
+  ARTIFACT_PREFIX: "hostmanagement"
+  # Child pipeline project (for testing, use feature branch)
+  DEB_PACKAGING_PROJECT: 'vicione-oss/vicione/os/deb-packaging'
+  DEB_PACKAGING_BRANCH: 'feature/replace-s3-with-package-registry'  # Change to 'master' after testing
 
 stages:
   - lint
@@ -14,6 +20,7 @@ stages:
   - deploy
   - release
   - release-public
+  - cleanup
 
 default:
   image: mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION}
@@ -44,6 +51,9 @@ default:
   when: manual
   allow_failure: true
 
+.rules_scheduled: &rules_scheduled
+  if: '$CI_PIPELINE_SOURCE == "schedule"'
+
 #################### Common
 
 .install_project_prerequisites: &install_project_prerequisites
@@ -68,13 +78,32 @@ default:
   - rm -rf ./${DIRECTORY}/*.xml ./${DIRECTORY}/*.dbg ./${DIRECTORY}/*.pdb
   - du -sh ./${DIRECTORY}/
   - tar cfz ${DIRECTORY}.tar.gz ./${DIRECTORY}
-  - ./mc cp ${DIRECTORY}.tar.gz myminio/acx/hostmanagement-${CI_PIPELINE_ID}-${DOTNET_ARCH}.tar.gz
+  # Upload to GitLab Package Registry
+  - |
+    ARTIFACT_FILE="${ARTIFACT_PREFIX}-${CI_PIPELINE_ID}-${DOTNET_ARCH}.tar.gz"
+    echo "Uploading ${ARTIFACT_FILE} to Package Registry"
+    curl --fail --silent --show-error \
+      --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+      --upload-file "${DIRECTORY}.tar.gz" \
+      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${CI_PIPELINE_ID}/${ARTIFACT_FILE}"
 
-.set_up_minio_client: &set_up_minio_client
-  - apt update && apt install -y curl
-  - curl -s https://nexus.nsc-gmbh.de/repository/minio-client/${MINIO_ARCH}/mc -o mc
-  - chmod +x mc
-  - ./mc alias set myminio "${S3_Url}" "${S3_User}" "${S3_PW}"
+.package_registry_download: &package_registry_download
+  # Download artifact from Package Registry
+  - |
+    echo "Downloading ${artifact} from Package Registry"
+    curl --fail --silent --show-error \
+      --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+      --output "${artifact}" \
+      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${APP_PIPELINE}/${artifact}"
+
+.package_registry_delete: &package_registry_delete
+  # Delete artifact from Package Registry
+  - |
+    echo "Deleting ${artifact} from Package Registry"
+    curl --fail --silent --show-error \
+      --request DELETE \
+      --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${APP_PIPELINE}/${artifact}" || true
 
 .jfrog-package-release:
   stage: deploy
@@ -86,9 +115,6 @@ default:
     REPOSITORY_DESTINATION: "vicione-suite-dev"
   before_script:
     - apk add --no-cache curl
-    - curl -s https://nexus.nsc-gmbh.de/repository/minio-client/linux-amd64/mc -o /usr/bin/mc
-    - chmod +x /usr/bin/mc
-    - mc alias set myminio "${S3_Url}" "${S3_User}" "${S3_PW}"
     - jf config add --user $USER --password ${PASSWORD} --artifactory-url ${SERVER} jfrog
     - jf config use jfrog
   script:
@@ -97,23 +123,35 @@ default:
     - APP_TAG="${CI_COMMIT_TAG}"
     - VERSION="${APP_VERSION}"
     - if [[ -z "${APP_TAG}" ]]; then VERSION="${VERSION}~${APP_PIPELINE}"; fi
-    - echo "hostmanagement_${VERSION}_amd64.deb" >> artifacts.list
-    - echo "hostmanagement_${VERSION}_arm64.deb" >> artifacts.list
-    - echo "hostmanagement-${APP_PIPELINE}-linux-x64.tar.gz" >> artifacts.list
-    - echo "hostmanagement-${APP_PIPELINE}-linux-arm64.tar.gz" >> artifacts.list
+    # List of artifacts to process
+    - echo "${ARTIFACT_PREFIX}_${VERSION}_amd64.deb" >> artifacts.list
+    - echo "${ARTIFACT_PREFIX}_${VERSION}_arm64.deb" >> artifacts.list
+    - echo "${ARTIFACT_PREFIX}-${APP_PIPELINE}-linux-x64.tar.gz" >> artifacts.list
+    - echo "${ARTIFACT_PREFIX}-${APP_PIPELINE}-linux-arm64.tar.gz" >> artifacts.list
     - |
       while IFS= read -r artifact; do
-        echo "Process artifact from minio: $artifact"
+        echo "Processing artifact: $artifact"
         if [[ "${artifact}" == *.deb ]]; then
-          mc cp "myminio/acx/${artifact}" "${artifact}"
-          echo "Upload artifact to jfrog:"
+          # Download .deb from Package Registry
+          echo "Downloading ${artifact} from Package Registry"
+          curl --fail --silent --show-error \
+            --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+            --output "${artifact}" \
+            "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${APP_PIPELINE}/${artifact}"
+          # Upload to JFrog
+          echo "Uploading ${artifact} to JFrog"
           jf rt upload "${artifact}" "${REPOSITORY_DESTINATION}/hostmanagements/${artifact}"
         fi
-        mc rm "myminio/acx/${artifact}"
+        # Delete from Package Registry (cleanup)
+        echo "Deleting ${artifact} from Package Registry"
+        curl --silent --show-error \
+          --request DELETE \
+          --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${APP_PIPELINE}/${artifact}" || echo "Warning: Could not delete ${artifact}"
       done < artifacts.list
   artifacts:
     paths:
-      - hostmanagement_*.deb
+      - ${ARTIFACT_PREFIX}_*.deb
       - artifacts.list
   when: manual
   rules:
@@ -125,7 +163,7 @@ default:
 Markdown:
   stage: lint
   image:
-    name: jfrog.i40.ifm-datalink.net:443/docker-remote/davidanson/markdownlint-cli2:latest
+    name: davidanson/markdownlint-cli2:latest
     entrypoint: ["/bin/sh", "-c"]
   script:
     - markdownlint-cli2 "/builds/**/*.md" "#/builds/**/.gitlab/**"
@@ -157,23 +195,22 @@ xUnit:
 
 Create artifacts arm64:
   stage: artifacts
-  image: jfrog.i40.ifm-datalink.net:443/docker-remote/debian:11
+  image: debian:11
   variables:
     DOTNET_ARCH: 'linux-arm64'
-    MINIO_ARCH: 'linux-arm64'
     DIRECTORY: 'artifacts'
     PROJECT: 'src/HostManagement/HostManagement.csproj'
   before_script:
     - *install_project_prerequisites
     - *install_dotnet
-    - *set_up_minio_client
+    - apt update && apt install -y curl
   script:
     - *publish_project
     - *create_artifacts
   artifacts:
     paths:
       - artifacts.tar.gz
-    expire_in: 30 days
+    expire_in: 7 days
   tags:
     - saas-linux-small-arm64
   when: manual
@@ -185,23 +222,22 @@ Create artifacts arm64:
 
 Create artifacts x64:
   stage: artifacts
-  image: jfrog.i40.ifm-datalink.net:443/docker-remote/debian:11
+  image: debian:11
   variables:
     DOTNET_ARCH: 'linux-x64'
-    MINIO_ARCH: 'linux-amd64'
     DIRECTORY: 'artifacts'
     PROJECT: 'src/HostManagement/HostManagement.csproj'
   before_script:
     - *install_project_prerequisites
     - *install_dotnet
-    - *set_up_minio_client
+    - apt update && apt install -y curl
   script:
     - *publish_project
     - *create_artifacts
   artifacts:
     paths:
       - artifacts.tar.gz
-    expire_in: 30 days
+    expire_in: 7 days
   when: manual
   rules:
     - <<: *rules_tag_manual
@@ -211,7 +247,7 @@ Create artifacts x64:
 
 Versioning:
   stage: artifacts
-  image: jfrog.i40.ifm-datalink.net:443/docker-remote/debian:11
+  image: debian:11
   script:
     - echo "APP_PIPELINE=${CI_PIPELINE_ID}" >>version.env
     - echo "APP_VERSION=$(cat VERSION)" >>version.env
@@ -220,7 +256,7 @@ Versioning:
   artifacts:
     reports:
       dotenv: version.env
-    expire_in: 30 days
+    expire_in: 7 days
   when: manual
   rules:
     - <<: *rules_tag_manual
@@ -236,8 +272,11 @@ trigger deb packaging:
     APP_PIPELINE: ${APP_PIPELINE}
     APP_VERSION: ${APP_VERSION}
     APP_TAG: ${APP_TAG}
+    PARENT_PROJECT_ID: ${CI_PROJECT_ID}
+    ARTIFACT_PREFIX: ${ARTIFACT_PREFIX}
   trigger:
-    project: 'vicione-oss/vicione/os/deb-packaging'
+    project: ${DEB_PACKAGING_PROJECT}
+    branch: ${DEB_PACKAGING_BRANCH}
     strategy: depend
   needs:
     - "Create artifacts arm64"
@@ -329,3 +368,42 @@ Public-Release Packages to JFrog:
     - "Release Packages to JFrog"
   rules:
     - <<: *rules_tag_manual
+
+#################### Cleanup stage
+
+# Safety net cleanup - runs on schedule to delete orphaned artifacts
+# Deletes packages older than 4 hours
+Cleanup orphaned packages:
+  stage: cleanup
+  image: debian:11
+  before_script:
+    - apt update && apt install -y curl jq
+  script:
+    - |
+      echo "=== Cleaning up orphaned packages from Package Registry ==="
+      CUTOFF_TIME=$(date -d '4 hours ago' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -v-4H +%Y-%m-%dT%H:%M:%SZ)
+      echo "Deleting packages created before: ${CUTOFF_TIME}"
+
+      # List all package versions
+      PACKAGES=$(curl --silent --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages?package_name=${PACKAGE_NAME}&per_page=100" | jq -r '.[].id')
+
+      for pkg_id in $PACKAGES; do
+        # Get package details
+        PKG_INFO=$(curl --silent --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/${pkg_id}")
+
+        CREATED_AT=$(echo "$PKG_INFO" | jq -r '.created_at')
+        VERSION=$(echo "$PKG_INFO" | jq -r '.version')
+
+        if [[ "$CREATED_AT" < "$CUTOFF_TIME" ]]; then
+          echo "Deleting old package version: ${VERSION} (created: ${CREATED_AT})"
+          curl --silent --request DELETE --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+            "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/${pkg_id}" || true
+        fi
+      done
+      echo "=== Cleanup complete ==="
+  rules:
+    - <<: *rules_scheduled
+  tags:
+    - saas-linux-medium-amd64
