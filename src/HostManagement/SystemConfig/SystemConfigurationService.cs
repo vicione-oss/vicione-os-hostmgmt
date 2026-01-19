@@ -13,11 +13,11 @@ namespace HostManagement.SystemConfig;
 /// <summary>
 /// Represents the system configuration service used to load or apply a system configuration.
 /// </summary>
-/// <param name="fileSystem">A <see cref="IFileSystem"/>.</param>
-internal sealed class SystemConfigurationService(IFileSystem fileSystem)
+/// <param name="fileSystem">The file system.</param>
+/// <param name="persistence">The persistence to load and save configurations.</param>
+/// <param name="scriptHandler">A script handler to execute scripts.</param>
+internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersistence persistence, IScriptHandler scriptHandler)
 {
-    private readonly SystemConfigurationPersistence _systemConfigurationPersistence = new(fileSystem);
-
     /// <summary>
     /// Gets the system configuration from the system.
     /// </summary>
@@ -28,8 +28,59 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem)
     /// <see cref="OperationStatus.Warning"/>
     /// <br/>- <see langword="null"/> if <see cref="OperationStatus.Error"/>
     /// </remarks>
-    public Task<GetSystemConfigurationResult> GetConfiguration(CancellationToken cancellationToken = default)
-        => GetConfigurationFromScripts(cancellationToken);
+    public async Task<GetSystemConfigurationResult> GetConfiguration(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var configurationResult = new Result();
+            scriptHandler.UseResult(configurationResult);
+            Contracts.SystemConfiguration currentConfig = new();
+
+            // Don't bypass check for changes / Don't bypass apply of config
+            // -> Setting is not relevant, since we only load the configuration
+            var adapter = new SystemConfigurationAdapter(
+                currentConfig,
+                scriptHandler,
+                bypassHasChanges: false,
+                bypassApplyConfig: false);
+
+            var operationStatus = await adapter
+                .GetConfiguration(currentConfig, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (operationStatus == OperationStatus.Error)
+            {
+                var message =
+                    SystemConfigResources.GetConfigFromScriptsFailed +
+                    Environment.NewLine +
+                    configurationResult.Messages;
+
+                return GetSystemConfigurationResult.CreateErrorResult(message);
+            }
+            else if (operationStatus == OperationStatus.Warning)
+            {
+                var message =
+                    SystemConfigResources.GetConfigFromScriptsCompletedWithWarnings +
+                    Environment.NewLine +
+                    configurationResult.Messages;
+
+                return GetSystemConfigurationResult.CreateWarningResult(message, currentConfig.ToSharedContracts());
+            }
+
+            return GetSystemConfigurationResult.CreateSuccessResult(
+                SystemConfigResources.GetConfigFromScriptsSucceeded,
+                currentConfig.ToSharedContracts());
+        }
+        catch (Exception ex)
+        {
+            var message =
+                SystemConfigResources.GetConfigFromScriptsFailed +
+                Environment.NewLine +
+                ex.Message;
+
+            return GetSystemConfigurationResult.CreateErrorResult(message);
+        }
+    }
 
     /// <summary>
     /// Gets the system configuration from 'SystemConfiguration.json' or
@@ -46,11 +97,11 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem)
         CancellationToken cancellationToken = default)
     {
         var type = JsonConfigurationType.None;
-        if (File.Exists(AppPaths.SystemConfigurationFilePath))
+        if (fileSystem.File.Exists(AppPaths.SystemConfigurationFilePath))
         {
             type = JsonConfigurationType.System;
         }
-        else if (File.Exists(AppPaths.DefaultSystemConfigurationFilePath))
+        else if (fileSystem.File.Exists(AppPaths.DefaultSystemConfigurationFilePath))
         {
             type = JsonConfigurationType.Default;
         }
@@ -82,8 +133,8 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem)
     public async Task<SetSystemConfigurationResult> PrepareConfiguration(
         CancellationToken cancellationToken = default)
     {
-        if (!File.Exists(AppPaths.SystemConfigurationFilePath) &&
-            !File.Exists(AppPaths.DefaultSystemConfigurationFilePath))
+        if (!fileSystem.File.Exists(AppPaths.SystemConfigurationFilePath) &&
+            !fileSystem.File.Exists(AppPaths.DefaultSystemConfigurationFilePath))
         {
             var format = CompositeFormat.Parse(SystemConfigResources.NoConfigFound);
 
@@ -187,7 +238,7 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem)
 
         var warningMessage = configResult.Status == OperationStatus.Warning
             ? configResult.Message
-            : string.Empty;
+            : default;
 
         return
             await SetConfigurationInternal(
@@ -210,7 +261,7 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem)
             _ => throw new ArgumentOutOfRangeException(nameof(jsonConfigType), jsonConfigType, null)
         };
 
-        if (!File.Exists(configFilePath))
+        if (!fileSystem.File.Exists(configFilePath))
         {
             var noConfigMessage = string.Format(
                 CultureInfo.InvariantCulture,
@@ -252,8 +303,9 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem)
             return SetSystemConfigurationResult.CreateErrorResult(message);
         }
 
-        var warningMessage = string.Empty;
+        string? warningMessage = default;
         var configurationResult = new Result();
+        scriptHandler.UseResult(configurationResult);
 
         try
         {
@@ -263,7 +315,7 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem)
             // scripts at boot time (required information may not be available yet)
             var adapter = new SystemConfigurationAdapter(
                 configFromJson,
-                new ScriptHandler(configurationResult),
+                scriptHandler,
                 bypassHasChanges: true,
                 bypassApplyConfig: true);
 
@@ -290,7 +342,7 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem)
                 prepareConfigFailedBaseMessage);
         }
 
-        if (!string.IsNullOrWhiteSpace(warningMessage))
+        if (warningMessage is not null)
         {
             message =
                 configurationResult.Messages +
@@ -319,6 +371,7 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem)
         CancellationToken cancellationToken = default)
     {
         var configurationResult = new Result();
+        scriptHandler.UseResult(configurationResult);
 
         try
         {
@@ -326,7 +379,7 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem)
             // -> All relevant adapters are executed (prepare and apply phase)
             var adapter = new SystemConfigurationAdapter(
                 currentConfig.ToInternalContracts(),
-                new ScriptHandler(configurationResult),
+                scriptHandler,
                 bypassHasChanges: false,
                 bypassApplyConfig: false);
 
@@ -339,7 +392,6 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem)
                 return
                     await RevertConfiguration(
                         currentConfig,
-                        configurationResult,
                         configurationResult.Messages,
                         cancellationToken)
                     .ConfigureAwait(false);
@@ -372,13 +424,12 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem)
             return
                 await RevertConfiguration(
                     currentConfig,
-                    configurationResult,
                     ex.Message,
                     cancellationToken)
                 .ConfigureAwait(false);
         }
 
-        if (!string.IsNullOrWhiteSpace(currentWarningMessage))
+        if (currentWarningMessage is not null)
         {
             var message =
                 SystemConfigResources.SetConfigCompletedWithWarnings +
@@ -406,7 +457,7 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem)
 
         try
         {
-            var loadedJsonConfig = await _systemConfigurationPersistence
+            var loadedJsonConfig = await persistence
                 .LoadSystemConfiguration(configFilePath, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -432,60 +483,6 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem)
         }
     }
 
-    private static async Task<GetSystemConfigurationResult> GetConfigurationFromScripts(
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            var configurationResult = new Result();
-            Contracts.SystemConfiguration currentConfig = new();
-
-            // Don't bypass check for changes / Don't bypass apply of config
-            // -> Setting is not relevant, since we only load the configuration
-            var adapter = new SystemConfigurationAdapter(
-                currentConfig,
-                new ScriptHandler(configurationResult),
-                bypassHasChanges: false,
-                bypassApplyConfig: false);
-
-            var operationStatus = await adapter
-                .GetConfiguration(currentConfig, cancellationToken)
-                .ConfigureAwait(false);
-
-            if (operationStatus == OperationStatus.Error)
-            {
-                var message =
-                    SystemConfigResources.GetConfigFromScriptsFailed +
-                    Environment.NewLine +
-                    configurationResult.Messages;
-
-                return GetSystemConfigurationResult.CreateErrorResult(message);
-            }
-            else if (operationStatus == OperationStatus.Warning)
-            {
-                var message =
-                    SystemConfigResources.GetConfigFromScriptsCompletedWithWarnings +
-                    Environment.NewLine +
-                    configurationResult.Messages;
-
-                return GetSystemConfigurationResult.CreateWarningResult(message, currentConfig.ToSharedContracts());
-            }
-
-            return GetSystemConfigurationResult.CreateSuccessResult(
-                SystemConfigResources.GetConfigFromScriptsSucceeded,
-                currentConfig.ToSharedContracts());
-        }
-        catch (Exception ex)
-        {
-            var message =
-                SystemConfigResources.GetConfigFromScriptsFailed +
-                Environment.NewLine +
-                ex.Message;
-
-            return GetSystemConfigurationResult.CreateErrorResult(message);
-        }
-    }
-
     private async Task<Result> PersistConfiguration(
         SystemConfiguration configuration,
         CancellationToken cancellationToken)
@@ -494,7 +491,7 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem)
 
         try
         {
-            await _systemConfigurationPersistence
+            await persistence
                 .SaveSystemConfiguration(configuration.ToInternalContracts(), AppPaths.SystemConfigurationFilePath, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -516,9 +513,8 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem)
         }
     }
 
-    private static async Task<SetSystemConfigurationResult> RevertConfiguration(
+    private async Task<SetSystemConfigurationResult> RevertConfiguration(
         SystemConfiguration configToRevert,
-        Result configurationResult,
         string message,
         CancellationToken cancellationToken = default)
     {
@@ -528,7 +524,7 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem)
         // -> All adapters are executed (prepare and apply phase)
         var adapter = new SystemConfigurationAdapter(
             config,
-            new ScriptHandler(configurationResult),
+            scriptHandler,
             bypassHasChanges: true,
             bypassApplyConfig: false);
 

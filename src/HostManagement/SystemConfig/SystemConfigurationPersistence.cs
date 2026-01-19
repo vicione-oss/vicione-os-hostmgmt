@@ -8,7 +8,7 @@ namespace HostManagement.SystemConfig;
 /// Provides persistence for the system configuration, e.g. loading from or saving to a JSON file.
 /// </summary>
 /// <param name="fileSystem">A reference to the file system.</param>
-internal sealed class SystemConfigurationPersistence(IFileSystem fileSystem)
+internal sealed class SystemConfigurationPersistence(IFileSystem fileSystem) : IPersistence
 {
     private readonly IFileSystem _fileSystem = fileSystem;
 
@@ -18,7 +18,7 @@ internal sealed class SystemConfigurationPersistence(IFileSystem fileSystem)
     /// <param name="configurationFilePath">The path to the configuration file.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns><see cref="SystemConfiguration"/></returns>
-    internal async Task<SystemConfiguration> LoadSystemConfiguration(
+    public async Task<SystemConfiguration> LoadSystemConfiguration(
         string configurationFilePath,
         CancellationToken cancellationToken = default)
     {
@@ -46,7 +46,7 @@ internal sealed class SystemConfigurationPersistence(IFileSystem fileSystem)
     /// <param name="configurationFilePath">The path to the configuration file.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <exception cref="InvalidOperationException"></exception>
-    internal async Task SaveSystemConfiguration(
+    public async Task SaveSystemConfiguration(
         SystemConfiguration systemConfiguration,
         string configurationFilePath,
         CancellationToken cancellationToken = default)

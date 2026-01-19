@@ -15,10 +15,11 @@ namespace HostManagement;
 internal partial class ScriptHandlerJsonSerialization : JsonSerializerContext;
 
 /// <inheritdoc cref="IScriptHandler"/>
-/// <param name="result">The result of the operation.</param>
-internal sealed class ScriptHandler(Result result) : IScriptHandler
+internal sealed class ScriptHandler(Result? result = default) : IScriptHandler
 {
-    private readonly Result _result = result;
+    private Result _result = result ?? new();
+
+    public void UseResult(Result result) => _result = result;
 
     public async Task<OperationStatus> ExecuteApplyNetplanConfigurationScript()
     {
