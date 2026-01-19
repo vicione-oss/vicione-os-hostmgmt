@@ -59,10 +59,9 @@ Die Installation der Toolchain zur Erstellung und Ausführung des HostManagement
             * `sudo apt purge network-manager ifupdown resolvconf -y`
             * `sudo rm -rf /etc/NetworkManager && sudo rm -rf /etc/network`
         1. Neuen Link auf `resolv.conf` erstellen: `sudo ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf`
-    1. **Paketquellen** für **JFrogNuGetProxy** und **JFrogViciOne** einrichten (Name und Passwort entsprechend einsetzen; siehe [JFrogConfiguration] für weitere Informationen)
+    1. **Paketquellen** für **JFrogNuGetProxy** und **JFrogViciOne** einrichten (Name und Passwort entsprechend einsetzen)
         1. `dotnet nuget add source https://jfrog.i40.ifm-datalink.net/artifactory/api/nuget/v3/vicione-nuget.org-proxy/index.json -n JFrogNuGetProxy -u MAX.MUSTERMANN@ifm.com> -p TOKEN --store-password-in-clear-text --protocol-version 3`
         1. `dotnet nuget add source https://jfrog.i40.ifm-datalink.net/artifactory/api/nuget/v3/vicione-nuget/index.json -n JFrogViciOne -u MAX.MUSTERMANN -p PASSWORD --store-password-in-clear-text`
 
 [DebianToNetplan]: https://pedroagrodrigues.com/posts/Debian_To_Netplan/
 [InstallNetSdk]: https://learn.microsoft.com/en-us/dotnet/core/install/linux-debian#install-the-sdk
-[JFrogConfiguration]: https://gitlab.i40.ifm-datalink.net/-/snippets/126
