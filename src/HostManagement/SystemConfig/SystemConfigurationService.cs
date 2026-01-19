@@ -238,7 +238,7 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
 
         var warningMessage = configResult.Status == OperationStatus.Warning
             ? configResult.Message
-            : string.Empty;
+            : default;
 
         return
             await SetConfigurationInternal(
@@ -303,7 +303,7 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
             return SetSystemConfigurationResult.CreateErrorResult(message);
         }
 
-        var warningMessage = string.Empty;
+        string? warningMessage = default;
         var configurationResult = new Result();
         scriptHandler.UseResult(configurationResult);
 
@@ -342,7 +342,7 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
                 prepareConfigFailedBaseMessage);
         }
 
-        if (!string.IsNullOrWhiteSpace(warningMessage))
+        if (warningMessage is not null)
         {
             message =
                 configurationResult.Messages +
@@ -429,7 +429,7 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
                 .ConfigureAwait(false);
         }
 
-        if (!string.IsNullOrWhiteSpace(currentWarningMessage))
+        if (currentWarningMessage is not null)
         {
             var message =
                 SystemConfigResources.SetConfigCompletedWithWarnings +

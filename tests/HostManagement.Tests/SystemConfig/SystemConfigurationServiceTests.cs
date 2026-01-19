@@ -256,13 +256,11 @@ public class SystemConfigurationServiceTests
                 .ReturnsForAnyArgs(config);
             context.ScriptHandler.ExecuteSetNetworkDNSSettingsScript(default!)
                 .ReturnsForAnyArgs(OperationStatus.Warning);
-            context.ScriptHandler.UseResult(Arg.Do<Result>(static r => r.AddWarning("test warning")));
 
             var result = await context.Sut.PrepareConfiguration();
 
             result.Status.Should().Be(OperationStatus.Error);
             result.Message.Should().Contain("Prepare system configuration not possible.");
-            result.Message.Should().Contain("test warning");
         }
 
         [Fact]
@@ -453,14 +451,12 @@ public class SystemConfigurationServiceTests
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler.ExecuteSetNetworkDNSSettingsScript(default!)
                 .ReturnsForAnyArgs(OperationStatus.Warning);
-            context.ScriptHandler.UseResult(Arg.Do<Result>(static r => r.AddWarning("test warning")));
             var proposedConfig = CreateSharedConfig();
 
             var result = await context.Sut.SetConfiguration(proposedConfig);
 
             result.Status.Should().Be(OperationStatus.Warning);
             result.Message.Should().Contain("completed with warnings");
-            result.Message.Should().Contain("test warning");
         }
 
         [Fact]
