@@ -41,7 +41,10 @@ internal sealed class V1ToV2SystemConfigurationMigration
             => new()
             {
                 CommonInformation = source.CommonInformation.MapOrNull(MigrateNetworkInterfaceCommonInformation),
-                IPv4 = source.IPv4.MapOrNull(MigrateIPv4Settings)
+                IPv4 = source.IPv4.MapOrNull(MigrateIPv4Settings),
+
+                // VLAN was moved one level up from IPv4
+                VLAN = source.IPv4.MapOrNull(MigrateVLANSettings)
             };
 
     private static CurrentContracts.NetworkInterfaceCommonInformation MigrateNetworkInterfaceCommonInformation(
@@ -59,11 +62,11 @@ internal sealed class V1ToV2SystemConfigurationMigration
             Gateway = source.Gateway,
             DHCPEnabled = source.DHCPEnabled,
 
-            // DHCPLease was removed in version 2 and was not persisted previously either.
-            IPv4Details = source.IPv4Details.MapListOrNull(MigrateIPv4Detail),
+            // DHCPLease was removed and was not persisted previously.
 
-            VLANEnabled = source.VLANEnabled,
-            VLANID = source.VLANID
+            IPv4Details = source.IPv4Details.MapListOrNull(MigrateIPv4Detail)
+
+            // VLAN was moved one level up to NetworkInterfaceDetail
         };
 
     private static CurrentContracts.IPv4Detail MigrateIPv4Detail(V1Contracts.IPv4Detail source)
@@ -71,6 +74,13 @@ internal sealed class V1ToV2SystemConfigurationMigration
         {
             IPAddress = source.IPAddress,
             Netmask = source.Netmask
+        };
+
+    private static CurrentContracts.VLANSettings MigrateVLANSettings(V1Contracts.IPv4Settings source)
+        => new()
+        {
+            Enabled = source.VLANEnabled,
+            ID = source.VLANID
         };
 
     private static CurrentContracts.NetworkDNSSettings MigrateNetworkDNSSettings(V1Contracts.NetworkDNSSettings source)

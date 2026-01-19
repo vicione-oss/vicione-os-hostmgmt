@@ -125,7 +125,7 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
 
             var scriptOptions = new ScriptOptions();
 
-            AddVLANScriptOptions(scriptOptions, proposedInterface.IPv4);
+            AddVLANScriptOptions(scriptOptions, proposedInterface.VLAN);
             AddInterfaceNameScriptOption(scriptOptions, interfaceName);
 
             if (!string.IsNullOrWhiteSpace(proposedInterface.CommonInformation?.PhysicalAddress))
@@ -149,16 +149,19 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
         return combinedResult;
     }
 
-    private static void AddVLANScriptOptions(ScriptOptions scriptOptions, IPv4Settings? ipv4Settings)
+    private static void AddVLANScriptOptions(ScriptOptions scriptOptions, VLANSettings? vlanSettings)
     {
-        if (ipv4Settings is not null && ipv4Settings.VLANEnabled.HasValue && ipv4Settings.VLANID.HasValue)
-        {
-            if (ipv4Settings.VLANEnabled.Value)
-            {
-                // TODO Remove "if check" around VLANEnabled and VLANID script options when implemented and uncomment VLANEnabled
-                //scriptOptions.Add(ScriptOptionNames.Network.VLANEnabled, ipv4Settings.VLANEnabled);
+        if (vlanSettings is null)
+            return;
 
-                scriptOptions.Add(ScriptOptionNames.Network.VLANID, ipv4Settings.VLANID.Value);
+        if (vlanSettings.Enabled.HasValue && vlanSettings.ID.HasValue)
+        {
+            if (vlanSettings.Enabled.Value)
+            {
+                // TODO Remove "if check" around Enabled and ID script options when implemented and uncomment
+                // scriptOptions.Add(ScriptOptionNames.Network.VLANEnabled, vlanSettings.Enabled.Value);
+
+                scriptOptions.Add(ScriptOptionNames.Network.VLANID, vlanSettings.ID.Value);
             }
         }
     }

@@ -322,7 +322,7 @@ public class NetworkInterfacesConfigurationAdapterTests
                             {
                                 Enabled = false,
                                 Name = Lan1,
-                                PhysicalAddress = "00:11:22:33:44:55",
+                                PhysicalAddress = "00:11:22:33:44:55"
                             },
                             IPv4 = new()
                             {
@@ -333,11 +333,14 @@ public class NetworkInterfacesConfigurationAdapterTests
                                     new()
                                     {
                                         IPAddress = IPAddress.Parse("192.168.0.10"),
-                                        Netmask = IPAddress.Parse("255.255.255.0"),
-                                    },
-                                ],
-                                VLANEnabled = true,
-                                VLANID = 100
+                                        Netmask = IPAddress.Parse("255.255.255.0")
+                                    }
+                                ]
+                            },
+                            VLAN = new()
+                            {
+                                Enabled = true,
+                                ID = 100
                             }
                         }
                     ]

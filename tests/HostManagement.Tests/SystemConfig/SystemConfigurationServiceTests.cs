@@ -77,8 +77,11 @@ public class SystemConfigurationServiceTests
                                     Netmask = IPAddress.Parse("255.255.255.0")
                                 }
                             ],
-                            VLANEnabled = true,
-                            VLANID = 100
+                        },
+                        VLAN = new()
+                        {
+                            Enabled = true,
+                            ID = 100
                         }
                     }
                 ]

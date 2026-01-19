@@ -147,8 +147,11 @@ public class SystemConfigurationPersistenceTests
                                     Netmask = IPAddress.Parse("255.255.0.0")
                                 }
                             ],
-                            VLANEnabled = false,
-                            VLANID = 0
+                        },
+                        VLAN = new()
+                        {
+                            Enabled = false,
+                            ID = 0
                         }
                     },
                     new()
@@ -170,8 +173,11 @@ public class SystemConfigurationPersistenceTests
                                     Netmask = IPAddress.Parse("255.255.255.0")
                                 }
                             ],
-                            VLANEnabled = false,
-                            VLANID = 0
+                        },
+                        VLAN = new()
+                        {
+                            Enabled = false,
+                            ID = 0
                         }
                     }
                 ]
@@ -462,7 +468,7 @@ public class SystemConfigurationPersistenceTests
                             {
                                 Enabled = true,
                                 Name = "lan1",
-                                PhysicalAddress = "01:23:45:67:89:AB",
+                                PhysicalAddress = "01:23:45:67:89:AB"
                             },
                             IPv4 = new()
                             {
@@ -473,14 +479,17 @@ public class SystemConfigurationPersistenceTests
                                     new()
                                     {
                                         IPAddress = ipAddress,
-                                        Netmask = ipAddress,
+                                        Netmask = ipAddress
                                     }
-                                ],
-                                VLANEnabled = true,
-                                VLANID = 1,
+                                ]
                             },
-                        },
-                    ],
+                            VLAN = new()
+                            {
+                                Enabled = true,
+                                ID = 1
+                            }
+                        }
+                    ]
                 },
                 NetworkDNSSettings = new()
                 {
@@ -494,8 +503,8 @@ public class SystemConfigurationPersistenceTests
                             new()
                             {
                                 Hostname = "statichost",
-                                IPAddress = ipAddress,
-                            },
+                                IPAddress = ipAddress
+                            }
                         ]
                     },
                     NameServers = new()
@@ -572,8 +581,8 @@ public class SystemConfigurationPersistenceTests
                     new()
                     {
                         Name = "TestService",
-                        State = ServiceState.Enabled,
-                    },
+                        State = ServiceState.Enabled
+                    }
                 ]
             };
 
@@ -597,9 +606,11 @@ public class SystemConfigurationPersistenceTests
                           "IPAddress": "120.86.52.18",
                           "Netmask": "120.86.52.18"
                         }
-                      ],
-                      "VLANEnabled": true,
-                      "VLANID": 1
+                      ]
+                    },
+                    "VLAN": {
+                      "Enabled": true,
+                      "ID": 1
                     }
                   }
                 ]
