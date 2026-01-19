@@ -9,6 +9,12 @@ namespace HostManagement;
 internal interface IScriptHandler
 {
     /// <summary>
+    /// Use the specified <see cref="Result"/> to express the outcome of operations.
+    /// </summary>
+    /// <param name="result">The result of the operations.</param>
+    void UseResult(Result result);
+
+    /// <summary>
     /// Executes the script to apply the netplan configuration.
     /// </summary>
     /// <returns><see cref="OperationStatus"/></returns>

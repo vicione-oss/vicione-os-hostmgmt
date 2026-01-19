@@ -28,7 +28,8 @@ internal sealed class GetSystemConfigurationRequestHandler : IRequestHandler
     {
         try
         {
-            var configurationService = new SystemConfigurationService(new FileSystem());
+            var fileSystem = new FileSystem();
+            var configurationService = new SystemConfigurationService(fileSystem, new SystemConfigurationPersistence(fileSystem), new ScriptHandler());
 
             var result = await configurationService.GetConfiguration(cancellationToken);
 
