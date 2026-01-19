@@ -297,32 +297,26 @@ Test Package Registry:
   stage: deploy
   image: debian:11
   before_script:
-    - apt-get update && apt-get install -qq -y curl jq
+    - "apt-get update && apt-get install -qq -y curl jq"
   script:
-    - echo "=== Package Registry Connectivity Test ==="
-    - echo ""
-    - echo "Project ID: ${CI_PROJECT_ID}"
-    - echo "Pipeline ID: ${CI_PIPELINE_ID}"
-    - echo "API URL: ${CI_API_V4_URL}"
-    - echo "Package Name: ${PACKAGE_NAME}"
-    - echo "Artifact Prefix: ${ARTIFACT_PREFIX}"
-    - echo ""
-    - APP_PIPELINE="${CI_PIPELINE_ID}"
-    - APP_VERSION="$(cat VERSION)"
-    - VERSION="${APP_VERSION}~${APP_PIPELINE}"
-    - echo "=== Expected artifacts ==="
-    - echo "  - ${ARTIFACT_PREFIX}-${APP_PIPELINE}-linux-x64.tar.gz"
-    - echo "  - ${ARTIFACT_PREFIX}-${APP_PIPELINE}-linux-arm64.tar.gz"
-    - echo "  - ${ARTIFACT_PREFIX}_${VERSION}_amd64.deb"
-    - echo "  - ${ARTIFACT_PREFIX}_${VERSION}_arm64.deb"
-    - echo ""
-    - echo "=== Listing packages in Package Registry ==="
+    - "echo '=== Package Registry Connectivity Test ==='"
+    - "echo 'Project ID:' ${CI_PROJECT_ID}"
+    - "echo 'Pipeline ID:' ${CI_PIPELINE_ID}"
+    - "echo 'Package Name:' ${PACKAGE_NAME}"
+    - "echo 'Artifact Prefix:' ${ARTIFACT_PREFIX}"
     - |
+      APP_PIPELINE="${CI_PIPELINE_ID}"
+      APP_VERSION="$(cat VERSION)"
+      VERSION="${APP_VERSION}~${APP_PIPELINE}"
+      echo "=== Expected artifacts ==="
+      echo "  - ${ARTIFACT_PREFIX}-${APP_PIPELINE}-linux-x64.tar.gz"
+      echo "  - ${ARTIFACT_PREFIX}-${APP_PIPELINE}-linux-arm64.tar.gz"
+      echo ""
+      echo "=== Listing packages in Package Registry ==="
       curl --silent --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
         "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages?per_page=20" | jq '.'
-    - echo ""
-    - echo "=== Attempting to download artifacts ==="
-    - |
+      echo ""
+      echo "=== Attempting to download artifacts ==="
       for arch in "linux-x64" "linux-arm64"; do
         artifact="${ARTIFACT_PREFIX}-${APP_PIPELINE}-${arch}.tar.gz"
         echo "Downloading: ${artifact}"
@@ -331,30 +325,14 @@ Test Package Registry:
           --output "${artifact}" \
           "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${APP_PIPELINE}/${artifact}")
         if [ "$HTTP_CODE" = "200" ]; then
-          echo "  ✓ SUCCESS (HTTP ${HTTP_CODE}) - Size: $(ls -lh ${artifact} | awk '{print $5}')"
+          SIZE=$(ls -lh ${artifact} | awk '{print $5}')
+          echo "  SUCCESS (HTTP ${HTTP_CODE}) - Size: ${SIZE}"
         else
-          echo "  ✗ FAILED (HTTP ${HTTP_CODE})"
+          echo "  FAILED (HTTP ${HTTP_CODE})"
         fi
       done
-    - echo ""
-    - echo "=== Attempting to download .deb packages ==="
-    - |
-      for arch in "amd64" "arm64"; do
-        artifact="${ARTIFACT_PREFIX}_${VERSION}_${arch}.deb"
-        echo "Downloading: ${artifact}"
-        HTTP_CODE=$(curl --silent --write-out "%{http_code}" \
-          --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-          --output "${artifact}" \
-          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${APP_PIPELINE}/${artifact}")
-        if [ "$HTTP_CODE" = "200" ]; then
-          echo "  ✓ SUCCESS (HTTP ${HTTP_CODE}) - Size: $(ls -lh ${artifact} | awk '{print $5}')"
-        else
-          echo "  ✗ FAILED (HTTP ${HTTP_CODE}) - Expected if child pipeline hasn't run yet"
-        fi
-      done
-    - echo ""
-    - echo "=== Cleanup: Deleting test artifacts ==="
-    - |
+      echo ""
+      echo "=== Cleanup: Deleting test artifacts ==="
       for arch in "linux-x64" "linux-arm64"; do
         artifact="${ARTIFACT_PREFIX}-${APP_PIPELINE}-${arch}.tar.gz"
         echo "Deleting: ${artifact}"
@@ -364,18 +342,8 @@ Test Package Registry:
           "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${APP_PIPELINE}/${artifact}")
         echo "  Result: HTTP ${HTTP_CODE}"
       done
-    - |
-      for arch in "amd64" "arm64"; do
-        artifact="${ARTIFACT_PREFIX}_${VERSION}_${arch}.deb"
-        echo "Deleting: ${artifact}"
-        HTTP_CODE=$(curl --silent --write-out "%{http_code}" --output /dev/null \
-          --request DELETE \
-          --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${APP_PIPELINE}/${artifact}")
-        echo "  Result: HTTP ${HTTP_CODE}"
-      done
-    - echo ""
-    - echo "=== Test Complete ==="
+      echo ""
+      echo "=== Test Complete ==="
   needs:
     - "trigger deb packaging"
   when: manual
