@@ -332,16 +332,26 @@ Test Package Registry:
         fi
       done
       echo ""
-      echo "=== Cleanup: Deleting test artifacts ==="
-      for arch in "linux-x64" "linux-arm64"; do
-        artifact="${ARTIFACT_PREFIX}-${APP_PIPELINE}-${arch}.tar.gz"
-        echo "Deleting: ${artifact}"
+      echo "=== Cleanup: Deleting test package version ==="
+      # Get package ID for this pipeline's version
+      PACKAGE_ID=$(curl --silent --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages?package_name=${PACKAGE_NAME}&per_page=100" \
+        | jq -r ".[] | select(.version == \"${APP_PIPELINE}\") | .id")
+      if [ -n "$PACKAGE_ID" ] && [ "$PACKAGE_ID" != "null" ]; then
+        echo "Found package ID: ${PACKAGE_ID} for version ${APP_PIPELINE}"
+        echo "Deleting package..."
         HTTP_CODE=$(curl --silent --write-out "%{http_code}" --output /dev/null \
           --request DELETE \
           --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${APP_PIPELINE}/${artifact}")
-        echo "  Result: HTTP ${HTTP_CODE}"
-      done
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/${PACKAGE_ID}")
+        if [ "$HTTP_CODE" = "204" ]; then
+          echo "  SUCCESS (HTTP ${HTTP_CODE}) - Package deleted"
+        else
+          echo "  FAILED (HTTP ${HTTP_CODE})"
+        fi
+      else
+        echo "No package found for version ${APP_PIPELINE}"
+      fi
       echo ""
       echo "=== Test Complete ==="
   needs:
