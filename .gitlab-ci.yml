@@ -273,7 +273,7 @@ trigger deb packaging:
     APP_VERSION: ${APP_VERSION}
     APP_TAG: ${APP_TAG}
     PARENT_PROJECT_ID: ${CI_PROJECT_ID}
-    ARTIFACT_PREFIX: ${ARTIFACT_PREFIX}
+    ARTIFACT_PREFIX: "hostmanagement"
   trigger:
     project: ${DEB_PACKAGING_PROJECT}
     branch: ${DEB_PACKAGING_BRANCH}
