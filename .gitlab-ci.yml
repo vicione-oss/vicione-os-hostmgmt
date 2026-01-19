@@ -125,7 +125,7 @@ default:
 Markdown:
   stage: lint
   image:
-    name: jfrog.i40.ifm-datalink.net:443/docker-remote/davidanson/markdownlint-cli2:latest
+    name: davidanson/markdownlint-cli2:v0.20.0
     entrypoint: ["/bin/sh", "-c"]
   script:
     - markdownlint-cli2 "/builds/**/*.md" "#/builds/**/.gitlab/**"
@@ -157,7 +157,7 @@ xUnit:
 
 Create artifacts arm64:
   stage: artifacts
-  image: jfrog.i40.ifm-datalink.net:443/docker-remote/debian:11
+  image: debian:11
   variables:
     DOTNET_ARCH: 'linux-arm64'
     MINIO_ARCH: 'linux-arm64'
@@ -185,7 +185,7 @@ Create artifacts arm64:
 
 Create artifacts x64:
   stage: artifacts
-  image: jfrog.i40.ifm-datalink.net:443/docker-remote/debian:11
+  image: debian:11
   variables:
     DOTNET_ARCH: 'linux-x64'
     MINIO_ARCH: 'linux-amd64'
@@ -211,7 +211,7 @@ Create artifacts x64:
 
 Versioning:
   stage: artifacts
-  image: jfrog.i40.ifm-datalink.net:443/docker-remote/debian:11
+  image: debian:11
   script:
     - echo "APP_PIPELINE=${CI_PIPELINE_ID}" >>version.env
     - echo "APP_VERSION=$(cat VERSION)" >>version.env
