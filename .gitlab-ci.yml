@@ -4,12 +4,10 @@ include:
 
 variables:
   DOTNET_VERSION: 9.0.307
-  # Package Registry settings
   PACKAGE_NAME: "ci-artifacts"
   ARTIFACT_PREFIX: "hostmanagement"
-  # Child pipeline project (for testing, use feature branch)
   DEB_PACKAGING_PROJECT: 'vicione-oss/vicione/os/deb-packaging'
-  DEB_PACKAGING_BRANCH: 'feature/replace-s3-with-package-registry'  # Change to 'master' after testing
+  DEB_PACKAGING_BRANCH: 'feature/replace-s3-with-package-registry'
 
 stages:
   - lint
@@ -28,7 +26,7 @@ default:
 #################### Rules
 
 .rules_default_branch: &rules_default_branch
-  if : '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 
 .rules_merge_request: &rules_merge_request
   if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
@@ -78,32 +76,9 @@ default:
   - rm -rf ./${DIRECTORY}/*.xml ./${DIRECTORY}/*.dbg ./${DIRECTORY}/*.pdb
   - du -sh ./${DIRECTORY}/
   - tar cfz ${DIRECTORY}.tar.gz ./${DIRECTORY}
-  # Upload to GitLab Package Registry
-  - |
-    ARTIFACT_FILE="${ARTIFACT_PREFIX}-${CI_PIPELINE_ID}-${DOTNET_ARCH}.tar.gz"
-    echo "Uploading ${ARTIFACT_FILE} to Package Registry"
-    curl --fail --silent --show-error \
-      --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-      --upload-file "${DIRECTORY}.tar.gz" \
-      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${CI_PIPELINE_ID}/${ARTIFACT_FILE}"
-
-.package_registry_download: &package_registry_download
-  # Download artifact from Package Registry
-  - |
-    echo "Downloading ${artifact} from Package Registry"
-    curl --fail --silent --show-error \
-      --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-      --output "${artifact}" \
-      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${APP_PIPELINE}/${artifact}"
-
-.package_registry_delete: &package_registry_delete
-  # Delete artifact from Package Registry
-  - |
-    echo "Deleting ${artifact} from Package Registry"
-    curl --fail --silent --show-error \
-      --request DELETE \
-      --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${APP_PIPELINE}/${artifact}" || true
+  - export PACKAGE_VERSION="${CI_PIPELINE_ID}"
+  - source build/package_registry.sh
+  - registry::upload "${DIRECTORY}.tar.gz" "${ARTIFACT_PREFIX}-${CI_PIPELINE_ID}-${DOTNET_ARCH}.tar.gz"
 
 .jfrog-package-release:
   stage: deploy
@@ -114,7 +89,7 @@ default:
     PASSWORD: ${Raw_PW_RW_JFrog}
     REPOSITORY_DESTINATION: "vicione-suite-dev"
   before_script:
-    - apk add --no-cache curl
+    - apk add --no-cache curl jq
     - jf config add --user $USER --password ${PASSWORD} --artifactory-url ${SERVER} jfrog
     - jf config use jfrog
   script:
@@ -123,32 +98,28 @@ default:
     - APP_TAG="${CI_COMMIT_TAG}"
     - VERSION="${APP_VERSION}"
     - if [[ -z "${APP_TAG}" ]]; then VERSION="${VERSION}~${APP_PIPELINE}"; fi
-    # List of artifacts to process
     - echo "${ARTIFACT_PREFIX}_${VERSION}_amd64.deb" >> artifacts.list
     - echo "${ARTIFACT_PREFIX}_${VERSION}_arm64.deb" >> artifacts.list
-    - echo "${ARTIFACT_PREFIX}-${APP_PIPELINE}-linux-x64.tar.gz" >> artifacts.list
-    - echo "${ARTIFACT_PREFIX}-${APP_PIPELINE}-linux-arm64.tar.gz" >> artifacts.list
     - |
       while IFS= read -r artifact; do
-        echo "Processing artifact: $artifact"
+        echo "Processing: ${artifact}"
         if [[ "${artifact}" == *.deb ]]; then
-          # Download .deb from Package Registry
-          echo "Downloading ${artifact} from Package Registry"
           curl --fail --silent --show-error \
             --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
             --output "${artifact}" \
             "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${APP_PIPELINE}/${artifact}"
-          # Upload to JFrog
-          echo "Uploading ${artifact} to JFrog"
           jf rt upload "${artifact}" "${REPOSITORY_DESTINATION}/hostmanagements/${artifact}"
         fi
-        # Delete from Package Registry (cleanup)
-        echo "Deleting ${artifact} from Package Registry"
-        curl --silent --show-error \
-          --request DELETE \
-          --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${APP_PIPELINE}/${artifact}" || echo "Warning: Could not delete ${artifact}"
       done < artifacts.list
+    - |
+      PACKAGE_ID=$(curl --silent --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages?package_name=${PACKAGE_NAME}&per_page=100" \
+        | jq -r ".[] | select(.version == \"${APP_PIPELINE}\") | .id")
+      if [ -n "$PACKAGE_ID" ] && [ "$PACKAGE_ID" != "null" ]; then
+        echo "Cleaning up package version ${APP_PIPELINE}"
+        curl --silent --request DELETE --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/${PACKAGE_ID}" || true
+      fi
   artifacts:
     paths:
       - ${ARTIFACT_PREFIX}_*.deb
@@ -186,7 +157,7 @@ Markdown:
 Build:
   extends: .dotnet-build
 
-####################  Test stage
+#################### Test stage
 
 xUnit:
   extends: .dotnet-test-xunit
@@ -210,7 +181,7 @@ Create artifacts arm64:
   artifacts:
     paths:
       - artifacts.tar.gz
-    expire_in: 7 days
+    expire_in: 30 days
   tags:
     - saas-linux-small-arm64
   when: manual
@@ -237,7 +208,7 @@ Create artifacts x64:
   artifacts:
     paths:
       - artifacts.tar.gz
-    expire_in: 7 days
+    expire_in: 30 days
   when: manual
   rules:
     - <<: *rules_tag_manual
@@ -256,7 +227,7 @@ Versioning:
   artifacts:
     reports:
       dotenv: version.env
-    expire_in: 7 days
+    expire_in: 30 days
   when: manual
   rules:
     - <<: *rules_tag_manual
@@ -290,70 +261,27 @@ trigger deb packaging:
     - <<: *rules_merge_request
     - <<: *rules_web
 
-####################  Deploy stage
+#################### Deploy stage
 
-# TEST JOB: Verify Package Registry connectivity (no actual deployment)
 Test Package Registry:
   stage: deploy
   image: debian:11
   before_script:
-    - "apt-get update && apt-get install -qq -y curl jq"
+    - apt-get update && apt-get install -qq -y curl jq
   script:
-    - "echo '=== Package Registry Connectivity Test ==='"
-    - "echo 'Project ID:' ${CI_PROJECT_ID}"
-    - "echo 'Pipeline ID:' ${CI_PIPELINE_ID}"
-    - "echo 'Package Name:' ${PACKAGE_NAME}"
-    - "echo 'Artifact Prefix:' ${ARTIFACT_PREFIX}"
+    - export PACKAGE_VERSION="${CI_PIPELINE_ID}"
+    - source build/package_registry.sh
     - |
-      APP_PIPELINE="${CI_PIPELINE_ID}"
-      APP_VERSION="$(cat VERSION)"
-      VERSION="${APP_VERSION}~${APP_PIPELINE}"
-      echo "=== Expected artifacts ==="
-      echo "  - ${ARTIFACT_PREFIX}-${APP_PIPELINE}-linux-x64.tar.gz"
-      echo "  - ${ARTIFACT_PREFIX}-${APP_PIPELINE}-linux-arm64.tar.gz"
-      echo ""
-      echo "=== Listing packages in Package Registry ==="
-      curl --silent --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages?per_page=20" | jq '.'
-      echo ""
-      echo "=== Attempting to download artifacts ==="
+      basic::log "Package Registry Connectivity Test"
+      basic::log "Project: ${CI_PROJECT_ID} | Pipeline: ${CI_PIPELINE_ID}"
+    - |
       for arch in "linux-x64" "linux-arm64"; do
-        artifact="${ARTIFACT_PREFIX}-${APP_PIPELINE}-${arch}.tar.gz"
-        echo "Downloading: ${artifact}"
-        HTTP_CODE=$(curl --silent --write-out "%{http_code}" \
-          --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-          --output "${artifact}" \
-          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${APP_PIPELINE}/${artifact}")
-        if [ "$HTTP_CODE" = "200" ]; then
-          SIZE=$(ls -lh ${artifact} | awk '{print $5}')
-          echo "  SUCCESS (HTTP ${HTTP_CODE}) - Size: ${SIZE}"
-        else
-          echo "  FAILED (HTTP ${HTTP_CODE})"
-        fi
+        artifact="${ARTIFACT_PREFIX}-${PACKAGE_VERSION}-${arch}.tar.gz"
+        export DOWNLOAD_PROJECT_ID="${CI_PROJECT_ID}"
+        registry::download "${artifact}" "${artifact}"
       done
-      echo ""
-      echo "=== Cleanup: Deleting test package version ==="
-      # Get package ID for this pipeline's version
-      PACKAGE_ID=$(curl --silent --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages?package_name=${PACKAGE_NAME}&per_page=100" \
-        | jq -r ".[] | select(.version == \"${APP_PIPELINE}\") | .id")
-      if [ -n "$PACKAGE_ID" ] && [ "$PACKAGE_ID" != "null" ]; then
-        echo "Found package ID: ${PACKAGE_ID} for version ${APP_PIPELINE}"
-        echo "Deleting package..."
-        HTTP_CODE=$(curl --silent --write-out "%{http_code}" --output /dev/null \
-          --request DELETE \
-          --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/${PACKAGE_ID}")
-        if [ "$HTTP_CODE" = "204" ]; then
-          echo "  SUCCESS (HTTP ${HTTP_CODE}) - Package deleted"
-        else
-          echo "  FAILED (HTTP ${HTTP_CODE})"
-        fi
-      else
-        echo "No package found for version ${APP_PIPELINE}"
-      fi
-      echo ""
-      echo "=== Test Complete ==="
+    - registry::delete_version "${PACKAGE_VERSION}"
+    - basic::log "Test Complete"
   needs:
     - "trigger deb packaging"
   when: manual
@@ -388,7 +316,7 @@ Prerelease Packages to JFrog:
   needs:
     - "trigger deb packaging"
 
-####################  Release stage
+#################### Release stage
 
 Release Shared NuGet:
   extends: .dotnet-release-nuget
@@ -429,12 +357,10 @@ Public-Release Packages to JFrog:
   script:
     - |
       while IFS= read -r artifact; do
-        echo "Process artifact: $artifact"
         if [[ "${artifact}" == *.deb ]]; then
           source="${REPOSITORY_SOURCE}/*/${artifact}"
           destination="${REPOSITORY_DESTINATION}/${artifact}"
-
-          echo "Moving artifact: from \"${REPOSITORY_SOURCE}\" to \"${REPOSITORY_DESTINATION}\""
+          echo "Moving: ${source} -> ${destination}"
           jf rt mv "${source}" "${destination}"
         fi
       done < artifacts.list
@@ -445,38 +371,14 @@ Public-Release Packages to JFrog:
 
 #################### Cleanup stage
 
-# Safety net cleanup - runs on schedule to delete orphaned artifacts
-# Deletes packages older than 4 hours
 Cleanup orphaned packages:
   stage: cleanup
   image: debian:11
   before_script:
     - apt update && apt install -y curl jq
   script:
-    - |
-      echo "=== Cleaning up orphaned packages from Package Registry ==="
-      CUTOFF_TIME=$(date -d '4 hours ago' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -v-4H +%Y-%m-%dT%H:%M:%SZ)
-      echo "Deleting packages created before: ${CUTOFF_TIME}"
-
-      # List all package versions
-      PACKAGES=$(curl --silent --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages?package_name=${PACKAGE_NAME}&per_page=100" | jq -r '.[].id')
-
-      for pkg_id in $PACKAGES; do
-        # Get package details
-        PKG_INFO=$(curl --silent --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/${pkg_id}")
-
-        CREATED_AT=$(echo "$PKG_INFO" | jq -r '.created_at')
-        VERSION=$(echo "$PKG_INFO" | jq -r '.version')
-
-        if [[ "$CREATED_AT" < "$CUTOFF_TIME" ]]; then
-          echo "Deleting old package version: ${VERSION} (created: ${CREATED_AT})"
-          curl --silent --request DELETE --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-            "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/${pkg_id}" || true
-        fi
-      done
-      echo "=== Cleanup complete ==="
+    - source build/package_registry.sh
+    - registry::cleanup_old 4
   rules:
     - <<: *rules_scheduled
   tags:
