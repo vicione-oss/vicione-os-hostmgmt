@@ -4,7 +4,7 @@
 # GitLab Package Registry operations
 #######################################
 
-SCRIPT_DIR=$(dirname "$0")
+SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
 source "${SCRIPT_DIR}/package_basic.sh"
 
 #######################################
