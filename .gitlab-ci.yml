@@ -312,8 +312,7 @@ Test Registry:
   stage: deploy
   image: curlimages/curl:latest
   script:
-    - chmod +x build/test_registry.sh
-    - ./build/test_registry.sh
+    - sh build/test_registry.sh
   when: manual
   allow_failure: true
   rules:
@@ -330,8 +329,7 @@ Test JFrog:
   before_script:
     - apk add --no-cache bash
   script:
-    - chmod +x build/test_jfrog.sh
-    - ./build/test_jfrog.sh
+    - bash build/test_jfrog.sh
   when: manual
   allow_failure: true
   rules:
