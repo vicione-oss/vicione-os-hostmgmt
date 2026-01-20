@@ -89,37 +89,15 @@ default:
     PASSWORD: ${Raw_PW_RW_JFrog}
     REPOSITORY_DESTINATION: "vicione-suite-dev"
   before_script:
-    - apk add --no-cache curl jq
+    - apk add --no-cache curl jq bash
     - jf config add --user $USER --password ${PASSWORD} --artifactory-url ${SERVER} jfrog
     - jf config use jfrog
   script:
-    - APP_PIPELINE="${CI_PIPELINE_ID}"
-    - APP_VERSION="$(cat VERSION)"
-    - APP_TAG="${CI_COMMIT_TAG}"
-    - VERSION="${APP_VERSION}"
-    - if [[ -z "${APP_TAG}" ]]; then VERSION="${VERSION}~${APP_PIPELINE}"; fi
-    - echo "${ARTIFACT_PREFIX}_${VERSION}_amd64.deb" >> artifacts.list
-    - echo "${ARTIFACT_PREFIX}_${VERSION}_arm64.deb" >> artifacts.list
-    - |
-      while IFS= read -r artifact; do
-        echo "Processing: ${artifact}"
-        if [[ "${artifact}" == *.deb ]]; then
-          curl --fail --silent --show-error \
-            --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-            --output "${artifact}" \
-            "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${APP_PIPELINE}/${artifact}"
-          jf rt upload "${artifact}" "${REPOSITORY_DESTINATION}/hostmanagements/${artifact}"
-        fi
-      done < artifacts.list
-    - |
-      PACKAGE_ID=$(curl --silent --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages?package_name=${PACKAGE_NAME}&per_page=100" \
-        | jq -r ".[] | select(.version == \"${APP_PIPELINE}\") | .id")
-      if [ -n "$PACKAGE_ID" ] && [ "$PACKAGE_ID" != "null" ]; then
-        echo "Cleaning up package version ${APP_PIPELINE}"
-        curl --silent --request DELETE --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/${PACKAGE_ID}" || true
-      fi
+    - source build/jfrog_release.sh
+    - jfrog::set_version
+    - jfrog::create_artifacts_list "${ARTIFACT_PREFIX}"
+    - jfrog::release_packages "${REPOSITORY_DESTINATION}" "hostmanagements"
+    - jfrog::cleanup_registry
   artifacts:
     paths:
       - ${ARTIFACT_PREFIX}_*.deb
@@ -355,15 +333,8 @@ Public-Release Packages to JFrog:
     REPOSITORY_SOURCE: "vicione-suite-staging"
     REPOSITORY_DESTINATION: "vicione-suite"
   script:
-    - |
-      while IFS= read -r artifact; do
-        if [[ "${artifact}" == *.deb ]]; then
-          source="${REPOSITORY_SOURCE}/*/${artifact}"
-          destination="${REPOSITORY_DESTINATION}/${artifact}"
-          echo "Moving: ${source} -> ${destination}"
-          jf rt mv "${source}" "${destination}"
-        fi
-      done < artifacts.list
+    - source build/jfrog_release.sh
+    - jfrog::promote_packages "${REPOSITORY_SOURCE}" "${REPOSITORY_DESTINATION}"
   needs:
     - "Release Packages to JFrog"
   rules:
