@@ -2,6 +2,47 @@ include:
   - project: 'vicione-oss/tooling/templates'
     file: '/CI-Templates/v2/dotnet.yml'
 
+  # Registry components for artifact storage
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/upload@v0.1.1
+    inputs:
+      name: "Upload artifacts arm64"
+      stage: artifacts
+      file: "artifacts.tar.gz"
+      remote_name: "${ARTIFACT_PREFIX}-${CI_PIPELINE_ID}-linux-arm64.tar.gz"
+      package_name: $PACKAGE_NAME
+      rules:
+        - if: '$CI_COMMIT_TAG'
+          when: manual
+          allow_failure: true
+        - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+        - if: '$CI_PIPELINE_SOURCE == "web"'
+      tags: ["saas-linux-small-arm64"]
+
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/upload@v0.1.1
+    inputs:
+      name: "Upload artifacts x64"
+      stage: artifacts
+      file: "artifacts.tar.gz"
+      remote_name: "${ARTIFACT_PREFIX}-${CI_PIPELINE_ID}-linux-x64.tar.gz"
+      package_name: $PACKAGE_NAME
+      rules:
+        - if: '$CI_COMMIT_TAG'
+          when: manual
+          allow_failure: true
+        - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+        - if: '$CI_PIPELINE_SOURCE == "web"'
+
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/cleanup@v0.1.1
+    inputs:
+      name: "Cleanup old packages"
+      stage: cleanup
+      package_name: $PACKAGE_NAME
+      hours: "4"
+      rules:
+        - if: '$CI_PIPELINE_SOURCE == "schedule"'
+
 variables:
   DOTNET_VERSION: 9.0.307
   PACKAGE_NAME: "ci-artifacts"
@@ -71,14 +112,13 @@ default:
   - dotnet publish -r "${DOTNET_ARCH}" -o "${ABSOLUTE_DIRECTORY}" "${PROJECT}"
   - ls -larth "${ABSOLUTE_DIRECTORY}"
 
+# Build artifacts only - upload is handled by registry component
 .create_artifacts: &create_artifacts
   - du -sh ./${DIRECTORY}/
   - rm -rf ./${DIRECTORY}/*.xml ./${DIRECTORY}/*.dbg ./${DIRECTORY}/*.pdb
   - du -sh ./${DIRECTORY}/
   - tar cfz ${DIRECTORY}.tar.gz ./${DIRECTORY}
-  - export PACKAGE_VERSION="${CI_PIPELINE_ID}"
-  - source build/package_registry.sh
-  - registry::upload "${DIRECTORY}.tar.gz" "${ARTIFACT_PREFIX}-${CI_PIPELINE_ID}-${DOTNET_ARCH}.tar.gz"
+  - ls -lh ${DIRECTORY}.tar.gz
 
 .jfrog-package-release:
   stage: deploy
@@ -142,7 +182,7 @@ xUnit:
 
 #################### Artifacts stage
 
-Create artifacts arm64:
+Build artifacts arm64:
   stage: artifacts
   image: debian:11
   variables:
@@ -152,7 +192,6 @@ Create artifacts arm64:
   before_script:
     - *install_project_prerequisites
     - *install_dotnet
-    - apt update && apt install -y curl
   script:
     - *publish_project
     - *create_artifacts
@@ -169,7 +208,7 @@ Create artifacts arm64:
     - <<: *rules_merge_request
     - <<: *rules_web
 
-Create artifacts x64:
+Build artifacts x64:
   stage: artifacts
   image: debian:11
   variables:
@@ -179,7 +218,6 @@ Create artifacts x64:
   before_script:
     - *install_project_prerequisites
     - *install_dotnet
-    - apt update && apt install -y curl
   script:
     - *publish_project
     - *create_artifacts
@@ -193,6 +231,20 @@ Create artifacts x64:
     - <<: *rules_default_branch
     - <<: *rules_merge_request
     - <<: *rules_web
+
+# Upload jobs are created by registry component includes above
+# They will automatically pick up artifacts.tar.gz from build jobs
+
+# Configure upload job dependencies
+Upload artifacts arm64:
+  needs:
+    - job: "Build artifacts arm64"
+      artifacts: true
+
+Upload artifacts x64:
+  needs:
+    - job: "Build artifacts x64"
+      artifacts: true
 
 Versioning:
   stage: artifacts
@@ -228,8 +280,8 @@ trigger deb packaging:
     branch: ${DEB_PACKAGING_BRANCH}
     strategy: depend
   needs:
-    - "Create artifacts arm64"
-    - "Create artifacts x64"
+    - "Upload artifacts arm64"
+    - "Upload artifacts x64"
     - job: "Versioning"
       artifacts: true
   when: manual
@@ -241,27 +293,69 @@ trigger deb packaging:
 
 #################### Deploy stage
 
-Test Package Registry:
+Test Registry Components:
   stage: deploy
-  image: debian:11
-  before_script:
-    - apt-get update && apt-get install -qq -y curl jq
+  image: curlimages/curl:latest
+  variables:
+    TEST_FILE: "test-${CI_PIPELINE_ID}.txt"
+    TEST_PACKAGE: "component-test"
   script:
-    - export PACKAGE_VERSION="${CI_PIPELINE_ID}"
-    - source build/package_registry.sh
     - |
-      basic::log "Package Registry Connectivity Test"
-      basic::log "Project: ${CI_PROJECT_ID} | Pipeline: ${CI_PIPELINE_ID}"
+      echo "[INF] Testing Registry Components"
+      echo "[INF] Project: ${CI_PROJECT_ID} | Pipeline: ${CI_PIPELINE_ID}"
     - |
-      for arch in "linux-x64" "linux-arm64"; do
-        artifact="${ARTIFACT_PREFIX}-${PACKAGE_VERSION}-${arch}.tar.gz"
-        export DOWNLOAD_PROJECT_ID="${CI_PROJECT_ID}"
-        registry::download "${artifact}" "${artifact}"
-      done
-    - registry::delete_version "${PACKAGE_VERSION}"
-    - basic::log "Test Complete"
-  needs:
-    - "trigger deb packaging"
+      # Create test file
+      echo "Test content from pipeline ${CI_PIPELINE_ID}" > "${TEST_FILE}"
+    - |
+      # Test Upload
+      echo "[INF] Testing upload..."
+      HTTP_CODE=$(curl --silent --write-out "%{http_code}" --output /dev/null \
+        --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+        --upload-file "${TEST_FILE}" \
+        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${TEST_PACKAGE}/${CI_PIPELINE_ID}/${TEST_FILE}")
+      if [ "$HTTP_CODE" = "201" ]; then
+        echo "[INF] Upload successful (HTTP ${HTTP_CODE})"
+      else
+        echo "[ERR] Upload failed (HTTP ${HTTP_CODE})"
+        exit 1
+      fi
+    - |
+      # Test Download
+      echo "[INF] Testing download..."
+      HTTP_CODE=$(curl --silent --write-out "%{http_code}" \
+        --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+        --output "downloaded-${TEST_FILE}" \
+        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${TEST_PACKAGE}/${CI_PIPELINE_ID}/${TEST_FILE}")
+      if [ "$HTTP_CODE" = "200" ]; then
+        echo "[INF] Download successful (HTTP ${HTTP_CODE})"
+        echo "[INF] Downloaded content:"
+        cat "downloaded-${TEST_FILE}"
+      else
+        echo "[ERR] Download failed (HTTP ${HTTP_CODE})"
+        exit 1
+      fi
+    - |
+      # Test Cleanup (delete the test package)
+      echo "[INF] Testing cleanup (delete)..."
+      # Get package ID
+      PACKAGE_ID=$(curl --silent \
+        --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages?package_name=${TEST_PACKAGE}" \
+        | sed -n 's/.*"id":\([0-9]*\).*/\1/p' | head -1)
+      if [ -n "$PACKAGE_ID" ]; then
+        HTTP_CODE=$(curl --silent --write-out "%{http_code}" --output /dev/null \
+          --request DELETE \
+          --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/${PACKAGE_ID}")
+        if [ "$HTTP_CODE" = "204" ] || [ "$HTTP_CODE" = "200" ]; then
+          echo "[INF] Cleanup successful (HTTP ${HTTP_CODE})"
+        else
+          echo "[WRN] Cleanup returned HTTP ${HTTP_CODE}"
+        fi
+      else
+        echo "[WRN] Could not find package ID for cleanup"
+      fi
+    - echo "[INF] All registry component operations tested successfully!"
   when: manual
   allow_failure: true
   rules:
@@ -269,8 +363,6 @@ Test Package Registry:
     - <<: *rules_default_branch
     - <<: *rules_merge_request
     - <<: *rules_web
-  tags:
-    - saas-linux-medium-amd64
 
 Deploy Shared NuGet:
   extends: .dotnet-deploy-nuget
@@ -341,16 +433,4 @@ Public-Release Packages to JFrog:
     - <<: *rules_tag_manual
 
 #################### Cleanup stage
-
-Cleanup orphaned packages:
-  stage: cleanup
-  image: debian:11
-  before_script:
-    - apt update && apt install -y curl jq
-  script:
-    - source build/package_registry.sh
-    - registry::cleanup_old 4
-  rules:
-    - <<: *rules_scheduled
-  tags:
-    - saas-linux-medium-amd64
+# Cleanup job is created by registry component include above
