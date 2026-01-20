@@ -3,7 +3,7 @@ include:
     file: '/CI-Templates/v2/dotnet.yml'
 
   # Registry components for artifact storage
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/upload@v0.1.1
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/upload@v0.1.2
     inputs:
       name: "Upload artifacts arm64"
       stage: artifacts
@@ -19,7 +19,7 @@ include:
         - if: '$CI_PIPELINE_SOURCE == "web"'
       tags: ["saas-linux-small-arm64"]
 
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/upload@v0.1.1
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/upload@v0.1.2
     inputs:
       name: "Upload artifacts x64"
       stage: artifacts
@@ -34,7 +34,7 @@ include:
         - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
         - if: '$CI_PIPELINE_SOURCE == "web"'
 
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/cleanup@v0.1.1
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/cleanup@v0.1.2
     inputs:
       name: "Cleanup old packages"
       stage: cleanup
@@ -42,6 +42,48 @@ include:
       hours: "4"
       rules:
         - if: '$CI_PIPELINE_SOURCE == "schedule"'
+
+  # JFrog components for artifact releases
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/jfrog/release@v0.1.0
+    inputs:
+      name: "Prerelease Packages to JFrog"
+      stage: deploy
+      repository: "vicione-suite-dev"
+      upload_path: "hostmanagements"
+      artifact_prefix: $ARTIFACT_PREFIX
+      package_name: $PACKAGE_NAME
+      rules:
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+          when: manual
+          allow_failure: true
+        - if: '$CI_PIPELINE_SOURCE == "web"'
+          when: manual
+          allow_failure: true
+
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/jfrog/release@v0.1.0
+    inputs:
+      name: "Release Packages to JFrog"
+      stage: release
+      repository: "vicione-suite-staging"
+      upload_path: "hostmanagements"
+      artifact_prefix: $ARTIFACT_PREFIX
+      package_name: $PACKAGE_NAME
+      rules:
+        - if: '$CI_COMMIT_TAG'
+          when: manual
+          allow_failure: true
+
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/jfrog/promote@v0.1.0
+    inputs:
+      name: "Public-Release Packages to JFrog"
+      stage: release-public
+      source_repository: "vicione-suite-staging"
+      destination_repository: "vicione-suite"
+      artifact_prefix: $ARTIFACT_PREFIX
+      rules:
+        - if: '$CI_COMMIT_TAG'
+          when: manual
+          allow_failure: true
 
 variables:
   DOTNET_VERSION: 9.0.307
@@ -119,33 +161,6 @@ default:
   - du -sh ./${DIRECTORY}/
   - tar cfz ${DIRECTORY}.tar.gz ./${DIRECTORY}
   - ls -lh ${DIRECTORY}.tar.gz
-
-.jfrog-package-release:
-  stage: deploy
-  image: releases-docker.jfrog.io/jfrog/jfrog-cli-v2-jf
-  variables:
-    SERVER: "https://ifm.jfrog.io/artifactory"
-    USER: ${Raw_User_RW_JFrog}
-    PASSWORD: ${Raw_PW_RW_JFrog}
-    REPOSITORY_DESTINATION: "vicione-suite-dev"
-  before_script:
-    - apk add --no-cache curl jq bash
-    - jf config add --user $USER --password ${PASSWORD} --artifactory-url ${SERVER} jfrog
-    - jf config use jfrog
-  script:
-    - source build/jfrog_release.sh
-    - jfrog::set_version
-    - jfrog::create_artifacts_list "${ARTIFACT_PREFIX}"
-    - jfrog::release_packages "${REPOSITORY_DESTINATION}" "hostmanagements"
-    - jfrog::cleanup_registry
-  artifacts:
-    paths:
-      - ${ARTIFACT_PREFIX}_*.deb
-      - artifacts.list
-  when: manual
-  rules:
-    - <<: *rules_merge_request_manual
-    - <<: *rules_web_manual
 
 #################### Lint stage
 
@@ -376,15 +391,20 @@ Deploy Shared.Communication NuGet:
     PROJECT: 'src/HostManagement.Shared.Communication/HostManagement.Shared.Communication.csproj'
     REPO: 'JFrogViciOne'
 
+# JFrog release jobs are created by jfrog component includes above
+
+# Configure JFrog job dependencies
 Prerelease Packages to JFrog:
-  extends: .jfrog-package-release
-  variables:
-    SERVER: "https://ifm.jfrog.io/artifactory"
-    USER: ${Raw_User_RW_JFrog}
-    PASSWORD: ${Raw_PW_RW_JFrog}
-    REPOSITORY_DESTINATION: "vicione-suite-dev"
   needs:
     - "trigger deb packaging"
+
+Release Packages to JFrog:
+  needs:
+    - "trigger deb packaging"
+
+Public-Release Packages to JFrog:
+  needs:
+    - "Release Packages to JFrog"
 
 #################### Release stage
 
@@ -399,38 +419,6 @@ Release Shared.Communication NuGet:
   variables:
     PROJECT: 'src/HostManagement.Shared.Communication/HostManagement.Shared.Communication.csproj'
     REPO: 'JFrogViciOne'
-
-Release Packages to JFrog:
-  extends: .jfrog-package-release
-  stage: release
-  variables:
-    SERVER: "https://ifm.jfrog.io/artifactory"
-    USER: ${Raw_User_RW_JFrog}
-    PASSWORD: ${Raw_PW_RW_JFrog}
-    REPOSITORY_DESTINATION: "vicione-suite-staging"
-  needs:
-    - "trigger deb packaging"
-  rules:
-    - <<: *rules_tag_manual
-
-#################### Release Public stage
-
-Public-Release Packages to JFrog:
-  extends: .jfrog-package-release
-  stage: release-public
-  variables:
-    SERVER: "https://ifm.jfrog.io/artifactory"
-    USER: ${Raw_User_RW_JFrog}
-    PASSWORD: ${Raw_PW_RW_JFrog}
-    REPOSITORY_SOURCE: "vicione-suite-staging"
-    REPOSITORY_DESTINATION: "vicione-suite"
-  script:
-    - source build/jfrog_release.sh
-    - jfrog::promote_packages "${REPOSITORY_SOURCE}" "${REPOSITORY_DESTINATION}"
-  needs:
-    - "Release Packages to JFrog"
-  rules:
-    - <<: *rules_tag_manual
 
 #################### Cleanup stage
 # Cleanup job is created by registry component include above
