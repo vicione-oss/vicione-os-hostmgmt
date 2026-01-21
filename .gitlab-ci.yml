@@ -50,8 +50,8 @@ include:
       stage: deploy
       repository: "vicione-suite-dev"
       upload_path: "hostmanagements"
-      artifact_prefix: $ARTIFACT_PREFIX
-      package_name: $PACKAGE_NAME
+      artifact_prefix: "hostmanagement"
+      package_name: "ci-artifacts"
       rules:
         - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
           when: manual
@@ -66,8 +66,8 @@ include:
       stage: release
       repository: "vicione-suite-staging"
       upload_path: "hostmanagements"
-      artifact_prefix: $ARTIFACT_PREFIX
-      package_name: $PACKAGE_NAME
+      artifact_prefix: "hostmanagement"
+      package_name: "ci-artifacts"
       rules:
         - if: '$CI_COMMIT_TAG'
           when: manual
@@ -79,7 +79,7 @@ include:
       stage: release-public
       source_repository: "vicione-suite-staging"
       destination_repository: "vicione-suite"
-      artifact_prefix: $ARTIFACT_PREFIX
+      artifact_prefix: "hostmanagement"
       rules:
         - if: '$CI_COMMIT_TAG'
           when: manual
