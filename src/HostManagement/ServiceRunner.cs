@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using System.IO.Abstractions;
-using HostManagement.Communication.NamedPipes;
-using HostManagement.Communication.NamedPipes.Extensions;
-using HostManagement.Communication.NamedPipes.RequestHandlers;
+using HostManagement.Communication.NamedPipe.Extensions;
+using HostManagement.Communication.NamedPipe.Server;
+using HostManagement.Communication.NamedPipe.RequestHandlers;
 using HostManagement.Configuration;
 using HostManagement.Scripts;
 using HostManagement.Services;
