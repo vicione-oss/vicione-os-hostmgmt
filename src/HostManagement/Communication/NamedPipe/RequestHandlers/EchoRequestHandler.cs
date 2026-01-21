@@ -36,7 +36,10 @@ internal sealed partial class EchoRequestHandler(ILogger logger) : IRequestHandl
                 _ = FireEventMessages(cancellationToken);
                 return Task.FromResult("Wait for it!");
             default:
-                return Task.FromResult("No!");
+                if (messageContent.Contains("stress"))
+                    return Task.FromResult($"{messageContent}-response");
+                else
+                    return Task.FromResult("No!");
         }
     }
 
