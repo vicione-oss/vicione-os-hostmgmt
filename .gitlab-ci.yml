@@ -140,7 +140,8 @@ default:
 .publish_project: &publish_project
   - !reference [.nuget_credentials]
   - !reference [.prepare_directory]
-  - dotnet publish -r "${DOTNET_ARCH}" -o "${ABSOLUTE_DIRECTORY}" "${PROJECT}"
+  - dotnet restore --force-evaluate "${PROJECT}"  # Update lock files for vicione image SDK
+  - dotnet publish -r "${DOTNET_ARCH}" -o "${ABSOLUTE_DIRECTORY}" "${PROJECT}" --no-restore
   - ls -larth "${ABSOLUTE_DIRECTORY}"
 
 # Build artifacts only - upload is handled by registry component
@@ -178,11 +179,15 @@ Markdown:
 
 Build:
   extends: .dotnet-build
+  before_script:
+    - dotnet restore --force-evaluate  # Update lock files for vicione image SDK version
 
 #################### Test stage
 
 xUnit:
   extends: .dotnet-test-xunit
+  before_script:
+    - dotnet restore --force-evaluate  # Update lock files for vicione image SDK version
 
 #################### Artifacts stage
 
