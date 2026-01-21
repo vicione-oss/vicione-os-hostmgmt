@@ -1,12 +1,9 @@
-using HostManagement.Shared.Communication;
-using HostManagement.Shared.Communication.Enums;
-
 namespace HostManagement.Communication.NamedPipe.Server;
 
 /// <summary>
-/// Represents a pipe server.
+/// Represents a named pipe server.
 /// </summary>
-internal interface IPipeServer : IDisposable
+internal interface IPipeServer : IAsyncDisposable
 {
     /// <summary>
     /// The path of the pipe.
@@ -14,29 +11,31 @@ internal interface IPipeServer : IDisposable
     string PipePath { get; }
 
     /// <summary>
-    /// The state of the pipe connection.
+    /// The current state of the pipe server.
     /// </summary>
-    PipeState State { get; }
+    ServerState State { get; }
 
     /// <summary>
     /// Publishes an event with the specified <paramref name="topic"/> and <paramref name="content"/>.
     /// </summary>
-    /// <param name="topic">The topic of the message used to identify a message handler 
-    /// (see <see cref="Topics"/>).</param>
-    /// <param name="content">The JSON serialized message content.</param>
+    /// <param name="topic">The topic of the message used to identify a message callback handler.</param>
+    /// <param name="content">The message content (can be JSON serialized).</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     Task PublishEvent(string topic, string content, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Waits for a client to connect to the pipe.
+    /// Starts the pipe server.
     /// </summary>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    Task WaitForConnection(CancellationToken cancellationToken = default);
+    Task StartAsync();
 
     /// <summary>
-    /// Waits for the remote end of the pipe to close.
+    /// Stops the pipe server.
+    /// </summary>
+    Task StopAsync();
+
+    /// <summary>
+    /// Waits for the pipe server to exit.
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns></returns>
-    Task WaitForRemotePipeClose(CancellationToken cancellationToken = default);
+    Task WaitForExitAsync(CancellationToken cancellationToken = default);
 }

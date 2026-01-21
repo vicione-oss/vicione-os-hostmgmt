@@ -10,6 +10,11 @@ namespace HostManagement.Shared.Communication;
 public interface IPipeStreamWrapper : IDisposable
 {
     /// <summary>
+    /// Gets a value indicating whether the pipe is connected.
+    /// </summary>
+    bool IsConnected { get; }
+
+    /// <summary>
     /// Reads a message from the input stream.
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the operation.</param>

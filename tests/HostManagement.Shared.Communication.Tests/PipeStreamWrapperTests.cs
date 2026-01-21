@@ -16,6 +16,22 @@ public class PipeStreamWrapperTests
     private const string TestTopic = "test";
     private const string TestEventContent = "Test event content";
 
+    public class IsConnectedProperty
+    {
+        [Fact]
+        public void ShouldReturnFalse_WhenCalledAfterDispose()
+        {
+            // Arrange
+            var loggerSubstitute = CreateLoggerSubstitute();
+            using var fakeStream = new FakePipeStream([0x00]);
+            using var wrapper = new PipeStreamWrapper(fakeStream, loggerSubstitute);
+
+            // Act + Assert
+            wrapper.Dispose();
+            wrapper.IsConnected.Should().BeFalse();
+        }
+    }
+
     public class Dispose
     {
         [Fact]

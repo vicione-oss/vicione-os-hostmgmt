@@ -144,16 +144,6 @@ internal sealed partial class RequestHandlerRegistry
         }
     }
 
-    /// <summary>
-    /// Registers an <see cref="IRequestHandler"/>.
-    /// </summary>
-    /// <param name="handler">The handler.</param>
-    public void RegisterHandler(IRequestHandler handler)
-    {
-        if (!_handlers.TryAdd(handler.Topic, handler))
-            RequestHandlerForTopicAlreadyRegistered(_logger, handler.Topic);
-    }
-
     private static NamedPipeMessage CreateErrorResponse(NamedPipeMessage message, IRequestHandler handler, string error)
     {
         var responseContent = JsonSerializer.Serialize(handler.CreateErrorInstance(error), handler.JsonTypeInfo);

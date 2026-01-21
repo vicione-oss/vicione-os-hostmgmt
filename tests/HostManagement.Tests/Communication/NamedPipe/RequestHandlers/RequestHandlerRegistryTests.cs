@@ -48,7 +48,7 @@ public sealed class RequestHandlerRegistryTests
         return new(targetEnvironment, supportedTopics, handlers, logger);
     }
 
-    public class RegisterHandler
+    public class Constructor
     {
         [Fact]
         public void ShouldLogErrorAndNotAddDuplicateHandler_WhenRegisteringDuplicateTopic()
@@ -75,6 +75,7 @@ public sealed class RequestHandlerRegistryTests
             registry.Handlers.Should().OnlyHaveUniqueItems();
         }
     }
+
     public class HandleRequest
     {
         [Fact]

@@ -24,6 +24,10 @@ public sealed class ServiceRunnerTests
             // Arrange
             var expectedTopics = new[]
             {
+#if DEBUG
+                // Testing purposes
+                Topics.Echo,
+#endif
                 Topics.GetSupportedCapabilities,
                 Topics.InstallSignedDebianPackage,
                 Topics.RedeployScripts,

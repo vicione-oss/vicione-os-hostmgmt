@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization.Metadata;
-using HostManagement.Communication.NamedPipe.Server;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
 using Microsoft.Extensions.Logging;
@@ -9,11 +8,12 @@ namespace HostManagement.Communication.NamedPipe.RequestHandlers;
 /// <summary>
 /// Represents a <see cref="EchoRequestHandler"/>.
 /// </summary>
-/// <param name="server">The pipe server.</param>
 /// <param name="logger">The logger.</param>
-internal sealed partial class EchoRequestHandler(PipeServer server, ILogger logger) : IRequestHandler
+internal sealed partial class EchoRequestHandler(ILogger logger) : IRequestHandler, INotifyPublishEventRequested
 {
     private const string TestTopic = "test"; // Must be processed by the client (pipe sample in this case)
+
+    public event EventHandler<PublishEventRequestedEventArgs>? PublishEventRequested;
 
     /// <summary>
     /// The topic of the <see cref="EchoRequestHandler"/>.
@@ -49,10 +49,15 @@ internal sealed partial class EchoRequestHandler(PipeServer server, ILogger logg
             for (var i = 0; i < Duration; i++)
             {
                 await Task.Delay(1000, cancellationToken);
-                await server.PublishEvent(TestTopic, $"{Duration - i}...", cancellationToken);
+
+                PublishEventRequested?.Invoke(
+                    this,
+                    new PublishEventRequestedEventArgs(TestTopic, $"{Duration - i}..."));
             }
 
-            await server.PublishEvent(TestTopic, "tadaaaaa!", cancellationToken);
+            PublishEventRequested?.Invoke(
+                this,
+                new PublishEventRequestedEventArgs(TestTopic, "tadaaaaa!"));
         }
         catch (OperationCanceledException)
         {

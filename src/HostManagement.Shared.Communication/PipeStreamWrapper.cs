@@ -7,9 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Shared.Communication;
 
-/// <summary>
-/// Wraps the raw pipe stream with messaging capability.
-/// </summary>
+/// <inheritdoc cref="IPipeStreamWrapper"/>
 /// <param name="stream">The raw pipe stream.</param>
 /// <param name="logger">An <see cref="ILogger"/> implementation.</param>
 public sealed partial class PipeStreamWrapper(PipeStream stream, ILogger logger) : IPipeStreamWrapper
@@ -22,6 +20,25 @@ public sealed partial class PipeStreamWrapper(PipeStream stream, ILogger logger)
     private readonly ILogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     private int _disposeCount;
+
+    /// <inheritdoc/>
+    public bool IsConnected
+    {
+        get
+        {
+            if (Volatile.Read(ref _disposeCount) != 0)
+                return false;
+
+            try
+            {
+                return _stream.IsConnected;
+            }
+            catch (ObjectDisposedException)
+            {
+                return false;
+            }
+        }
+    }
 
     /// <summary>
     /// Disposes this <see cref="PipeStreamWrapper"/>.
@@ -91,9 +108,6 @@ public sealed partial class PipeStreamWrapper(PipeStream stream, ILogger logger)
                 linkedCts.Token)
             .ConfigureAwait(false)
             ?? throw new InvalidOperationException("Could not read message from stream.");
-
-        MessageWithTopicReceived(_logger, namedPipeMessage.Topic);
-        MessageDetails(_logger, namedPipeMessage.ConversationId, namedPipeMessage.Content);
 
         return namedPipeMessage;
     }
@@ -181,9 +195,6 @@ public sealed partial class PipeStreamWrapper(PipeStream stream, ILogger logger)
                 catch (ObjectDisposedException) { }
             }
         }
-
-        MessageWithTopicSent(_logger, message.Topic);
-        MessageDetails(_logger, message.ConversationId, message.Content);
     }
 
     private void ClosePipe()
@@ -196,20 +207,11 @@ public sealed partial class PipeStreamWrapper(PipeStream stream, ILogger logger)
 
     private void ThrowIfDisposed()
     {
-#pragma warning disable CA1513 // We must check _disposeCount threadsafe
+#pragma warning disable CA1513 // We must check _disposeCount thread-safe
         if (Volatile.Read(ref _disposeCount) != 0)
             throw new ObjectDisposedException(nameof(PipeStreamWrapper));
 #pragma warning restore CA1513
     }
-
-    [LoggerMessage(LogLevel.Debug, "ConversationId: {ConversationId}; Content: {Content}")]
-    private static partial void MessageDetails(ILogger logger, Guid conversationId, string content);
-
-    [LoggerMessage(LogLevel.Information, "Message with topic '{Topic}' received.")]
-    private static partial void MessageWithTopicReceived(ILogger logger, string topic);
-
-    [LoggerMessage(LogLevel.Information, "Message with topic '{Topic}' sent.")]
-    private static partial void MessageWithTopicSent(ILogger logger, string topic);
 
     [LoggerMessage(LogLevel.Debug, "Pipe closed before write could complete.")]
     private static partial void PipeClosedBeforeWriteCouldComplete(ILogger logger);
