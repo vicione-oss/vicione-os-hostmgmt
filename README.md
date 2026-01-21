@@ -13,7 +13,7 @@ A description of the conceptual ideas and design decisions can be found under: [
 
 |                                                                                              |                                                                                         |                                                                                        |
 | :------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------- |
-| **[Getting Started](#getting-started)** <br> Quick Start / Target Environments               | **[Usage](#usage)** <br> CLI / Service / Environment Variables / Logging                | **[Architecture](#architecture)** <br> Request Processing / System Configuration Flows |
+| **[Getting Started](#getting-started)** <br> Quick Start / Target Environments               | **[Usage](#usage)** <br> CLI / Service / Environment Variables / Logging / Pipe-Sample  | **[Architecture](#architecture)** <br> Request Processing / System Configuration Flows |
 | **[Project Structure](#project-structure)** <br> Main Components / Project Structure Details | **[Contributing](#contributing)** <br> Development / Publishing / Toolchain / AI Agents | **[License](#license)** <br> License Status                                            |
 
 ## Getting Started
@@ -179,6 +179,15 @@ sudo journalctl -u hostmanagement --output=short-precise -p err
 > [!note]
 > Possible log priorities supported by **HM** are `crit` (2), `err` (3), `warning` (4), `info` (6) and `debug` (7).
 
+### Pipe Communication Sample
+
+The [PipeCommunicationSample] serves as a test and demo of named pipe communication. It can be used to
+
+* make any request (via the relevant **Topic**) to a running **HostManagement** service
+* set the configuration specified via a `SystemConfiguration.json` file
+* run the previous "**Client says...**" demo
+* perform a stress test (many requests)
+
 ## Architecture
 
 **HM** processes named-pipe requests through services, configuration adapters and scripts that interact with the underlying operating system.
@@ -234,9 +243,9 @@ flowchart TD
   │   │   │   ├── Commands                                         <-- CLI commands
   │   │   │   ├── Output                                           <-- Output formatting for the CLI
   │   │   │   └── Validators                                       <-- Validators for the CLI
-  │   │   └── NamedPipes                                           <-- Named pipes implementation (for communication with the ViciOne Suite)
-  │   │       ├── Client                                           <-- Client implementation
-  │   │       └── RequestHandlers                                  <-- Request handlers for the named pipes (for loading/applying settings etc.)
+  │   │   └── NamedPipe                                            <-- Named pipe implementation (for communication of HostManagement with ViciOne Suite)
+  │   │       ├── RequestHandlers                                  <-- Request handlers for the named pipe communication (for loading/applying settings etc.)
+  │   │       └── Server                                           <-- Pipe server implementation
   │   ├── Services                                                 <-- Services for DHCP, network status information, NTP, physical addresses, system and systemd units
   │   ├── SystemConfig                                             <-- Classes to modify the system configuration
   │   │   ├── Contracts                                            <-- Internally used contracts (DTOs) for reading and applying of a configuration
@@ -294,6 +303,8 @@ flowchart TD
   │
   ├── HostManagement.Shared.Communication                          <-- Subproject for named pipe communication between HostManagement and ViciOne Suite
   │   ├── Contracts                                                <-- Data model for communication
+  │   └── NamedPipe                                                <-- Named pipe implementation (for communication of ViciOne Suite with HostManagement)
+  │   │   └── Client                                               <-- Pipe client implementation
   │   └── Serialization                                            <-- Serialization logic
   │
   │
@@ -468,6 +479,7 @@ The full license text is available in [`LICENSE.txt`](./LICENSE.txt).
 [docs/SupportedCapabilities.md]: docs/SupportedCapabilities.md
 [docs/SystemConfigurationMigrations.md]: docs/SystemConfigurationMigrations.md
 [InstallNetSdk]: https://learn.microsoft.com/en-us/dotnet/core/install/linux-debian#install-the-sdk
+[PipeCommunicationSample]: samples/PipeCommunicationSample
 [`tests/AGENTS.md`]: tests/AGENTS.md
 [`src/AGENTS.md`]: src/AGENTS.md
 [Visual Studio 2026]: https://visualstudio.microsoft.com/vs/
