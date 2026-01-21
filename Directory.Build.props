@@ -42,7 +42,8 @@
     <NoWarn Condition="$(MSBuildProjectName.EndsWith('Tests'))">$(NoWarn);CS1591</NoWarn>
     <!-- NuGet Lock File -->
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-    <RestoreLockedMode Condition="'$(CI)' == 'true'">true</RestoreLockedMode>
+    <!-- Allow CI to disable via RestoreLockedMode env var for SDK compatibility (NuGet/Home#13344) -->
+    <RestoreLockedMode Condition="'$(CI)' == 'true' And '$(RestoreLockedMode)' == ''">true</RestoreLockedMode>
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <DisableImplicitLibraryPacksFolder>true</DisableImplicitLibraryPacksFolder>
     <NuGetAuditMode>all</NuGetAuditMode> <!-- Remove with dotnet 10 -->
