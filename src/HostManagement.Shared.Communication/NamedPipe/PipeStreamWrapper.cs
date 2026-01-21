@@ -8,16 +8,46 @@ using Microsoft.Extensions.Logging;
 namespace HostManagement.Shared.Communication.NamedPipe;
 
 /// <inheritdoc cref="IPipeStreamWrapper"/>
+/// <remarks>
+/// Messages are transferred as a varint-encoded payload length, followed by the serialized JSON payload.
+/// <paramref name="maxMessageBytes"/> applies only to the serialized JSON payload.
+/// <list type="bullet">
+/// <item>
+/// If the payload length is greater than <paramref name="maxMessageBytes"/>, inbound messages are rejected before the
+/// payload buffer is allocated and outbound messages are rejected after serialization and before writing to the pipe.
+/// </item>
+/// <item>
+/// A payload length of <c>0</c> is currently reserved to indicate end-of-stream. Empty payload messages are therefore
+/// not part of the protocol at the moment.
+/// </item>
+/// </list>
+/// </remarks>
 /// <param name="stream">The raw pipe stream.</param>
 /// <param name="logger">An <see cref="ILogger"/> implementation.</param>
-public sealed partial class PipeStreamWrapper(PipeStream stream, ILogger logger) : IPipeStreamWrapper
+/// <param name="maxMessageBytes">The maximum allowed size of a JSON-serialized message payload in bytes (excluding the
+/// varint length prefix). Must be greater than zero. Defaults to <see cref="DefaultMaxMessageBytes"/>.
+/// </param>
+public sealed partial class PipeStreamWrapper(
+    PipeStream stream,
+    ILogger logger,
+    int maxMessageBytes = PipeStreamWrapper.DefaultMaxMessageBytes)
+    : IPipeStreamWrapper
 {
+    /// <summary>
+    /// The default maximum message size in bytes for the serialized JSON payload (2 MiB).
+    /// The varint length prefix is not included in this value.
+    /// </summary>
+    public const int DefaultMaxMessageBytes = 2 * 1024 * 1024;
+
     // Prevents more than one thread from writing to the pipe stream at once
     private readonly SemaphoreSlim _writeLock = new(1, 1);
     private readonly CancellationTokenSource _internalCts = new();
 
     private readonly PipeStream _stream = stream ?? throw new ArgumentNullException(nameof(stream));
     private readonly ILogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly int _maxMessageBytes = maxMessageBytes > 0
+        ? maxMessageBytes
+        : throw new ArgumentOutOfRangeException(nameof(maxMessageBytes), "Value must be greater than zero.");
 
     private int _disposeCount;
 
@@ -39,6 +69,12 @@ public sealed partial class PipeStreamWrapper(PipeStream stream, ILogger logger)
             }
         }
     }
+
+    /// <summary>
+    /// Gets the maximum allowed size of the serialized JSON payload in bytes.
+    /// The varint length prefix is not included in this limit.
+    /// </summary>
+    public int MaxMessageBytes => _maxMessageBytes;
 
     /// <summary>
     /// Disposes this <see cref="PipeStreamWrapper"/>.
@@ -73,13 +109,21 @@ public sealed partial class PipeStreamWrapper(PipeStream stream, ILogger logger)
 
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _internalCts.Token);
 
-        // Read the length to see how long the message is
+        // Read the payload length prefix first so oversized inbound messages can be rejected
+        // before allocating the payload buffer.
         var messagePayloadLength = await _stream.ReadVarIntAsync(linkedCts.Token).ConfigureAwait(false);
 
-        // 0 length reserved as end-of-stream;
-        // Must be modified if zero-length messages shall be possible in the future
+        // A payload length of 0 is currently reserved to signal end-of-stream / closed pipe.
+        // Empty payload messages are therefore not supported by the protocol at the moment.
+        // If empty messages are introduced in the future, this behavior must be changed.
         if (messagePayloadLength == 0)
             ClosePipe();
+
+        if (messagePayloadLength > _maxMessageBytes)
+        {
+            throw new InvalidOperationException(
+                $"Inbound message exceeds maximum size ({messagePayloadLength} > {_maxMessageBytes} bytes).");
+        }
 
         var messagePayloadBytes = new byte[messagePayloadLength];
         var payloadBytesRead = 0;
@@ -120,9 +164,11 @@ public sealed partial class PipeStreamWrapper(PipeStream stream, ILogger logger)
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _internalCts.Token);
 
         // MemoryStream won't need to resize it's array and reallocate memory
-        // for most outgoing messages (~ 240 - 1000 bytes)
+        // for most outgoing messages (~ 240 - 1000 bytes).
         using var messageStream = new MemoryStream(512);
 
+        // Serialize to an in-memory buffer first so the exact payload size is known before anything
+        // is written to the pipe.
         await JsonSerializer
             .SerializeAsync(
                 messageStream,
@@ -132,6 +178,13 @@ public sealed partial class PipeStreamWrapper(PipeStream stream, ILogger logger)
             .ConfigureAwait(false);
 
         var payloadLength = (int)messageStream.Length;
+
+        if (payloadLength > _maxMessageBytes)
+        {
+            throw new InvalidOperationException(
+                $"Outbound message exceeds maximum size ({payloadLength} > {_maxMessageBytes} bytes).");
+        }
+
         var messageLengthBytes = Utilities.GetVarInt(payloadLength);
         var writeLockTaken = false;
 

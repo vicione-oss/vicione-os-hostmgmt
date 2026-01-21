@@ -368,8 +368,11 @@ public class PipeServerTests
             public NamedPipeServerStream Create(string pipeName, int maxNumberOfServerInstances, PipeOptions? options)
                 => throw new IOException("Pipe creation failed.");
 
-            public IPipeStreamWrapper CreateWrapper(NamedPipeServerStream pipeServerStream, ILogger logger)
-                => throw new NotSupportedException("Not used in this test.");
+            public IPipeStreamWrapper CreateWrapper(
+                NamedPipeServerStream pipeServerStream,
+                ILogger logger,
+                int maxMessageBytes)
+                    => throw new NotSupportedException("Not used in this test.");
         }
     }
 
@@ -859,6 +862,8 @@ public class PipeServerTests
         {
             public bool IsConnected { get; private set; } = true;
 
+            public int MaxMessageBytes => throw new NotSupportedException("Not used in these tests.");
+
             public int SendAttempts { get; private set; }
 
             public Task<NamedPipeMessage> ReadMessageAsync(CancellationToken cancellationToken = default)
@@ -876,6 +881,8 @@ public class PipeServerTests
         private sealed class ThrowingOnSendPipeStreamWrapper : IPipeStreamWrapper
         {
             public bool IsConnected { get; set; } = true;
+
+            public int MaxMessageBytes => throw new NotSupportedException("Not used in these tests.");
 
             public Task<NamedPipeMessage> ReadMessageAsync(CancellationToken cancellationToken = default)
                 => throw new NotSupportedException("Not used in these tests.");
@@ -1019,6 +1026,8 @@ public class PipeServerTests
 
             public bool IsConnected { get; private set; } = true;
 
+            public int MaxMessageBytes => throw new NotSupportedException("Not used in these tests.");
+
             public void EnqueueIncoming(NamedPipeMessage message) => _incoming.Add(message);
 
             public bool TryDequeueSent(out NamedPipeMessage message) => _sent.TryDequeue(out message!);
@@ -1067,6 +1076,8 @@ public class PipeServerTests
         private sealed class ThrowingOnReadPipeStreamWrapper : IPipeStreamWrapper
         {
             public bool IsConnected { get; private set; } = true;
+
+            public int MaxMessageBytes => throw new NotSupportedException("Not used in these tests.");
 
             public Task<NamedPipeMessage> ReadMessageAsync(CancellationToken cancellationToken = default)
                 => throw new InvalidOperationException("Read failed.");
@@ -1185,6 +1196,8 @@ public class PipeServerTests
 
         public bool IsConnected { get; private set; } = true;
 
+        public int MaxMessageBytes => throw new NotSupportedException("Not used in these tests.");
+
         public bool TryDequeueSent(out NamedPipeMessage message) => _sent.TryDequeue(out message!);
 
         public Task<NamedPipeMessage> ReadMessageAsync(CancellationToken cancellationToken = default)
@@ -1258,8 +1271,11 @@ public class PipeServerTests
                 effectiveOptions);
         }
 
-        public IPipeStreamWrapper CreateWrapper(NamedPipeServerStream pipeServerStream, ILogger logger)
-            => throw new NotSupportedException("Not used in this test.");
+        public IPipeStreamWrapper CreateWrapper(
+            NamedPipeServerStream pipeServerStream,
+            ILogger logger,
+            int maxMessageBytes)
+                => throw new NotSupportedException("Not used in this test.");
     }
 
     private sealed class TestHandler : IRequestHandler

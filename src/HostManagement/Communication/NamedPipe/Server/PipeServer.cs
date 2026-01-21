@@ -13,9 +13,27 @@ using Microsoft.Extensions.Logging;
 namespace HostManagement.Communication.NamedPipe.Server;
 
 /// <inheritdoc cref="IPipeServer"/>
+/// <remarks>
+/// This server uses a fixed maximum message size for all named-pipe communication.
+/// <para>
+/// The limit is currently <c>256 KiB</c> and applies to the serialized JSON payload only.
+/// The varint length prefix is excluded from this limit.
+/// </para>
+/// <para>
+/// The limit is enforced by <see cref="PipeStreamWrapper"/> for both outgoing and incoming messages.
+/// </para>
+/// </remarks>
 internal sealed partial class PipeServer : IPipeServer
 {
     private const int MaxNumberOfServerInstances = 2;
+
+    /// <summary>
+    /// The maximum allowed size of a serialized JSON message payload in bytes for server-side pipe communication.
+    /// The varint length prefix is not included in this value.
+    /// <para>Roughly 64x the size of the biggest message (set/get config).</para>
+    /// </summary>
+    private const int MaxMessageBytes = 256 * 1024;
+
     private const int BroadcastShutdownTimeoutMs = 250;
     private const int ListenerRecoveryDelayMs = 10_000;
 
@@ -141,6 +159,11 @@ internal sealed partial class PipeServer : IPipeServer
         State = ServerState.Disposed;
     }
 
+    /// <inheritdoc/>
+    /// <remarks>
+    /// The published event is sent through <see cref="PipeStreamWrapper"/> and is therefore subject to the configured
+    /// maximum serialized payload size.
+    /// </remarks>
     public Task PublishEvent(string topic, string content, CancellationToken cancellationToken = default)
     {
         EnqueueEventForActiveConnections(topic, content, EnqueueMode.Normal, cancellationToken);
@@ -368,7 +391,7 @@ internal sealed partial class PipeServer : IPipeServer
 
                     await pipeServerStream.WaitForConnectionAsync(cancellationToken).ConfigureAwait(false);
 
-                    var pipeStreamWrapper = _pipeServerStreamFactory.CreateWrapper(pipeServerStream, _logger);
+                    var pipeStreamWrapper = _pipeServerStreamFactory.CreateWrapper(pipeServerStream, _logger, MaxMessageBytes);
 
                     lock (_activeConnectionsLock)
                     {

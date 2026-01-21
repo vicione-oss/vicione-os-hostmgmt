@@ -76,6 +76,8 @@ public class PipeClientTests
 
             public bool IsConnected => true;
 
+            public int MaxMessageBytes => throw new NotSupportedException("Not used in these tests.");
+
             public Task<NamedPipeMessage> ReadMessageAsync(CancellationToken cancellationToken = default)
                 => throw new NotSupportedException("Not used in this test.");
 
@@ -487,6 +489,8 @@ public class PipeClientTests
         {
             public bool IsConnected => false;
 
+            public int MaxMessageBytes => throw new NotSupportedException("Not used in these tests.");
+
             public Task<NamedPipeMessage> ReadMessageAsync(CancellationToken cancellationToken = default)
                 => throw new NotSupportedException("Not used in this test.");
 
@@ -499,6 +503,8 @@ public class PipeClientTests
         private sealed class PassiveWrapper : IPipeStreamWrapper
         {
             public bool IsConnected => true;
+
+            public int MaxMessageBytes => throw new NotSupportedException("Not used in these tests.");
 
             public Task<NamedPipeMessage> ReadMessageAsync(CancellationToken cancellationToken = default)
                 => throw new NotSupportedException("Not used in these tests.");
@@ -513,6 +519,8 @@ public class PipeClientTests
         {
             public bool IsConnected => true;
 
+            public int MaxMessageBytes => throw new NotSupportedException("Not used in these tests.");
+
             public Task<NamedPipeMessage> ReadMessageAsync(CancellationToken cancellationToken = default)
                 => throw new NotSupportedException("Not used in these tests.");
 
@@ -525,6 +533,8 @@ public class PipeClientTests
         private sealed class TrackingWrapper : IPipeStreamWrapper
         {
             public bool IsConnected => true;
+
+            public int MaxMessageBytes => throw new NotSupportedException("Not used in these tests.");
 
             public bool SendCalled { get; private set; }
 
@@ -910,6 +920,8 @@ public class PipeClientTests
         {
             public bool IsConnected { get; private set; } = true;
 
+            public int MaxMessageBytes => throw new NotSupportedException("Not used in these tests.");
+
             public Task<NamedPipeMessage> ReadMessageAsync(CancellationToken cancellationToken = default)
                 => throw new IOException("Read failed.");
 
@@ -924,6 +936,8 @@ public class PipeClientTests
             private bool _readOnce;
 
             public bool IsConnected { get; private set; } = true;
+
+            public int MaxMessageBytes => throw new NotSupportedException("Not used in these tests.");
 
             public Task<NamedPipeMessage> ReadMessageAsync(CancellationToken cancellationToken = default)
             {

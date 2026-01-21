@@ -23,8 +23,8 @@ public interface IPipeClient : IAsyncDisposable
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The response message.</returns>
     /// <exception cref="InvalidOperationException">
-    /// Thrown when the client is not connected and connecting fails,
-    /// or when a duplicate conversation identifier is detected.
+    /// Thrown when the client is not connected and connecting fails, when a duplicate conversation identifier is
+    /// detected, or when the serialized request payload exceeds the configured pipe message size limit.
     /// </exception>
     /// <exception cref="IOException">
     /// Thrown when the pipe faults while awaiting the response,

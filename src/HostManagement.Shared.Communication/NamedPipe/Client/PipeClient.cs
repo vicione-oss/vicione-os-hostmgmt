@@ -10,6 +10,16 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace HostManagement.Shared.Communication.NamedPipe.Client;
 
 /// <inheritdoc cref="IPipeClient"/>
+/// <remarks>
+/// This client uses a fixed maximum message size for all named-pipe communication.
+/// <para>
+/// The limit is currently <c>256 KiB</c> and applies to the serialized JSON payload only.
+/// The varint length prefix is not included in this limit.
+/// </para>
+/// <para>
+/// The limit is enforced by <see cref="PipeStreamWrapper"/> for both outgoing and incoming messages.
+/// </para>
+/// </remarks>
 /// <param name="pipeName">The name of the pipe.</param>
 /// <param name="logger">An <see cref="ILogger{PipeClient}"/> implementation.</param>
 /// <param name="callbackHandlerRegistry">A <see cref="CallbackHandlerRegistry"/>.</param>
@@ -21,6 +31,12 @@ public sealed partial class PipeClient(
     PipeOptions? options = null)
     : IPipeClient
 {
+    /// <summary>
+    /// The maximum allowed size of a serialized JSON message payload in bytes for client-side pipe communication.
+    /// The varint length prefix is not included in this value.
+    /// <para>Roughly 64x the size of the biggest message (set/get config).</para>
+    /// </summary>
+    private const int MaxMessageBytes = 256 * 1024;
     private const string PipeServerName = "."; // Represents the local machine
 
     private readonly string _pipeName = pipeName ?? throw new ArgumentNullException(nameof(pipeName));
@@ -206,7 +222,7 @@ public sealed partial class PipeClient(
         await DisposeNamedPipeClientStreamAsync().ConfigureAwait(false);
 
         _namedPipeClientStream = new NamedPipeClientStream(PipeServerName, _pipeName, PipeDirection.InOut, _options);
-        _pipeStreamWrapper = new PipeStreamWrapper(_namedPipeClientStream, _logger);
+        _pipeStreamWrapper = new PipeStreamWrapper(_namedPipeClientStream, _logger, MaxMessageBytes);
     }
 
     private async Task ConnectAsync(int timeoutMs, CancellationToken cancellationToken)

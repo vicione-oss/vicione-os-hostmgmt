@@ -23,6 +23,7 @@ internal interface IPipeServerStreamFactory
     /// </summary>
     /// <param name="pipeServerStream">The pipe server stream.</param>
     /// <param name="logger">An <see cref="ILogger"/> implementation.</param>
+    /// <param name="maxMessageBytes">The maximum allowed message size in bytes.</param>
     /// <returns>The created <see cref="IPipeStreamWrapper"/>.</returns>
-    IPipeStreamWrapper CreateWrapper(NamedPipeServerStream pipeServerStream, ILogger logger);
+    IPipeStreamWrapper CreateWrapper(NamedPipeServerStream pipeServerStream, ILogger logger, int maxMessageBytes);
 }

@@ -25,6 +25,6 @@ internal sealed class DefaultPipeServerStreamFactory : IPipeServerStreamFactory
     }
 
     /// <inheritdoc/>
-    public IPipeStreamWrapper CreateWrapper(NamedPipeServerStream pipeServerStream, ILogger logger)
-        => new PipeStreamWrapper(pipeServerStream, logger);
+    public IPipeStreamWrapper CreateWrapper(NamedPipeServerStream pipeServerStream, ILogger logger, int maxMessageBytes)
+        => new PipeStreamWrapper(pipeServerStream, logger, maxMessageBytes);
 }

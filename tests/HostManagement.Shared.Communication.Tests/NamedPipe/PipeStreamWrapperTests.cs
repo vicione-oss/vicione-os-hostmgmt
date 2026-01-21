@@ -14,6 +14,7 @@ namespace HostManagement.Shared.Communication.Tests.NamedPipe;
 
 public class PipeStreamWrapperTests
 {
+    private const int DefaultMaxMessageBytes = 2 * 1024 * 1024;
     private const string TestTopic = "test";
     private const string TestEventContent = "Test event content";
 
@@ -30,6 +31,34 @@ public class PipeStreamWrapperTests
             // Act + Assert
             wrapper.Dispose();
             wrapper.IsConnected.Should().BeFalse();
+        }
+    }
+
+    public class MaxMessageBytesProperty
+    {
+        [Fact]
+        public void ShouldReturnDefaultValue_WhenNotConfigured()
+        {
+            // Arrange
+            var loggerSubstitute = CreateLoggerSubstitute();
+            using var fakeStream = new FakePipeStream([0x00]);
+            using var wrapper = new PipeStreamWrapper(fakeStream, loggerSubstitute);
+
+            // Act + Assert
+            wrapper.MaxMessageBytes.Should().Be(DefaultMaxMessageBytes);
+        }
+
+        [Fact]
+        public void ShouldReturnValue_WhenConfigured()
+        {
+            // Arrange
+            var loggerSubstitute = CreateLoggerSubstitute();
+            using var fakeStream = new FakePipeStream([0x00]);
+            var maxMessageBytes = 512;
+            using var wrapper = new PipeStreamWrapper(fakeStream, loggerSubstitute, maxMessageBytes);
+
+            // Act + Assert
+            wrapper.MaxMessageBytes.Should().Be(maxMessageBytes);
         }
     }
 
@@ -98,6 +127,27 @@ public class PipeStreamWrapperTests
         }
 
         [Fact]
+        public async Task ShouldThrow_WhenInboundMessageTooLarge()
+        {
+            // Arrange
+            var loggerSubstitute = CreateLoggerSubstitute();
+
+            var maxMessageBytes = 1_024;
+            var messagePayloadLength = 10_000;
+            var buffer = Utilities.GetVarInt(messagePayloadLength);
+
+            using var fakeStream = new FakePipeStream(buffer);
+            using var wrapper = new PipeStreamWrapper(fakeStream, loggerSubstitute, maxMessageBytes);
+
+            var expectedErrorMessage =
+                $"Inbound message exceeds maximum size ({messagePayloadLength} > {maxMessageBytes} bytes).";
+
+            // Act + Assert
+            var func = async () => await wrapper.ReadMessageAsync();
+            await func.Should().ThrowAsync<InvalidOperationException>().WithMessage(expectedErrorMessage);
+        }
+
+        [Fact]
         public async Task ShouldThrow_WhenStreamEndsBeforeDeclaredPayloadIsRead()
         {
             // Arrange
@@ -134,7 +184,7 @@ public class PipeStreamWrapperTests
             var buffer = BuildFramedBuffer(payload);
 
             using var fakeStream = new FakePipeStream(buffer);
-            using var wrapper = new PipeStreamWrapper(fakeStream, loggerSubstitute);
+            using var wrapper = new PipeStreamWrapper(fakeStream, loggerSubstitute, maxMessageBytes: 256);
 
             // Act
             var func = async () => await wrapper.ReadMessageAsync();
@@ -144,12 +194,45 @@ public class PipeStreamWrapperTests
         }
 
         [Fact]
-        public async Task ShouldReturnMessage_WhenPayloadGiven()
+        public async Task ShouldReturnMessage_WhenPayloadLengthEqualsMaximum()
         {
             // Arrange
             var loggerSubstitute = CreateLoggerSubstitute();
+            var maxMessageBytes = 256;
 
-            var content = new string('x', 256);
+            // Total JSON shall be max bytes
+            var content = new string('x', maxMessageBytes);
+            while (Encoding.UTF8.GetByteCount(JsonSerializer.Serialize(CreateEventMessage(content))) > maxMessageBytes)
+                content = content[..^1];
+
+            var message = CreateEventMessage(content);
+            var json = JsonSerializer.Serialize(message);
+            var payload = Encoding.UTF8.GetBytes(json);
+
+            payload.Length.Should().BeLessThanOrEqualTo(maxMessageBytes, "Payload must not exceed the configured maximum.");
+            var buffer = BuildFramedBuffer(payload);
+
+            using var fakeStream = new FakePipeStream(buffer);
+            using var wrapper = new PipeStreamWrapper(fakeStream, loggerSubstitute, maxMessageBytes);
+
+            // Act
+            var result = await wrapper.ReadMessageAsync(CancellationToken.None);
+
+            // Assert
+            result.Topic.Should().Be(TestTopic);
+            result.Content.Should().Be(content);
+            result.Type.Should().Be(MessageType.Event);
+            result.ConversationId.Should().Be(message.ConversationId);
+        }
+
+        [Fact]
+        public async Task ShouldReturnMessage_WhenPayloadLengthLessThanMaximum()
+        {
+            // Arrange
+            var loggerSubstitute = CreateLoggerSubstitute();
+            var maxMessageBytes = 256;
+
+            var content = new string('x', maxMessageBytes - 123);
             var message = CreateEventMessage(content);
 
             var json = JsonSerializer.Serialize(message);
@@ -157,7 +240,7 @@ public class PipeStreamWrapperTests
             var buffer = BuildFramedBuffer(payload);
 
             using var fakeStream = new FakePipeStream(buffer);
-            using var wrapper = new PipeStreamWrapper(fakeStream, loggerSubstitute);
+            using var wrapper = new PipeStreamWrapper(fakeStream, loggerSubstitute, maxMessageBytes);
 
             // Act
             var result = await wrapper.ReadMessageAsync(CancellationToken.None);
@@ -191,6 +274,25 @@ public class PipeStreamWrapperTests
             // Act + Assert
             var func = async () => await wrapper.SendMessageAsync(message);
             await func.Should().ThrowAsync<ObjectDisposedException>();
+        }
+
+        [Fact]
+        public async Task ShouldThrow_WhenOutboundMessageTooLarge()
+        {
+            // Arrange
+            var loggerSubstitute = CreateLoggerSubstitute();
+            using var fakeStream = new FakePipeStream([0x00]);
+            var maxMessageBytes = 128;
+            using var wrapper = new PipeStreamWrapper(fakeStream, loggerSubstitute, maxMessageBytes);
+
+            var content = new string('x', maxMessageBytes); // This will create a payload > max bytes
+            var message = CreateEventMessage(content);
+
+            var expectedErrorMessage = $"Outbound message exceeds maximum size (* > {maxMessageBytes} bytes).";
+
+            // Act + Assert
+            var func = async () => await wrapper.SendMessageAsync(message);
+            await func.Should().ThrowAsync<InvalidOperationException>().WithMessage(expectedErrorMessage);
         }
 
         [Fact]
@@ -399,7 +501,7 @@ public class PipeStreamWrapperTests
             // Arrange
             var loggerSubstitute = CreateLoggerSubstitute();
             using var stream = new CapturingPipeStream();
-            using var wrapper = new PipeStreamWrapper(stream, loggerSubstitute);
+            using var wrapper = new PipeStreamWrapper(stream, loggerSubstitute, 256);
 
             var message = CreateEventMessage("payload");
 
