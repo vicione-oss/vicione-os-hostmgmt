@@ -5,11 +5,12 @@ using System.Text.Json;
 using AwesomeAssertions;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
+using HostManagement.Shared.Communication.NamedPipe;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
 
-namespace HostManagement.Shared.Communication.Tests;
+namespace HostManagement.Shared.Communication.Tests.NamedPipe;
 
 public class PipeStreamWrapperTests
 {

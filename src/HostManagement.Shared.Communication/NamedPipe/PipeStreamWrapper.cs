@@ -5,7 +5,7 @@ using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Extensions;
 using Microsoft.Extensions.Logging;
 
-namespace HostManagement.Shared.Communication;
+namespace HostManagement.Shared.Communication.NamedPipe;
 
 /// <inheritdoc cref="IPipeStreamWrapper"/>
 /// <param name="stream">The raw pipe stream.</param>

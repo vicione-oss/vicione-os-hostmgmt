@@ -1,5 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
 using HostManagement.Shared.Communication;
+using HostManagement.Shared.Communication.NamedPipe.Client;
+using Microsoft.Extensions.Logging;
 
 namespace PipeCommunicationSample;
 
@@ -7,6 +8,9 @@ internal sealed class Program
 {
     private const ConsoleColor ErrorColor = ConsoleColor.Red;
     private const ConsoleColor HighlightColor = ConsoleColor.DarkCyan;
+
+    private static readonly ILogger<PipeClient> s_logger =
+        new ConsoleLogger(LogLevel.Information).As<PipeClient>();
 
     private static async Task Main()
     {
@@ -174,14 +178,12 @@ internal sealed class Program
 
     private static async Task DoSendPipeRequest(string topic, string content)
     {
-        PipeClient? client = null;
-
         try
         {
-            client = new PipeClient("HostPipe", new ConsoleLogger(LogLevel.Information));
-            await client.Connect();
+            await using var client = new PipeClient("HostPipe", s_logger);
+            _ = await client.TryConnectAsync();
 
-            var response = await client.SendRequest(topic, content);
+            var response = await client.SendRequestAsync(topic, content);
 
             Console.WriteLine();
             Console.WriteLine(response.Content);
@@ -190,47 +192,39 @@ internal sealed class Program
         {
             Console.WriteLine(ex.ToString());
         }
-        finally
-        {
-            client?.Dispose();
-            await Task.Delay(250);
-        }
     }
 
     private static async Task ClientSays()
     {
-        PipeClient? client = null;
-
         try
         {
-            client = new PipeClient("HostPipe", new ConsoleLogger(LogLevel.Information));
-            await client.Connect();
+            var registry = new CallbackHandlerRegistry();
+            registry.RegisterHandler(new TestCallbackHandler());
+
+            await using var client = new PipeClient("HostPipe", s_logger, registry);
+
+            _ = await client.TryConnectAsync();
 
             Console.WriteLine("Client says: 'ping'");
-            var response = await client.SendRequest(Topics.Echo, "ping");
+            var response = await client.SendRequestAsync(Topics.Echo, "ping");
             Console.WriteLine($"Server says: '{response.Content}'");
             Console.WriteLine();
             await Task.Delay(200);
 
             Console.WriteLine("Client says: 'love'");
-            var response2 = await client.SendRequest(Topics.Echo, "love");
+            var response2 = await client.SendRequestAsync(Topics.Echo, "love");
             Console.WriteLine($"Server says: '{response2.Content}'");
             Console.WriteLine();
             await Task.Delay(200);
 
             Console.WriteLine("Client says: 'trigger'");
-            var response3 = await client.SendRequest(Topics.Echo, "trigger");
+            var response3 = await client.SendRequestAsync(Topics.Echo, "trigger");
             Console.WriteLine($"Server says: '{response3.Content}'");
             Console.ReadKey();
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.ToString());
-        }
-        finally
-        {
-            client?.Dispose();
-            await Task.Delay(250);
         }
     }
 }

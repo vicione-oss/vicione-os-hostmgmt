@@ -1,9 +1,9 @@
-﻿namespace PipeCommunicationSample;
+namespace HostManagement.Shared.Communication.NamedPipe.Client;
 
 /// <summary>
 /// Represents a callback handler.
 /// </summary>
-internal interface ICallbackHandler
+public interface ICallbackHandler
 {
     /// <summary>
     /// The unique topic to be handled.
@@ -15,5 +15,6 @@ internal interface ICallbackHandler
     /// </summary>
     /// <param name="messageContent">The JSON serialized message content.</param>
     /// <param name="cancellationToken">The cancellation token</param>
-    Task Handle(string messageContent, CancellationToken cancellationToken);
+    /// <returns></returns>
+    Task HandleAsync(string messageContent, CancellationToken cancellationToken);
 }

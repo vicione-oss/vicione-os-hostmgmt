@@ -1,7 +1,7 @@
 using System.Reflection;
 using HostManagement.Communication.NamedPipe.Server;
-using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
+using HostManagement.Shared.Communication.NamedPipe;
 
 namespace HostManagement.Tests.Communication.NamedPipe.Server;
 

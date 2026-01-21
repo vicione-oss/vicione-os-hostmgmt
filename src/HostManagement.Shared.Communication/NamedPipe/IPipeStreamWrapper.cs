@@ -2,7 +2,7 @@ using System.IO.Pipes;
 using System.Text.Json;
 using HostManagement.Shared.Communication.Contracts;
 
-namespace HostManagement.Shared.Communication;
+namespace HostManagement.Shared.Communication.NamedPipe;
 
 /// <summary>
 /// Represents a wrapper around a <see cref="PipeStream"/> that provides messaging capabilities.
@@ -32,6 +32,9 @@ public interface IPipeStreamWrapper : IDisposable
     /// </summary>
     /// <param name="message">The message.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <remarks>
+    /// Implementations must serialize concurrent send operations so message framing is not interleaved.
+    /// </remarks>
     /// <exception cref="IOException">
     /// Thrown when sending the message fails due to an I/O error.
     /// </exception>

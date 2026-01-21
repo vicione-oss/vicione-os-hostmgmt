@@ -7,6 +7,7 @@ using HostManagement.Configuration;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
+using HostManagement.Shared.Communication.NamedPipe;
 using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipe.Server;

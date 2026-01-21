@@ -1,5 +1,5 @@
 using System.IO.Pipes;
-using HostManagement.Shared.Communication;
+using HostManagement.Shared.Communication.NamedPipe;
 using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipe.Server;

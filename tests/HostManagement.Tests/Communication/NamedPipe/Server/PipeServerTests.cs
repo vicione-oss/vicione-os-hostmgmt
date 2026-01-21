@@ -11,6 +11,7 @@ using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Capabilities;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
+using HostManagement.Shared.Communication.NamedPipe;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
