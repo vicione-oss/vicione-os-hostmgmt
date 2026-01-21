@@ -1,0 +1,331 @@
+include:
+  - project: 'vicione-oss/tooling/templates'
+    file: '/CI-Templates/v2/dotnet.yml'
+
+variables:
+  DOTNET_VERSION: 9.0.307
+
+stages:
+  - lint
+  - build
+  - test
+  - artifacts
+  - packaging
+  - deploy
+  - release
+  - release-public
+
+default:
+  image: mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION}
+
+#################### Rules
+
+.rules_default_branch: &rules_default_branch
+  if : '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+.rules_merge_request: &rules_merge_request
+  if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+.rules_merge_request_manual: &rules_merge_request_manual
+  if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  when: manual
+  allow_failure: true
+
+.rules_web: &rules_web
+  if: '$CI_PIPELINE_SOURCE == "web"'
+
+.rules_web_manual: &rules_web_manual
+  if: '$CI_PIPELINE_SOURCE == "web"'
+  when: manual
+  allow_failure: true
+
+.rules_tag_manual: &rules_tag_manual
+  if: '$CI_COMMIT_TAG'
+  when: manual
+  allow_failure: true
+
+#################### Common
+
+.install_project_prerequisites: &install_project_prerequisites
+  - apt update && apt install -y clang zlib1g-dev
+
+.install_dotnet: &install_dotnet
+  - apt update && apt install -y wget libicu-dev
+  - wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+  - chmod +x dotnet-install.sh
+  - ./dotnet-install.sh --version ${DOTNET_VERSION}
+  - export PATH="${PATH}:/root/.dotnet"
+  - dotnet --version
+
+.publish_project: &publish_project
+  - !reference [.nuget_credentials]
+  - !reference [.prepare_directory]
+  - dotnet publish -r "${DOTNET_ARCH}" -o "${ABSOLUTE_DIRECTORY}" "${PROJECT}"
+  - ls -larth "${ABSOLUTE_DIRECTORY}"
+
+.create_artifacts: &create_artifacts
+  - du -sh ./${DIRECTORY}/
+  - rm -rf ./${DIRECTORY}/*.xml ./${DIRECTORY}/*.dbg ./${DIRECTORY}/*.pdb
+  - du -sh ./${DIRECTORY}/
+  - tar cfz ${DIRECTORY}.tar.gz ./${DIRECTORY}
+  - ./mc cp ${DIRECTORY}.tar.gz myminio/acx/hostmanagement-${CI_PIPELINE_ID}-${DOTNET_ARCH}.tar.gz
+
+.set_up_minio_client: &set_up_minio_client
+  - apt update && apt install -y curl
+  - curl -s https://nexus.nsc-gmbh.de/repository/minio-client/${MINIO_ARCH}/mc -o mc
+  - chmod +x mc
+  - ./mc alias set myminio "${S3_Url}" "${S3_User}" "${S3_PW}"
+
+.jfrog-package-release:
+  stage: deploy
+  image: releases-docker.jfrog.io/jfrog/jfrog-cli-v2-jf
+  variables:
+    SERVER: "https://ifm.jfrog.io/artifactory"
+    USER: ${Raw_User_RW_JFrog}
+    PASSWORD: ${Raw_PW_RW_JFrog}
+    REPOSITORY_DESTINATION: "vicione-suite-dev"
+  before_script:
+    - apk add --no-cache curl
+    - curl -s https://nexus.nsc-gmbh.de/repository/minio-client/linux-amd64/mc -o /usr/bin/mc
+    - chmod +x /usr/bin/mc
+    - mc alias set myminio "${S3_Url}" "${S3_User}" "${S3_PW}"
+    - jf config add --user $USER --password ${PASSWORD} --artifactory-url ${SERVER} jfrog
+    - jf config use jfrog
+  script:
+    - APP_PIPELINE="${CI_PIPELINE_ID}"
+    - APP_VERSION="$(cat VERSION)"
+    - APP_TAG="${CI_COMMIT_TAG}"
+    - VERSION="${APP_VERSION}"
+    - if [[ -z "${APP_TAG}" ]]; then VERSION="${VERSION}~${APP_PIPELINE}"; fi
+    - echo "hostmanagement_${VERSION}_amd64.deb" >> artifacts.list
+    - echo "hostmanagement_${VERSION}_arm64.deb" >> artifacts.list
+    - echo "hostmanagement-${APP_PIPELINE}-linux-x64.tar.gz" >> artifacts.list
+    - echo "hostmanagement-${APP_PIPELINE}-linux-arm64.tar.gz" >> artifacts.list
+    - |
+      while IFS= read -r artifact; do
+        echo "Process artifact from minio: $artifact"
+        if [[ "${artifact}" == *.deb ]]; then
+          mc cp "myminio/acx/${artifact}" "${artifact}"
+          echo "Upload artifact to jfrog:"
+          jf rt upload "${artifact}" "${REPOSITORY_DESTINATION}/hostmanagements/${artifact}"
+        fi
+        mc rm "myminio/acx/${artifact}"
+      done < artifacts.list
+  artifacts:
+    paths:
+      - hostmanagement_*.deb
+      - artifacts.list
+  when: manual
+  rules:
+    - <<: *rules_merge_request_manual
+    - <<: *rules_web_manual
+
+#################### Lint stage
+
+Markdown:
+  stage: lint
+  image:
+    name: jfrog.i40.ifm-datalink.net:443/docker-remote/davidanson/markdownlint-cli2:latest
+    entrypoint: ["/bin/sh", "-c"]
+  script:
+    - markdownlint-cli2 "/builds/**/*.md" "#/builds/**/.gitlab/**"
+  rules:
+    - <<: *rules_tag_manual
+      changes:
+        - "**/*.md"
+    - <<: *rules_default_branch
+      changes:
+        - "**/*.md"
+    - <<: *rules_merge_request
+      changes:
+        - "**/*.md"
+    - <<: *rules_web
+      changes:
+        - "**/*.md"
+
+#################### Build stage
+
+Build:
+  extends: .dotnet-build
+
+####################  Test stage
+
+xUnit:
+  extends: .dotnet-test-xunit
+
+#################### Artifacts stage
+
+Create artifacts arm64:
+  stage: artifacts
+  image: jfrog.i40.ifm-datalink.net:443/docker-remote/debian:11
+  variables:
+    DOTNET_ARCH: 'linux-arm64'
+    MINIO_ARCH: 'linux-arm64'
+    DIRECTORY: 'artifacts'
+    PROJECT: 'src/HostManagement/HostManagement.csproj'
+  before_script:
+    - *install_project_prerequisites
+    - *install_dotnet
+    - *set_up_minio_client
+  script:
+    - *publish_project
+    - *create_artifacts
+  artifacts:
+    paths:
+      - artifacts.tar.gz
+    expire_in: 30 days
+  tags:
+    - saas-linux-small-arm64
+  when: manual
+  rules:
+    - <<: *rules_tag_manual
+    - <<: *rules_default_branch
+    - <<: *rules_merge_request
+    - <<: *rules_web
+
+Create artifacts x64:
+  stage: artifacts
+  image: jfrog.i40.ifm-datalink.net:443/docker-remote/debian:11
+  variables:
+    DOTNET_ARCH: 'linux-x64'
+    MINIO_ARCH: 'linux-amd64'
+    DIRECTORY: 'artifacts'
+    PROJECT: 'src/HostManagement/HostManagement.csproj'
+  before_script:
+    - *install_project_prerequisites
+    - *install_dotnet
+    - *set_up_minio_client
+  script:
+    - *publish_project
+    - *create_artifacts
+  artifacts:
+    paths:
+      - artifacts.tar.gz
+    expire_in: 30 days
+  when: manual
+  rules:
+    - <<: *rules_tag_manual
+    - <<: *rules_default_branch
+    - <<: *rules_merge_request
+    - <<: *rules_web
+
+Versioning:
+  stage: artifacts
+  image: jfrog.i40.ifm-datalink.net:443/docker-remote/debian:11
+  script:
+    - echo "APP_PIPELINE=${CI_PIPELINE_ID}" >>version.env
+    - echo "APP_VERSION=$(cat VERSION)" >>version.env
+    - echo "APP_TAG=${CI_COMMIT_TAG}" >>version.env
+    - cat version.env
+  artifacts:
+    reports:
+      dotenv: version.env
+    expire_in: 30 days
+  when: manual
+  rules:
+    - <<: *rules_tag_manual
+    - <<: *rules_default_branch
+    - <<: *rules_merge_request
+    - <<: *rules_web
+
+#################### Packaging stage
+
+trigger deb packaging:
+  stage: packaging
+  variables:
+    APP_PIPELINE: ${APP_PIPELINE}
+    APP_VERSION: ${APP_VERSION}
+    APP_TAG: ${APP_TAG}
+  trigger:
+    project: 'vicione-oss/vicione/os/deb-packaging'
+    strategy: depend
+  needs:
+    - "Create artifacts arm64"
+    - "Create artifacts x64"
+    - job: "Versioning"
+      artifacts: true
+  when: manual
+  rules:
+    - <<: *rules_tag_manual
+    - <<: *rules_default_branch
+    - <<: *rules_merge_request
+    - <<: *rules_web
+
+####################  Deploy stage
+
+Deploy Shared NuGet:
+  extends: .dotnet-deploy-nuget
+  variables:
+    PROJECT: 'src/HostManagement.Shared/HostManagement.Shared.csproj'
+    REPO: 'JFrogViciOne'
+
+Deploy Shared.Communication NuGet:
+  extends: .dotnet-deploy-nuget
+  variables:
+    PROJECT: 'src/HostManagement.Shared.Communication/HostManagement.Shared.Communication.csproj'
+    REPO: 'JFrogViciOne'
+
+Prerelease Packages to JFrog:
+  extends: .jfrog-package-release
+  variables:
+    SERVER: "https://ifm.jfrog.io/artifactory"
+    USER: ${Raw_User_RW_JFrog}
+    PASSWORD: ${Raw_PW_RW_JFrog}
+    REPOSITORY_DESTINATION: "vicione-suite-dev"
+  needs:
+    - "trigger deb packaging"
+
+####################  Release stage
+
+Release Shared NuGet:
+  extends: .dotnet-release-nuget
+  variables:
+    PROJECT: 'src/HostManagement.Shared/HostManagement.Shared.csproj'
+    REPO: 'JFrogViciOne'
+
+Release Shared.Communication NuGet:
+  extends: .dotnet-release-nuget
+  variables:
+    PROJECT: 'src/HostManagement.Shared.Communication/HostManagement.Shared.Communication.csproj'
+    REPO: 'JFrogViciOne'
+
+Release Packages to JFrog:
+  extends: .jfrog-package-release
+  stage: release
+  variables:
+    SERVER: "https://ifm.jfrog.io/artifactory"
+    USER: ${Raw_User_RW_JFrog}
+    PASSWORD: ${Raw_PW_RW_JFrog}
+    REPOSITORY_DESTINATION: "vicione-suite-staging"
+  needs:
+    - "trigger deb packaging"
+  rules:
+    - <<: *rules_tag_manual
+
+#################### Release Public stage
+
+Public-Release Packages to JFrog:
+  extends: .jfrog-package-release
+  stage: release-public
+  variables:
+    SERVER: "https://ifm.jfrog.io/artifactory"
+    USER: ${Raw_User_RW_JFrog}
+    PASSWORD: ${Raw_PW_RW_JFrog}
+    REPOSITORY_SOURCE: "vicione-suite-staging"
+    REPOSITORY_DESTINATION: "vicione-suite"
+  script:
+    - |
+      while IFS= read -r artifact; do
+        echo "Process artifact: $artifact"
+        if [[ "${artifact}" == *.deb ]]; then
+          source="${REPOSITORY_SOURCE}/*/${artifact}"
+          destination="${REPOSITORY_DESTINATION}/${artifact}"
+
+          echo "Moving artifact: from \"${REPOSITORY_SOURCE}\" to \"${REPOSITORY_DESTINATION}\""
+          jf rt mv "${source}" "${destination}"
+        fi
+      done < artifacts.list
+  needs:
+    - "Release Packages to JFrog"
+  rules:
+    - <<: *rules_tag_manual
