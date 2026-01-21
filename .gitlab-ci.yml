@@ -86,7 +86,7 @@ include:
           allow_failure: true
 
 variables:
-  DOTNET_VERSION: 9.0.307
+  VICIONE_IMAGE: registry.gitlab.com/vicione-oss/tooling/base-image:vicione-latest
   PACKAGE_NAME: "ci-artifacts"
   ARTIFACT_PREFIX: "hostmanagement"
   DEB_PACKAGING_PROJECT: 'vicione-oss/vicione/os/deb-packaging'
@@ -104,7 +104,7 @@ stages:
   - cleanup
 
 default:
-  image: mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION}
+  image: $VICIONE_IMAGE
 
 #################### Rules
 
@@ -136,17 +136,6 @@ default:
   if: '$CI_PIPELINE_SOURCE == "schedule"'
 
 #################### Common
-
-.install_project_prerequisites: &install_project_prerequisites
-  - apt update && apt install -y clang zlib1g-dev
-
-.install_dotnet: &install_dotnet
-  - apt update && apt install -y wget libicu-dev
-  - wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-  - chmod +x dotnet-install.sh
-  - ./dotnet-install.sh --version ${DOTNET_VERSION}
-  - export PATH="${PATH}:/root/.dotnet"
-  - dotnet --version
 
 .publish_project: &publish_project
   - !reference [.nuget_credentials]
@@ -199,14 +188,11 @@ xUnit:
 
 Build artifacts arm64:
   stage: artifacts
-  image: debian:11
+  image: $VICIONE_IMAGE
   variables:
     DOTNET_ARCH: 'linux-arm64'
     DIRECTORY: 'artifacts'
     PROJECT: 'src/HostManagement/HostManagement.csproj'
-  before_script:
-    - *install_project_prerequisites
-    - *install_dotnet
   script:
     - *publish_project
     - *create_artifacts
@@ -225,14 +211,11 @@ Build artifacts arm64:
 
 Build artifacts x64:
   stage: artifacts
-  image: debian:11
+  image: $VICIONE_IMAGE
   variables:
     DOTNET_ARCH: 'linux-x64'
     DIRECTORY: 'artifacts'
     PROJECT: 'src/HostManagement/HostManagement.csproj'
-  before_script:
-    - *install_project_prerequisites
-    - *install_dotnet
   script:
     - *publish_project
     - *create_artifacts
@@ -263,7 +246,7 @@ Upload artifacts x64:
 
 Versioning:
   stage: artifacts
-  image: debian:11
+  image: $VICIONE_IMAGE
   script:
     - echo "APP_PIPELINE=${CI_PIPELINE_ID}" >>version.env
     - echo "APP_VERSION=$(cat VERSION)" >>version.env
@@ -323,11 +306,9 @@ Test Registry:
 
 Test JFrog:
   stage: deploy
-  image: releases-docker.jfrog.io/jfrog/jfrog-cli-v2-jf
+  image: $VICIONE_IMAGE
   variables:
     TEST_REPO: "vicione-suite-dev"
-  before_script:
-    - apk add --no-cache bash
   script:
     - bash build/test_jfrog.sh
   when: manual
