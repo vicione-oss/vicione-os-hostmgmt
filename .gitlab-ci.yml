@@ -109,6 +109,10 @@ stages:
 
 default:
   image: $VICIONE_IMAGE
+  before_script:
+    - mise trust --all
+    - mise install
+    - eval "$(mise env -s bash)"
 
 #################### Rules
 
