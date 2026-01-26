@@ -2,6 +2,9 @@ include:
   - project: 'vicione-oss/tooling/templates'
     file: '/CI-Templates/v2/dotnet.yml'
 
+  # Version component for automatic semantic versioning
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/version/auto-tag@v0.1.5
+
   # Registry components for artifact storage
   - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/upload@v0.1.2
     inputs:
@@ -91,7 +94,7 @@ variables:
   PACKAGE_NAME: "ci-artifacts"
   ARTIFACT_PREFIX: "hostmanagement"
   DEB_PACKAGING_PROJECT: 'vicione-oss/vicione/os/deb-packaging'
-  DEB_PACKAGING_BRANCH: 'feature/replace-s3-with-package-registry'
+  DEB_PACKAGING_REF: 'v1.0.0'  # Use tagged version of deb-packaging
 
 stages:
   - lint
@@ -276,7 +279,7 @@ trigger deb packaging:
     ARTIFACT_PREFIX: "hostmanagement"
   trigger:
     project: ${DEB_PACKAGING_PROJECT}
-    branch: ${DEB_PACKAGING_BRANCH}
+    branch: ${DEB_PACKAGING_REF}
     strategy: depend
   needs:
     - "Upload artifacts arm64"
