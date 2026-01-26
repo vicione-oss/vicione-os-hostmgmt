@@ -300,34 +300,6 @@ trigger deb packaging:
 
 #################### Deploy stage
 
-Test Registry:
-  stage: deploy
-  image: $VICIONE_IMAGE
-  script:
-    - bash build/test_registry.sh
-  when: manual
-  allow_failure: true
-  rules:
-    - <<: *rules_tag_manual
-    - <<: *rules_default_branch
-    - <<: *rules_merge_request
-    - <<: *rules_web
-
-Test JFrog:
-  stage: deploy
-  image: $VICIONE_IMAGE
-  variables:
-    TEST_REPO: "vicione-suite-dev"
-  script:
-    - bash build/test_jfrog.sh
-  when: manual
-  allow_failure: true
-  rules:
-    - <<: *rules_tag_manual
-    - <<: *rules_default_branch
-    - <<: *rules_merge_request
-    - <<: *rules_web
-
 Deploy Shared NuGet:
   extends: .dotnet-deploy-nuget
   variables:
