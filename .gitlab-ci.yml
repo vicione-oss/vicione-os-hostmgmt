@@ -94,7 +94,7 @@ variables:
   PACKAGE_NAME: "ci-artifacts"
   ARTIFACT_PREFIX: "hostmanagement"
   DEB_PACKAGING_PROJECT: 'vicione-oss/vicione/os/deb-packaging'
-  DEB_PACKAGING_REF: 'v0.1.2'  # Use tagged version of deb-packaging
+  DEB_PACKAGING_BRANCH: 'feature/use-vicione-base-image'  # TODO: change to 'master' before merge
 
 stages:
   - lint
@@ -284,7 +284,7 @@ trigger deb packaging:
     ARTIFACT_PREFIX: "hostmanagement"
   trigger:
     project: ${DEB_PACKAGING_PROJECT}
-    branch: ${DEB_PACKAGING_REF}
+    branch: ${DEB_PACKAGING_BRANCH}
     strategy: depend
   needs:
     - "Upload artifacts arm64"
