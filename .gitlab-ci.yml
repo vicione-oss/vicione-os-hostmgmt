@@ -163,10 +163,9 @@ default:
 
 Markdown:
   stage: lint
-  image:
-    name: davidanson/markdownlint-cli2:latest
-    entrypoint: ["/bin/sh", "-c"]
+  image: $VICIONE_IMAGE
   script:
+    - npm install -g markdownlint-cli2
     - markdownlint-cli2 "/builds/**/*.md" "#/builds/**/.gitlab/**"
   rules:
     - <<: *rules_tag_manual
@@ -241,13 +240,15 @@ Build artifacts x64:
 # Upload jobs are created by registry component includes above
 # They will automatically pick up artifacts.tar.gz from build jobs
 
-# Configure upload job dependencies
+# Configure upload job dependencies (use VICIONE_IMAGE instead of curl - has mise + cached)
 Upload artifacts arm64:
+  image: $VICIONE_IMAGE
   needs:
     - job: "Build artifacts arm64"
       artifacts: true
 
 Upload artifacts x64:
+  image: $VICIONE_IMAGE
   needs:
     - job: "Build artifacts x64"
       artifacts: true
@@ -301,9 +302,9 @@ trigger deb packaging:
 
 Test Registry:
   stage: deploy
-  image: curlimages/curl:latest
+  image: $VICIONE_IMAGE
   script:
-    - sh build/test_registry.sh
+    - bash build/test_registry.sh
   when: manual
   allow_failure: true
   rules:
