@@ -94,7 +94,7 @@ variables:
   PACKAGE_NAME: "ci-artifacts"
   ARTIFACT_PREFIX: "hostmanagement"
   DEB_PACKAGING_PROJECT: 'vicione-oss/vicione/os/deb-packaging'
-  DEB_PACKAGING_REF: 'v1.0.0'  # Use tagged version of deb-packaging
+  DEB_PACKAGING_REF: 'v0.1.2'  # Use tagged version of deb-packaging
 
 stages:
   - lint
