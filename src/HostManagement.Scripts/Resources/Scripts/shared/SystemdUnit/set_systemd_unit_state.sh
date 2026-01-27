@@ -57,6 +57,28 @@ usage() {
     exit 0
 }
 
+wait_for_systemd_unit() {
+    # Wait until the systemd unit has been started.
+
+    timeout=10
+    counter=0
+
+    while [ $counter -lt "$timeout" ]; do
+        status=$(systemctl show -p SubState "$SYSTEMD_UNIT_NAME" --value)
+
+        if [[ "$status" == "running" ]]; then
+            break;
+        fi
+
+        counter=$((counter + 1))
+        sleep 1
+    done
+
+    if [[ $counter -eq "$timeout" ]]; then
+        err "$(printf "$ERR_CODE_6" "$SYSTEMD_UNIT_NAME")" 6
+    fi
+}
+
 start() {
     # just start the systemd unit:
     # if it's already running, the script just exits
@@ -83,9 +105,7 @@ restart() {
         # check if the systemd unit is oneshot; if not, wait for it to become active
         systemd_unit_type=$(systemctl show "$SYSTEMD_UNIT_NAME" -p Type --value)
         if [[ "$systemd_unit_type" != "oneshot" ]]; then
-            if ! Scripts/Common/wait_for_service.sh "${SYSTEMD_UNIT_NAME}" 10; then
-                err "$(printf "$ERR_CODE_6" "$SYSTEMD_UNIT_NAME")" 6
-            fi
+            wait_for_systemd_unit
         fi
     else
         err "$(printf "$ERR_CODE_5" "$SYSTEMD_UNIT_NAME")" 5
