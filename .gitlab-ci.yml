@@ -231,6 +231,8 @@ Build artifacts x64:
     paths:
       - artifacts.tar.gz
     expire_in: 30 days
+  tags:
+    - saas-linux-large-amd64
   when: manual
   rules:
     - <<: *rules_tag_manual
