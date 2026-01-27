@@ -92,7 +92,7 @@ variables:
   PACKAGE_NAME: "ci-artifacts"
   ARTIFACT_PREFIX: "hostmanagement"
   DEB_PACKAGING_PROJECT: 'vicione-oss/vicione/os/deb-packaging'
-  DEB_PACKAGING_BRANCH: 'main'
+  DEB_PACKAGING_BRANCH: 'master'
 
 stages:
   - lint
