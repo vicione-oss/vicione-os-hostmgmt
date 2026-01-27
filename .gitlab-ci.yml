@@ -20,7 +20,6 @@ include:
         - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
         - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
         - if: '$CI_PIPELINE_SOURCE == "web"'
-      tags: ["saas-linux-large-arm64"]
 
   - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/upload@v0.1.2
     inputs:
@@ -108,6 +107,8 @@ stages:
 
 default:
   image: $VICIONE_IMAGE
+  tags:
+    - saas-linux-large-amd64
   before_script:
     - mise trust --all
     - mise install
@@ -231,8 +232,6 @@ Build artifacts x64:
     paths:
       - artifacts.tar.gz
     expire_in: 30 days
-  tags:
-    - saas-linux-large-amd64
   when: manual
   rules:
     - <<: *rules_tag_manual
@@ -244,14 +243,17 @@ Build artifacts x64:
 # They will automatically pick up artifacts.tar.gz from build jobs
 
 # Configure upload job dependencies (use VICIONE_IMAGE instead of curl - has mise + cached)
+# Override tags to use small runners (upload doesn't need large)
 Upload artifacts arm64:
   image: $VICIONE_IMAGE
+  tags: []
   needs:
     - job: "Build artifacts arm64"
       artifacts: true
 
 Upload artifacts x64:
   image: $VICIONE_IMAGE
+  tags: []
   needs:
     - job: "Build artifacts x64"
       artifacts: true
