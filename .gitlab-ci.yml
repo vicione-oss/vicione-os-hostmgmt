@@ -184,6 +184,8 @@ Markdown:
 
 Build:
   extends: .dotnet-build
+  variables:
+    PROJECT: 'HostManagement.slnx'
 
 #################### Test stage
 
