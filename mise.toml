@@ -1,2 +1,2 @@
 [tools]
-dotnet = "9.0.112"  # Pinned to match packages.lock.json (ILCompiler 9.0.11)
+dotnet = "9.0.307"  # Match SDK version from main branch
