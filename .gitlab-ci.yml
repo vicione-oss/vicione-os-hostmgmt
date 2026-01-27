@@ -90,7 +90,6 @@ include:
 
 variables:
   VICIONE_IMAGE: registry.gitlab.com/vicione-oss/tooling/base-image:vicione-latest
-  RestoreLockedMode: "false"  # Disable for SDK compatibility - lock files still committed for local dev
   PACKAGE_NAME: "ci-artifacts"
   ARTIFACT_PREFIX: "hostmanagement"
   DEB_PACKAGING_PROJECT: 'vicione-oss/vicione/os/deb-packaging'
