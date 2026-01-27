@@ -199,7 +199,7 @@ Die Abhängigkeiten unterscheiden sich je Umgebung, die Einrichtung und Benutzun
 
 ### Einrichtung
 
-* Download der aktuellen Version aus [GitLab][GitlabHostManagementPackage] -> Pipelines -> Stage `Packaging`
+* Download der aktuellen Version aus vicione-oss/vicione/os/deb-packaging> -> Pipelines -> Stage `Packaging`
 * Installation des Debian-Paketes mit `sudo apt install ./<PackageName>`
 
 ## Benutzung
@@ -250,7 +250,6 @@ Benutzerdefinierte lokale Anweisungen können in `.github/instructions/user-defi
 [`copilot-instructions.md`]: .github/copilot-instructions.md
 [DNS Validation]: docs/DNSValidation.md
 [`.gitignore`]: .gitignore
-[GitlabHostManagementPackage]: https://gitlab.i40.ifm-datalink.net/acx/vo-suite/hostmanagement-deb-packaging
 [Konzept]: docs/Concept.md
 [ScriptResponse]: docs/ScriptResponse.md
 [`testing.instructions.md`]: .github/instructions/testing.instructions.md

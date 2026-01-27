@@ -46,7 +46,7 @@ internal static partial class ServiceRunner
 
                 PrepareConfigurationStarted(s_logger);
 
-                var configurationService = new SystemConfigurationService(s_fileSystem);
+                var configurationService = new SystemConfigurationService(s_fileSystem, new SystemConfigurationPersistence(s_fileSystem), new ScriptHandler());
 
                 var prepareConfigResult = await configurationService.PrepareConfiguration();
 
@@ -135,7 +135,7 @@ internal static partial class ServiceRunner
         else
             CreateSystemConfigurationStarted(s_logger);
 
-        var configurationService = new SystemConfigurationService(s_fileSystem);
+        var configurationService = new SystemConfigurationService(s_fileSystem, new SystemConfigurationPersistence(s_fileSystem), new ScriptHandler());
         var getJsonConfigResult = await configurationService.GetConfigurationFromJson();
 
         if (getJsonConfigResult.Status == OperationStatus.Error)
@@ -154,7 +154,7 @@ internal static partial class ServiceRunner
         SystemConfiguration jsonConfig,
         CancellationToken cancellationToken)
     {
-        var configurationService = new SystemConfigurationService(s_fileSystem);
+        var configurationService = new SystemConfigurationService(s_fileSystem, new SystemConfigurationPersistence(s_fileSystem), new ScriptHandler());
         var setConfigResult = await configurationService
             .SetConfiguration(jsonConfig, shouldPersistConfiguration: false, cancellationToken);
 
