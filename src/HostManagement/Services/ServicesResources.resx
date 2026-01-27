@@ -157,7 +157,7 @@
     <value>Renew DHCP lease failed.</value>
   </data>
   <data name="ResetSystemFailed" xml:space="preserve">
-    <value>System could not be resetted.</value>
+    <value>System could not be reset.</value>
   </data>
   <data name="RestartSystemFailed" xml:space="preserve">
     <value>System could not be restarted.</value>

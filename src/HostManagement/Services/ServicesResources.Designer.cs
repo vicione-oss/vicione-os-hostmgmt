@@ -19,7 +19,7 @@ namespace HostManagement.Services {
     // -Klasse über ein Tool wie ResGen oder Visual Studio automatisch generiert.
     // Um einen Member hinzuzufügen oder zu entfernen, bearbeiten Sie die .ResX-Datei und führen dann ResGen
     // mit der /str-Option erneut aus, oder Sie erstellen Ihr VS-Projekt neu.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class ServicesResources {
@@ -122,7 +122,16 @@ namespace HostManagement.Services {
                 return ResourceManager.GetString("GetOriginalPhysicalAddressFailed", resourceCulture);
             }
         }
-
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Getting active state of systemd unit &apos;{0}&apos; failed. ähnelt.
+        /// </summary>
+        internal static string GetSystemdUnitActiveStateFailed {
+            get {
+                return ResourceManager.GetString("GetSystemdUnitActiveStateFailed", resourceCulture);
+            }
+        }
+        
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Installing signed Debian package was canceled (&apos;{0}&apos;). ähnelt.
         /// </summary>
@@ -131,7 +140,7 @@ namespace HostManagement.Services {
                 return ResourceManager.GetString("InstallingSignedPackageCanceled", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Installing signed Debian package failed (&apos;{0}&apos;). {1} ähnelt.
         /// </summary>
@@ -140,22 +149,13 @@ namespace HostManagement.Services {
                 return ResourceManager.GetString("InstallingSignedPackageFailed", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Package signature is invalid. ähnelt.
         /// </summary>
         internal static string PackageSignatureInvalid {
             get {
                 return ResourceManager.GetString("PackageSignatureInvalid", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die Getting active state of systemd unit &apos;{0}&apos; failed. ähnelt.
-        /// </summary>
-        internal static string GetSystemdUnitActiveStateFailed {
-            get {
-                return ResourceManager.GetString("GetSystemdUnitActiveStateFailed", resourceCulture);
             }
         }
         
@@ -176,16 +176,16 @@ namespace HostManagement.Services {
                 return ResourceManager.GetString("RenewDHCPLeaseFailed", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die System could not be resetted. ähnelt.
+        ///   Sucht eine lokalisierte Zeichenfolge, die System could not be reset. ähnelt.
         /// </summary>
         internal static string ResetSystemFailed {
             get {
                 return ResourceManager.GetString("ResetSystemFailed", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die System could not be restarted. ähnelt.
         /// </summary>
@@ -194,7 +194,7 @@ namespace HostManagement.Services {
                 return ResourceManager.GetString("RestartSystemFailed", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die System could not be shut down. ähnelt.
         /// </summary>
@@ -203,7 +203,16 @@ namespace HostManagement.Services {
                 return ResourceManager.GetString("ShutdownSystemFailed", resourceCulture);
             }
         }
-
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Systemd unit &apos;{0}&apos; can not be empty. ähnelt.
+        /// </summary>
+        internal static string SystemdUnitEmpty {
+            get {
+                return ResourceManager.GetString("SystemdUnitEmpty", resourceCulture);
+            }
+        }
+        
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Systemd unit &apos;{0}&apos; is not allowed. ähnelt.
         /// </summary>
@@ -239,7 +248,7 @@ namespace HostManagement.Services {
                 return ResourceManager.GetString("SystemdUnitStopFailed", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die System could not be updated. ähnelt.
         /// </summary>
