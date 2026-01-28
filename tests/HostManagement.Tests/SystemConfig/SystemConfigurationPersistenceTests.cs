@@ -17,14 +17,14 @@ public class SystemConfigurationPersistenceTests
     public SystemConfigurationPersistenceTests()
         => _persistence = new(_fileSystem);
 
-    public sealed class LoadSystemConfiguration : SystemConfigurationPersistenceTests
+    public sealed class LoadPreparationConfiguration : SystemConfigurationPersistenceTests
     {
         [Fact]
         public async Task Cannot_load_empty_file_because_of_missing_version()
         {
             _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new(string.Empty));
 
-            await _persistence.Invoking(x => x.LoadSystemConfiguration(AppPaths.DefaultSystemConfigurationFilePath))
+            await _persistence.Invoking(x => x.LoadPreparationConfiguration(CancellationToken.None))
                 .Should().ThrowAsync<JsonException>().WithMessage("*expected*valid*JSON*");
         }
 
@@ -33,7 +33,7 @@ public class SystemConfigurationPersistenceTests
         {
             _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new("{}"));
 
-            await _persistence.Invoking(x => x.LoadSystemConfiguration(AppPaths.DefaultSystemConfigurationFilePath))
+            await _persistence.Invoking(x => x.LoadPreparationConfiguration(CancellationToken.None))
                 .Should().ThrowAsync<JsonException>().WithMessage("*missing*required*'Version'*");
         }
 
@@ -42,7 +42,7 @@ public class SystemConfigurationPersistenceTests
         {
             _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new("""{"Version":1}"""));
 
-            await _persistence.Invoking(x => x.LoadSystemConfiguration(AppPaths.DefaultSystemConfigurationFilePath))
+            await _persistence.Invoking(x => x.LoadPreparationConfiguration(CancellationToken.None))
                 .Should().NotThrowAsync();
         }
 
@@ -90,12 +90,56 @@ public class SystemConfigurationPersistenceTests
 
             _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new(config));
 
-            var result = await _persistence.Invoking(x => x.LoadSystemConfiguration(AppPaths.DefaultSystemConfigurationFilePath))
+            var result = await _persistence.Invoking(x => x.LoadPreparationConfiguration(CancellationToken.None))
                 .Should().NotThrowAsync();
         }
     }
 
-    public sealed class SaveSystemConfiguration : SystemConfigurationPersistenceTests
+    public sealed class PreparationConfigurationExists : SystemConfigurationPersistenceTests
+    {
+        [Fact]
+        public void ShouldReturnFalse_WhenFileDoesNotExist()
+            => _persistence.PreparationConfigurationExists().Should().BeFalse();
+
+        [Fact]
+        public void ShouldReturnTrue_WhenFileExists()
+        {
+            _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new(string.Empty));
+
+            _persistence.PreparationConfigurationExists().Should().BeTrue();
+        }
+    }
+
+    public sealed class UserConfigurationExists : SystemConfigurationPersistenceTests
+    {
+        [Fact]
+        public void ShouldReturnFalse_WhenFileDoesNotExist()
+            => _persistence.UserConfigurationExists().Should().BeFalse();
+
+        [Fact]
+        public void ShouldReturnTrue_WhenFileExists()
+        {
+            _fileSystem.AddFile(AppPaths.SystemConfigurationFilePath, new(string.Empty));
+
+            _persistence.UserConfigurationExists().Should().BeTrue();
+        }
+    }
+
+    public sealed class GetPreparationConfigurationPath : SystemConfigurationPersistenceTests
+    {
+        [Fact]
+        public void ShouldReturnDefaultSystemConfigurationFilePath()
+            => _persistence.GetPreparationConfigurationPath().Should().Be(AppPaths.DefaultSystemConfigurationFilePath);
+    }
+
+    public sealed class GetUserConfigurationPath : SystemConfigurationPersistenceTests
+    {
+        [Fact]
+        public void ShouldReturnSystemConfigurationFilePath()
+            => _persistence.GetUserConfigurationPath().Should().Be(AppPaths.SystemConfigurationFilePath);
+    }
+
+    public sealed class SaveUserConfiguration : SystemConfigurationPersistenceTests
     {
         [Fact]
         public async Task Does_not_store_optional_information_of_default_configuration()
@@ -108,9 +152,9 @@ public class SystemConfigurationPersistenceTests
                 """
                 .UseEnvironmentNewLine();
 
-            await _persistence.SaveSystemConfiguration(new(), AppPaths.DefaultSystemConfigurationFilePath);
+            await _persistence.SaveUserConfiguration(new(), CancellationToken.None);
 
-            var json = await _fileSystem.File.ReadAllTextAsync(AppPaths.DefaultSystemConfigurationFilePath);
+            var json = await _fileSystem.File.ReadAllTextAsync(AppPaths.SystemConfigurationFilePath);
 
             json.Should().Be(expectedJson);
         }
@@ -370,9 +414,9 @@ public class SystemConfigurationPersistenceTests
             """
             .UseEnvironmentNewLine();
 
-            await _persistence.SaveSystemConfiguration(systemConfiguration, AppPaths.DefaultSystemConfigurationFilePath);
+            await _persistence.SaveUserConfiguration(systemConfiguration, CancellationToken.None);
 
-            var json = await _fileSystem.File.ReadAllTextAsync(AppPaths.DefaultSystemConfigurationFilePath);
+            var json = await _fileSystem.File.ReadAllTextAsync(AppPaths.SystemConfigurationFilePath);
 
             json.Should().Be(expectedJson);
         }

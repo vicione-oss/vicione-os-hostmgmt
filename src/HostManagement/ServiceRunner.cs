@@ -126,14 +126,16 @@ internal static partial class ServiceRunner
 
     private static async Task<GetSystemConfigurationResult> GetJsonConfigurationOnStartUp()
     {
-        if (s_fileSystem.File.Exists(AppPaths.SystemConfigurationFilePath))
-            FoundExistingSystemConfiguration(s_logger, AppPaths.SystemConfigurationFilePath);
-        else if (s_fileSystem.File.Exists(AppPaths.DefaultSystemConfigurationFilePath))
-            FoundExistingSystemConfiguration(s_logger, AppPaths.DefaultSystemConfigurationFilePath);
+        var persistence = new SystemConfigurationPersistence(s_fileSystem);
+
+        if (persistence.UserConfigurationExists())
+            FoundExistingSystemConfiguration(s_logger, persistence.GetUserConfigurationPath());
+        else if (persistence.PreparationConfigurationExists())
+            FoundExistingSystemConfiguration(s_logger, persistence.GetPreparationConfigurationPath());
         else
             CreateSystemConfigurationStarted(s_logger);
 
-        var configurationService = new SystemConfigurationService(s_fileSystem, new SystemConfigurationPersistence(s_fileSystem), new ScriptHandler());
+        var configurationService = new SystemConfigurationService(s_fileSystem, persistence, new ScriptHandler());
         var getJsonConfigResult = await configurationService.GetConfigurationFromJson();
 
         if (getJsonConfigResult.Status == OperationStatus.Error)
