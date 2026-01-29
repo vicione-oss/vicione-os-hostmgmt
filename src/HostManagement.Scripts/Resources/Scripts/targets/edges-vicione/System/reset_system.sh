@@ -4,7 +4,7 @@
 #
 # Reset System Script
 #
-# The script returns 0 if ok or warning, non zero for error.
+# The script returns 0 if ok, non zero for error.
 # ###
 
 set -eEuo pipefail
@@ -24,10 +24,5 @@ if [[ -n "$systemConfigurationDir" && -f "$systemConfigurationDir/SystemConfigur
     rm -f "$systemConfigurationDir/SystemConfiguration.json"
 fi
 
-# Restart system
-
-if ! output=$(Scripts/System/restart_system.sh 2>&1); then
-    err "$output" 1
-fi
-
+# System restart is required if script called manually!
 # eof

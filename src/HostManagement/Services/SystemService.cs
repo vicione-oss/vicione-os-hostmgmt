@@ -154,11 +154,7 @@ internal sealed partial class SystemService(
                 };
             }
 
-            return new SystemControlResult
-            {
-                Status = OperationStatus.Success,
-                Message = string.Empty,
-            };
+            return await RestartSystem();
         }
         catch (Exception ex)
         {
@@ -202,11 +198,7 @@ internal sealed partial class SystemService(
                 };
             }
 
-            return new SystemControlResult
-            {
-                Status = OperationStatus.Success,
-                Message = string.Empty,
-            };
+            return await RestartSystem();
         }
         catch (Exception ex)
         {

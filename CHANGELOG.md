@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Replaced '\u0027' string in log output with actual apostrophe
 - Aligned cli proxy commands with other commands, e.g. separate enable/disable commands etc.
+- Moved call to `restart_system.sh` from scripts to C#
 
 ### Fixed
 
