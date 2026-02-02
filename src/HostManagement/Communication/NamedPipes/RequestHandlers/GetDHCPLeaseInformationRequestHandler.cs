@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using Microsoft.Extensions.Logging;
 using HostManagement.Services;
 using HostManagement.Shared.Communication;
@@ -10,12 +11,16 @@ namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 /// <summary>
 /// Represents the <see cref="GetDHCPLeaseInformationRequestHandler"/>.
 /// </summary>
-internal sealed class GetDHCPLeaseInformationRequestHandler(ILogger logger) : IRequestHandler
+internal sealed class GetDHCPLeaseInformationRequestHandler(ILogger logger)
+    : RequestHandler<GetDHCPLeaseInformationResult>
 {
     /// <summary>
     /// The topic of the <see cref="GetDHCPLeaseInformationRequestHandler"/>.
     /// </summary>
-    public string Topic => Topics.GetDHCPLeaseInformation;
+    public override string Topic => Topics.GetDHCPLeaseInformation;
+
+    public override JsonTypeInfo<GetDHCPLeaseInformationResult> TypedJsonTypeInfo
+        => SourceGenerationContext.Default.GetDHCPLeaseInformationResult;
 
     /// <summary>
     /// Handles the get DHCP lease information request.
@@ -24,7 +29,7 @@ internal sealed class GetDHCPLeaseInformationRequestHandler(ILogger logger) : IR
     /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <returns>The response.</returns>
     /// <exception cref="InvalidOperationException"/>
-    public async Task<string> Handle(string messageContent, CancellationToken cancellationToken)
+    public override async Task<string> Handle(string messageContent, CancellationToken cancellationToken)
     {
         try
         {
@@ -33,8 +38,7 @@ internal sealed class GetDHCPLeaseInformationRequestHandler(ILogger logger) : IR
             var service = new DHCPLeaseService(logger);
             var result = await service.GetDHCPLeaseInformation(messageContent, cancellationToken);
 
-            return SourceGeneratedTypeSerializer
-                .Serialize(result, SourceGenerationContext.Default.GetDHCPLeaseInformationResult);
+            return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
         }
         catch (JsonException)
         {

@@ -1,9 +1,11 @@
-﻿namespace HostManagement.Shared.Communication.Contracts;
+﻿using HostManagement.Shared.Communication.Enums;
+
+namespace HostManagement.Shared.Communication.Contracts;
 
 /// <summary>
 /// Represents the result of getting the state of a service.
 /// </summary>
-public record GetServiceStateResult : OperationResult
+public record GetServiceStateResult : OperationResult, IOperationResultFactory<GetServiceStateResult>
 {
     /// <summary>
     /// Initializes a new <see cref="GetServiceStateResult"/>.
@@ -23,4 +25,12 @@ public record GetServiceStateResult : OperationResult
 
     /// <inheritdoc/>
     protected override string ExpectedType => nameof(GetServiceStateResult);
+
+    /// <inheritdoc/>
+    public static GetServiceStateResult CreateErrorResult(string message) => new()
+    {
+        Status = OperationStatus.Error,
+        Message = message,
+        ActiveState = "unknown"
+    };
 }

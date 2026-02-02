@@ -1,4 +1,5 @@
-﻿using HostManagement.Shared.Contracts.Network;
+﻿using HostManagement.Shared.Communication.Enums;
+using HostManagement.Shared.Contracts.Network;
 
 namespace HostManagement.Shared.Communication.Contracts;
 
@@ -6,7 +7,7 @@ namespace HostManagement.Shared.Communication.Contracts;
 /// Represents the result of renewing the DHCP lease.
 /// </summary>
 [Obsolete("Use GetDHCPLeaseInformationResult instead. This will be removed in a future version.", false)]
-public record RenewDHCPLeaseResult : OperationResult
+public record RenewDHCPLeaseResult : OperationResult, IOperationResultFactory<RenewDHCPLeaseResult>
 {
     /// <summary>
     /// Initializes a new <see cref="RenewDHCPLeaseResult"/>.
@@ -23,4 +24,12 @@ public record RenewDHCPLeaseResult : OperationResult
 
     /// <inheritdoc/>
     protected override string ExpectedType => nameof(RenewDHCPLeaseResult);
+
+    /// <inheritdoc/>
+    public static RenewDHCPLeaseResult CreateErrorResult(string message) => new()
+    {
+        Status = OperationStatus.Error,
+        Message = message,
+        DHCPLease = null
+    };
 }

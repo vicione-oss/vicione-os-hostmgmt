@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using Microsoft.Extensions.Logging;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
@@ -10,12 +11,16 @@ namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 /// <summary>
 /// Represents the <see cref="GetNTPFallbackInformationRequestHandler"/>.
 /// </summary>
-internal sealed class GetNTPFallbackInformationRequestHandler(ILogger logger) : IRequestHandler
+internal sealed class GetNTPFallbackInformationRequestHandler(ILogger logger)
+    : RequestHandler<GetNTPFallbackInformationResult>
 {
     /// <summary>
     /// The topic of the <see cref="GetNTPFallbackInformationRequestHandler"/>.
     /// </summary>
-    public string Topic => Topics.GetNTPFallbackInformation;
+    public override string Topic => Topics.GetNTPFallbackInformation;
+
+    public override JsonTypeInfo<GetNTPFallbackInformationResult> TypedJsonTypeInfo
+        => SourceGenerationContext.Default.GetNTPFallbackInformationResult;
 
     /// <summary>
     /// Handles the get NTPFallback information request.
@@ -24,15 +29,14 @@ internal sealed class GetNTPFallbackInformationRequestHandler(ILogger logger) : 
     /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <returns>The response.</returns>
     /// <exception cref="InvalidOperationException"/>
-    public async Task<string> Handle(string messageContent, CancellationToken cancellationToken)
+    public override async Task<string> Handle(string messageContent, CancellationToken cancellationToken)
     {
         try
         {
             var service = new NTPService(logger);
             var result = await service.GetNTPFallbackInformation(cancellationToken);
 
-            return SourceGeneratedTypeSerializer
-                .Serialize(result, SourceGenerationContext.Default.GetNTPFallbackInformationResult);
+            return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
         }
         catch (JsonException)
         {

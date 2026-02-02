@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using Microsoft.Extensions.Logging;
 using HostManagement.Services;
 using HostManagement.Shared.Communication;
@@ -10,12 +11,15 @@ namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 /// <summary>
 /// Represents the <see cref="RenewDHCPLeaseRequestHandler"/>.
 /// </summary>
-internal sealed class RenewDHCPLeaseRequestHandler(ILogger logger) : IRequestHandler
+internal sealed class RenewDHCPLeaseRequestHandler(ILogger logger) : RequestHandler<RenewDHCPLeaseResult>
 {
     /// <summary>
     /// The topic of the <see cref="RenewDHCPLeaseRequestHandler"/>.
     /// </summary>
-    public string Topic => Topics.RenewDHCPLease;
+    public override string Topic => Topics.RenewDHCPLease;
+
+    public override JsonTypeInfo<RenewDHCPLeaseResult> TypedJsonTypeInfo
+        => SourceGenerationContext.Default.RenewDHCPLeaseResult;
 
     /// <summary>
     /// Handles the renew DHCP lease request.
@@ -24,7 +28,7 @@ internal sealed class RenewDHCPLeaseRequestHandler(ILogger logger) : IRequestHan
     /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <returns>The response.</returns>
     /// <exception cref="InvalidOperationException"/>
-    public async Task<string> Handle(string messageContent, CancellationToken cancellationToken)
+    public override async Task<string> Handle(string messageContent, CancellationToken cancellationToken)
     {
         try
         {
@@ -33,8 +37,7 @@ internal sealed class RenewDHCPLeaseRequestHandler(ILogger logger) : IRequestHan
             var service = new DHCPLeaseService(logger);
             var result = await service.RenewDHCPLease(messageContent, cancellationToken);
 
-            return SourceGeneratedTypeSerializer
-                .Serialize(result, SourceGenerationContext.Default.RenewDHCPLeaseResult);
+            return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
         }
         catch (JsonException)
         {

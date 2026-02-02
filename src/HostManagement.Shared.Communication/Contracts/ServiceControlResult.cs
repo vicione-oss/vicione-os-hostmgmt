@@ -1,9 +1,11 @@
-﻿namespace HostManagement.Shared.Communication.Contracts;
+﻿using HostManagement.Shared.Communication.Enums;
+
+namespace HostManagement.Shared.Communication.Contracts;
 
 /// <summary>
 /// Represents the result of starting, stopping or restarting a service.
 /// </summary>
-public record ServiceControlResult : OperationResult
+public record ServiceControlResult : OperationResult, IOperationResultFactory<ServiceControlResult>
 {
     /// <summary>
     /// Initializes a new <see cref="ServiceControlResult"/>.
@@ -15,4 +17,11 @@ public record ServiceControlResult : OperationResult
 
     /// <inheritdoc/>
     protected override string ExpectedType => nameof(ServiceControlResult);
+
+    /// <inheritdoc/>
+    public static ServiceControlResult CreateErrorResult(string message) => new()
+    {
+        Status = OperationStatus.Error,
+        Message = message
+    };
 }

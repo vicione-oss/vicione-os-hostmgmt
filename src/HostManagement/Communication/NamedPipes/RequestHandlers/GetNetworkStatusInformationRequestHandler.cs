@@ -1,32 +1,27 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
+using Microsoft.Extensions.Logging;
 using HostManagement.NetworkStatus;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Serialization;
-using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 
 /// <summary>
 /// Represents the <see cref="GetNetworkStatusInformationRequestHandler"/>.
 /// </summary>
-internal sealed class GetNetworkStatusInformationRequestHandler : IRequestHandler
+/// <param name="logger">An <see cref="ILogger"/> implementation.</param>
+internal sealed class GetNetworkStatusInformationRequestHandler(ILogger logger)
+    : RequestHandler<GetNetworkStatusInformationResult>
 {
-    private readonly ILogger _logger;
-
-    /// <summary>
-    /// Initializes a new <see cref="GetNetworkStatusInformationRequestHandler"/>.
-    /// </summary>
-    /// <param name="logger">An <see cref="ILogger"/> implementation.</param>
-    public GetNetworkStatusInformationRequestHandler(ILogger logger)
-    {
-        _logger = logger;
-    }
-
     /// <summary>
     /// The topic of the <see cref="GetViciOneSuiteVersionsRequestHandler"/>.
     /// </summary>
-    public string Topic => Topics.GetNetworkStatusInformation;
+    public override string Topic => Topics.GetNetworkStatusInformation;
+
+    public override JsonTypeInfo<GetNetworkStatusInformationResult> TypedJsonTypeInfo
+        => SourceGenerationContext.Default.GetNetworkStatusInformationResult;
 
     /// <summary>
     /// Handles the get network status information request.
@@ -35,17 +30,16 @@ internal sealed class GetNetworkStatusInformationRequestHandler : IRequestHandle
     /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <returns>The response.</returns>
     /// <exception cref="InvalidOperationException"/>
-    public async Task<string> Handle(string messageContent, CancellationToken cancellationToken)
+    public override async Task<string> Handle(string messageContent, CancellationToken cancellationToken)
     {
         try
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(messageContent, nameof(messageContent));
 
-            var manager = new NetworkStatusInformationManager(_logger);
+            var manager = new NetworkStatusInformationManager(logger);
             var result = await manager.GetNetworkStatusInformation(messageContent, cancellationToken);
 
-            return SourceGeneratedTypeSerializer
-                .Serialize(result, SourceGenerationContext.Default.GetNetworkStatusInformationResult);
+            return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
         }
         catch (JsonException)
         {

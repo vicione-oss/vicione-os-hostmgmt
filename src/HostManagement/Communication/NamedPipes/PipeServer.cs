@@ -16,7 +16,7 @@ internal sealed partial class PipeServer : IPipeServer
     private readonly string _pipeName;
     private readonly ILogger _logger;
     private readonly PipeOptions? _options;
-    private readonly RequestHandlerRegistry _handlerRegistry = new();
+    private readonly RequestHandlerRegistry _handlerRegistry = new(EnvironmentVariables.TargetEnvironment);
     private readonly NamedPipeServerStream _rawPipeStream;
     private readonly PipeStreamWrapper _wrappedPipe;
     private readonly PipeMessageProcessor _messageProcessor;
@@ -87,36 +87,19 @@ internal sealed partial class PipeServer : IPipeServer
 
     private void InitHandlerRegistry()
     {
-        switch (EnvironmentVariables.TargetEnvironment)
-        {
-            case TargetEnvironment.Unknown:
-                return;
-
-            case TargetEnvironment.Debian:
-                RegisterRedeployScriptsRequestHandler();
-                RegisterServiceRequestHandlers();
-                RegisterInstallDebianPackageRequestHandler();
-                break;
-
-            case TargetEnvironment.EdgeSViciOne:
-                RegisterRedeployScriptsRequestHandler();
-                RegisterServiceRequestHandlers();
-                RegisterViciOneRequestHandlers();
-                RegisterInstallDebianPackageRequestHandler();
-                RegisterSystemConfigurationRequestHandler();
-                RegisterStateRequestHandlers();
-                RegisterSystemRequestHandlers();
-                RegisterRenewDHCPLeaseRequestHandler();
-                break;
-
-            default:
-                return;
-        }
-
 #if DEBUG
         // Testing purposes
         _handlerRegistry.RegisterHandler(new EchoRequestHandler(this, _logger));
 #endif
+
+        RegisterRedeployScriptsRequestHandler();
+        RegisterServiceRequestHandlers();
+        RegisterViciOneRequestHandlers();
+        RegisterInstallDebianPackageRequestHandler();
+        RegisterSystemConfigurationRequestHandler();
+        RegisterStateRequestHandlers();
+        RegisterSystemRequestHandlers();
+        RegisterRenewDHCPLeaseRequestHandler();
     }
 
     private NamedPipeServerStream CreatePipe()
