@@ -1,2 +1,3 @@
 [tools]
 dotnet = "9.0.307"  # Match SDK version from main branch
+node = "20"
