@@ -1,11 +1,9 @@
 ﻿using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using AwesomeAssertions;
-using HostManagement.Common.Wrappers;
 using HostManagement.Configuration;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.ViciOneSuite;
-using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
 
@@ -445,10 +443,6 @@ public class ViciOneSuiteVersionAdapterTests
                 .File.Exists(suiteDebianFilePath)
                 .Returns(false);
 
-            var fileSystemWrapper = new FileSystemWrapper(
-                fileSystemSubstitute,
-                Substitute.For<ILogger>());
-
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 suiteVersionHelperSubstitute,
@@ -488,10 +482,6 @@ public class ViciOneSuiteVersionAdapterTests
             fileSystemSubstitute
                 .File.Exists(suiteDebianFilePath)
                 .Returns(true);
-
-            var fileSystemWrapper = new FileSystemWrapper(
-                fileSystemSubstitute,
-                Substitute.For<ILogger>());
 
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
