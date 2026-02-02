@@ -16,8 +16,9 @@ namespace HostManagement.ViciOneSuite;
 internal sealed partial class ViciOneSuiteManager(ILogger logger)
 {
     private readonly ILogger _logger = logger;
+    private static readonly FileSystem s_fileSystem = new();
     private static readonly FileSystemWrapper s_fileSystemWrapper = new(
-        new FileSystem(),
+        s_fileSystem,
         new ConsoleLogger(EnvironmentVariables.LogLevel));
 
     /// <summary>
@@ -59,6 +60,7 @@ internal sealed partial class ViciOneSuiteManager(ILogger logger)
             var adapter = new ViciOneSuiteVersionAdapter(
                 new ViciOneSuiteInstallScriptHandler(result),
                 suiteVersionHelper,
+                s_fileSystem,
                 s_fileSystemWrapper);
 
             OperationStatus status;
@@ -215,6 +217,7 @@ internal sealed partial class ViciOneSuiteManager(ILogger logger)
                 new ViciOneSuiteVersionHelper(
                     new ScriptHandler(result),
                     result),
+                s_fileSystem,
                 s_fileSystemWrapper);
 
             OperationStatus status;

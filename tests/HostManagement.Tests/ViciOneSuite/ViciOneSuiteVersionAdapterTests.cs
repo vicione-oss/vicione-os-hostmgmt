@@ -1,19 +1,21 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.IO.Abstractions;
+using System.IO.Abstractions.TestingHelpers;
 using AwesomeAssertions;
-using NSubstitute;
-using System.IO.Abstractions;
-using Xunit;
-using HostManagement.ViciOneSuite;
 using HostManagement.Common.Wrappers;
 using HostManagement.Configuration;
 using HostManagement.Shared.Communication.Enums;
+using HostManagement.ViciOneSuite;
+using Microsoft.Extensions.Logging;
+using NSubstitute;
+using Xunit;
 
 namespace HostManagement.Tests.ViciOneSuite;
 
 public class ViciOneSuiteVersionAdapterTests
 {
+    private static readonly MockFileSystem s_fileSystem = new();
     private static readonly FileSystemWrapper s_fileSystemWrapper = new(
-        new FileSystem(),
+        s_fileSystem,
         new ConsoleLogger(EnvironmentVariables.LogLevel));
 
     public class GetNonPreReleaseSuiteVersions
@@ -30,6 +32,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 Substitute.For<IViciOneSuiteVersionHelper>(),
+                s_fileSystem,
                 s_fileSystemWrapper);
 
             // Act
@@ -58,6 +61,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 suiteVersionHelperSubstitute,
+                s_fileSystem,
                 s_fileSystemWrapper);
 
             // Act
@@ -97,6 +101,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 suiteVersionHelperSubstitute,
+                s_fileSystem,
                 s_fileSystemWrapper);
 
             // Act
@@ -136,6 +141,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 suiteVersionHelperSubstitute,
+                s_fileSystem,
                 s_fileSystemWrapper);
 
             // Act
@@ -164,6 +170,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 Substitute.For<IViciOneSuiteVersionHelper>(),
+                s_fileSystem,
                 s_fileSystemWrapper);
 
             // Act
@@ -187,6 +194,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptMock,
                 Substitute.For<IViciOneSuiteVersionHelper>(),
+                s_fileSystem,
                 s_fileSystemWrapper);
 
             // Act
@@ -215,6 +223,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 suiteVersionHelperSubstitute,
+                s_fileSystem,
                 s_fileSystemWrapper);
 
             // Act
@@ -250,6 +259,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 suiteVersionHelperSubstitute,
+                s_fileSystem,
                 s_fileSystemWrapper);
 
             // Act
@@ -285,6 +295,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 suiteVersionHelperSubstitute,
+                s_fileSystem,
                 s_fileSystemWrapper);
 
             // Act
@@ -320,6 +331,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 suiteVersionHelperSubstitute,
+                s_fileSystem,
                 s_fileSystemWrapper);
 
             // Act
@@ -350,6 +362,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 Substitute.For<IViciOneSuiteInstallScriptHandler>(),
                 suiteVersionHelperSubstitute,
+                s_fileSystem,
                 s_fileSystemWrapper);
 
             // Act
@@ -380,6 +393,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 suiteVersionHelperSubstitute,
+                s_fileSystem,
                 s_fileSystemWrapper);
 
             // Act
@@ -410,6 +424,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 suiteVersionHelperSubstitute,
+                s_fileSystem,
                 s_fileSystemWrapper);
 
             // Act
@@ -453,6 +468,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 suiteVersionHelperSubstitute,
+                fileSystemSubstitute,
                 fileSystemWrapper);
 
             // Act
@@ -497,12 +513,13 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 suiteVersionHelperSubstitute,
+                fileSystemSubstitute,
                 fileSystemWrapper);
 
             // Act
             using var cts = new CancellationTokenSource();
             await cts.CancelAsync();
-            var result = async () => await sut.InstallVersion(versionToInstall, cts.Token);
+            var result = () => sut.InstallVersion(versionToInstall, cts.Token);
 
             // Assert
             await result.Should().ThrowAsync<OperationCanceledException>();
@@ -537,6 +554,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 suiteVersionHelperSubstitute,
+                s_fileSystem,
                 s_fileSystemWrapper);
 
             // Act

@@ -105,44 +105,6 @@ public class FileSystemWrapperTests
         }
     }
 
-    public class ExistsFile
-    {
-        private static readonly string s_testFile = Path.Combine("/tmp", "test.txt");
-        private static readonly TestLogger s_testLogger = new(LogLevel.Information);
-
-        [Fact]
-        public void ShouldReturnFalse_WhenFileNotExists()
-        {
-            // Arrange
-            var fileSystemSubstitute = Substitute.For<IFileSystem>();
-
-            fileSystemSubstitute.File.Exists(s_testFile).Returns(false);
-
-            // Act
-            var result = new FileSystemWrapper(fileSystemSubstitute, s_testLogger).ExistsFile(s_testFile);
-
-            // Assert
-            fileSystemSubstitute.File.Received(1).Exists(s_testFile);
-            result.Should().BeFalse();
-        }
-
-        [Fact]
-        public void ShouldReturnTrue_WhenFileExists()
-        {
-            // Arrange
-            var fileSystemSubstitute = Substitute.For<IFileSystem>();
-
-            fileSystemSubstitute.File.Exists(s_testFile).Returns(true);
-
-            // Act
-            var result = new FileSystemWrapper(fileSystemSubstitute, s_testLogger).ExistsFile(s_testFile);
-
-            // Assert
-            fileSystemSubstitute.File.Received(1).Exists(s_testFile);
-            result.Should().BeTrue();
-        }
-    }
-
     public class WriteAllTextToFile
     {
         private static readonly string s_testFile = Path.Combine("/tmp", "test.txt");

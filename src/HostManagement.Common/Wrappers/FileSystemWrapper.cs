@@ -31,9 +31,6 @@ public sealed partial class FileSystemWrapper(IFileSystem fileSystem, ILogger lo
         }
     }
 
-    /// <inheritdoc cref="IFile.Exists(string?)"/>
-    public bool ExistsFile(string? path) => _fileSystem.File.Exists(path);
-
     /// <inheritdoc cref="IFile.WriteAllTextAsync(string, string?, CancellationToken)"/>
     public async Task WriteAllTextToFile(string path, string? value, CancellationToken cancellationToken = default)
     {

@@ -94,7 +94,7 @@ internal static partial class ServiceRunner
             if (!TryInitializeService())
                 return 1;
 
-            if (s_fileSystemWrapper.ExistsFile(s_setConfigFlag))
+            if (s_fileSystem.File.Exists(s_setConfigFlag))
             {
                 DeleteSetConfigFlag();
 
@@ -128,9 +128,9 @@ internal static partial class ServiceRunner
 
     private static async Task<GetSystemConfigurationResult> GetJsonConfigurationOnStartUp()
     {
-        if (s_fileSystemWrapper.ExistsFile(AppPaths.SystemConfigurationFilePath))
+        if (s_fileSystem.File.Exists(AppPaths.SystemConfigurationFilePath))
             FoundExistingSystemConfiguration(s_logger, AppPaths.SystemConfigurationFilePath);
-        else if (s_fileSystemWrapper.ExistsFile(AppPaths.DefaultSystemConfigurationFilePath))
+        else if (s_fileSystem.File.Exists(AppPaths.DefaultSystemConfigurationFilePath))
             FoundExistingSystemConfiguration(s_logger, AppPaths.DefaultSystemConfigurationFilePath);
         else
             CreateSystemConfigurationStarted(s_logger);
@@ -193,7 +193,7 @@ internal static partial class ServiceRunner
 
     private static async Task CreateSetConfigFlag()
     {
-        if (s_fileSystemWrapper.ExistsFile(s_setConfigFlag))
+        if (s_fileSystem.File.Exists(s_setConfigFlag))
             return;
 
         await s_fileSystemWrapper.WriteAllTextToFile(s_setConfigFlag, string.Empty);
@@ -201,7 +201,7 @@ internal static partial class ServiceRunner
 
     private static void DeleteSetConfigFlag()
     {
-        if (!s_fileSystemWrapper.ExistsFile(s_setConfigFlag))
+        if (!s_fileSystem.File.Exists(s_setConfigFlag))
             return;
 
         s_fileSystemWrapper.DeleteFile(s_setConfigFlag);

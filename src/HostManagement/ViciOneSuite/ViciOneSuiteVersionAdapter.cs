@@ -1,4 +1,5 @@
-﻿using HostManagement.Common.Wrappers;
+﻿using System.IO.Abstractions;
+using HostManagement.Common.Wrappers;
 using HostManagement.Configuration;
 using HostManagement.Shared.Communication.Enums;
 
@@ -10,14 +11,17 @@ namespace HostManagement.ViciOneSuite;
 /// <param name="suiteInstallScriptHandler">An <see cref="IViciOneSuiteInstallScriptHandler"/>
 /// implementation.</param>
 /// <param name="suiteVersionHelper">An <see cref="IViciOneSuiteVersionHelper"/> implementation.</param>
+/// <param name="fileSystem">An <see cref="IFileSystem"/> implementation.</param>
 /// <param name="fileSystemWrapper">A <see cref="FileSystemWrapper"/>.</param>
 internal sealed class ViciOneSuiteVersionAdapter(
     IViciOneSuiteInstallScriptHandler suiteInstallScriptHandler,
     IViciOneSuiteVersionHelper suiteVersionHelper,
+    IFileSystem fileSystem,
     FileSystemWrapper fileSystemWrapper)
 {
     private readonly IViciOneSuiteInstallScriptHandler _suiteInstallScriptHandler = suiteInstallScriptHandler;
     private readonly IViciOneSuiteVersionHelper _suiteVersionHelper = suiteVersionHelper;
+    private readonly IFileSystem _fileSystem = fileSystem;
     private readonly FileSystemWrapper _fileSystemWrapper = fileSystemWrapper;
 
     /// <summary>
@@ -128,7 +132,7 @@ internal sealed class ViciOneSuiteVersionAdapter(
                 EnvironmentVariables.SuiteDownloadDirectory,
                 suiteDebianFileName);
 
-            if (_fileSystemWrapper.ExistsFile(suiteDebianFilePath))
+            if (_fileSystem.File.Exists(suiteDebianFilePath))
                 _fileSystemWrapper.DeleteFile(suiteDebianFilePath);
 
             throw;
