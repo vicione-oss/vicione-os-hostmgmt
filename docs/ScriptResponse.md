@@ -1,14 +1,21 @@
 # ScriptResponse
 
-Die `ScriptResponse` besteht aus einem `ExitCode`, dem `StandardOutput` sowie dem `StandardError`.
+The `ScriptResponse` consists of the `ExitCode`, the `StandardOutput` and the `StandardError`.
 
-Folgende Antworten sind beim Abfragen (GET) bzw. Setzen (SET) von Einstellungen möglich:
+The following responses are possible:
 
-| Aktion | ExitCode | StandardOutput           | StandardError      |
-| ------ | :------: | ------------------------ | ------------------ |
-| GET    |    0     | `JSON` (Settings-Objekt) | -                  |
-| &nbsp; |    0     | `JSON` (Settings-Objekt) | `Text` (Warnungen) |
-| &nbsp; |   > 0    | -                        | `Text` (Fehler)    |
-| SET    |    0     | `Text` (Informationen)   | -                  |
-| &nbsp; |    0     | `Text` (Informationen)   | `Text` (Warnungen) |
-| &nbsp; |   > 0    | -                        | `Text` (Fehler)    |
+## Getting Settings or Data
+
+| ExitCode | StandardOutput                                     | StandardError     |
+| :------: | -------------------------------------------------- | ----------------- |
+|    0     | `JSON` (Settings or parts of it)</br>`Text` (Data) | -                 |
+|    0     | `JSON` (Settings or parts of it)</br>`Text` (Data) | `Text` (Warnings) |
+|   > 0    | -                                                  | `Text` (Errors)   |
+
+## Setting Settings or perform Action
+
+| ExitCode | StandardOutput                | StandardError     |
+| :------: | ----------------------------- | ----------------- |
+|    0     | `Text` (optional Information) | -                 |
+|    0     | `Text` (optional Information) | `Text` (Warnings) |
+|   > 0    | -                             | `Text` (Errors)   |
