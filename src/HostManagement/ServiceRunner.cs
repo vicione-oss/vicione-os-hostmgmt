@@ -96,7 +96,7 @@ internal static partial class ServiceRunner
 
             if (s_fileSystem.File.Exists(s_setConfigFlag))
             {
-                DeleteSetConfigFlag();
+                s_fileSystem.File.Delete(s_setConfigFlag);
 
                 var getJsonConfig = await GetJsonConfigurationOnStartUp()
                     .ContinueWith(task =>
@@ -197,14 +197,6 @@ internal static partial class ServiceRunner
             return;
 
         await s_fileSystemWrapper.WriteAllTextToFile(s_setConfigFlag, string.Empty);
-    }
-
-    private static void DeleteSetConfigFlag()
-    {
-        if (!s_fileSystem.File.Exists(s_setConfigFlag))
-            return;
-
-        s_fileSystemWrapper.DeleteFile(s_setConfigFlag);
     }
 
     private static bool TryInitializeService()

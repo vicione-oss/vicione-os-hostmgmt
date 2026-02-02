@@ -43,68 +43,6 @@ public class FileSystemWrapperTests
         }
     }
 
-    public class DeleteFile
-    {
-        private static readonly string s_testFile = Path.Combine("/tmp", "test.txt");
-        private static readonly TestLogger s_testLogger = new(LogLevel.Information);
-
-        [Fact]
-        public void ShouldReturn_WhenFileNotExists()
-        {
-            // Arrange
-            var fileSystemSubstitute = Substitute.For<IFileSystem>();
-            fileSystemSubstitute.File.Exists(s_testFile).Returns(false);
-
-            // Act
-            new FileSystemWrapper(fileSystemSubstitute, s_testLogger).DeleteFile(s_testFile);
-
-            // Assert
-            fileSystemSubstitute.File.DidNotReceive().Delete(s_testFile);
-        }
-
-        [Fact]
-        public void ShouldDeleteFile_WhenFileExists()
-        {
-            // Arrange
-            var expectedMessage = $"Deleted file '{s_testFile}' successfully.";
-
-            var fileSystemSubstitute = Substitute.For<IFileSystem>();
-            fileSystemSubstitute.File.Exists(s_testFile).Returns(true);
-
-            // Act
-            new FileSystemWrapper(fileSystemSubstitute, s_testLogger).DeleteFile(s_testFile);
-
-            // Assert
-            fileSystemSubstitute.File.Received(1).Delete(s_testFile);
-            s_testLogger.Logs.Should().Contain(expectedMessage);
-        }
-
-        [Fact]
-        public void ShouldThrow_WhenDeleteFileThrows()
-        {
-            // Arrange
-            var expectedMessage = $"Could not delete file '{s_testFile}'.*";
-
-            var fileSystemSubstitute = Substitute.For<IFileSystem>();
-
-            fileSystemSubstitute.File
-                .Exists(s_testFile)
-                .Returns(true);
-
-            fileSystemSubstitute.File
-                .When(file => file.Delete(s_testFile))
-                .Throw(new IOException());
-
-            // Act
-            var result = () => new FileSystemWrapper(fileSystemSubstitute, s_testLogger)
-                .DeleteFile(s_testFile);
-
-            // Assert
-            result.Should().Throw<IOException>();
-            s_testLogger.Logs.Should().ContainMatch(expectedMessage);
-        }
-    }
-
     public class WriteAllTextToFile
     {
         private static readonly string s_testFile = Path.Combine("/tmp", "test.txt");

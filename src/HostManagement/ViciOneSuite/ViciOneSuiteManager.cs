@@ -1,8 +1,6 @@
 ﻿using System.Globalization;
 using System.IO.Abstractions;
 using System.Text;
-using HostManagement.Common.Wrappers;
-using HostManagement.Configuration;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using Microsoft.Extensions.Logging;
@@ -17,9 +15,6 @@ internal sealed partial class ViciOneSuiteManager(ILogger logger)
 {
     private readonly ILogger _logger = logger;
     private static readonly FileSystem s_fileSystem = new();
-    private static readonly FileSystemWrapper s_fileSystemWrapper = new(
-        s_fileSystem,
-        new ConsoleLogger(EnvironmentVariables.LogLevel));
 
     /// <summary>
     /// Gets all non-pre-release ViciOne Suite versions.
@@ -60,8 +55,7 @@ internal sealed partial class ViciOneSuiteManager(ILogger logger)
             var adapter = new ViciOneSuiteVersionAdapter(
                 new ViciOneSuiteInstallScriptHandler(result),
                 suiteVersionHelper,
-                s_fileSystem,
-                s_fileSystemWrapper);
+                s_fileSystem);
 
             OperationStatus status;
             IEnumerable<string> versions;
@@ -217,8 +211,7 @@ internal sealed partial class ViciOneSuiteManager(ILogger logger)
                 new ViciOneSuiteVersionHelper(
                     new ScriptHandler(result),
                     result),
-                s_fileSystem,
-                s_fileSystemWrapper);
+                s_fileSystem);
 
             OperationStatus status;
             IEnumerable<string> versions;

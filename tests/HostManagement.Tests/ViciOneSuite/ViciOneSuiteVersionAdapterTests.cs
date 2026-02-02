@@ -14,9 +14,6 @@ namespace HostManagement.Tests.ViciOneSuite;
 public class ViciOneSuiteVersionAdapterTests
 {
     private static readonly MockFileSystem s_fileSystem = new();
-    private static readonly FileSystemWrapper s_fileSystemWrapper = new(
-        s_fileSystem,
-        new ConsoleLogger(EnvironmentVariables.LogLevel));
 
     public class GetNonPreReleaseSuiteVersions
     {
@@ -32,8 +29,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 Substitute.For<IViciOneSuiteVersionHelper>(),
-                s_fileSystem,
-                s_fileSystemWrapper);
+                s_fileSystem);
 
             // Act
             using var cts = new CancellationTokenSource();
@@ -61,8 +57,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 suiteVersionHelperSubstitute,
-                s_fileSystem,
-                s_fileSystemWrapper);
+                s_fileSystem);
 
             // Act
             using var cts = new CancellationTokenSource();
@@ -101,8 +96,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 suiteVersionHelperSubstitute,
-                s_fileSystem,
-                s_fileSystemWrapper);
+                s_fileSystem);
 
             // Act
             using var cts = new CancellationTokenSource();
@@ -141,8 +135,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 suiteVersionHelperSubstitute,
-                s_fileSystem,
-                s_fileSystemWrapper);
+                s_fileSystem);
 
             // Act
             using var cts = new CancellationTokenSource();
@@ -170,8 +163,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 Substitute.For<IViciOneSuiteVersionHelper>(),
-                s_fileSystem,
-                s_fileSystemWrapper);
+                s_fileSystem);
 
             // Act
             using var cts = new CancellationTokenSource();
@@ -194,8 +186,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptMock,
                 Substitute.For<IViciOneSuiteVersionHelper>(),
-                s_fileSystem,
-                s_fileSystemWrapper);
+                s_fileSystem);
 
             // Act
             using var cts = new CancellationTokenSource();
@@ -223,8 +214,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 suiteVersionHelperSubstitute,
-                s_fileSystem,
-                s_fileSystemWrapper);
+                s_fileSystem);
 
             // Act
             using var cts = new CancellationTokenSource();
@@ -259,8 +249,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 suiteVersionHelperSubstitute,
-                s_fileSystem,
-                s_fileSystemWrapper);
+                s_fileSystem);
 
             // Act
             using var cts = new CancellationTokenSource();
@@ -295,8 +284,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 suiteVersionHelperSubstitute,
-                s_fileSystem,
-                s_fileSystemWrapper);
+                s_fileSystem);
 
             // Act
             using var cts = new CancellationTokenSource();
@@ -331,8 +319,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 suiteVersionHelperSubstitute,
-                s_fileSystem,
-                s_fileSystemWrapper);
+                s_fileSystem);
 
             // Act
             using var cts = new CancellationTokenSource();
@@ -362,8 +349,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 Substitute.For<IViciOneSuiteInstallScriptHandler>(),
                 suiteVersionHelperSubstitute,
-                s_fileSystem,
-                s_fileSystemWrapper);
+                s_fileSystem);
 
             // Act
             using var cts = new CancellationTokenSource();
@@ -393,8 +379,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 suiteVersionHelperSubstitute,
-                s_fileSystem,
-                s_fileSystemWrapper);
+                s_fileSystem);
 
             // Act
             using var cts = new CancellationTokenSource();
@@ -424,8 +409,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 suiteVersionHelperSubstitute,
-                s_fileSystem,
-                s_fileSystemWrapper);
+                s_fileSystem);
 
             // Act
             using var cts = new CancellationTokenSource();
@@ -468,8 +452,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 suiteVersionHelperSubstitute,
-                fileSystemSubstitute,
-                fileSystemWrapper);
+                fileSystemSubstitute);
 
             // Act
             using var cts = new CancellationTokenSource();
@@ -513,8 +496,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 suiteVersionHelperSubstitute,
-                fileSystemSubstitute,
-                fileSystemWrapper);
+                fileSystemSubstitute);
 
             // Act
             using var cts = new CancellationTokenSource();
@@ -554,8 +536,7 @@ public class ViciOneSuiteVersionAdapterTests
             var sut = new ViciOneSuiteVersionAdapter(
                 suiteInstallScriptSubstitute,
                 suiteVersionHelperSubstitute,
-                s_fileSystem,
-                s_fileSystemWrapper);
+                s_fileSystem);
 
             // Act
             using var cts = new CancellationTokenSource();

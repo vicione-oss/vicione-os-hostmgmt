@@ -13,24 +13,6 @@ public sealed partial class FileSystemWrapper(IFileSystem fileSystem, ILogger lo
     private readonly IFileSystem _fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
     private readonly ILogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-    /// <inheritdoc cref="IFile.Delete(string)"/>
-    public void DeleteFile(string path)
-    {
-        if (!_fileSystem.File.Exists(path))
-            return;
-
-        try
-        {
-            _fileSystem.File.Delete(path);
-            LogDeletedFileSuccessfully(_logger, path);
-        }
-        catch (Exception ex)
-        {
-            LogCouldNotDeleteFile(_logger, path, ex.Message);
-            throw;
-        }
-    }
-
     /// <inheritdoc cref="IFile.WriteAllTextAsync(string, string?, CancellationToken)"/>
     public async Task WriteAllTextToFile(string path, string? value, CancellationToken cancellationToken = default)
     {
@@ -45,12 +27,6 @@ public sealed partial class FileSystemWrapper(IFileSystem fileSystem, ILogger lo
             throw;
         }
     }
-
-    [LoggerMessage(LogLevel.Information, "Deleted file '{Path}' successfully.")]
-    private static partial void LogDeletedFileSuccessfully(ILogger logger, string? path);
-
-    [LoggerMessage(LogLevel.Error, "Could not delete file '{Path}'. {ExceptionMessage}")]
-    private static partial void LogCouldNotDeleteFile(ILogger logger, string? path, string? exceptionMessage);
 
     [LoggerMessage(LogLevel.Error, "Could not write to file '{Path}'. {ExceptionMessage}")]
     private static partial void LogCouldNotWriteToFile(ILogger logger, string? path, string? exceptionMessage);
