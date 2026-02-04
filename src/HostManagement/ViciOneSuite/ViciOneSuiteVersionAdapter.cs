@@ -1,4 +1,4 @@
-﻿using HostManagement.Common.Wrappers;
+﻿using System.IO.Abstractions;
 using HostManagement.Configuration;
 using HostManagement.Shared.Communication.Enums;
 
@@ -10,15 +10,15 @@ namespace HostManagement.ViciOneSuite;
 /// <param name="suiteInstallScriptHandler">An <see cref="IViciOneSuiteInstallScriptHandler"/>
 /// implementation.</param>
 /// <param name="suiteVersionHelper">An <see cref="IViciOneSuiteVersionHelper"/> implementation.</param>
-/// <param name="fileSystemWrapper">A <see cref="FileSystemWrapper"/>.</param>
+/// <param name="fileSystem">An <see cref="IFileSystem"/> implementation.</param>
 internal sealed class ViciOneSuiteVersionAdapter(
     IViciOneSuiteInstallScriptHandler suiteInstallScriptHandler,
     IViciOneSuiteVersionHelper suiteVersionHelper,
-    FileSystemWrapper fileSystemWrapper)
+    IFileSystem fileSystem)
 {
     private readonly IViciOneSuiteInstallScriptHandler _suiteInstallScriptHandler = suiteInstallScriptHandler;
     private readonly IViciOneSuiteVersionHelper _suiteVersionHelper = suiteVersionHelper;
-    private readonly FileSystemWrapper _fileSystemWrapper = fileSystemWrapper;
+    private readonly IFileSystem _fileSystem = fileSystem;
 
     /// <summary>
     /// Gets all non-pre-release ViciOne Suite versions.
@@ -128,8 +128,14 @@ internal sealed class ViciOneSuiteVersionAdapter(
                 EnvironmentVariables.SuiteDownloadDirectory,
                 suiteDebianFileName);
 
-            if (_fileSystemWrapper.ExistsFile(suiteDebianFilePath))
-                _fileSystemWrapper.DeleteFile(suiteDebianFilePath);
+            if (_fileSystem.File.Exists(suiteDebianFilePath))
+            {
+                try
+                {
+                    _fileSystem.File.Delete(suiteDebianFilePath);
+                }
+                catch { } // Swallow any exception to keep original exception
+            }
 
             throw;
         }

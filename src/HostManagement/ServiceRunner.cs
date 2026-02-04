@@ -1,15 +1,14 @@
 ﻿using System.Diagnostics;
 using System.IO.Abstractions;
-using Microsoft.Extensions.Logging;
-using HostManagement.Common.Wrappers;
 using HostManagement.Communication.NamedPipes;
 using HostManagement.Communication.NamedPipes.Extensions;
 using HostManagement.Configuration;
 using HostManagement.Scripts;
-using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Communication.Contracts;
+using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Contracts;
 using HostManagement.SystemConfig;
+using Microsoft.Extensions.Logging;
 
 namespace HostManagement;
 
@@ -20,8 +19,7 @@ namespace HostManagement;
 internal static partial class ServiceRunner
 {
     private static readonly ILogger s_logger = new ConsoleLogger(EnvironmentVariables.LogLevel);
-    private static readonly IFileSystem s_fileSystem = new FileSystem();
-    private static readonly FileSystemWrapper s_fileSystemWrapper = new(s_fileSystem, s_logger);
+    private static readonly FileSystem s_fileSystem = new();
     private static readonly string s_setConfigFlag = Path.Combine(AppPaths.TempPath, "set-config.flag");
 
     /// <summary>
@@ -94,9 +92,9 @@ internal static partial class ServiceRunner
             if (!TryInitializeService())
                 return 1;
 
-            if (s_fileSystemWrapper.ExistsFile(s_setConfigFlag))
+            if (s_fileSystem.File.Exists(s_setConfigFlag))
             {
-                DeleteSetConfigFlag();
+                s_fileSystem.File.Delete(s_setConfigFlag);
 
                 var getJsonConfig = await GetJsonConfigurationOnStartUp()
                     .ContinueWith(task =>
@@ -128,9 +126,9 @@ internal static partial class ServiceRunner
 
     private static async Task<GetSystemConfigurationResult> GetJsonConfigurationOnStartUp()
     {
-        if (s_fileSystemWrapper.ExistsFile(AppPaths.SystemConfigurationFilePath))
+        if (s_fileSystem.File.Exists(AppPaths.SystemConfigurationFilePath))
             FoundExistingSystemConfiguration(s_logger, AppPaths.SystemConfigurationFilePath);
-        else if (s_fileSystemWrapper.ExistsFile(AppPaths.DefaultSystemConfigurationFilePath))
+        else if (s_fileSystem.File.Exists(AppPaths.DefaultSystemConfigurationFilePath))
             FoundExistingSystemConfiguration(s_logger, AppPaths.DefaultSystemConfigurationFilePath);
         else
             CreateSystemConfigurationStarted(s_logger);
@@ -193,18 +191,8 @@ internal static partial class ServiceRunner
 
     private static async Task CreateSetConfigFlag()
     {
-        if (s_fileSystemWrapper.ExistsFile(s_setConfigFlag))
-            return;
-
-        await s_fileSystemWrapper.WriteAllTextToFile(s_setConfigFlag, string.Empty);
-    }
-
-    private static void DeleteSetConfigFlag()
-    {
-        if (!s_fileSystemWrapper.ExistsFile(s_setConfigFlag))
-            return;
-
-        s_fileSystemWrapper.DeleteFile(s_setConfigFlag);
+        if (!s_fileSystem.File.Exists(s_setConfigFlag))
+            await s_fileSystem.File.Create(s_setConfigFlag).DisposeAsync();
     }
 
     private static bool TryInitializeService()
