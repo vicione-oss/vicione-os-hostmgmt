@@ -2,6 +2,22 @@
 
 namespace HostManagement.SystemConfig.Contracts;
 
+/// <summary>
+/// Represents the internally used configuration of the system.
+/// </summary>
+/// <remarks>
+/// <para>
+/// This defines internal DTOs that are used exclusively within the <see cref="HostManagement"/> project.
+/// </para>
+/// <para>
+/// <strong>Key characteristics:</strong>
+/// </para>
+/// <list type="bullet">
+/// <item><description>Use nullable reference types to represent optional fields</description></item>
+/// <item><description>Are not exposed directly to external consumers</description></item>
+/// <item><description>Require mapping via <see cref="SystemConfig.ContractsTranslator"/> before being exposed to the public API</description></item>
+/// </list>
+/// </remarks>
 internal class SystemConfiguration
 {
     [JsonRequired]
