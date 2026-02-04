@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved target environment handling from `PipeServer` to `RequestHandlerRegistry`
   - Improved response when request handler not supported on the platform
   - Improved response when request is missing required message content
+- Made environment variables related to ViciOne Suite update optional (deprecated; new generic method via topic `InstallSignedDebianPackage` was implemented)
+  - `HOSTMANAGEMENT__SUITE_REPOSITORY__ENDPOINT`
+  - `HOSTMANAGEMENT__SUITE_REPOSITORY__USERNAME`
+  - `HOSTMANAGEMENT__SUITE_REPOSITORY__PASSWORD`
 
 ### Fixed
 
