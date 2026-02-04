@@ -158,16 +158,16 @@ internal interface IScriptHandler
     /// <summary>
     /// Executes a script to install a Debian package file.
     /// </summary>
-    /// <param name="filePath">The Debian package file path.</param>
+    /// <param name="scriptOptions">The script options to execute the script.</param>
     /// <returns><see cref="OperationStatus"/></returns>
-    Task<OperationStatus> ExecuteInstallDebianPackageScript(string filePath);
+    Task<OperationStatus> ExecuteInstallDebianPackageScript(ScriptOptions scriptOptions);
 
     /// <summary>
     /// Executes the script to update the system.
     /// </summary>
-    /// <param name="filePath">The file path to the update file.</param>
+    /// <param name="scriptOptions">The script options to execute the script.</param>
     /// <returns><see cref="OperationStatus"/></returns>
-    Task<OperationStatus> ExecuteUpdateSystemScript(string filePath);
+    Task<OperationStatus> ExecuteUpdateSystemScript(ScriptOptions scriptOptions);
 
     /// <summary>
     /// Executes the script to reset the system.

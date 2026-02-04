@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using HostManagement.Scripts;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Contracts.System;
@@ -57,8 +58,11 @@ internal sealed partial class SystemService(
 
             cancellationToken.ThrowIfCancellationRequested();
 
+            var scriptOptions = new ScriptOptions();
+            scriptOptions.Add(ScriptOptionNames.InstallDebianPackage.DebianPackage, signedDebianPackage.FilePath);
+
             var status = await _scriptHandler
-                .ExecuteInstallDebianPackageScript(signedDebianPackage.FilePath)
+                .ExecuteInstallDebianPackageScript(scriptOptions)
                 .ConfigureAwait(false);
 
             if (status is OperationStatus.Warning or OperationStatus.Error)
@@ -134,8 +138,11 @@ internal sealed partial class SystemService(
     {
         try
         {
+            var scriptOptions = new ScriptOptions();
+            scriptOptions.Add(ScriptOptionNames.UpdateSystem.FilePath, filePath);
+
             var status = await _scriptHandler
-                .ExecuteUpdateSystemScript(filePath)
+                .ExecuteUpdateSystemScript(scriptOptions)
                 .ConfigureAwait(false);
 
             if (status == OperationStatus.Error)
