@@ -2,6 +2,7 @@
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Contracts.Network;
+using HostManagement.SystemConfig;
 
 namespace HostManagement.Services;
 
@@ -158,45 +159,7 @@ internal sealed partial class DHCPLeaseService(ILogger logger)
         if (status == OperationStatus.Error)
             return (OperationStatus.Error, DHCPLease.Empty);
 
-        NetworkDNSSettings? networkDnsSettings = default;
-        if (dhcpLease.NetworkDNSSettings is not null)
-        {
-            networkDnsSettings = new()
-            {
-                DNSSuffix = dhcpLease.NetworkDNSSettings.DNSSuffix ?? string.Empty,
-                DNSSuffixEnabled = dhcpLease.NetworkDNSSettings.DNSSuffixEnabled ?? false,
-                Hostname = dhcpLease.NetworkDNSSettings.Hostname ?? string.Empty,
-                MulticastDNSEnabled = dhcpLease.NetworkDNSSettings.MulticastDNSEnabled ?? false,
-                NameServers = dhcpLease.NetworkDNSSettings.NameServers ?? [],
-                NameServersEnabled = dhcpLease.NetworkDNSSettings.NameServersEnabled ?? false,
-                SearchDomains = dhcpLease.NetworkDNSSettings.SearchDomains ?? [],
-                SearchDomainsEnabled = dhcpLease.NetworkDNSSettings.SearchDomainsEnabled ?? false,
-                StaticHosts = dhcpLease.NetworkDNSSettings.StaticHosts?.Select(x => new StaticHostDetail()
-                {
-                    Hostname = x.Hostname,
-                    IPAddress = x.IPAddress,
-                }).ToList() ?? [],
-                StaticHostsEnabled = dhcpLease.NetworkDNSSettings.StaticHostsEnabled ?? false,
-            };
-        }
-        IPv4Detail? ipv4Detail = default;
-        if (dhcpLease.IPv4Detail is not null)
-        {
-            ipv4Detail = new()
-            {
-                IPAddress = dhcpLease.IPv4Detail.IPAddress,
-                Netmask = dhcpLease.IPv4Detail.Netmask,
-            };
-        }
-        DHCPLease result = new()
-        {
-            LeaseObtained = dhcpLease.LeaseObtained,
-            LeaseExpires = dhcpLease.LeaseExpires,
-            Gateway = dhcpLease.Gateway,
-            IPv4Detail = ipv4Detail,
-            NetworkDNSSettings = networkDnsSettings,
-        };
-        return (OperationStatus.Success, result);
+        return (OperationStatus.Success, dhcpLease.ToSharedContracts());
     }
 
     private static bool IsDHCPLeaseNull(OperationStatus status, DHCPLease dhcpLease)

@@ -72,7 +72,7 @@ internal static class ContractsTranslator
             Netmask = intern.Netmask,
         };
 
-    private static SharedNetwork.DHCPLease ToSharedContracts(this DHCPLease intern)
+    internal static SharedNetwork.DHCPLease ToSharedContracts(this DHCPLease intern)
         => new()
         {
             LeaseObtained = intern.LeaseObtained,
