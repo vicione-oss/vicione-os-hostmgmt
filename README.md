@@ -190,6 +190,7 @@ flowchart TD
   │   │       └── RequestHandlers          <-- Request handlers for the named pipes (for loading/applying settings etc.)
   │   ├── Services                         <-- Services for DHCP, network status information, NTP, physical addresses, system and systemd units
   │   ├── SystemConfig                     <-- Classes to modify the system configuration
+  │   │   ├── Contracts                    <-- Internally used contracts (DTOs) for reading and applying of a configuration
   │   │   ├── Network                      <-- Network configuration adapter
   │   │   └── Service                      <-- Service configuration adapter
   │   ├── ViciOneSuite                     <-- ViciOne Suite-specific functions (version, installation)
@@ -233,7 +234,7 @@ flowchart TD
   │
   │
   ├── HostManagement.Shared                <-- Subproject for the components used in HostManagement and in the ViciOne Suite
-  │   ├── Contracts                        <-- Data model of the system configuration
+  │   ├── Contracts                        <-- Public data model of the system configuration
   │   ├── Serialization                    <-- Serialization logic
   │   └── Validation                       <-- Validation of the system configuration
   │       └── Validators                   <-- Folder for validation classes

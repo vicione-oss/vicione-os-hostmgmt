@@ -5,6 +5,20 @@ using SharedService = HostManagement.Shared.Contracts.Service;
 
 namespace HostManagement.SystemConfig;
 
+/// <summary>
+/// Provides bidirectional mapping between internal DTOs and public DTOs (API layer).
+/// </summary>
+/// <remarks>
+/// <para>
+/// This translator implements a two-layer DTO architecture:
+/// </para>
+/// <list type="bullet">
+/// <item><description><strong>Internal DTOs</strong>
+/// use nullable reference types to enable partial application and to represent optional fields from script outputs.</description></item>
+/// <item><description><strong>Public DTOs</strong>
+/// use non-nullable reference types with required initialization, providing a cleaner contract for external consumers.</description></item>
+/// </list>
+/// </remarks>
 internal static class ContractsTranslator
 {
     internal static SharedContracts.SystemConfiguration ToSharedContracts(this SystemConfiguration intern)

@@ -6,8 +6,12 @@ using HostManagement.Shared.Extensions;
 namespace HostManagement.Shared.Contracts;
 
 /// <summary>
-/// Represents the <see cref="SystemConfiguration"/> of the target system.
+/// Represents the public shared <see cref="SystemConfiguration"/> of the target system.
 /// </summary>
+/// <remarks>
+/// This namespace defines the public API contract for external consumers of the HostManagement system.
+/// These DTOs represent the stable, publicly-exposed interface for configuration and status information.
+/// </remarks>
 public class SystemConfiguration
 {
     /// <summary>
