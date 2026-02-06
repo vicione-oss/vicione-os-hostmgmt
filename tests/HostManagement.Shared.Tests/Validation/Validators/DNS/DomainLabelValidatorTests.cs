@@ -1,7 +1,7 @@
 ﻿using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.DNS;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.DNS;
 
@@ -44,7 +44,8 @@ public class DomainLabelValidatorTests
             $"has too many characters (expected max. 63 characters including dots).");
 
         // Act
-        var result = await new DomainLabelValidator(customDomainLabelText).ValidateAsync(invalidDomainLabel);
+        var result = await new DomainLabelValidator(customDomainLabelText)
+            .ValidateAsync(invalidDomainLabel, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -66,7 +67,8 @@ public class DomainLabelValidatorTests
             $"can not have only digits.");
 
         // Act
-        var result = await new DomainLabelValidator(customDomainLabelText).ValidateAsync(invalidDomainLabel);
+        var result = await new DomainLabelValidator(customDomainLabelText)
+            .ValidateAsync(invalidDomainLabel, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -89,7 +91,8 @@ public class DomainLabelValidatorTests
             $"(expected start/end character to be letter or digit; other characters can also be a hyphen).");
 
         // Act
-        var result = await new DomainLabelValidator(customDomainLabelText).ValidateAsync(invalidDomainLabel);
+        var result = await new DomainLabelValidator(customDomainLabelText)
+            .ValidateAsync(invalidDomainLabel, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -103,7 +106,8 @@ public class DomainLabelValidatorTests
     public async Task ShouldReturnValid_WhenDomainLabelValid(string? customDomainLabelText)
     {
         // Act
-        var result = await new DomainLabelValidator(customDomainLabelText).ValidateAsync("domain");
+        var result = await new DomainLabelValidator(customDomainLabelText)
+            .ValidateAsync("domain", CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeTrue();

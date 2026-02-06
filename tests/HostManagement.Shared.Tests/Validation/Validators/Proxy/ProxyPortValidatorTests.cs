@@ -1,7 +1,7 @@
 ﻿using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.Proxy;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.Proxy;
 
@@ -39,7 +39,7 @@ public class ProxyPortValidatorTests
             $"Proxy port '{invalidPort}' can not be smaller than '{MinPort}'.");
 
         // Act
-        var result = await new ProxyPortValidator().ValidateAsync(invalidPort);
+        var result = await new ProxyPortValidator().ValidateAsync(invalidPort, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -57,7 +57,7 @@ public class ProxyPortValidatorTests
             $"Proxy port '{invalidPort}' can not be greater than '{MaxPort}'.");
 
         // Act
-        var result = await new ProxyPortValidator().ValidateAsync(invalidPort);
+        var result = await new ProxyPortValidator().ValidateAsync(invalidPort, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -74,7 +74,7 @@ public class ProxyPortValidatorTests
     public async Task ShouldReturnValid_WhenPortValid(int port)
     {
         // Act
-        var result = await new ProxyPortValidator().ValidateAsync(port);
+        var result = await new ProxyPortValidator().ValidateAsync(port, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeTrue();

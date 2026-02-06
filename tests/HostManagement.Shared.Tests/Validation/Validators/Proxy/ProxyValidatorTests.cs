@@ -1,8 +1,8 @@
 ﻿using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.Proxy;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.Proxy;
 
@@ -31,7 +31,8 @@ public class ProxyValidatorTests
     public async Task ShouldReturnValid_WhenProxyUnconfigured()
     {
         // Act
-        var result = await new ProxyValidator().ValidateAsync(NetworkProxyDetail.Unconfigured);
+        var result = await new ProxyValidator()
+            .ValidateAsync(NetworkProxyDetail.Unconfigured, cancellationToken: CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeTrue();
@@ -50,7 +51,8 @@ public class ProxyValidatorTests
         var expectedValidationEntry = new ValidationEntry("Proxy server can not be null.");
 
         // Act
-        var result = await new ProxyValidator().ValidateAsync(invalidProxyDetail);
+        var result = await new ProxyValidator()
+            .ValidateAsync(invalidProxyDetail, cancellationToken: CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -66,8 +68,11 @@ public class ProxyValidatorTests
         var validProxyDetail = ValidationTestData.Proxy.HTTP;
 
         // Act
-        var invalidResult = await new ProxyValidator().ValidateAsync(invalidProxyDetail);
-        var validResult = await new ProxyValidator().ValidateAsync(validProxyDetail);
+        var invalidResult = await new ProxyValidator()
+            .ValidateAsync(invalidProxyDetail, cancellationToken: CancellationToken.None);
+
+        var validResult = await new ProxyValidator()
+            .ValidateAsync(validProxyDetail, cancellationToken: CancellationToken.None);
 
         // Assert
         invalidResult.IsValid.Should().BeFalse();
@@ -86,7 +91,8 @@ public class ProxyValidatorTests
         var expectedValidationEntry = new ValidationEntry("Proxy port can not be null.");
 
         // Act
-        var result = await new ProxyValidator().ValidateAsync(invalidProxyDetail);
+        var result = await new ProxyValidator()
+            .ValidateAsync(invalidProxyDetail, cancellationToken: CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -109,8 +115,11 @@ public class ProxyValidatorTests
         };
 
         // Act
-        var invalidResult = await new ProxyValidator().ValidateAsync(invalidProxyDetail);
-        var validResult = await new ProxyValidator().ValidateAsync(validProxyDetail);
+        var invalidResult = await new ProxyValidator()
+            .ValidateAsync(invalidProxyDetail, cancellationToken: CancellationToken.None);
+
+        var validResult = await new ProxyValidator()
+            .ValidateAsync(validProxyDetail, cancellationToken: CancellationToken.None);
 
         // Assert
         invalidResult.IsValid.Should().BeFalse();
@@ -139,8 +148,11 @@ public class ProxyValidatorTests
         };
 
         // Act
-        var invalidResult = await new ProxyValidator().ValidateAsync(invalidProxyDetail);
-        var validResult = await new ProxyValidator().ValidateAsync(validProxyDetail);
+        var invalidResult = await new ProxyValidator()
+            .ValidateAsync(invalidProxyDetail, cancellationToken: CancellationToken.None);
+
+        var validResult = await new ProxyValidator()
+            .ValidateAsync(validProxyDetail, cancellationToken: CancellationToken.None);
 
         // Assert
         invalidResult.IsValid.Should().BeFalse();
@@ -165,7 +177,8 @@ public class ProxyValidatorTests
             "Proxy username can not be null.");
 
         // Act
-        var result = await new ProxyValidator().ValidateAsync(invalidProxyDetail);
+        var result = await new ProxyValidator()
+            .ValidateAsync(invalidProxyDetail, cancellationToken: CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -187,7 +200,8 @@ public class ProxyValidatorTests
             "Proxy password can not be null.");
 
         // Act
-        var result = await new ProxyValidator().ValidateAsync(invalidProxyDetail);
+        var result = await new ProxyValidator()
+            .ValidateAsync(invalidProxyDetail, cancellationToken: CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -205,7 +219,7 @@ public class ProxyValidatorTests
     {
         // Act
         var proxyDetail = ValidationTestData.Proxy.HTTP with { Username = username, Password = password };
-        var result = await new ProxyValidator().ValidateAsync(proxyDetail);
+        var result = await new ProxyValidator().ValidateAsync(proxyDetail, cancellationToken: CancellationToken.None);
 
         // Assert
         result.IsValid.Should().Be(isValid);
@@ -216,7 +230,8 @@ public class ProxyValidatorTests
     public async Task ShouldReturnValid_WhenProxyValid()
     {
         // Act
-        var result = await new ProxyValidator().ValidateAsync(ValidationTestData.Proxy.HTTP, ProxyType.HTTP);
+        var result = await new ProxyValidator()
+            .ValidateAsync(ValidationTestData.Proxy.HTTP, ProxyType.HTTP, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeTrue();

@@ -1,9 +1,9 @@
 ﻿using System.Net;
 using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.NetworkInterfaces;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.NetworkInterfaces;
 
@@ -27,7 +27,7 @@ public class IPv4DetailValidatorTests
             $"IP address '{address}' of {GetCustomInterfaceNameText(interfaceName)} is no valid IPv4 address.");
 
         // Act
-        var result = await new IPv4DetailValidator(interfaceName).ValidateAsync(ipv4Detail);
+        var result = await new IPv4DetailValidator(interfaceName).ValidateAsync(ipv4Detail, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -66,7 +66,7 @@ public class IPv4DetailValidatorTests
             $"that does not include the host IP '{address}' (available hosts: {availableHostsString}).");
 
         // Act
-        var result = await new IPv4DetailValidator(interfaceName).ValidateAsync(ipv4Detail);
+        var result = await new IPv4DetailValidator(interfaceName).ValidateAsync(ipv4Detail, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -98,7 +98,7 @@ public class IPv4DetailValidatorTests
         var ipv4Detail = new IPv4Detail() { IPAddress = address, Netmask = netmask };
 
         // Act
-        var result = await new IPv4DetailValidator(interfaceName).ValidateAsync(ipv4Detail);
+        var result = await new IPv4DetailValidator(interfaceName).ValidateAsync(ipv4Detail, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeTrue();

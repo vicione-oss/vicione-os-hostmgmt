@@ -47,7 +47,10 @@
   </PropertyGroup>
 
   <!-- Zusätzliche Eigenschaften für alle Projekte im Ordner src (außer für SourceGeneration) -->
-  <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('src')) And !$(MSBuildProjectName.EndsWith('SourceGeneration'))">
+  <PropertyGroup Condition=
+      "$(MSBuildProjectDirectory.Contains('src')) And
+      !$(MSBuildProjectName.EndsWith('SourceGeneration')) And
+      '$(IsPublishing)' == 'true'">
     <IsAotCompatible>true</IsAotCompatible>
     <PublishAot>true</PublishAot>
     <PublishTrimmed>true</PublishTrimmed>
@@ -88,7 +91,8 @@
   </PropertyGroup> -->
 
   <!-- Testprojekte sollen beim Veröffentlichen ignoriert und nicht als NuGet-Paket verpackt werden -->
-  <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('Tests')) And $(MSBuildProjectDirectory.Contains('tests'))">
+  <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('tests'))">
+    <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
     <IsPublishable>false</IsPublishable>
   </PropertyGroup>

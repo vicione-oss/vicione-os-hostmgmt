@@ -1,7 +1,7 @@
 ﻿using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.DNS;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.DNS;
 
@@ -36,7 +36,7 @@ public class DomainNameValidatorTests
     {
         // Act
         var result = await new DomainNameValidator(customDomainNameText)
-            .ValidateAsync(ValidationTestData.Domain.FQDN);
+            .ValidateAsync(ValidationTestData.Domain.FQDN, CancellationToken.None);
 
         // Assert
         result.Should().BeOfType<ValidationResult>();
@@ -54,7 +54,8 @@ public class DomainNameValidatorTests
         bool isValid)
     {
         // Act
-        var result = await new DomainNameValidator(customDomainNameText).ValidateAsync(domain);
+        var result = await new DomainNameValidator(customDomainNameText)
+            .ValidateAsync(domain, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().Be(isValid);

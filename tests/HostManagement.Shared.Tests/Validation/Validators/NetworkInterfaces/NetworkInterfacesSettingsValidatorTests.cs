@@ -1,8 +1,8 @@
 ﻿using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.NetworkInterfaces;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.NetworkInterfaces;
 
@@ -57,8 +57,11 @@ public class NetworkInterfacesSettingsValidatorTests
         };
 
         // Act
-        var invalidResult = await new NetworkInterfacesSettingsValidator().ValidateAsync(invalidInterfacesSettings);
-        var validResult = await new NetworkInterfacesSettingsValidator().ValidateAsync(validInterfacesSettings);
+        var invalidResult = await new NetworkInterfacesSettingsValidator()
+            .ValidateAsync(invalidInterfacesSettings, CancellationToken.None);
+
+        var validResult = await new NetworkInterfacesSettingsValidator()
+            .ValidateAsync(validInterfacesSettings, CancellationToken.None);
 
         // Assert
         invalidResult.IsValid.Should().BeFalse();

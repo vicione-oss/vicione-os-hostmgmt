@@ -1,8 +1,8 @@
 ﻿using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Utils;
 using HostManagement.Shared.Validation.Validators.NetworkInterfaces;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.NetworkInterfaces;
 
@@ -42,7 +42,7 @@ public class GatewayValidatorTests
 
         // Act
         var result = await new GatewayValidator(interfaceName)
-            .ValidateAsync(ValidationTestData.Gateway.InvalidNotRoutableIPv4);
+            .ValidateAsync(ValidationTestData.Gateway.InvalidNotRoutableIPv4, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -62,7 +62,7 @@ public class GatewayValidatorTests
 
         // Act
         var result = await new GatewayValidator(interfaceName)
-            .ValidateAsync(ValidationTestData.Gateway.InvalidLoopbackIPv4);
+            .ValidateAsync(ValidationTestData.Gateway.InvalidLoopbackIPv4, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -82,7 +82,7 @@ public class GatewayValidatorTests
 
         // Act
         var result = await new GatewayValidator(interfaceName)
-            .ValidateAsync(ValidationTestData.Gateway.InvalidMulticastIPv4);
+            .ValidateAsync(ValidationTestData.Gateway.InvalidMulticastIPv4, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -102,7 +102,7 @@ public class GatewayValidatorTests
 
         // Act
         var result = await new GatewayValidator(interfaceName)
-            .ValidateAsync(ValidationTestData.Gateway.InvalidBroadcastIPv4);
+            .ValidateAsync(ValidationTestData.Gateway.InvalidBroadcastIPv4, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -117,7 +117,7 @@ public class GatewayValidatorTests
     {
         // Act
         var result = await new GatewayValidator(interfaceName)
-            .ValidateAsync(ValidationTestData.Gateway.Gateway1);
+            .ValidateAsync(ValidationTestData.Gateway.Gateway1, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeTrue();

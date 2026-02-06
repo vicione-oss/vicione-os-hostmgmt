@@ -1,7 +1,7 @@
 ﻿using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.DNS;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.DNS;
 
@@ -36,7 +36,7 @@ public class HostnameValidatorTests
         var expectedValidationEntry = new ValidationEntry("Hostname can not be empty or whitespace.");
 
         // Act
-        var result = await new HostnameValidator().ValidateAsync(emptyHostname, "dnsSuffix");
+        var result = await new HostnameValidator().ValidateAsync(emptyHostname, "dnsSuffix", CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -57,7 +57,7 @@ public class HostnameValidatorTests
             $"(expected max. 253 characters including dots).");
 
         // Act
-        var result = await new HostnameValidator().ValidateAsync(hostname, dnsSuffix);
+        var result = await new HostnameValidator().ValidateAsync(hostname, dnsSuffix, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -77,7 +77,7 @@ public class HostnameValidatorTests
             ErrorCodes.ValidationFailed);
 
         // Act
-        var result = await new HostnameValidator().ValidateAsync(invalidFqdnHostname, "dnsSuffix");
+        var result = await new HostnameValidator().ValidateAsync(invalidFqdnHostname, "dnsSuffix", CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -94,7 +94,7 @@ public class HostnameValidatorTests
         bool isValid)
     {
         // Act
-        var result = await new HostnameValidator().ValidateAsync(hostname, "dnsSuffix");
+        var result = await new HostnameValidator().ValidateAsync(hostname, "dnsSuffix", CancellationToken.None);
 
         // Assert
         result.IsValid.Should().Be(isValid);

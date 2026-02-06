@@ -27,7 +27,7 @@ public class NetworkDNSConfigurationAdapterTests
             var dnsSettings = config.NetworkDNSSettings;
             var sut = CreateSut(current, handler);
 
-            var status = await sut.GetConfiguration(config);
+            var status = await sut.GetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Error);
             config.NetworkDNSSettings.Should().BeSameAs(dnsSettings);
@@ -52,7 +52,7 @@ public class NetworkDNSConfigurationAdapterTests
             SystemConfiguration config = new();
             var sut = CreateSut(current, handler);
 
-            var status = await sut.GetConfiguration(config);
+            var status = await sut.GetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Success);
             config.NetworkDNSSettings.Should().Be(scriptResult);
@@ -167,7 +167,7 @@ public class NetworkDNSConfigurationAdapterTests
             var sut = CreateSut(new(), handler, bypassHasChanges: true);
 
             // Act
-            var status = await sut.SetConfiguration(proposed);
+            var status = await sut.SetConfiguration(proposed, CancellationToken.None);
 
             // Assert
             status.Should().Be(OperationStatus.Success);

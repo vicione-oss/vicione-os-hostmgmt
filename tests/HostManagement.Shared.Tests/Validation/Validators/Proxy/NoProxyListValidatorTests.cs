@@ -1,8 +1,8 @@
 ﻿using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.Proxy;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.Proxy;
 
@@ -40,7 +40,8 @@ public class NoProxyListValidatorTests
         var expectedValidationEntry = new ValidationEntry("No no-proxy items specified.");
 
         // Act
-        var result = await new NoProxyListValidator().ValidateAsync(noProxyItems, s_interfaces);
+        var result = await new NoProxyListValidator()
+            .ValidateAsync(noProxyItems, s_interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -64,7 +65,8 @@ public class NoProxyListValidatorTests
             $"No-proxy items have duplicate entries. Affected entries are: '{duplicateNoProxyItem}'.");
 
         // Act
-        var result = await new NoProxyListValidator().ValidateAsync(noProxyItems, s_interfaces);
+        var result = await new NoProxyListValidator()
+            .ValidateAsync(noProxyItems, s_interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -80,7 +82,7 @@ public class NoProxyListValidatorTests
         bool isValid)
     {
         // Act
-        var result = await new NoProxyItemValidator().ValidateAsync(noProxyItem, s_interfaces);
+        var result = await new NoProxyItemValidator().ValidateAsync(noProxyItem, s_interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().Be(isValid);
@@ -103,7 +105,8 @@ public class NoProxyListValidatorTests
             ValidationTestData.NoProxyItem.FQDN
         };
 
-        var result = await new NoProxyListValidator().ValidateAsync(noProxyItems, s_interfaces);
+        var result = await new NoProxyListValidator()
+            .ValidateAsync(noProxyItems, s_interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeTrue();

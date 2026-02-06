@@ -1,7 +1,7 @@
 ﻿using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.DNS;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.DNS;
 
@@ -36,7 +36,7 @@ public class SearchDomainValidatorTests
         var expectedValidationEntry = new ValidationEntry("Search domain can not be empty or whitespace.");
 
         // Act
-        var result = await new SearchDomainValidator().ValidateAsync(emptySearchDomain);
+        var result = await new SearchDomainValidator().ValidateAsync(emptySearchDomain, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -52,7 +52,7 @@ public class SearchDomainValidatorTests
         bool isValid)
     {
         // Act
-        var result = await new SearchDomainValidator().ValidateAsync(searchDomain);
+        var result = await new SearchDomainValidator().ValidateAsync(searchDomain, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().Be(isValid);

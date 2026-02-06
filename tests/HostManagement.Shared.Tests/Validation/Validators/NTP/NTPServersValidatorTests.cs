@@ -1,7 +1,7 @@
 ﻿using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.NTP;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators;
 
@@ -39,7 +39,7 @@ public class NTPServersValidatorTests
         var expectedValidationEntry = new ValidationEntry("No NTP servers specified.");
 
         // Act
-        var result = await new NTPServersValidator().ValidateAsync(ntpServers);
+        var result = await new NTPServersValidator().ValidateAsync(ntpServers, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -64,7 +64,7 @@ public class NTPServersValidatorTests
             $"NTP servers have duplicate entries. Affected entries are: '{duplicateNTPServer}'.");
 
         // Act
-        var result = await new NTPServersValidator().ValidateAsync(ntpServers);
+        var result = await new NTPServersValidator().ValidateAsync(ntpServers, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -80,7 +80,7 @@ public class NTPServersValidatorTests
         bool isValid)
     {
         // Act
-        var result = await new NTPServerValidator().ValidateAsync(ntpServer);
+        var result = await new NTPServerValidator().ValidateAsync(ntpServer, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().Be(isValid);
@@ -99,7 +99,7 @@ public class NTPServersValidatorTests
         };
 
         // Act
-        var result = await new NTPServersValidator().ValidateAsync(ntpServers);
+        var result = await new NTPServersValidator().ValidateAsync(ntpServers, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeTrue();

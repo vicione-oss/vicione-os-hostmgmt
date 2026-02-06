@@ -34,7 +34,7 @@ public class ServiceConfigurationAdapterTests
             var sut = CreateSut(handler, [Service1, Service2,]);
             var config = new SystemConfiguration();
 
-            var status = await sut.GetConfiguration(config);
+            var status = await sut.GetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Error);
             config.Services.Should().ContainSingle().Which.Name.Should().Be(Service2);
@@ -53,7 +53,7 @@ public class ServiceConfigurationAdapterTests
             var sut = CreateSut(handler, [Service1, Service2, Service3,]);
             var config = new SystemConfiguration();
 
-            var status = await sut.GetConfiguration(config);
+            var status = await sut.GetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Error);
             config.Services.Should().HaveCount(2)
@@ -73,7 +73,7 @@ public class ServiceConfigurationAdapterTests
             var sut = CreateSut(handler, [Service1, Service2,]);
             var config = new SystemConfiguration();
 
-            var status = await sut.GetConfiguration(config);
+            var status = await sut.GetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Warning);
             config.Services.Should().HaveCount(2)
@@ -93,7 +93,7 @@ public class ServiceConfigurationAdapterTests
             var sut = CreateSut(handler, [Service1, Service2,]);
             var config = new SystemConfiguration();
 
-            var status = await sut.GetConfiguration(config);
+            var status = await sut.GetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Success);
             config.Services.Should().HaveCount(2)
@@ -111,7 +111,7 @@ public class ServiceConfigurationAdapterTests
             var sut = CreateSut(handler, ["plain.service", "wild@*.service",]);
             var config = new SystemConfiguration();
 
-            var status = await sut.GetConfiguration(config);
+            var status = await sut.GetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Success);
             config.Services.Should().ContainSingle().Which.Name.Should().Be("plain.service");
@@ -126,7 +126,7 @@ public class ServiceConfigurationAdapterTests
             var sut = CreateSut(handler, []);
             var config = new SystemConfiguration();
 
-            var status = await sut.GetConfiguration(config);
+            var status = await sut.GetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Success);
             config.Services.Should().BeNull();
@@ -140,7 +140,7 @@ public class ServiceConfigurationAdapterTests
             var sut = CreateSut(handler, ["wild@*.service", "another@*.service",]);
             var config = new SystemConfiguration();
 
-            var status = await sut.GetConfiguration(config);
+            var status = await sut.GetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Success);
             config.Services.Should().BeNull();
@@ -157,7 +157,7 @@ public class ServiceConfigurationAdapterTests
             var sut = CreateSut(handler, ["normal.service", "*@service.service", "service@*", "*wildcard*",]);
             var config = new SystemConfiguration();
 
-            var status = await sut.GetConfiguration(config);
+            var status = await sut.GetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Success);
             config.Services.Should().ContainSingle().Which.Name.Should().Be("normal.service");
@@ -174,7 +174,7 @@ public class ServiceConfigurationAdapterTests
             var sut = CreateSut(handler, [Service1,]);
             var config = new SystemConfiguration() { Services = null, };
 
-            var status = await sut.GetConfiguration(config);
+            var status = await sut.GetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Success);
             config.Services.Should().NotBeNull()
@@ -192,7 +192,7 @@ public class ServiceConfigurationAdapterTests
             var sut = CreateSut(handler, [Service1,]);
             var config = new SystemConfiguration();
 
-            await sut.GetConfiguration(config);
+            await sut.GetConfiguration(config, CancellationToken.None);
 
             capturedOptions.Should().NotBeNull();
             capturedOptions.Options.Should().Contain(ScriptOptionNames.GetSystemdUnitState.Name)
@@ -352,7 +352,7 @@ public class ServiceConfigurationAdapterTests
                 ],
             };
 
-            var status = await sut.SetConfiguration(config);
+            var status = await sut.SetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Error);
             await handler.Received(2).ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>()); // early exit
@@ -377,7 +377,7 @@ public class ServiceConfigurationAdapterTests
                 ],
             };
 
-            var status = await sut.SetConfiguration(config);
+            var status = await sut.SetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Warning);
             await handler.Received(2).ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>());
@@ -400,7 +400,7 @@ public class ServiceConfigurationAdapterTests
                 ],
             };
 
-            var status = await sut.SetConfiguration(config);
+            var status = await sut.SetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Success);
             await handler.Received(2).ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>());
@@ -413,7 +413,7 @@ public class ServiceConfigurationAdapterTests
             var sut = CreateSut(handler, bypassHasChanges: true);
             var config = new SystemConfiguration();
 
-            var status = await sut.SetConfiguration(config);
+            var status = await sut.SetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Success);
             await handler.DidNotReceive().ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>());
@@ -426,7 +426,7 @@ public class ServiceConfigurationAdapterTests
             var sut = CreateSut(handler, bypassHasChanges: true);
             var config = new SystemConfiguration() { Services = null, };
 
-            var status = await sut.SetConfiguration(config);
+            var status = await sut.SetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Success);
             await handler.DidNotReceive().ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>());
@@ -451,7 +451,7 @@ public class ServiceConfigurationAdapterTests
                 ],
             };
 
-            var status = await sut.SetConfiguration(config);
+            var status = await sut.SetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Success);
             captured.Should().HaveCount(3).And.SatisfyRespectively(
@@ -493,7 +493,7 @@ public class ServiceConfigurationAdapterTests
                 ],
             };
 
-            var status = await sut.SetConfiguration(config);
+            var status = await sut.SetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Warning);
             await handler.Received(3).ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>());

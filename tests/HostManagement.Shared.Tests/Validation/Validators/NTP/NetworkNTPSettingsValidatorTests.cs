@@ -1,8 +1,8 @@
 ﻿using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.NTP;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators;
 
@@ -48,7 +48,7 @@ public class NetworkNTPSettingsValidatorTests
         };
 
         // Act
-        var result = await new NetworkNTPSettingsValidator().ValidateAsync(ntpSettings);
+        var result = await new NetworkNTPSettingsValidator().ValidateAsync(ntpSettings, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().Be(isValid);

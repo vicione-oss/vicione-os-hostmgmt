@@ -1,7 +1,7 @@
 ﻿using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.DNS;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.DNS;
 
@@ -32,7 +32,7 @@ public class SearchDomainsValidatorTests
         var expectedValidationEntry = new ValidationEntry($"No search domains specified.");
 
         // Act
-        var result = await new SearchDomainsValidator().ValidateAsync([]);
+        var result = await new SearchDomainsValidator().ValidateAsync([], CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -56,7 +56,7 @@ public class SearchDomainsValidatorTests
             $"Search domains have duplicate entries. Affected entries are: '{duplicateSearchDomain}'.");
 
         // Act
-        var result = await new SearchDomainsValidator().ValidateAsync(searchDomains);
+        var result = await new SearchDomainsValidator().ValidateAsync(searchDomains, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -79,7 +79,7 @@ public class SearchDomainsValidatorTests
         };
 
         // Act
-        var result = await new SearchDomainsValidator().ValidateAsync(searchDomains);
+        var result = await new SearchDomainsValidator().ValidateAsync(searchDomains, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().Be(isValid);

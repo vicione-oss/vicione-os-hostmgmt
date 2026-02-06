@@ -1,8 +1,8 @@
 ﻿using System.Net;
 using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.NetworkInterfaces;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.NetworkInterfaces;
 
@@ -42,7 +42,7 @@ public class NetmaskValidatorTests
             $"is invalid (expected contiguous 1-bits at the top, e.g. '255.255.255.0', '255.255.255.128', '128.0.0.0' etc.).");
 
         // Act
-        var result = await new NetmaskValidator(interfaceName).ValidateAsync(invalidIPv6Netmask);
+        var result = await new NetmaskValidator(interfaceName).ValidateAsync(invalidIPv6Netmask, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -68,7 +68,8 @@ public class NetmaskValidatorTests
             $"is invalid (expected contiguous 1-bits at the top, e.g. '255.255.255.0', '255.255.255.128', '128.0.0.0' etc.).");
 
         // Act
-        var result = await new NetmaskValidator(interfaceName).ValidateAsync(invalidIPv4Netmask);
+        var result = await new NetmaskValidator(interfaceName)
+            .ValidateAsync(invalidIPv4Netmask, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -93,7 +94,7 @@ public class NetmaskValidatorTests
     {
         // Act
         var validNetmask = IPAddress.Parse(netmask);
-        var result = await new NetmaskValidator(interfaceName).ValidateAsync(validNetmask);
+        var result = await new NetmaskValidator(interfaceName).ValidateAsync(validNetmask, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeTrue();

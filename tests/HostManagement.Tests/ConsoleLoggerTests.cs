@@ -14,7 +14,7 @@ public class ConsoleLoggerTests
 
     public static TheoryData<Exception?> SampleLogException =>
     [
-        null,
+        (Exception?)null,
         new InvalidOperationException("This is a test exception")
     ];
 

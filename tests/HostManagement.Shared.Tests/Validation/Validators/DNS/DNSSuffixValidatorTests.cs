@@ -1,7 +1,7 @@
 ﻿using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.DNS;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.DNS;
 
@@ -36,7 +36,7 @@ public class DNSSuffixValidatorTests
         var expectedValidationEntry = new ValidationEntry("DNS suffix can not be empty or whitespace.");
 
         // Act
-        var result = await new DNSSuffixValidator().ValidateAsync(emptySuffix, "hostname");
+        var result = await new DNSSuffixValidator().ValidateAsync(emptySuffix, "hostname", CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -57,7 +57,7 @@ public class DNSSuffixValidatorTests
             $"(expected max. 253 characters including dots).");
 
         // Act
-        var result = await new DNSSuffixValidator().ValidateAsync(dnsSuffix, hostname);
+        var result = await new DNSSuffixValidator().ValidateAsync(dnsSuffix, hostname, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -74,7 +74,7 @@ public class DNSSuffixValidatorTests
         bool isValid)
     {
         // Act
-        var result = await new DNSSuffixValidator().ValidateAsync(dnsSuffix, "hostname");
+        var result = await new DNSSuffixValidator().ValidateAsync(dnsSuffix, "hostname", CancellationToken.None);
 
         // Assert
         result.IsValid.Should().Be(isValid);

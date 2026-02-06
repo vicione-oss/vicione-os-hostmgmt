@@ -381,7 +381,8 @@ public class SystemConfigurationPersistenceTests
 
             await _persistence.SaveUserConfiguration(new(), CancellationToken.None);
 
-            var json = await _fileSystem.File.ReadAllTextAsync(AppPaths.SystemConfigurationFilePath);
+            var json = await _fileSystem.File
+                .ReadAllTextAsync(AppPaths.SystemConfigurationFilePath, CancellationToken.None);
 
             json.Should().Be(expectedJson);
         }
@@ -643,7 +644,8 @@ public class SystemConfigurationPersistenceTests
 
             await _persistence.SaveUserConfiguration(systemConfiguration, CancellationToken.None);
 
-            var json = await _fileSystem.File.ReadAllTextAsync(AppPaths.SystemConfigurationFilePath);
+            var json = await _fileSystem.File
+                .ReadAllTextAsync(AppPaths.SystemConfigurationFilePath, CancellationToken.None);
 
             json.Should().Be(expectedJson);
         }

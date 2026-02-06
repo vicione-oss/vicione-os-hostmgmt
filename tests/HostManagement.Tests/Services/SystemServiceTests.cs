@@ -119,8 +119,8 @@ public class SystemServiceTests
 
                 // Create dummy files
                 Directory.CreateDirectory(s_unitTestDir);
-                await File.WriteAllTextAsync(packagePath, "dummy package");
-                await File.WriteAllTextAsync(signaturePath, invalidSignature);
+                await File.WriteAllTextAsync(packagePath, "dummy package", CancellationToken.None);
+                await File.WriteAllTextAsync(signaturePath, invalidSignature, CancellationToken.None);
 
                 var sut = new SystemService(logger, scriptHandler, new Result());
 
