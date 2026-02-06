@@ -578,7 +578,7 @@ internal static partial class NamedPipeRequestHelper
             var renewDhcpLeaseResult = SourceGeneratedTypeSerializer
                 .Deserialize(
                     namedPipeMessage.Content,
-                    CommunicationJsonContext.Default.RenewDHCPLeaseResult);
+                    CommunicationJsonContext.Default.GetDHCPLeaseInformationResult);
 
             return renewDhcpLeaseResult.DHCPLease;
         }
