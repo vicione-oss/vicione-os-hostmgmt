@@ -74,6 +74,11 @@ public enum ScriptIdentifier
     ApplyNetplanConfiguration,
 
     /// <summary>
+    /// Script to check if a network interface is available.
+    /// </summary>
+    IsNetworkInterfaceAvailable,
+
+    /// <summary>
     /// Script to get network interfaces.
     /// </summary>
     NetworkInterfacesGet,

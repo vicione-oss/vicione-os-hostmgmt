@@ -75,11 +75,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>CommandLineStrings_ViciOneSuite.resx</DependentUpon>
     </Compile>
-    <Compile Update="NetworkStatus\NetworkStatusResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>NetworkStatusResources.resx</DependentUpon>
-    </Compile>
     <Compile Update="SystemConfig\InternalValidation\InternalValidationResultMessages.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -146,10 +141,6 @@
     <EmbeddedResource Update="Communication\CommandLine\Commands\ViciOneSuite\CommandLineStrings_ViciOneSuite.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>CommandLineStrings_ViciOneSuite.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="NetworkStatus\NetworkStatusResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>NetworkStatusResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Update="SystemConfig\InternalValidation\InternalValidationResultMessages.resx">
       <Generator>ResXFileCodeGenerator</Generator>

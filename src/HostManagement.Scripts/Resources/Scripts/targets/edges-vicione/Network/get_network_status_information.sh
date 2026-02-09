@@ -22,7 +22,6 @@ trap 'err "Unknown error in line $LINENO: Command: $BASH_COMMAND (Exit-Code: $?)
 
 readonly ERR_CODE_1="Unsupported flag '%s'."
 readonly ERR_CODE_2="No interface name was specified."
-readonly ERR_CODE_3="The interface '%s' does not exist."
 
 #######################################
 # Variables
@@ -72,12 +71,6 @@ check_for_dns_functionality() {
 check_for_internet_connection() {
     if get_ping_result "8.8.8.8"; then
         IS_INTERNET_AVAILABLE="true"
-    fi
-}
-
-check_for_network_interface() {
-    if ! Scripts/Network/Helper/is_network_interface_available.sh "$INTERFACE_NAME"; then
-        err "$(printf "$ERR_CODE_3" "$INTERFACE_NAME")" 3
     fi
 }
 
@@ -141,7 +134,6 @@ main() {
 
     # Physical part
 
-    check_for_network_interface
     get_network_interface_state
 
     # Physical or virtual part (e.g. for VLAN's)

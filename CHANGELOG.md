@@ -21,11 +21,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `HOSTMANAGEMENT__SUITE_REPOSITORY__ENDPOINT`
   - `HOSTMANAGEMENT__SUITE_REPOSITORY__USERNAME`
   - `HOSTMANAGEMENT__SUITE_REPOSITORY__PASSWORD`
+- Moved call to `is_network_interface_available.sh` from `get_network_status_information.sh` to C#
 
 ### Fixed
 
 - Fixed cli command `NoProxyListClearCommand` not disabling the feature on clear
 - Fixed `RenewDHCPLease` request not able to support new result type `GetDHCPLeaseInformationResult` (old but obsolete `RenewDHCPLeaseResult` still works)
+- Fixed format of warning message when getting network status information returns warning
 
 ## [1.2.0] - 2025-12-02
 
