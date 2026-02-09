@@ -106,6 +106,59 @@ These are the instructions for unit testing of the `HostManagement` project.
 
   - first check all negative outcomes, e.g. exceptions, guard clauses etc.
 
+## Asserting Log Messages
+
+- When logging is used in the method being tested and the log message should be asserted, make sure that:
+  - A substitute for `ILogger` is created in the `Arrange` step
+  - `IsEnabled` returns `true`
+
+  **Example:**
+
+  ```csharp
+  // Arrange
+  var logger = Substitute.For<ILogger>();
+  logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+  ```
+
+- If the logger substitute is used in multiple test methods, it should be extracted to a method.
+
+  **Example:**
+
+  ```csharp
+  [Fact]
+  public async Task ShouldLogAndReturnResult_WhenExceptionOccurs()
+  {
+      // Arrange
+      var logger = GetLoggerSubstitute();
+  
+      // Additional arrange logic here ...
+      // Act & Assert logic here ...
+  }
+  
+  private static ILogger GetLoggerSubstitute()
+  {
+      var logger = Substitute.For<ILogger>();
+      logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+      return logger;
+  }
+  ```
+
+- For logging assertions, it is generally sufficient not to check the final rendered text (which depends on the formatter/provider). It should rather be checked that:
+  - `LogLevel` is correct
+  - `Message` is passed as a State/Template argument
+  - `Exception` (if used) is passed in the exception parameter
+
+  **Example:**
+
+  ```csharp
+  logger.Received(1).Log(
+      Arg.Is(LogLevel.Error),
+      Arg.Any<EventId>(),
+      Arg.Is<object>(state => state.ToString()!.Contains(expectedMessage)),
+      Arg.Is<Exception?>(ex => ReferenceEquals(ex, expectedException)),
+      Arg.Any<Func<object, Exception?, string>>());
+  ```
+
 ## Best Practices
 
 ### Unit Test Coverage
