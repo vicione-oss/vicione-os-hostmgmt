@@ -1,6 +1,7 @@
 ﻿using System.IO.Abstractions;
-using HostManagement.SystemConfig.Contracts;
 using System.Text.Json;
+using HostManagement.Configuration;
+using HostManagement.SystemConfig.Contracts;
 
 namespace HostManagement.SystemConfig;
 
@@ -12,13 +13,15 @@ internal sealed class SystemConfigurationPersistence(IFileSystem fileSystem) : I
 {
     private readonly IFileSystem _fileSystem = fileSystem;
 
-    /// <summary>
-    /// Loads a <see cref="SystemConfiguration"/> from the specified <paramref name="configurationFilePath"/>.
-    /// </summary>
-    /// <param name="configurationFilePath">The path to the configuration file.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns><see cref="SystemConfiguration"/></returns>
-    public async Task<SystemConfiguration> LoadSystemConfiguration(
+    /// <inheritdoc/>
+    public Task<SystemConfiguration> LoadPreparationConfiguration(CancellationToken cancellationToken)
+        => LoadSystemConfiguration(AppPaths.DefaultSystemConfigurationFilePath, cancellationToken);
+
+    /// <inheritdoc/>
+    public Task<SystemConfiguration> LoadUserConfiguration(CancellationToken cancellationToken)
+        => LoadSystemConfiguration(AppPaths.SystemConfigurationFilePath, cancellationToken);
+
+    private async Task<SystemConfiguration> LoadSystemConfiguration(
         string configurationFilePath,
         CancellationToken cancellationToken = default)
     {
@@ -39,20 +42,28 @@ internal sealed class SystemConfigurationPersistence(IFileSystem fileSystem) : I
             ?? throw new InvalidOperationException($"UTF-8 JSON stream could not be deserialized to '{nameof(SystemConfiguration)}'.");
     }
 
-    /// <summary>
-    /// Saves the <paramref name="systemConfiguration"/> to the specified <paramref name="configurationFilePath"/>.
-    /// </summary>
-    /// <param name="systemConfiguration">The <see cref="SystemConfiguration"/>.</param>
-    /// <param name="configurationFilePath">The path to the configuration file.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <exception cref="InvalidOperationException"></exception>
-    public async Task SaveSystemConfiguration(
-        SystemConfiguration systemConfiguration,
-        string configurationFilePath,
-        CancellationToken cancellationToken = default)
+    /// <inheritdoc/>
+    public bool PreparationConfigurationExists()
+        => _fileSystem.File.Exists(AppPaths.DefaultSystemConfigurationFilePath);
+
+    /// <inheritdoc/>
+    public bool UserConfigurationExists()
+        => _fileSystem.File.Exists(AppPaths.SystemConfigurationFilePath);
+
+    /// <inheritdoc/>
+    public string GetPreparationConfigurationPath()
+        => AppPaths.DefaultSystemConfigurationFilePath;
+
+    /// <inheritdoc/>
+    public string GetUserConfigurationPath()
+        => AppPaths.SystemConfigurationFilePath;
+
+    /// <inheritdoc/>
+    public async Task SaveUserConfiguration(SystemConfiguration systemConfiguration, CancellationToken cancellationToken)
     {
-        var directoryPath = _fileSystem.Path.GetDirectoryName(configurationFilePath)
-            ?? throw new InvalidOperationException($"Could not get directory name for '{configurationFilePath}'.");
+        var filePath = AppPaths.SystemConfigurationFilePath;
+        var directoryPath = _fileSystem.Path.GetDirectoryName(filePath)
+            ?? throw new InvalidOperationException($"Could not get directory name for '{filePath}'.");
 
         _fileSystem.Directory.CreateDirectory(directoryPath);
 
@@ -68,7 +79,7 @@ internal sealed class SystemConfigurationPersistence(IFileSystem fileSystem) : I
         if (systemConfiguration.NetworkNTPSettings is not null)
             systemConfiguration.NetworkNTPSettings.FallbackNTPServers = default;
 
-        await using var stream = _fileSystem.FileStream.New(configurationFilePath, new FileStreamOptions()
+        await using var stream = _fileSystem.FileStream.New(filePath, new FileStreamOptions()
         {
             Access = FileAccess.Write,
             Mode = FileMode.Create,

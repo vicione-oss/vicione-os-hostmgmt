@@ -97,11 +97,11 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
         CancellationToken cancellationToken = default)
     {
         var type = JsonConfigurationType.None;
-        if (fileSystem.File.Exists(AppPaths.SystemConfigurationFilePath))
+        if (persistence.UserConfigurationExists())
         {
             type = JsonConfigurationType.System;
         }
-        else if (fileSystem.File.Exists(AppPaths.DefaultSystemConfigurationFilePath))
+        else if (persistence.PreparationConfigurationExists())
         {
             type = JsonConfigurationType.Default;
         }
@@ -110,7 +110,7 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
             var noConfigMessage = string.Format(
                 CultureInfo.InvariantCulture,
                 CompositeFormat.Parse(SystemConfigResources.NoConfigFound),
-                $"{AppPaths.SystemConfigurationFilePath} / {AppPaths.DefaultSystemConfigurationFilePath}");
+                $"{persistence.GetUserConfigurationPath()} / {persistence.GetPreparationConfigurationPath()}");
 
             return GetSystemConfigurationResult.CreateErrorResult(noConfigMessage);
         }
@@ -133,8 +133,8 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
     public async Task<SetSystemConfigurationResult> PrepareConfiguration(
         CancellationToken cancellationToken = default)
     {
-        if (!fileSystem.File.Exists(AppPaths.SystemConfigurationFilePath) &&
-            !fileSystem.File.Exists(AppPaths.DefaultSystemConfigurationFilePath))
+        if (!persistence.UserConfigurationExists() &&
+            !persistence.PreparationConfigurationExists())
         {
             var format = CompositeFormat.Parse(SystemConfigResources.NoConfigFound);
 
@@ -256,8 +256,8 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
     {
         var configFilePath = jsonConfigType switch
         {
-            JsonConfigurationType.Default => AppPaths.DefaultSystemConfigurationFilePath,
-            JsonConfigurationType.System => AppPaths.SystemConfigurationFilePath,
+            JsonConfigurationType.Default => persistence.GetPreparationConfigurationPath(),
+            JsonConfigurationType.System => persistence.GetUserConfigurationPath(),
             _ => throw new ArgumentOutOfRangeException(nameof(jsonConfigType), jsonConfigType, null)
         };
 
@@ -448,24 +448,28 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
             JsonConfigurationType jsonConfiguration,
             CancellationToken cancellationToken)
     {
-        var configFilePath = jsonConfiguration switch
+        var path = jsonConfiguration switch
         {
-            JsonConfigurationType.Default => AppPaths.DefaultSystemConfigurationFilePath,
-            JsonConfigurationType.System => AppPaths.SystemConfigurationFilePath,
+            JsonConfigurationType.Default => persistence.GetPreparationConfigurationPath(),
+            JsonConfigurationType.System => persistence.GetUserConfigurationPath(),
             _ => throw new ArgumentOutOfRangeException(nameof(jsonConfiguration), jsonConfiguration, null)
         };
 
         try
         {
-            var loadedJsonConfig = await persistence
-                .LoadSystemConfiguration(configFilePath, cancellationToken)
-                .ConfigureAwait(false);
+            var task = jsonConfiguration switch
+            {
+                JsonConfigurationType.Default => persistence.LoadPreparationConfiguration(cancellationToken),
+                JsonConfigurationType.System => persistence.LoadUserConfiguration(cancellationToken),
+                _ => throw new ArgumentOutOfRangeException(nameof(jsonConfiguration), jsonConfiguration, null)
+            };
+            var loadedJsonConfig = await task.ConfigureAwait(false);
 
             var message =
                 string.Format(
                     CultureInfo.InvariantCulture,
                     CompositeFormat.Parse(SystemConfigResources.GetConfigFromJsonSucceeded),
-                    configFilePath);
+                    path);
 
             return (OperationStatus.Success, message, loadedJsonConfig);
         }
@@ -475,7 +479,7 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
                 string.Format(
                     CultureInfo.InvariantCulture,
                     CompositeFormat.Parse(SystemConfigResources.GetConfigFromJsonFailed),
-                    configFilePath) +
+                    path) +
                 Environment.NewLine +
                 ex.Message;
 
@@ -492,7 +496,7 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
         try
         {
             await persistence
-                .SaveSystemConfiguration(configuration.ToInternalContracts(), AppPaths.SystemConfigurationFilePath, cancellationToken)
+                .SaveUserConfiguration(configuration.ToInternalContracts(), cancellationToken)
                 .ConfigureAwait(false);
 
             return result;

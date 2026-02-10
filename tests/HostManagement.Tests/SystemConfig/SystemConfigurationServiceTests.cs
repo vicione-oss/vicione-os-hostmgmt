@@ -107,6 +107,8 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnError_WhenNoJsonFileExists()
         {
             var context = new SystemConfigurationServiceContext();
+            context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
+            context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
 
             var result = await context.Sut.GetConfigurationFromJson();
 
@@ -120,9 +122,10 @@ public class SystemConfigurationServiceTests
         public async Task ShouldLoadSystemConfiguration_WhenSystemConfigExists()
         {
             var context = new SystemConfigurationServiceContext();
-            context.FileSystem.AddFile(AppPaths.SystemConfigurationFilePath, new MockFileData(string.Empty));
+            context.Persistence.UserConfigurationExists().Returns(true);
+            context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
             var config = CreateInternalConfig();
-            context.Persistence.LoadSystemConfiguration(AppPaths.SystemConfigurationFilePath, Arg.Any<CancellationToken>())
+            context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>())
                 .Returns(config);
 
             var result = await context.Sut.GetConfigurationFromJson();
@@ -137,9 +140,10 @@ public class SystemConfigurationServiceTests
         public async Task ShouldLoadDefaultConfiguration_WhenOnlyDefaultConfigExists()
         {
             var context = new SystemConfigurationServiceContext();
-            context.FileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new MockFileData(string.Empty));
+            context.Persistence.PreparationConfigurationExists().Returns(true);
+            context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
             var config = CreateInternalConfig();
-            context.Persistence.LoadSystemConfiguration(AppPaths.DefaultSystemConfigurationFilePath, Arg.Any<CancellationToken>())
+            context.Persistence.LoadPreparationConfiguration(Arg.Any<CancellationToken>())
                 .Returns(config);
 
             var result = await context.Sut.GetConfigurationFromJson();
@@ -154,9 +158,9 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnError_WhenPersistenceThrowsException()
         {
             var context = new SystemConfigurationServiceContext();
-            context.FileSystem.AddFile(AppPaths.SystemConfigurationFilePath, new MockFileData(string.Empty));
-            context.FileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new MockFileData(string.Empty));
-            context.Persistence.LoadSystemConfiguration(default!, default)
+            context.Persistence.PreparationConfigurationExists().Returns(true);
+            context.Persistence.UserConfigurationExists().Returns(true);
+            context.Persistence.LoadUserConfiguration(default)
                 .ThrowsAsyncForAnyArgs(new InvalidOperationException("Load failed"));
 
             var result = await context.Sut.GetConfigurationFromJson();
@@ -170,16 +174,17 @@ public class SystemConfigurationServiceTests
         public async Task ShouldPassCancellationToken()
         {
             var context = new SystemConfigurationServiceContext();
-            context.FileSystem.AddFile(AppPaths.SystemConfigurationFilePath, new MockFileData(string.Empty));
-            context.FileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new MockFileData(string.Empty));
+            context.Persistence.PreparationConfigurationExists().Returns(true);
+            context.Persistence.UserConfigurationExists().Returns(true);
             var config = CreateInternalConfig();
-            context.Persistence.LoadSystemConfiguration(default!, default)
+            context.Persistence.LoadUserConfiguration(default)
                 .ReturnsForAnyArgs(config);
             using var cts = new CancellationTokenSource();
 
             await context.Sut.GetConfigurationFromJson(cts.Token);
 
-            _ = context.Persistence.Received(1).LoadSystemConfiguration(Arg.Any<string>(), cts.Token);
+            _ = context.Persistence.Received(0).LoadPreparationConfiguration(cts.Token);
+            _ = context.Persistence.Received(1).LoadUserConfiguration(cts.Token);
         }
     }
 
@@ -202,8 +207,10 @@ public class SystemConfigurationServiceTests
         {
             var context = new SystemConfigurationServiceContext();
             context.FileSystem.AddFile(AppPaths.SystemConfigurationFilePath, new MockFileData(string.Empty));
+            context.Persistence.UserConfigurationExists().Returns(true);
+            context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
             var config = CreateInternalConfig();
-            context.Persistence.LoadSystemConfiguration(AppPaths.SystemConfigurationFilePath, Arg.Any<CancellationToken>())
+            context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>())
                 .Returns(config);
 
             var result = await context.Sut.PrepareConfiguration();
@@ -217,11 +224,15 @@ public class SystemConfigurationServiceTests
         {
             var context = new SystemConfigurationServiceContext();
             context.FileSystem.AddFile(AppPaths.SystemConfigurationFilePath, new MockFileData(string.Empty));
+            context.Persistence.UserConfigurationExists().Returns(true);
+            context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
             context.FileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new MockFileData(string.Empty));
-            context.Persistence.LoadSystemConfiguration(AppPaths.SystemConfigurationFilePath, Arg.Any<CancellationToken>())
+            context.Persistence.PreparationConfigurationExists().Returns(true);
+            context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
+            context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>())
                 .ThrowsAsync(new InvalidOperationException("System config error"));
             var config = CreateInternalConfig();
-            context.Persistence.LoadSystemConfiguration(AppPaths.DefaultSystemConfigurationFilePath, Arg.Any<CancellationToken>())
+            context.Persistence.LoadPreparationConfiguration(Arg.Any<CancellationToken>())
                 .Returns(config);
 
             var result = await context.Sut.PrepareConfiguration();
@@ -235,8 +246,14 @@ public class SystemConfigurationServiceTests
         {
             var context = new SystemConfigurationServiceContext();
             context.FileSystem.AddFile(AppPaths.SystemConfigurationFilePath, new MockFileData(string.Empty));
+            context.Persistence.UserConfigurationExists().Returns(true);
+            context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
             context.FileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new MockFileData(string.Empty));
-            context.Persistence.LoadSystemConfiguration(default!, default)
+            context.Persistence.PreparationConfigurationExists().Returns(true);
+            context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
+            context.Persistence.LoadUserConfiguration(default)
+                .ThrowsAsyncForAnyArgs(new InvalidOperationException("Load failed"));
+            context.Persistence.LoadPreparationConfiguration(default)
                 .ThrowsAsyncForAnyArgs(new InvalidOperationException("Load failed"));
 
             var result = await context.Sut.PrepareConfiguration();
@@ -249,11 +266,11 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnError_WhenAdapterReturnsWarning()
         {
             var context = new SystemConfigurationServiceContext();
-            context.FileSystem.AddFile(AppPaths.SystemConfigurationFilePath, new MockFileData(string.Empty));
-            context.FileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new MockFileData(string.Empty));
+            context.Persistence.UserConfigurationExists().Returns(true);
+            context.Persistence.PreparationConfigurationExists().Returns(true);
             var config = CreateInternalConfig();
-            context.Persistence.LoadSystemConfiguration(default!, default)
-                .ReturnsForAnyArgs(config);
+            context.Persistence.LoadUserConfiguration(default).ReturnsForAnyArgs(config);
+            context.Persistence.LoadPreparationConfiguration(default).ReturnsForAnyArgs(config);
             context.ScriptHandler.ExecuteSetNetworkDNSSettingsScript(default!)
                 .ReturnsForAnyArgs(OperationStatus.Warning);
 
@@ -267,11 +284,11 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnError_WhenAdapterReturnsError()
         {
             var context = new SystemConfigurationServiceContext();
-            context.FileSystem.AddFile(AppPaths.SystemConfigurationFilePath, new MockFileData(string.Empty));
-            context.FileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new MockFileData(string.Empty));
+            context.Persistence.UserConfigurationExists().Returns(true);
+            context.Persistence.PreparationConfigurationExists().Returns(true);
             var config = CreateInternalConfig();
-            context.Persistence.LoadSystemConfiguration(default!, default)
-                .ReturnsForAnyArgs(config);
+            context.Persistence.LoadUserConfiguration(default).ReturnsForAnyArgs(config);
+            context.Persistence.LoadPreparationConfiguration(default).ReturnsForAnyArgs(config);
             context.ScriptHandler.ExecuteSetNetworkDNSSettingsScript(default!)
                 .ReturnsForAnyArgs(OperationStatus.Error);
 
@@ -286,10 +303,14 @@ public class SystemConfigurationServiceTests
         {
             var context = new SystemConfigurationServiceContext();
             context.FileSystem.AddFile(AppPaths.SystemConfigurationFilePath, new MockFileData(string.Empty));
+            context.Persistence.UserConfigurationExists().Returns(true);
+            context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
             context.FileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new MockFileData(string.Empty));
+            context.Persistence.PreparationConfigurationExists().Returns(true);
+            context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
             var config = CreateInternalConfig();
-            context.Persistence.LoadSystemConfiguration(default!, default)
-                .ReturnsForAnyArgs(config);
+            context.Persistence.LoadUserConfiguration(default).ReturnsForAnyArgs(config);
+            context.Persistence.LoadPreparationConfiguration(default).ReturnsForAnyArgs(config);
             context.ScriptHandler.ExecuteSetNetworkDNSSettingsScript(default!)
                 .ThrowsAsyncForAnyArgs(new InvalidOperationException("Exception during prepare"));
 
@@ -361,7 +382,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnSuccess_WhenSetSucceeds()
         {
             var context = new SystemConfigurationServiceContext();
-            context.Persistence.SaveSystemConfiguration(default!, default!, default)
+            context.Persistence.SaveUserConfiguration(default!, default)
                 .ReturnsForAnyArgs(Task.CompletedTask);
             var proposedConfig = CreateSharedConfig();
 
@@ -375,15 +396,14 @@ public class SystemConfigurationServiceTests
         public async Task ShouldPersistConfiguration_WhenShouldPersistIsTrue()
         {
             var context = new SystemConfigurationServiceContext();
-            context.Persistence.SaveSystemConfiguration(default!, default!, default)
+            context.Persistence.SaveUserConfiguration(default!, default)
                 .ReturnsForAnyArgs(Task.CompletedTask);
             var proposedConfig = CreateSharedConfig();
 
             await context.Sut.SetConfiguration(proposedConfig, shouldPersistConfiguration: true);
 
-            await context.Persistence.Received(1).SaveSystemConfiguration(
+            await context.Persistence.Received(1).SaveUserConfiguration(
                 Arg.Any<InternalSystemConfiguration>(),
-                AppPaths.SystemConfigurationFilePath,
                 Arg.Any<CancellationToken>());
         }
 
@@ -395,9 +415,8 @@ public class SystemConfigurationServiceTests
 
             await context.Sut.SetConfiguration(proposedConfig, shouldPersistConfiguration: false);
 
-            await context.Persistence.DidNotReceive().SaveSystemConfiguration(
+            await context.Persistence.DidNotReceive().SaveUserConfiguration(
                 Arg.Any<InternalSystemConfiguration>(),
-                Arg.Any<string>(),
                 Arg.Any<CancellationToken>());
         }
 
@@ -405,7 +424,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnError_WhenPersistenceFails()
         {
             var context = new SystemConfigurationServiceContext();
-            context.Persistence.SaveSystemConfiguration(default!, default!, default)
+            context.Persistence.SaveUserConfiguration(default!, default)
                 .ThrowsAsyncForAnyArgs(new InvalidOperationException("Persist failed"));
             var proposedConfig = CreateSharedConfig();
 
@@ -468,9 +487,8 @@ public class SystemConfigurationServiceTests
 
             await context.Sut.SetConfiguration(proposedConfig, true, cts.Token);
 
-            await context.Persistence.Received(1).SaveSystemConfiguration(
+            await context.Persistence.Received(1).SaveUserConfiguration(
                 Arg.Any<InternalSystemConfiguration>(),
-                Arg.Any<string>(),
                 cts.Token);
         }
     }
