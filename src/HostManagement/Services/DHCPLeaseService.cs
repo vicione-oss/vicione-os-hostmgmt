@@ -117,7 +117,12 @@ internal sealed partial class DHCPLeaseService(ILogger logger)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var status = await scriptHandler.ExecuteRenewDHCPLeaseScript(interfaceName);
+        var status = await scriptHandler.ExecuteIsNetworkInterfaceAvailableScript(interfaceName);
+
+        if (status is OperationStatus.Warning or OperationStatus.Error)
+            return (OperationStatus.Error, DHCPLease.Empty);
+
+        status = await scriptHandler.ExecuteRenewDHCPLeaseScript(interfaceName);
 
         if (status == OperationStatus.Error)
             return (OperationStatus.Error, DHCPLease.Empty);
