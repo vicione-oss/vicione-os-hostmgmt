@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - from `get_network_status_information.sh`
   - from `renew_dhcp_lease.sh`
   - from `set_network_interface_ipv4_settings.sh`
+- Moved call to `get_network_interfaces.sh` from scripts to C# for MDNS
 
 ### Fixed
 

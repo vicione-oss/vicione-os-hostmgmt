@@ -130,9 +130,14 @@ public class NetworkDNSConfigurationAdapterTests
         [Fact]
         public async Task ShouldCallScripts_ForChangedSettings()
         {
-            var handler = Substitute.For<IScriptHandler>();
+            // Arrange
             List<ScriptOptions> captured = [];
             string? hostnameCaptured = default;
+            var rawInterfacesString = "ens33            UP             00:50:56:36:6d:33 <BROADCAST,MULTICAST,UP,LOWER_UP>";
+
+            var handler = Substitute.For<IScriptHandler>();
+            handler.ExecuteGetNetworkInterfacesScript()
+                .Returns(Task.FromResult((OperationStatus.Success, rawInterfacesString)));
             handler.ExecuteSetNetworkMulticastDNSSettingsScript(Arg.Do<ScriptOptions>(captured.Add))
                 .Returns(Task.FromResult(OperationStatus.Success));
             handler.ExecuteSetStaticHostsScript(Arg.Do<ScriptOptions>(captured.Add))
@@ -141,6 +146,7 @@ public class NetworkDNSConfigurationAdapterTests
                 .Returns(Task.FromResult(OperationStatus.Success));
             handler.ExecuteSetHostnameScript(Arg.Do<string>(so => hostnameCaptured = so))
                 .Returns(Task.FromResult(OperationStatus.Success));
+
             SystemConfiguration proposed = new()
             {
                 NetworkDNSSettings = new()
@@ -157,37 +163,32 @@ public class NetworkDNSConfigurationAdapterTests
                     StaticHosts = [new StaticHostDetail { Hostname = "local", IPAddress = IPAddress.Parse("10.0.0.1"), }],
                 }
             };
+
             var sut = CreateSut(new(), handler, bypassHasChanges: true);
 
+            // Act
             var status = await sut.SetConfiguration(proposed);
 
+            // Assert
             status.Should().Be(OperationStatus.Success);
-            captured.Should().HaveCount(3).And.SatisfyRespectively(
-                so => so.Options.Should().ContainInOrder(
-                    ScriptOptionNames.NetworkMulticastDNS.MulticastDNSEnabled,
-                    "true"),
-                so => so.Options.Should().ContainInOrder(
-                    ScriptOptionNames.NetworkDNSStaticHosts.Enabled,
-                    "true",
-                    ScriptOptionNames.NetworkDNSStaticHosts.IPAddress,
-                    "10.0.0.1",
-                    ScriptOptionNames.NetworkDNSStaticHosts.Hostname,
-                    "local"),
-                so => so.Options.Should().ContainInOrder(
-                    ScriptOptionNames.NetworkDNS.NameServersEnabled,
-                    "true",
-                    ScriptOptionNames.NetworkDNS.NameServers,
-                    "1.1.1.1",
-                    ScriptOptionNames.NetworkDNS.DNSSuffixEnabled,
-                    "true",
-                    ScriptOptionNames.NetworkDNS.DNSSuffix,
-                    "intranet",
-                    ScriptOptionNames.NetworkDNS.SearchDomainsEnabled,
-                    "true",
-                    ScriptOptionNames.NetworkDNS.SearchDomains,
-                    "searchengine"));
             hostnameCaptured.Should().NotBeNull();
             hostnameCaptured!.Should().Be("newhost");
+
+            captured.Should().HaveCount(3).And.SatisfyRespectively(
+                so => so.Options.Should().ContainInOrder(
+                    ScriptOptionNames.NetworkMulticastDNS.MulticastDNSEnabled, "true",
+                    ScriptOptionNames.NetworkMulticastDNS.Interfaces, rawInterfacesString),
+                so => so.Options.Should().ContainInOrder(
+                    ScriptOptionNames.NetworkDNSStaticHosts.Enabled, "true",
+                    ScriptOptionNames.NetworkDNSStaticHosts.IPAddress, "10.0.0.1",
+                    ScriptOptionNames.NetworkDNSStaticHosts.Hostname, "local"),
+                so => so.Options.Should().ContainInOrder(
+                    ScriptOptionNames.NetworkDNS.NameServersEnabled, "true",
+                    ScriptOptionNames.NetworkDNS.NameServers, "1.1.1.1",
+                    ScriptOptionNames.NetworkDNS.DNSSuffixEnabled, "true",
+                    ScriptOptionNames.NetworkDNS.DNSSuffix, "intranet",
+                    ScriptOptionNames.NetworkDNS.SearchDomainsEnabled, "true",
+                    ScriptOptionNames.NetworkDNS.SearchDomains, "searchengine"));
         }
     }
 }
