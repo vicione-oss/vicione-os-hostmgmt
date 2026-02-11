@@ -60,31 +60,27 @@ validate_positive_integer() {
 }
 
 schedule_shutdown() {
-    local restart_flag="$1"
-    local delay_seconds="$2"
+    local restart_flag="${1:-}"
+    local delay_seconds="${2:-0}"
+
+    local action="poweroff"
+    local type="Shutdown"
+
+    if [[ -n "$restart_flag" ]]; then
+        action="reboot"
+        type="Restart"
+    fi
 
     if [[ "$delay_seconds" -gt 0 ]]; then
-        local message="Shutdown will be initiated in ${delay_seconds} seconds."
-
-        if [[ -n "$restart_flag" ]]; then
-            message="Restart will be initiated in ${delay_seconds} seconds."
-        fi
-
         # Respond to caller and start background process for delay and shutdown/restart
-        echo "$message"
+        echo "${type} will be initiated in ${delay_seconds} seconds."
 
-        if [[ -n "$restart_flag" ]]; then
-            nohup bash -c "sleep ${delay_seconds}; systemctl reboot" >/dev/null 2>&1 &
-        else
-            nohup bash -c "sleep ${delay_seconds}; systemctl poweroff" >/dev/null 2>&1 &
-        fi
+        nohup bash -c 'sleep "$1"; systemctl "$2"' -- "$delay_seconds" "$action" >/dev/null 2>&1 &
     else
         # Shutdown/Restart immediately
-        if [[ -n "$restart_flag" ]]; then
-            systemctl reboot
-        else
-            systemctl poweroff
-        fi
+        echo "${type} will be initiated now."
+
+        systemctl "$action"
     fi
 }
 
