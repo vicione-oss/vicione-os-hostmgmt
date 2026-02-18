@@ -166,7 +166,7 @@ Markdown:
   image: $VICIONE_IMAGE
   script:
     - npm install -g markdownlint-cli2
-    - markdownlint-cli2 "/builds/**/*.md" "#/builds/**/.gitlab/**"
+    - markdownlint-cli2 "**/*.md"
   rules:
     - <<: *rules_tag_manual
       changes:
