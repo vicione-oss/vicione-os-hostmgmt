@@ -97,15 +97,6 @@ namespace HostManagement.Services {
         }
         
         /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die Getting network status information completed with warnings. ähnelt.
-        /// </summary>
-        internal static string GetNetworkStatusInformationCompletedWithWarnings {
-            get {
-                return ResourceManager.GetString("GetNetworkStatusInformationCompletedWithWarnings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Getting network status information failed. ähnelt.
         /// </summary>
         internal static string GetNetworkStatusInformationFailed {

@@ -49,9 +49,6 @@ internal sealed partial class NetworkStatusService(
             if (status == OperationStatus.Error)
                 return LogFailedAndReturnResult(_result.Messages);
 
-            if (status == OperationStatus.Warning)
-                return LogCompletedWithWarningsAndReturnResult(_result.Messages, networkStatusInformation);
-
             return new GetNetworkStatusInformationResult
             {
                 Status = OperationStatus.Success,
@@ -67,23 +64,6 @@ internal sealed partial class NetworkStatusService(
         {
             return LogFailedAndReturnResult(null, ex);
         }
-    }
-
-    private GetNetworkStatusInformationResult LogCompletedWithWarningsAndReturnResult(
-        string additionalMessage,
-        NetworkStatusInformation networkStatusInformation)
-    {
-        var simpleMessage = ServicesResources.GetNetworkStatusInformationCompletedWithWarnings;
-        var message = simpleMessage + Environment.NewLine + additionalMessage;
-
-        LogWarning(_logger, message);
-
-        return new GetNetworkStatusInformationResult
-        {
-            Status = OperationStatus.Warning,
-            Message = simpleMessage,
-            NetworkStatusInformation = networkStatusInformation,
-        };
     }
 
     private GetNetworkStatusInformationResult LogCanceledAndReturnResult()

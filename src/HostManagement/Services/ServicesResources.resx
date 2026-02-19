@@ -129,9 +129,6 @@
   <data name="GetNetworkStatusInformationCanceled" xml:space="preserve">
     <value>Getting network status information was canceled.</value>
   </data>
-  <data name="GetNetworkStatusInformationCompletedWithWarnings" xml:space="preserve">
-    <value>Getting network status information completed with warnings.</value>
-  </data>
   <data name="GetNetworkStatusInformationFailed" xml:space="preserve">
     <value>Getting network status information failed.</value>
   </data>
