@@ -200,11 +200,11 @@ internal sealed class ProxyConfigurationAdapter(
 
         scriptOptions.Add(
             ScriptOptionNames.Proxy.URL,
-            proxyDetail.Server);
+            proxyDetail.Server ?? string.Empty); // Make the compiler happy. A validator prevents us from getting here with invalid values.
 
         scriptOptions.Add(
             ScriptOptionNames.Proxy.Port,
-            proxyDetail.Port);
+            proxyDetail.Port ?? -1); // Make the compiler happy. A validator prevents us from getting here with invalid values.
 
         if (proxyDetail.Username is not null &&
             proxyDetail.Password is not null)

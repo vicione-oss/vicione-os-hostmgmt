@@ -251,21 +251,14 @@ internal static class ContractsTranslator
 
     private static NetworkProxyDetail? ToInternalContracts(this SharedNetwork.NetworkProxyDetail shared)
     {
-        if (shared.Server is null || shared.Port is null)
+        return new()
         {
-            return default;
-        }
-        else
-        {
-            return new()
-            {
-                Enabled = shared.Enabled,
-                Server = shared.Server,
-                Port = shared.Port.Value,
-                Username = shared.Username,
-                Password = shared.Password,
-            };
-        }
+            Enabled = shared.Enabled,
+            Server = shared.Server,
+            Port = shared.Port,
+            Username = shared.Username,
+            Password = shared.Password,
+        };
     }
 
     private static NetworkNTPSettings ToInternalContracts(this SharedNetwork.NetworkNTPSettings shared)
