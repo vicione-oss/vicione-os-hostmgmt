@@ -14,6 +14,9 @@ variables:
   - dotnet nuget update source JFrogNuGetProxy --configfile NuGet.Config -u $NuGet_User_JFrog -p $NuGet_PW_JFrog --store-password-in-clear-text
   - dotnet nuget update source JFrogViciOne --configfile NuGet.Config -u $NuGet_User_JFrog -p $NuGet_PW_JFrog --store-password-in-clear-text
 
+.update_nuget_source_rw: &update_nuget_source_rw
+  - dotnet nuget update source JFrogViciOne --configfile NuGet.Config -u $NuGet_User_RW_JFrog -p $NuGet_PW_RW_JFrog --store-password-in-clear-text
+
 include:
   - project: 'vicione-oss/tooling/templates'
     file: '/CI-Templates/v2/dotnet.yml'
@@ -102,6 +105,53 @@ include:
         - $RUNNER_TAG
       coverage: true
 
+  # NuGet Packages
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-pack@2.2.4
+    inputs:
+      image: $VICIONE_IMAGE
+      stage: packaging
+      rules:
+        - if: '$CI_COMMIT_TAG'
+          when: manual
+          allow_failure: true
+        - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+          when: manual
+          allow_failure: true
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+          when: manual
+          allow_failure: true
+        - if: '$CI_PIPELINE_SOURCE == "web"'
+          when: manual
+          allow_failure: true
+      before_script:
+        - *activate_mise
+        - echo "${PackageVersion}"
+      tags:
+        - $RUNNER_TAG
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-nuget-push@2.2.4
+    inputs:
+      image: $VICIONE_IMAGE
+      source: "JFrogViciOne"
+      filename_pattern: "./src/*"
+      rules:
+        - if: '$CI_COMMIT_TAG'
+          when: manual
+          allow_failure: true
+        - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+          when: manual
+          allow_failure: true
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+          when: manual
+          allow_failure: true
+        - if: '$CI_PIPELINE_SOURCE == "web"'
+          when: manual
+          allow_failure: true
+      before_script:
+        - *activate_mise
+        - *update_nuget_source_rw
+      tags:
+        - $RUNNER_TAG
+
   # JFrog components for artifact releases
   - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/jfrog/release@v0.1.0
     inputs:
@@ -151,6 +201,7 @@ stages:
   - artifacts
   - packaging
   - deploy
+  - publish
   - release
   - release-public
   - cleanup
@@ -355,18 +406,6 @@ trigger deb packaging:
 
 #################### Deploy stage
 
-Deploy Shared NuGet:
-  extends: .dotnet-deploy-nuget
-  variables:
-    PROJECT: 'src/HostManagement.Shared/HostManagement.Shared.csproj'
-    REPO: 'JFrogViciOne'
-
-Deploy Shared.Communication NuGet:
-  extends: .dotnet-deploy-nuget
-  variables:
-    PROJECT: 'src/HostManagement.Shared.Communication/HostManagement.Shared.Communication.csproj'
-    REPO: 'JFrogViciOne'
-
 # JFrog release jobs are created by jfrog component includes above
 
 # Configure JFrog job dependencies
@@ -381,20 +420,6 @@ Release Packages to JFrog:
 Public-Release Packages to JFrog:
   needs:
     - "Release Packages to JFrog"
-
-#################### Release stage
-
-Release Shared NuGet:
-  extends: .dotnet-release-nuget
-  variables:
-    PROJECT: 'src/HostManagement.Shared/HostManagement.Shared.csproj'
-    REPO: 'JFrogViciOne'
-
-Release Shared.Communication NuGet:
-  extends: .dotnet-release-nuget
-  variables:
-    PROJECT: 'src/HostManagement.Shared.Communication/HostManagement.Shared.Communication.csproj'
-    REPO: 'JFrogViciOne'
 
 #################### Cleanup stage
 # Cleanup job is created by registry component include above

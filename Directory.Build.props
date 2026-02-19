@@ -55,6 +55,11 @@
       <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
 
+  <!-- IsPackable is individually enabled per project -->
+  <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('src'))">
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
   <!-- Testprojekte erhalten automatisch 'xunit.runner.json' -->
   <ItemGroup Condition="$(MSBuildProjectDirectory.Contains('tests'))">
       <AdditionalFiles Include="$(MSBuildThisFileDirectory)xunit.runner.json" CopyToOutputDirectory="Always" />
