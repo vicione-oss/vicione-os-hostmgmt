@@ -1,9 +1,16 @@
 {
+    // Disable line length checks
     "MD013": false,
+
+    // Allow multiple headings with the same content for headings with different parents
     "MD024": {
         "siblings_only": true
     },
+
+    // Allow a blank line between two blockquote blocks
     "MD028": false,
+
+    // Allow the following inline HTML elements
     "MD033": {
         "allowed_elements": [
             "br",
