@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Text;
 using HostManagement.Scripts.Enums;
 using HostManagement.Scripts.Extensions;
 
@@ -19,11 +18,15 @@ public sealed class ScriptRunner
 
     private readonly string _resourceDeployDirectory;
 
-    private ScriptRunner(string resourceDeployDirectory) => _resourceDeployDirectory = resourceDeployDirectory;
+    private ScriptRunner(string resourceDeployDirectory)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(resourceDeployDirectory);
+
+        _resourceDeployDirectory = resourceDeployDirectory;
+    }
 
     /// <summary>
-    /// Gets the <see cref="ScriptRunner"/> instance after it was initialized via
-    /// <see cref="Initialize(string)"/>.
+    /// Gets the <see cref="ScriptRunner"/> instance after it was initialized via <see cref="Initialize(string)"/>.
     /// </summary>
     /// <exception cref="InvalidOperationException"/>
     public static ScriptRunner GetInstance()
@@ -72,12 +75,10 @@ public sealed class ScriptRunner
     /// <summary>
     /// The default timeout in milliseconds for script execution.
     /// </summary>
-
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Singleton instance state")]
-    public int DefaultTimeoutInMilliseconds => 60_000;
+    public static int DefaultTimeoutInMilliseconds => 60_000;
 
     /// <summary>
-    /// Executes the corresponding script based on the given <see cref="ScriptIdentifier"/> and
+    /// Executes the corresponding script based on the given <paramref name="scriptIdentifier"/> and
     /// <paramref name="scriptArguments"/>.
     /// </summary>
     /// <inheritdoc cref="Run(int, ScriptIdentifier, IEnumerable{string})"/>
@@ -88,10 +89,62 @@ public sealed class ScriptRunner
 
     /// <summary>
     /// Executes the corresponding script based on the given <paramref name="timeoutInMilliseconds"/>,
-    /// <see cref="ScriptIdentifier"/> and <paramref name="scriptArguments"/>.
+    /// <paramref name="scriptIdentifier"/> and <paramref name="scriptArguments"/>.
+    /// </summary>
+    /// <inheritdoc cref="Run(int, ScriptIdentifier, IProcessWrapper, CancellationToken, IEnumerable{string})"/>
+    public async Task<ScriptResponse> Run(
+        int timeoutInMilliseconds,
+        ScriptIdentifier scriptIdentifier,
+        params IEnumerable<string>? scriptArguments)
+    {
+        return await Run(
+            timeoutInMilliseconds,
+            scriptIdentifier,
+            new ProcessWrapper(),
+            CancellationToken.None,
+            scriptArguments);
+    }
+
+    /// <summary>
+    /// Executes the corresponding script based on the given <paramref name="scriptIdentifier"/> and
+    /// <paramref name="scriptArguments"/>.
+    /// </summary>
+    /// <inheritdoc cref="Run(int, ScriptIdentifier, CancellationToken, IEnumerable{string})"/>
+    public async Task<ScriptResponse> Run(
+        ScriptIdentifier scriptIdentifier,
+        CancellationToken cancellationToken,
+        params IEnumerable<string>? scriptArguments)
+    {
+        return await Run(DefaultTimeoutInMilliseconds, scriptIdentifier, cancellationToken, scriptArguments);
+    }
+
+    /// <summary>
+    /// Executes the corresponding script based on the given <paramref name="timeoutInMilliseconds"/>,
+    /// <paramref name="scriptIdentifier"/> and <paramref name="scriptArguments"/>.
+    /// </summary>
+    /// <inheritdoc cref="Run(int, ScriptIdentifier, IProcessWrapper, CancellationToken, IEnumerable{string})"/>
+    public async Task<ScriptResponse> Run(
+        int timeoutInMilliseconds,
+        ScriptIdentifier scriptIdentifier,
+        CancellationToken cancellationToken,
+        params IEnumerable<string>? scriptArguments)
+    {
+        return await Run(
+            timeoutInMilliseconds,
+            scriptIdentifier,
+            new ProcessWrapper(),
+            cancellationToken,
+            scriptArguments);
+    }
+
+    /// <summary>
+    /// Executes the corresponding script based on the given <paramref name="timeoutInMilliseconds"/>,
+    /// <paramref name="scriptIdentifier"/> and <paramref name="scriptArguments"/>.
     /// </summary>
     /// <param name="timeoutInMilliseconds">The timeout in milliseconds.</param>
     /// <param name="scriptIdentifier">The script identifier.</param>
+    /// <param name="processWrapper">An <see cref="IProcessWrapper"/> implementation.</param>
+    /// <param name="cancellationToken">A token to cncel the operation.</param>
     /// <param name="scriptArguments">Optional script arguments.</param>
     /// <remarks>
     /// <see cref="ScriptResponse.StandardOutput"/> contains:
@@ -108,74 +161,67 @@ public sealed class ScriptRunner
     /// </para>
     /// </remarks>
     /// <returns><see cref="ScriptResponse"/></returns>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="OperationCanceledException"></exception>
+    /// <exception cref="ProcessWrapperStartException"></exception>
     /// <exception cref="TimeoutException"></exception>
-    public async Task<ScriptResponse> Run(
+    internal async Task<ScriptResponse> Run(
         int timeoutInMilliseconds,
         ScriptIdentifier scriptIdentifier,
+        IProcessWrapper processWrapper,
+        CancellationToken cancellationToken,
         params IEnumerable<string>? scriptArguments)
     {
         if (timeoutInMilliseconds < DefaultTimeoutInMilliseconds)
             timeoutInMilliseconds = DefaultTimeoutInMilliseconds;
 
-        using var process = new Process()
-        {
-            StartInfo = GetProcessStartInfo(
-                GetScriptContent(scriptIdentifier),
-                ScriptArgumentFormatter.GetFormattedArguments(scriptArguments))
-        };
+        var processStartInfo = GetProcessStartInfo(
+            GetScriptContent(scriptIdentifier),
+            ScriptArgumentFormatter.GetFormattedArguments(scriptArguments));
 
-        StringBuilder output = new();
-        process.OutputDataReceived += (_, e) => output.AppendLine(e.Data);
-        StringBuilder error = new();
-        process.ErrorDataReceived += (_, e) => error.AppendLine(e.Data);
+        while (ResourceManager.GetInstance().IsDeploymentInProgress)
+            await Task.Delay(100);
 
 #if DEBUG
         var stopwatch = Stopwatch.StartNew();
 #endif
-        var started = false;
+
+        ScriptResponse scriptResponse;
+
         try
         {
-            while (ResourceManager.GetInstance().IsDeploymentInProgress)
-                await Task.Delay(100);
-
-            started = process.Start();
+            scriptResponse = await processWrapper.StartScriptAsync(
+                processStartInfo,
+                timeoutInMilliseconds,
+                cancellationToken);
         }
-        catch (Exception ex)
+        catch (ProcessWrapperStartException ex)
         {
-            throw new InvalidOperationException(
-                $"Failed to start process for script with identifier '{scriptIdentifier}'.", ex);
+            return ScriptResponse.CreateErrorResponse(
+                $"Failed to start process for script with identifier '{scriptIdentifier}'. {ex}");
         }
-        if (!started)
-            throw new InvalidOperationException("No new process was started to execute script.");
-
-        process.BeginErrorReadLine();
-        process.BeginOutputReadLine();
-
-        using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(timeoutInMilliseconds));
-        try
+        catch (TimeoutException)
         {
-            await process.WaitForExitAsync(cts.Token).ConfigureAwait(false);
+            return ScriptResponse.CreateErrorResponse(
+                $"Script with identifier '{scriptIdentifier}' exceeded the timeout of " +
+                $"{timeoutInMilliseconds:N0} milliseconds and was aborted.");
         }
         catch (OperationCanceledException)
         {
-            if (!process.HasExited)
-            {
-                process.Kill(true);
-
-                throw new TimeoutException(
-                    $"Script with identifier '{scriptIdentifier}' exceeded the timeout of " +
-                    $"{timeoutInMilliseconds:N0} milliseconds and was aborted.");
-            }
+            return ScriptResponse.CreateErrorResponse(
+                $"Script with identifier '{scriptIdentifier}' was cancelled.");
+        }
+#if DEBUG
+        finally
+        {
+            stopwatch.Stop();
         }
 
-#if DEBUG
-        stopwatch.Stop();
         Console.ForegroundColor = ConsoleColor.Blue;
         Console.WriteLine($"Script with identifier '{scriptIdentifier}' took {stopwatch.Elapsed}");
         Console.ResetColor();
 #endif
-        return new ScriptResponse(process.ExitCode, output.ToString().TrimEnd(), error.ToString().TrimEnd());
+
+        return scriptResponse;
     }
 
     private ProcessStartInfo GetProcessStartInfo(string scriptContent, string scriptArguments)
@@ -191,7 +237,7 @@ public sealed class ScriptRunner
             RedirectStandardError = true,
             UseShellExecute = false,
             CreateNoWindow = true,
-            WindowStyle = ProcessWindowStyle.Hidden,
+            WindowStyle = ProcessWindowStyle.Hidden
         };
     }
 
@@ -255,6 +301,9 @@ public sealed class ScriptRunner
             // Install
             ScriptIdentifier.InstallDebianPackage => resourceManager.GetResource("install_deb_package"),
 
+            // Test
+            ScriptIdentifier.UnitTesting => resourceManager.GetResource("UnitTesting"),
+
             // Unknown
             _ => throw new InvalidOperationException($"Unknown script identifier '{scriptIdentifier}'."),
         };
@@ -262,7 +311,7 @@ public sealed class ScriptRunner
         if (string.IsNullOrWhiteSpace(scriptContent))
         {
             throw new InvalidOperationException(
-                $"Failed to get script content for script identifier '{scriptIdentifier}'.");
+                $"Script content for script with identifier '{scriptIdentifier}' was empty.");
         }
 
         return scriptContent.EnsureLFLineEndings();
