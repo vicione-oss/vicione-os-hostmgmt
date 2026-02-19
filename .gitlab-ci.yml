@@ -1,3 +1,19 @@
+variables:
+  VICIONE_IMAGE: registry.gitlab.com/vicione-oss/tooling/base-image:vicione-latest
+  PACKAGE_NAME: "ci-artifacts"
+  ARTIFACT_PREFIX: "hostmanagement"
+  DEB_PACKAGING_PROJECT: 'vicione-oss/vicione/os/deb-packaging'
+  DEB_PACKAGING_BRANCH: 'master'
+  RUNNER_TAG: saas-linux-large-amd64
+
+.activate_mise: &activate_mise
+  - mise install
+  - eval "$(mise env)"
+
+.update_nuget_source_ro: &update_nuget_source_ro
+  - dotnet nuget update source JFrogNuGetProxy --configfile NuGet.Config -u $NuGet_User_JFrog -p $NuGet_PW_JFrog --store-password-in-clear-text
+  - dotnet nuget update source JFrogViciOne --configfile NuGet.Config -u $NuGet_User_JFrog -p $NuGet_PW_JFrog --store-password-in-clear-text
+
 include:
   - project: 'vicione-oss/tooling/templates'
     file: '/CI-Templates/v2/dotnet.yml'
@@ -42,6 +58,50 @@ include:
       rules:
         - if: '$CI_PIPELINE_SOURCE == "schedule"'
 
+  # Build & Test
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-restore@2.2.4
+    inputs:
+      image: $VICIONE_IMAGE
+      rules:
+        - if: '$CI_COMMIT_TAG'
+        - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+        - if: '$CI_PIPELINE_SOURCE == "web"'
+      before_script:
+        - *activate_mise
+        - *update_nuget_source_ro
+      tags:
+        - $RUNNER_TAG
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-build@2.2.4
+    inputs:
+      image: $VICIONE_IMAGE
+      rules:
+        - if: '$CI_COMMIT_TAG'
+        - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+        - if: '$CI_PIPELINE_SOURCE == "web"'
+      before_script:
+        - *activate_mise
+        - echo "$Version"
+      tags:
+        - $RUNNER_TAG
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-test@2.2.4
+    inputs:
+      image: $VICIONE_IMAGE
+      rules:
+        - if: '$CI_COMMIT_TAG'
+          when: manual
+          allow_failure: true
+        - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+        - if: '$CI_PIPELINE_SOURCE == "web"'
+      before_script:
+        - *activate_mise
+        - *update_nuget_source_ro
+      tags:
+        - $RUNNER_TAG
+      coverage: true
+
   # JFrog components for artifact releases
   - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/jfrog/release@v0.1.0
     inputs:
@@ -84,13 +144,6 @@ include:
           when: manual
           allow_failure: true
 
-variables:
-  VICIONE_IMAGE: registry.gitlab.com/vicione-oss/tooling/base-image:vicione-latest
-  PACKAGE_NAME: "ci-artifacts"
-  ARTIFACT_PREFIX: "hostmanagement"
-  DEB_PACKAGING_PROJECT: 'vicione-oss/vicione/os/deb-packaging'
-  DEB_PACKAGING_BRANCH: 'master'
-
 stages:
   - lint
   - build
@@ -105,11 +158,23 @@ stages:
 default:
   image: $VICIONE_IMAGE
   tags:
-    - saas-linux-large-amd64
+    - $RUNNER_TAG
   before_script:
-    - mise trust --all
-    - mise install
-    - eval "$(mise env -s bash)"
+    - *activate_mise
+
+Version:
+  stage: .pre
+  script:
+    - if [[ -f "VERSION" ]]; then VERSION=$(head -n 1 VERSION); fi
+    - if [[ ! -z "${CI_COMMIT_TAG}" ]]; then VERSION=$(echo $CI_COMMIT_TAG | sed 's/v//g'); fi
+    - if [[ -z "${VERSION}" ]]; then VERSION='0.1.0'; fi
+    - if [[ -z "${CI_COMMIT_TAG}" ]]; then VERSION="${VERSION}-ci${CI_PIPELINE_ID}"; fi
+    - echo "Version=${VERSION}" >> version.env
+    - echo "PackageVersion=${VERSION}" >> version.env
+    - cat version.env
+  artifacts:
+    reports:
+      dotenv: version.env
 
 #################### Rules
 
@@ -177,18 +242,6 @@ Markdown:
     - <<: *rules_web
       changes:
         - "**/*.md"
-
-#################### Build stage
-
-Build:
-  extends: .dotnet-build
-  variables:
-    PROJECT: 'HostManagement.slnx'
-
-#################### Test stage
-
-xUnit:
-  extends: .dotnet-test-xunit
 
 #################### Artifacts stage
 
