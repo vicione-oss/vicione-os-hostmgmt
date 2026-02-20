@@ -71,27 +71,12 @@ variables:
 .update_nuget_source_rw: &update_nuget_source_rw
   - dotnet nuget update source JFrogViciOne --configfile NuGet.Config -u $NuGet_User_RW_JFrog -p $NuGet_PW_RW_JFrog --store-password-in-clear-text
 
-.publish_project: &publish_project
-  - !reference [.nuget_credentials]
-  - !reference [.prepare_directory]
-  - dotnet publish -r "${DOTNET_ARCH}" -o "${ABSOLUTE_DIRECTORY}" "${PROJECT}"
-  - ls -larth "${ABSOLUTE_DIRECTORY}"
-
-# Build artifacts only - upload is handled by registry component
-.create_artifacts: &create_artifacts
-  - du -sh ./${DIRECTORY}/
-  - rm -rf ./${DIRECTORY}/*.xml ./${DIRECTORY}/*.dbg ./${DIRECTORY}/*.pdb
-  - du -sh ./${DIRECTORY}/
-  - tar cfz ${DIRECTORY}.tar.gz ./${DIRECTORY}
-  - ls -lh ${DIRECTORY}.tar.gz
-
 #################### Jobs
 
 stages:
   - lint
   - build
   - test
-  - artifacts
   - packaging
   - deploy
   - publish
@@ -115,10 +100,21 @@ Version:
     - if [[ -z "${CI_COMMIT_TAG}" ]]; then VERSION="${VERSION}-ci${CI_PIPELINE_ID}"; fi
     - echo "Version=${VERSION}" >> version.env
     - echo "PackageVersion=${VERSION}" >> version.env
+    - echo "APP_PIPELINE=${CI_PIPELINE_ID}" >> version.env
+    - echo "APP_VERSION=$(cat VERSION)" >> version.env
+    - echo "APP_TAG=${CI_COMMIT_TAG}" >> version.env
     - cat version.env
   artifacts:
     reports:
       dotenv: version.env
+
+.publish_matrix: &publish_matrix
+  - OS: linux
+    ARCH: x64
+    RUNNER_ARCH: amd64
+  - OS: linux
+    ARCH: arm64
+    RUNNER_ARCH: arm64
 
 include:
   - project: 'vicione-oss/tooling/templates'
@@ -128,7 +124,7 @@ include:
   - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/upload@v0.1.2
     inputs:
       name: "Upload artifacts arm64"
-      stage: artifacts
+      stage: packaging
       file: "artifacts.tar.gz"
       remote_name: "${ARTIFACT_PREFIX}-${CI_PIPELINE_ID}-linux-arm64.tar.gz"
       package_name: $PACKAGE_NAME
@@ -137,7 +133,7 @@ include:
   - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/upload@v0.1.2
     inputs:
       name: "Upload artifacts x64"
-      stage: artifacts
+      stage: packaging
       file: "artifacts.tar.gz"
       remote_name: "${ARTIFACT_PREFIX}-${CI_PIPELINE_ID}-linux-x64.tar.gz"
       package_name: $PACKAGE_NAME
@@ -162,6 +158,14 @@ include:
         - *update_nuget_source_ro
       tags:
         - $RUNNER_TAG
+      execution_matrix:
+        - OS: linux
+          ARCH: x64
+          RUNNER_ARCH: amd64
+        - OS: linux
+          ARCH: arm64
+          RUNNER_ARCH: arm64
+        - PLACEHOLDER: all
   - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-build@2.2.4
     inputs:
       image: $VICIONE_IMAGE
@@ -171,6 +175,16 @@ include:
         - echo "$Version"
       tags:
         - $RUNNER_TAG
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-publish@2.2.4
+    inputs:
+      image: $VICIONE_IMAGE
+      rules: *rules_manual
+      before_script:
+        - *activate_mise
+      tags:
+        - saas-linux-large-$RUNNER_ARCH
+      project: src/HostManagement/HostManagement.csproj
+      execution_matrix: *publish_matrix
   - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-test@2.2.4
     inputs:
       image: $VICIONE_IMAGE
@@ -263,40 +277,32 @@ Markdown:
 
 #################### Artifacts stage
 
-Build artifacts arm64:
-  stage: artifacts
-  image: $VICIONE_IMAGE
+Pack binaries:
+  stage: packaging
+  before_script: []
+  parallel:
+    matrix: *publish_matrix
+  needs:
+    - job: "dotnet Publish"
+      parallel:
+        matrix:
+          - OS: $[[ matrix.OS ]]
+            ARCH: $[[ matrix.ARCH ]]
+            RUNNER_ARCH: $[[ matrix.RUNNER_ARCH ]]
   variables:
-    DOTNET_ARCH: 'linux-arm64'
-    DIRECTORY: 'artifacts'
-    PROJECT: 'src/HostManagement/HostManagement.csproj'
+    INPUT_DIRECTORY: "src/HostManagement/bin/Release/net10.0/$OS-$ARCH/publish"
+    OUTPUT_DIRECTORY: "artifacts"
   script:
-    - *publish_project
-    - *create_artifacts
+    - mv $INPUT_DIRECTORY $OUTPUT_DIRECTORY
+    - du -sh ./${OUTPUT_DIRECTORY}/
+    - rm -rf ./${OUTPUT_DIRECTORY}/*.xml ./${OUTPUT_DIRECTORY}/*.dbg ./${OUTPUT_DIRECTORY}/*.pdb
+    - du -sh ./${OUTPUT_DIRECTORY}/
+    - tar cfz artifacts.tar.gz ./${OUTPUT_DIRECTORY}
+    - ls -lh artifacts.tar.gz
   artifacts:
     paths:
       - artifacts.tar.gz
     expire_in: 30 days
-  tags:
-    - saas-linux-large-arm64
-  when: manual
-  rules: *rules_manual_tag
-
-Build artifacts x64:
-  stage: artifacts
-  image: $VICIONE_IMAGE
-  variables:
-    DOTNET_ARCH: 'linux-x64'
-    DIRECTORY: 'artifacts'
-    PROJECT: 'src/HostManagement/HostManagement.csproj'
-  script:
-    - *publish_project
-    - *create_artifacts
-  artifacts:
-    paths:
-      - artifacts.tar.gz
-    expire_in: 30 days
-  when: manual
   rules: *rules_manual_tag
 
 # Upload jobs are created by registry component includes above
@@ -306,32 +312,27 @@ Build artifacts x64:
 # Override tags to use small runners (upload doesn't need large)
 Upload artifacts arm64:
   image: $VICIONE_IMAGE
+  before_script: []
   tags: []
   needs:
-    - job: "Build artifacts arm64"
-      artifacts: true
+    - job: "Pack binaries"
+      parallel:
+        matrix:
+          - OS: linux
+            ARCH: arm64
+            RUNNER_ARCH: arm64
 
 Upload artifacts x64:
   image: $VICIONE_IMAGE
+  before_script: []
   tags: []
   needs:
-    - job: "Build artifacts x64"
-      artifacts: true
-
-Versioning:
-  stage: artifacts
-  image: $VICIONE_IMAGE
-  script:
-    - echo "APP_PIPELINE=${CI_PIPELINE_ID}" >>version.env
-    - echo "APP_VERSION=$(cat VERSION)" >>version.env
-    - echo "APP_TAG=${CI_COMMIT_TAG}" >>version.env
-    - cat version.env
-  artifacts:
-    reports:
-      dotenv: version.env
-    expire_in: 30 days
-  when: manual
-  rules: *rules_manual_tag
+    - job: "Pack binaries"
+      parallel:
+        matrix:
+          - OS: linux
+            ARCH: x64
+            RUNNER_ARCH: amd64
 
 #################### Packaging stage
 
@@ -349,8 +350,7 @@ trigger deb packaging:
   needs:
     - "Upload artifacts arm64"
     - "Upload artifacts x64"
-    - job: "Versioning"
-      artifacts: true
+    - Version
   when: manual
   rules: *rules_manual_tag
 
