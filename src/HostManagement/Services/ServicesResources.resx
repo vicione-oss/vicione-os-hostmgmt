@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="DelayInvalid" xml:space="preserve">
+    <value>The delay must be a positive integer number greater than 0.</value>
+  </data>
   <data name="DHCPLeaseEmpty" xml:space="preserve">
     <value>DHCP lease was empty.</value>
   </data>
@@ -185,6 +188,18 @@
   </data>
   <data name="SystemdUnitStopFailed" xml:space="preserve">
     <value>Stopping systemd unit '{0}' failed.</value>
+  </data>
+  <data name="SystemWillRestartDelayed" xml:space="preserve">
+    <value>The system will restart in {0} seconds.</value>
+  </data>
+  <data name="SystemWillRestartNow" xml:space="preserve">
+    <value>The system will restart now.</value>
+  </data>
+  <data name="SystemWillShutdownDelayed" xml:space="preserve">
+    <value>The system will shutdown in {0} seconds.</value>
+  </data>
+  <data name="SystemWillShutdownNow" xml:space="preserve">
+    <value>The system will shutdown now.</value>
   </data>
   <data name="UpdateSystemFailed" xml:space="preserve">
     <value>System could not be updated.</value>

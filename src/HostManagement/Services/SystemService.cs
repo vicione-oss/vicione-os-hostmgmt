@@ -1,10 +1,10 @@
 ﻿using System.Globalization;
 using System.Text;
-using Microsoft.Extensions.Logging;
 using HostManagement.Scripts;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Contracts.System;
+using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Services;
 
@@ -224,18 +224,47 @@ internal sealed partial class SystemService(
     /// <summary>
     /// Restarts the system.
     /// </summary>
+    /// <param name="messageContent">The message content.</param>
     /// <returns><see cref="SystemControlResult"/></returns>
-    public async Task<SystemControlResult> RestartSystem()
+    public async Task<SystemControlResult> RestartSystem(string messageContent = "")
     {
         try
         {
-            var status = await _scriptHandler
-                .ExecuteRestartSystemScript()
-                .ConfigureAwait(false);
+            var message = ServicesResources.SystemWillRestartNow;
+            var delayInSeconds = 0;
+
+            if (!string.IsNullOrWhiteSpace(messageContent))
+            {
+                if (!int.TryParse(messageContent, out delayInSeconds))
+                {
+                    message = ServicesResources.RestartSystemFailed + " " + ServicesResources.DelayInvalid;
+
+                    LogError(_logger, message);
+
+                    return new SystemControlResult
+                    {
+                        Status = OperationStatus.Error,
+                        Message = message,
+                    };
+                }
+
+                if (delayInSeconds < 0)
+                    delayInSeconds = 0;
+
+                if (delayInSeconds > 0)
+                {
+                    message = string.Format(
+                        CultureInfo.InvariantCulture,
+                        CompositeFormat.Parse(ServicesResources.SystemWillRestartDelayed),
+                        delayInSeconds);
+                }
+            }
+
+            var status = await ShutdownOrRestart(delayInSeconds, restart: true).ConfigureAwait(false);
 
             if (status == OperationStatus.Error)
             {
-                var message =
+                message =
                     ServicesResources.RestartSystemFailed +
                     Environment.NewLine +
                     _result.Messages;
@@ -252,7 +281,7 @@ internal sealed partial class SystemService(
             return new SystemControlResult
             {
                 Status = OperationStatus.Success,
-                Message = string.Empty,
+                Message = message,
             };
         }
         catch (Exception ex)
@@ -272,18 +301,47 @@ internal sealed partial class SystemService(
     /// <summary>
     /// Shuts down the system.
     /// </summary>
+    /// <param name="messageContent">The message content.</param>
     /// <returns><see cref="SystemControlResult"/></returns>
-    public async Task<SystemControlResult> ShutdownSystem()
+    public async Task<SystemControlResult> ShutdownSystem(string messageContent = "")
     {
         try
         {
-            var status = await _scriptHandler
-                .ExecuteShutdownSystemScript()
-                .ConfigureAwait(false);
+            var message = ServicesResources.SystemWillShutdownNow;
+            var delayInSeconds = 0;
+
+            if (!string.IsNullOrWhiteSpace(messageContent))
+            {
+                if (!int.TryParse(messageContent, out delayInSeconds))
+                {
+                    message = ServicesResources.ShutdownSystemFailed + " " + ServicesResources.DelayInvalid;
+
+                    LogError(_logger, message);
+
+                    return new SystemControlResult
+                    {
+                        Status = OperationStatus.Error,
+                        Message = message,
+                    };
+                }
+
+                if (delayInSeconds < 0)
+                    delayInSeconds = 0;
+
+                if (delayInSeconds > 0)
+                {
+                    message = string.Format(
+                        CultureInfo.InvariantCulture,
+                        CompositeFormat.Parse(ServicesResources.SystemWillShutdownDelayed),
+                        delayInSeconds);
+                }
+            }
+
+            var status = await ShutdownOrRestart(delayInSeconds, restart: false).ConfigureAwait(false);
 
             if (status == OperationStatus.Error)
             {
-                var message =
+                message =
                     ServicesResources.ShutdownSystemFailed +
                     Environment.NewLine +
                     _result.Messages;
@@ -300,7 +358,7 @@ internal sealed partial class SystemService(
             return new SystemControlResult
             {
                 Status = OperationStatus.Success,
-                Message = string.Empty,
+                Message = message,
             };
         }
         catch (Exception ex)
@@ -315,6 +373,18 @@ internal sealed partial class SystemService(
                 Message = message,
             };
         }
+    }
+
+    private async Task<OperationStatus> ShutdownOrRestart(int delayInSeconds, bool restart)
+    {
+        var scriptOptions = new ScriptOptions();
+
+        if (restart)
+            scriptOptions.Add(ScriptOptionNames.ShutdownSystem.Restart);
+
+        scriptOptions.Add(ScriptOptionNames.ShutdownSystem.Delay, delayInSeconds);
+
+        return await _scriptHandler.ExecuteShutdownSystemScript(scriptOptions).ConfigureAwait(false);
     }
 
     private static bool IsSignatureValidForAnyKey(SignedDebianPackage signedDebianPackage, List<string> publicKeys)

@@ -813,21 +813,25 @@ internal static partial class NamedPipeRequestHelper
     /// <summary>
     /// Sends a named pipe request to restart the system.
     /// </summary>
+    /// <param name="delayInSeconds">The delay in seconds.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns><see langword="true"/> if successful, otherwise <see langword="false"/></returns>
+    /// <returns>An optional message.</returns>
     /// <exception cref="InvalidOperationException"></exception>
-    internal static async Task<bool> RestartSystem(CancellationToken cancellationToken)
+    internal static async Task<string?> RestartSystem(int delayInSeconds, CancellationToken cancellationToken)
     {
         NamedPipeMessage? namedPipeMessage = null;
 
         try
         {
-            namedPipeMessage = await SendNamedPipeRequest(Topics.RestartSystem, null, cancellationToken);
+            namedPipeMessage = await SendNamedPipeRequest(
+                Topics.RestartSystem,
+                delayInSeconds.ToString(),
+                cancellationToken);
 
             if (namedPipeMessage is null)
             {
                 NamedPipeMessageWasNull(s_logger);
-                return false;
+                return null;
             }
 
             var systemControlResult = SourceGeneratedTypeSerializer
@@ -838,10 +842,10 @@ internal static partial class NamedPipeRequestHelper
             if (systemControlResult.Status == OperationStatus.Error)
             {
                 LogRestartSystemFailed(s_logger, systemControlResult.Message);
-                return false;
+                return null;
             }
 
-            return true;
+            return systemControlResult.Message;
         }
         catch (Exception ex)
         {
@@ -855,28 +859,32 @@ internal static partial class NamedPipeRequestHelper
             }
 
             LogRestartSystemFailed(s_logger, message);
-            return false;
+            return null;
         }
     }
 
     /// <summary>
     /// Sends a named pipe request to shutdown the system.
     /// </summary>
+    /// <param name="delayInSeconds">The delay in seconds.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns><see langword="true"/> if successful, otherwise <see langword="false"/></returns>
+    /// <returns>An optional message.</returns>
     /// <exception cref="InvalidOperationException"></exception>
-    internal static async Task<bool> ShutdownSystem(CancellationToken cancellationToken)
+    internal static async Task<string?> ShutdownSystem(int delayInSeconds, CancellationToken cancellationToken)
     {
         NamedPipeMessage? namedPipeMessage = null;
 
         try
         {
-            namedPipeMessage = await SendNamedPipeRequest(Topics.ShutdownSystem, null, cancellationToken);
+            namedPipeMessage = await SendNamedPipeRequest(
+                Topics.ShutdownSystem,
+                delayInSeconds.ToString(),
+                cancellationToken);
 
             if (namedPipeMessage is null)
             {
                 NamedPipeMessageWasNull(s_logger);
-                return false;
+                return null;
             }
 
             var systemControlResult = SourceGeneratedTypeSerializer
@@ -887,10 +895,10 @@ internal static partial class NamedPipeRequestHelper
             if (systemControlResult.Status == OperationStatus.Error)
             {
                 LogShutdownSystemFailed(s_logger, systemControlResult.Message);
-                return false;
+                return null;
             }
 
-            return true;
+            return systemControlResult.Message;
         }
         catch (Exception ex)
         {
@@ -904,7 +912,7 @@ internal static partial class NamedPipeRequestHelper
             }
 
             LogShutdownSystemFailed(s_logger, message);
-            return false;
+            return null;
         }
     }
 

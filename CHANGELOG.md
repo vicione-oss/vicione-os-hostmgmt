@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added functionality to get the current state of a systemd unit (via named pipe topic `GetServiceState`)
+- Added optional delay in seconds to shutdown or restart of the system
 
 ### Changed
 

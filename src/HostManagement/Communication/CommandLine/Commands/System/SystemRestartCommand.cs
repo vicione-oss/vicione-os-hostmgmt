@@ -12,19 +12,26 @@ internal sealed class SystemRestartCommand : Command
     /// <summary>
     /// Initializes a new <see cref="SystemRestartCommand"/>.
     /// </summary>
-    public SystemRestartCommand() : base(
+    /// <param name="delayArgument">The delay argument.</param>
+    public SystemRestartCommand(Argument<int> delayArgument) : base(
         CommandLineStrings_System.SystemRestartCommandName,
-        CommandLineStrings_System.SystemRestartCommandDescription)
+        CommandLineStrings_System.SystemRestartCommandDescription +
+        " " +
+        CommandLineStrings_System.OptionalDelayCanBeSpecified)
     {
-        SetAction((parseResult, cancellationToken) => RestartHandler(cancellationToken));
+        Add(delayArgument);
+
+        SetAction((parseResult, cancellationToken) =>
+        {
+            return RestartHandler(
+                parseResult.GetValue(delayArgument),
+                cancellationToken);
+        });
     }
 
-    private static async Task RestartHandler(CancellationToken cancellationToken)
+    private static async Task RestartHandler(int delayInSeconds, CancellationToken cancellationToken)
     {
-        if (!await NamedPipeRequestHelper.RestartSystem(cancellationToken))
-        {
-            SimpleOutput.WriteLine(CommandLineStrings_System.RestartFailed);
-            return;
-        }
+        if (await NamedPipeRequestHelper.RestartSystem(delayInSeconds, cancellationToken) is string message)
+            SimpleOutput.WriteLine(message);
     }
 }

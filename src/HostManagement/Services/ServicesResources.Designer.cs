@@ -61,6 +61,15 @@ namespace HostManagement.Services {
         }
         
         /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die The delay must be a positive integer number greater than 0. ähnelt.
+        /// </summary>
+        internal static string DelayInvalid {
+            get {
+                return ResourceManager.GetString("DelayInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die DHCP lease was empty. ähnelt.
         /// </summary>
         internal static string DHCPLeaseEmpty {
@@ -264,6 +273,42 @@ namespace HostManagement.Services {
         internal static string SystemdUnitStopFailed {
             get {
                 return ResourceManager.GetString("SystemdUnitStopFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die The system will restart in {0} seconds. ähnelt.
+        /// </summary>
+        internal static string SystemWillRestartDelayed {
+            get {
+                return ResourceManager.GetString("SystemWillRestartDelayed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die The system will restart now. ähnelt.
+        /// </summary>
+        internal static string SystemWillRestartNow {
+            get {
+                return ResourceManager.GetString("SystemWillRestartNow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die The system will shutdown in {0} seconds. ähnelt.
+        /// </summary>
+        internal static string SystemWillShutdownDelayed {
+            get {
+                return ResourceManager.GetString("SystemWillShutdownDelayed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die The system will shutdown now. ähnelt.
+        /// </summary>
+        internal static string SystemWillShutdownNow {
+            get {
+                return ResourceManager.GetString("SystemWillShutdownNow", resourceCulture);
             }
         }
         

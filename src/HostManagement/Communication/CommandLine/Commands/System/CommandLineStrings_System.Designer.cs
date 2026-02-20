@@ -98,6 +98,15 @@ namespace HostManagement.Communication.CommandLine.Commands.System {
         }
         
         /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die An optional delay in seconds can be specified. ähnelt.
+        /// </summary>
+        internal static string OptionalDelayCanBeSpecified {
+            get {
+                return ResourceManager.GetString("OptionalDelayCanBeSpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die System could not be resetted. ähnelt.
         /// </summary>
         internal static string ResetFailed {
@@ -188,7 +197,7 @@ namespace HostManagement.Communication.CommandLine.Commands.System {
         }
         
         /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die Shuts down the system. ähnelt.
+        ///   Sucht eine lokalisierte Zeichenfolge, die Shutdown the system. ähnelt.
         /// </summary>
         internal static string SystemShutdownCommandDescription {
             get {

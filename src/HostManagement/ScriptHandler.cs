@@ -130,11 +130,8 @@ internal sealed class ScriptHandler(Result? result = default) : IScriptHandler
     public async Task<OperationStatus> ExecuteResetSystemScript()
         => await ExecuteScript(ScriptIdentifier.ResetSystem);
 
-    public async Task<OperationStatus> ExecuteRestartSystemScript()
-        => await ExecuteScript(ScriptIdentifier.RestartSystem);
-
-    public async Task<OperationStatus> ExecuteShutdownSystemScript()
-        => await ExecuteScript(ScriptIdentifier.ShutdownSystem);
+    public async Task<OperationStatus> ExecuteShutdownSystemScript(ScriptOptions scriptOptions)
+        => await ExecuteScript(ScriptIdentifier.ShutdownSystem, scriptOptions.Options);
 
     private static string GetInvalidOperationExceptionMessage(
         string nameOfType,

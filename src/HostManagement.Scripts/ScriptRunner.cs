@@ -256,7 +256,6 @@ public sealed class ScriptRunner
             ScriptIdentifier.CommonSystemArchitectureGet => resourceManager.GetResource("get_system_architecture"),
 
             ScriptIdentifier.ResetSystem => resourceManager.GetResource("reset_system"),
-            ScriptIdentifier.RestartSystem => resourceManager.GetResource("restart_system"),
             ScriptIdentifier.ShutdownSystem => resourceManager.GetResource("shutdown_system"),
             ScriptIdentifier.UpdateSystem => resourceManager.GetResource("update_system"),
 
