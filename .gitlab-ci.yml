@@ -6,6 +6,60 @@ variables:
   DEB_PACKAGING_BRANCH: 'master'
   RUNNER_TAG: saas-linux-large-amd64
 
+#################### Rules
+
+.rule_tag: &rule_tag
+  if: "$CI_COMMIT_TAG"
+
+.rule_tag_manual: &rule_tag_manual
+  <<: *rule_tag
+  when: manual
+  allow_failure: true
+
+.rule_default_branch: &rule_default_branch
+  if: "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"
+
+.rule_default_branch_manual: &rule_default_branch_manual
+  <<: *rule_default_branch
+  when: manual
+  allow_failure: true
+
+.rule_mr: &rule_mr
+  if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+.rule_mr_manual: &rule_mr_manual
+  <<: *rule_mr
+  when: manual
+  allow_failure: true
+
+.rule_web: &rule_web
+  if: '$CI_PIPELINE_SOURCE == "web"'
+
+.rule_web_manual: &rule_web_manual
+  <<: *rule_web
+  when: manual
+  allow_failure: true
+
+.rules: &rules
+  - *rule_tag
+  - *rule_default_branch
+  - *rule_mr
+  - *rule_web
+
+.rules_manual: &rules_manual
+  - *rule_tag_manual
+  - *rule_default_branch_manual
+  - *rule_mr_manual
+  - *rule_web_manual
+
+.rules_manual_tag: &rules_manual_tag
+  - *rule_tag_manual
+  - *rule_default_branch
+  - *rule_mr
+  - *rule_web
+
+#################### Common
+
 .activate_mise: &activate_mise
   - mise install
   - eval "$(mise env)"
@@ -17,182 +71,21 @@ variables:
 .update_nuget_source_rw: &update_nuget_source_rw
   - dotnet nuget update source JFrogViciOne --configfile NuGet.Config -u $NuGet_User_RW_JFrog -p $NuGet_PW_RW_JFrog --store-password-in-clear-text
 
-include:
-  - project: 'vicione-oss/tooling/templates'
-    file: '/CI-Templates/v2/dotnet.yml'
+.publish_project: &publish_project
+  - !reference [.nuget_credentials]
+  - !reference [.prepare_directory]
+  - dotnet publish -r "${DOTNET_ARCH}" -o "${ABSOLUTE_DIRECTORY}" "${PROJECT}"
+  - ls -larth "${ABSOLUTE_DIRECTORY}"
 
-  # Registry components for artifact storage
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/upload@v0.1.2
-    inputs:
-      name: "Upload artifacts arm64"
-      stage: artifacts
-      file: "artifacts.tar.gz"
-      remote_name: "${ARTIFACT_PREFIX}-${CI_PIPELINE_ID}-linux-arm64.tar.gz"
-      package_name: $PACKAGE_NAME
-      rules:
-        - if: '$CI_COMMIT_TAG'
-          when: manual
-          allow_failure: true
-        - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-        - if: '$CI_PIPELINE_SOURCE == "web"'
+# Build artifacts only - upload is handled by registry component
+.create_artifacts: &create_artifacts
+  - du -sh ./${DIRECTORY}/
+  - rm -rf ./${DIRECTORY}/*.xml ./${DIRECTORY}/*.dbg ./${DIRECTORY}/*.pdb
+  - du -sh ./${DIRECTORY}/
+  - tar cfz ${DIRECTORY}.tar.gz ./${DIRECTORY}
+  - ls -lh ${DIRECTORY}.tar.gz
 
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/upload@v0.1.2
-    inputs:
-      name: "Upload artifacts x64"
-      stage: artifacts
-      file: "artifacts.tar.gz"
-      remote_name: "${ARTIFACT_PREFIX}-${CI_PIPELINE_ID}-linux-x64.tar.gz"
-      package_name: $PACKAGE_NAME
-      rules:
-        - if: '$CI_COMMIT_TAG'
-          when: manual
-          allow_failure: true
-        - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-        - if: '$CI_PIPELINE_SOURCE == "web"'
-
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/cleanup@v0.1.2
-    inputs:
-      name: "Cleanup old packages"
-      stage: cleanup
-      package_name: $PACKAGE_NAME
-      hours: "4"
-      rules:
-        - if: '$CI_PIPELINE_SOURCE == "schedule"'
-
-  # Build & Test
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-restore@2.2.4
-    inputs:
-      image: $VICIONE_IMAGE
-      rules:
-        - if: '$CI_COMMIT_TAG'
-        - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-        - if: '$CI_PIPELINE_SOURCE == "web"'
-      before_script:
-        - *activate_mise
-        - *update_nuget_source_ro
-      tags:
-        - $RUNNER_TAG
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-build@2.2.4
-    inputs:
-      image: $VICIONE_IMAGE
-      rules:
-        - if: '$CI_COMMIT_TAG'
-        - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-        - if: '$CI_PIPELINE_SOURCE == "web"'
-      before_script:
-        - *activate_mise
-        - echo "$Version"
-      tags:
-        - $RUNNER_TAG
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-test@2.2.4
-    inputs:
-      image: $VICIONE_IMAGE
-      rules:
-        - if: '$CI_COMMIT_TAG'
-          when: manual
-          allow_failure: true
-        - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-        - if: '$CI_PIPELINE_SOURCE == "web"'
-      before_script:
-        - *activate_mise
-        - *update_nuget_source_ro
-      tags:
-        - $RUNNER_TAG
-      coverage: true
-
-  # NuGet Packages
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-pack@2.2.4
-    inputs:
-      image: $VICIONE_IMAGE
-      stage: packaging
-      rules:
-        - if: '$CI_COMMIT_TAG'
-          when: manual
-          allow_failure: true
-        - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-          when: manual
-          allow_failure: true
-        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-          when: manual
-          allow_failure: true
-        - if: '$CI_PIPELINE_SOURCE == "web"'
-          when: manual
-          allow_failure: true
-      before_script:
-        - *activate_mise
-        - echo "${PackageVersion}"
-      tags:
-        - $RUNNER_TAG
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-nuget-push@2.2.4
-    inputs:
-      image: $VICIONE_IMAGE
-      source: "JFrogViciOne"
-      filename_pattern: "./src/*"
-      rules:
-        - if: '$CI_COMMIT_TAG'
-          when: manual
-          allow_failure: true
-        - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-          when: manual
-          allow_failure: true
-        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-          when: manual
-          allow_failure: true
-        - if: '$CI_PIPELINE_SOURCE == "web"'
-          when: manual
-          allow_failure: true
-      before_script:
-        - *activate_mise
-        - *update_nuget_source_rw
-      tags:
-        - $RUNNER_TAG
-
-  # JFrog components for artifact releases
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/jfrog/release@v0.1.0
-    inputs:
-      name: "Prerelease Packages to JFrog"
-      stage: deploy
-      repository: "vicione-suite-dev"
-      upload_path: "hostmanagements"
-      artifact_prefix: "hostmanagement"
-      package_name: "ci-artifacts"
-      rules:
-        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-          when: manual
-          allow_failure: true
-        - if: '$CI_PIPELINE_SOURCE == "web"'
-          when: manual
-          allow_failure: true
-
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/jfrog/release@v0.1.0
-    inputs:
-      name: "Release Packages to JFrog"
-      stage: release
-      repository: "vicione-suite-staging"
-      upload_path: "hostmanagements"
-      artifact_prefix: "hostmanagement"
-      package_name: "ci-artifacts"
-      rules:
-        - if: '$CI_COMMIT_TAG'
-          when: manual
-          allow_failure: true
-
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/jfrog/promote@v0.1.0
-    inputs:
-      name: "Public-Release Packages to JFrog"
-      stage: release-public
-      source_repository: "vicione-suite-staging"
-      destination_repository: "vicione-suite"
-      artifact_prefix: "hostmanagement"
-      rules:
-        - if: '$CI_COMMIT_TAG'
-          when: manual
-          allow_failure: true
+#################### Jobs
 
 stages:
   - lint
@@ -227,50 +120,124 @@ Version:
     reports:
       dotenv: version.env
 
-#################### Rules
+include:
+  - project: 'vicione-oss/tooling/templates'
+    file: '/CI-Templates/v2/dotnet.yml'
 
-.rules_default_branch: &rules_default_branch
-  if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  # Registry components for artifact storage
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/upload@v0.1.2
+    inputs:
+      name: "Upload artifacts arm64"
+      stage: artifacts
+      file: "artifacts.tar.gz"
+      remote_name: "${ARTIFACT_PREFIX}-${CI_PIPELINE_ID}-linux-arm64.tar.gz"
+      package_name: $PACKAGE_NAME
+      rules: *rules_manual_tag
 
-.rules_merge_request: &rules_merge_request
-  if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/upload@v0.1.2
+    inputs:
+      name: "Upload artifacts x64"
+      stage: artifacts
+      file: "artifacts.tar.gz"
+      remote_name: "${ARTIFACT_PREFIX}-${CI_PIPELINE_ID}-linux-x64.tar.gz"
+      package_name: $PACKAGE_NAME
+      rules: *rules_manual_tag
 
-.rules_merge_request_manual: &rules_merge_request_manual
-  if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-  when: manual
-  allow_failure: true
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/cleanup@v0.1.2
+    inputs:
+      name: "Cleanup old packages"
+      stage: cleanup
+      package_name: $PACKAGE_NAME
+      hours: "4"
+      rules:
+        - if: '$CI_PIPELINE_SOURCE == "schedule"'
 
-.rules_web: &rules_web
-  if: '$CI_PIPELINE_SOURCE == "web"'
+  # Build & Test
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-restore@2.2.4
+    inputs:
+      image: $VICIONE_IMAGE
+      rules: *rules
+      before_script:
+        - *activate_mise
+        - *update_nuget_source_ro
+      tags:
+        - $RUNNER_TAG
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-build@2.2.4
+    inputs:
+      image: $VICIONE_IMAGE
+      rules: *rules
+      before_script:
+        - *activate_mise
+        - echo "$Version"
+      tags:
+        - $RUNNER_TAG
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-test@2.2.4
+    inputs:
+      image: $VICIONE_IMAGE
+      rules: *rules_manual_tag
+      before_script:
+        - *activate_mise
+        - *update_nuget_source_ro
+      tags:
+        - $RUNNER_TAG
+      coverage: true
 
-.rules_web_manual: &rules_web_manual
-  if: '$CI_PIPELINE_SOURCE == "web"'
-  when: manual
-  allow_failure: true
+  # NuGet Packages
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-pack@2.2.4
+    inputs:
+      image: $VICIONE_IMAGE
+      stage: packaging
+      rules: *rules_manual
+      before_script:
+        - *activate_mise
+        - echo "${PackageVersion}"
+      tags:
+        - $RUNNER_TAG
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-nuget-push@2.2.4
+    inputs:
+      image: $VICIONE_IMAGE
+      source: "JFrogViciOne"
+      filename_pattern: "./src/*"
+      rules: *rules_manual
+      before_script:
+        - *activate_mise
+        - *update_nuget_source_rw
+      tags:
+        - $RUNNER_TAG
 
-.rules_tag_manual: &rules_tag_manual
-  if: '$CI_COMMIT_TAG'
-  when: manual
-  allow_failure: true
+  # JFrog components for artifact releases
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/jfrog/release@v0.1.0
+    inputs:
+      name: "Prerelease Packages to JFrog"
+      stage: deploy
+      repository: "vicione-suite-dev"
+      upload_path: "hostmanagements"
+      artifact_prefix: "hostmanagement"
+      package_name: "ci-artifacts"
+      rules:
+        - *rule_mr_manual
+        - *rule_web_manual
 
-.rules_scheduled: &rules_scheduled
-  if: '$CI_PIPELINE_SOURCE == "schedule"'
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/jfrog/release@v0.1.0
+    inputs:
+      name: "Release Packages to JFrog"
+      stage: release
+      repository: "vicione-suite-staging"
+      upload_path: "hostmanagements"
+      artifact_prefix: "hostmanagement"
+      package_name: "ci-artifacts"
+      rules:
+        - *rule_tag_manual
 
-#################### Common
-
-.publish_project: &publish_project
-  - !reference [.nuget_credentials]
-  - !reference [.prepare_directory]
-  - dotnet publish -r "${DOTNET_ARCH}" -o "${ABSOLUTE_DIRECTORY}" "${PROJECT}"
-  - ls -larth "${ABSOLUTE_DIRECTORY}"
-
-# Build artifacts only - upload is handled by registry component
-.create_artifacts: &create_artifacts
-  - du -sh ./${DIRECTORY}/
-  - rm -rf ./${DIRECTORY}/*.xml ./${DIRECTORY}/*.dbg ./${DIRECTORY}/*.pdb
-  - du -sh ./${DIRECTORY}/
-  - tar cfz ${DIRECTORY}.tar.gz ./${DIRECTORY}
-  - ls -lh ${DIRECTORY}.tar.gz
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/jfrog/promote@v0.1.0
+    inputs:
+      name: "Public-Release Packages to JFrog"
+      stage: release-public
+      source_repository: "vicione-suite-staging"
+      destination_repository: "vicione-suite"
+      artifact_prefix: "hostmanagement"
+      rules:
+        - *rule_tag_manual
 
 #################### Lint stage
 
@@ -281,16 +248,16 @@ Markdown:
     - npm install -g markdownlint-cli2
     - markdownlint-cli2 "**/*.md"
   rules:
-    - <<: *rules_tag_manual
+    - <<: *rule_tag_manual
       changes:
         - "**/*.md"
-    - <<: *rules_default_branch
+    - <<: *rule_default_branch
       changes:
         - "**/*.md"
-    - <<: *rules_merge_request
+    - <<: *rule_mr
       changes:
         - "**/*.md"
-    - <<: *rules_web
+    - <<: *rule_web
       changes:
         - "**/*.md"
 
@@ -313,11 +280,7 @@ Build artifacts arm64:
   tags:
     - saas-linux-large-arm64
   when: manual
-  rules:
-    - <<: *rules_tag_manual
-    - <<: *rules_default_branch
-    - <<: *rules_merge_request
-    - <<: *rules_web
+  rules: *rules_manual_tag
 
 Build artifacts x64:
   stage: artifacts
@@ -334,11 +297,7 @@ Build artifacts x64:
       - artifacts.tar.gz
     expire_in: 30 days
   when: manual
-  rules:
-    - <<: *rules_tag_manual
-    - <<: *rules_default_branch
-    - <<: *rules_merge_request
-    - <<: *rules_web
+  rules: *rules_manual_tag
 
 # Upload jobs are created by registry component includes above
 # They will automatically pick up artifacts.tar.gz from build jobs
@@ -372,11 +331,7 @@ Versioning:
       dotenv: version.env
     expire_in: 30 days
   when: manual
-  rules:
-    - <<: *rules_tag_manual
-    - <<: *rules_default_branch
-    - <<: *rules_merge_request
-    - <<: *rules_web
+  rules: *rules_manual_tag
 
 #################### Packaging stage
 
@@ -387,7 +342,6 @@ trigger deb packaging:
     APP_VERSION: ${APP_VERSION}
     APP_TAG: ${APP_TAG}
     PARENT_PROJECT_ID: ${CI_PROJECT_ID}
-    ARTIFACT_PREFIX: "hostmanagement"
   trigger:
     project: ${DEB_PACKAGING_PROJECT}
     branch: ${DEB_PACKAGING_BRANCH}
@@ -398,11 +352,7 @@ trigger deb packaging:
     - job: "Versioning"
       artifacts: true
   when: manual
-  rules:
-    - <<: *rules_tag_manual
-    - <<: *rules_default_branch
-    - <<: *rules_merge_request
-    - <<: *rules_web
+  rules: *rules_manual_tag
 
 #################### Deploy stage
 
