@@ -1,4 +1,5 @@
-﻿using System.IO.Abstractions;
+﻿using System.Collections.Frozen;
+using System.IO.Abstractions;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using HostManagement.Scripts.Enums;
@@ -29,7 +30,7 @@ public sealed partial class ResourceManager
     private readonly IProcessWrapper _processWrapper;
     private readonly string _resourceDeployDirectory;
     private readonly string _targetEnvironmentString;
-    private readonly Dictionary<string, ResourceInformation> _resourceDictionary = [];
+    private readonly FrozenDictionary<string, ResourceInformation> _resourceDictionary;
 
     private bool _isDeploymentInProgress;
 
@@ -52,7 +53,7 @@ public sealed partial class ResourceManager
 
         var resources = _resourceHelper.GetManifestResourceNames(FilterResources);
 
-        AddResourcesToResourceDictionary(resources);
+        _resourceDictionary = AddResourcesToResourceDictionary(resources).ToFrozenDictionary(StringComparer.Ordinal);
 
 
         bool FilterResources(string resource) =>
@@ -68,6 +69,13 @@ public sealed partial class ResourceManager
         get => Volatile.Read(ref _isDeploymentInProgress);
         private set => Volatile.Write(ref _isDeploymentInProgress, value);
     }
+
+    /// <summary>
+    /// Gets a read-only dictionary that contains resource information indexed by resource name.
+    /// </summary>
+    /// <remarks>This dictionary provides access to various resources used within the application. It is
+    /// populated at runtime and cannot be modified directly.</remarks>
+    internal IReadOnlyDictionary<string, ResourceInformation> ResourceDictionary => _resourceDictionary;
 
     /// <summary>
     /// Gets the <see cref="ResourceManager"/> instance after it was initialized via
@@ -259,14 +267,19 @@ public sealed partial class ResourceManager
         }
     }
 
-    private void AddResourcesToResourceDictionary(string[] embeddedResourceLocations)
+    private Dictionary<string, ResourceInformation> AddResourcesToResourceDictionary(
+        string[] embeddedResourceLocations)
     {
+        var resourceDictionary = new Dictionary<string, ResourceInformation>(StringComparer.Ordinal);
+
         foreach (var embeddedResourceLocation in embeddedResourceLocations)
         {
             var resourceInfo = GetResourceInformation(embeddedResourceLocation);
 
-            AddResourceToResourceDictionary(resourceInfo);
+            AddResourceToResourceDictionary(resourceDictionary, resourceInfo);
         }
+
+        return resourceDictionary;
     }
 
     private ResourceInformation GetResourceInformation(string embeddedResourceLocation)
@@ -329,9 +342,11 @@ public sealed partial class ResourceManager
         return string.Join(Path.DirectorySeparatorChar, filteredParts);
     }
 
-    private void AddResourceToResourceDictionary(ResourceInformation resourceInfo)
+    private void AddResourceToResourceDictionary(
+        Dictionary<string, ResourceInformation> resourceDictionary,
+        ResourceInformation resourceInfo)
     {
-        if (!_resourceDictionary.TryAdd(resourceInfo.Name, resourceInfo))
+        if (!resourceDictionary.TryAdd(resourceInfo.Name, resourceInfo))
         {
             throw new InvalidOperationException(
                 $"Could not add resource '{resourceInfo.EmbeddedResourceLocation}' with key '{resourceInfo.Name}' " +
@@ -416,7 +431,7 @@ public sealed partial class ResourceManager
         }
     }
 
-    private sealed class ResourceInformation(
+    internal sealed class ResourceInformation(
         string embeddedResourceLocation,
         string deployDirectoryStructure,
         string resourceFile)

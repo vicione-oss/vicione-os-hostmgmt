@@ -16,9 +16,11 @@ public class ResourceManagerTests
 
     // Environments
     private const string Unknown = "unknown";
+    private const string Debian = "debian";
     private const string EdgeSViciOne = "edges-vicione";
+
+    private const string NormalizedDebian = Debian;
     private const string NormalizedEdgeSViciOne = "edges_vicione";
-    private const string NormalizedDebian = "debian";
 
     private readonly string _testResourceDeployDirectory = Path.Combine("var", "lib", "hostmanagement");
 
@@ -156,6 +158,152 @@ public class ResourceManagerTests
                     path.Contains(TargetsDirectory, StringComparison.Ordinal) ||
                     path.Contains(NormalizedEdgeSViciOne, StringComparison.Ordinal)));
         }
+
+
+        [Fact]
+        public void ShouldHaveNoResources_WhenInitializedWithUnknownEnvironment()
+        {
+            // Arrange
+            ResourceManager.ResetInstance();
+
+            var (logger, fileSystem, _, _, processWrapper) = CreateSubstitutes();
+
+            // Act
+            ResourceManager.Initialize(
+                logger,
+                fileSystem,
+                new ResourceHelper(),
+                processWrapper,
+                _testResourceDeployDirectory,
+                Unknown);
+
+            // Assert
+            var instance = ResourceManager.GetInstance();
+            instance.Should().NotBeNull();
+            instance.ResourceDictionary.Should().BeEmpty();
+        }
+
+        [Theory]
+        [MemberData(nameof(DebianScriptNamesData))]
+        [MemberData(nameof(EdgeSViciOneScriptNamesData))]
+        public void ShouldHaveOnlyEnvironmentSpecificResources_WhenInitialized(
+            (string, List<string>) targetEnvironmentScriptNamesData)
+        {
+            // Arrange
+            ResourceManager.ResetInstance();
+
+            var (logger, fileSystem, _, _, processWrapper) = CreateSubstitutes();
+            var (targetEnvironmentString, scriptNames) = targetEnvironmentScriptNamesData;
+
+            // Act
+            ResourceManager.Initialize(
+                logger,
+                fileSystem,
+                new ResourceHelper(),
+                processWrapper,
+                _testResourceDeployDirectory,
+                targetEnvironmentString);
+
+            // Assert
+            var instance = ResourceManager.GetInstance();
+            instance.Should().NotBeNull();
+            instance.ResourceDictionary.Should().HaveSameCount(scriptNames).And.ContainKeys(scriptNames);
+        }
+
+        public static TheoryData<(string, List<string>)> DebianScriptNamesData =>
+        [
+            (
+                Debian,
+                new List<string>
+                {
+                    // Common
+                    "check_group_exists",
+                    "check_user_exists",
+                    "get_system_architecture",
+                    "set_execute_permission",
+                    "set_ownership",
+
+                    // System
+                    "install_deb_package",
+
+                    // SystemdUnit
+                    "get_systemd_unit_active_state",
+                    "get_systemd_unit_state",
+                    "set_systemd_unit_state"
+                }
+            )
+        ];
+
+        public static TheoryData<(string, List<string>)> EdgeSViciOneScriptNamesData =>
+        [
+            (
+                EdgeSViciOne,
+                new List<string>
+                {
+                    // Common
+                    "check_group_exists",
+                    "check_user_exists",
+                    "get_system_architecture",
+                    "set_execute_permission",
+                    "set_ownership",
+
+                    // Network
+                    "apply_netplan_configuration",
+                    "get_network_interface_ipv4_dhcp_lease",
+                    "get_network_interface_ipv4_settings",
+                    "get_network_interfaces_common_information",
+                    "get_network_status_information",
+                    "get_original_physical_address",
+                    "renew_dhcp_lease",
+                    "set_network_interface_ipv4_settings",
+
+                    // Network > DNS
+                    "get_hostname",
+                    "get_network_dns_settings",
+                    "set_hostname",
+                    "set_network_dns_settings",
+                    "set_network_multicast_dns_settings",
+                    "set_static_hosts",
+
+                    // Network > Helper
+                    "convert_ipv4_cidr_to_netmask",
+                    "get_network_interfaces",
+                    "get_network_vlan_name",
+                    "is_dhcp_enabled",
+                    "is_network_interface_available",
+
+                    // Network > NTP
+                    "get_network_ntp_fallback_information",
+                    "get_network_ntp_settings",
+                    "set_network_ntp_settings",
+
+                    // Network > Proxy
+                    "get_network_proxy_settings",
+                    "set_network_proxy_settings",
+
+                    // System
+                    "install_deb_package",
+                    "reset_system",
+                    "restart_system",
+                    "shutdown_system",
+                    "update_system",
+
+                    // SystemdUnit
+                    "get_systemd_unit_active_state",
+                    "get_systemd_unit_state",
+                    "set_systemd_unit_state",
+
+                    // ViciOne > Install
+                    "get_authorization_data",
+                    "get_installed_package_version",
+                    "get_vicione_suite_deb_file",
+                    "get_vicione_suite_installed_version",
+                    "get_vicione_suite_versions",
+                    "install_deb_file",
+                    "is_repository_reachable"
+                }
+            )
+        ];
     }
 
     public class GetResourceBytes : ResourceManagerTests
