@@ -22,7 +22,8 @@ public class NetworkInterfacesConfigurationAdapterTests
         public async Task ShouldReturnError_WhenCommonInfoScriptFails()
         {
             var handler = Substitute.For<IScriptHandler>();
-            handler.ExecuteGetNetworkInterfacesCommonInformationScript().Returns((OperationStatus.Error, []));
+            handler.ExecuteGetNetworkInterfacesScript().Returns(Task.FromResult((OperationStatus.Success, "")));
+            handler.ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>()).Returns((OperationStatus.Error, []));
             var sut = CreateSut(handler);
 
             var status = await sut.GetConfiguration(new(), CancellationToken.None);
@@ -33,8 +34,10 @@ public class NetworkInterfacesConfigurationAdapterTests
         [Fact]
         public async Task ShouldReturnError_WhenIPv4SettingsScriptFails()
         {
+            var rawInterfacesString = "eth0            UP             00:50:56:36:6d:33 <BROADCAST,MULTICAST,UP,LOWER_UP>";
             var handler = Substitute.For<IScriptHandler>();
-            handler.ExecuteGetNetworkInterfacesCommonInformationScript().Returns((OperationStatus.Success, [Common("eth0"),]));
+            handler.ExecuteGetNetworkInterfacesScript().Returns(Task.FromResult((OperationStatus.Success, rawInterfacesString)));
+            handler.ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>()).Returns((OperationStatus.Success, [Common("eth0"),]));
             handler.ExecuteGetInterfaceIPv4SettingsScript("eth0").Returns((OperationStatus.Error, new()));
             var sut = CreateSut(handler);
 
@@ -46,8 +49,10 @@ public class NetworkInterfacesConfigurationAdapterTests
         [Fact]
         public async Task ShouldPopulateInterfaces_WhenSuccess()
         {
+            var rawInterfacesString = "eth0            UP             00:50:56:36:6d:33 <BROADCAST,MULTICAST,UP,LOWER_UP>";
             var handler = Substitute.For<IScriptHandler>();
-            handler.ExecuteGetNetworkInterfacesCommonInformationScript().Returns((OperationStatus.Success, [Common("eth0"),]));
+            handler.ExecuteGetNetworkInterfacesScript().Returns(Task.FromResult((OperationStatus.Success, rawInterfacesString)));
+            handler.ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>()).Returns((OperationStatus.Success, [Common("eth0"),]));
             handler.ExecuteGetInterfaceIPv4SettingsScript("eth0").Returns((OperationStatus.Success, new() { DHCPEnabled = true, }));
             handler.ExecuteGetInterfaceIPv4DHCPLeaseScript("eth0").Returns((OperationStatus.Success, new() { LeaseExpires = DateTimeOffset.UtcNow, }));
             var sut = CreateSut(handler);

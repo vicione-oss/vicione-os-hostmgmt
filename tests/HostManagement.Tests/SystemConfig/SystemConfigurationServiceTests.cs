@@ -1,4 +1,4 @@
-﻿using System.IO.Abstractions.TestingHelpers;
+using System.IO.Abstractions.TestingHelpers;
 using AwesomeAssertions;
 using HostManagement.Configuration;
 using HostManagement.Shared.Communication.Enums;
@@ -23,7 +23,6 @@ public class SystemConfigurationServiceTests
 
     private const string TestHostname = "test-host";
     private const string TestExceptionMessage = "Test exception";
-
 
     private static InternalSystemConfiguration CreateInternalConfig()
         => new()
@@ -87,7 +86,7 @@ public class SystemConfigurationServiceTests
         {
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
-                .ExecuteGetNetworkInterfacesCommonInformationScript()
+                .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
                 .ReturnsForAnyArgs((OperationStatus.Error, []));
 
             var result = await context.Sut.GetConfiguration(CancellationToken.None);
@@ -102,7 +101,7 @@ public class SystemConfigurationServiceTests
         {
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
-                .ExecuteGetNetworkInterfacesCommonInformationScript()
+                .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
                 .ReturnsForAnyArgs((OperationStatus.Warning, []));
 
             var result = await context.Sut.GetConfiguration(CancellationToken.None);
@@ -117,7 +116,7 @@ public class SystemConfigurationServiceTests
         {
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
-                .ExecuteGetNetworkInterfacesCommonInformationScript()
+                .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
                 .ThrowsAsync(new InvalidOperationException(TestExceptionMessage));
 
             var result = await context.Sut.GetConfiguration(CancellationToken.None);
@@ -384,7 +383,7 @@ public class SystemConfigurationServiceTests
         {
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
-                .ExecuteGetNetworkInterfacesCommonInformationScript()
+                .ExecuteGetNetworkInterfacesScript()
                 .ThrowsAsync(new InvalidOperationException(TestExceptionMessage));
 
             var proposedConfig = CreateSharedConfig();
@@ -401,8 +400,8 @@ public class SystemConfigurationServiceTests
         {
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
-                .ExecuteGetNetworkInterfacesCommonInformationScript()
-                .ReturnsForAnyArgs((OperationStatus.Error, []));
+                .ExecuteGetNetworkInterfacesScript()
+                .ReturnsForAnyArgs((OperationStatus.Error, ""));
 
             var proposedConfig = CreateSharedConfig();
 
@@ -418,7 +417,7 @@ public class SystemConfigurationServiceTests
         {
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
-                .ExecuteGetNetworkInterfacesCommonInformationScript()
+                .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
                 .ReturnsForAnyArgs((OperationStatus.Warning, []));
 
             var proposedConfig = CreateSharedConfig();
@@ -551,7 +550,7 @@ public class SystemConfigurationServiceTests
         {
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
-                .ExecuteGetNetworkInterfacesCommonInformationScript()
+                .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
                 .ReturnsForAnyArgs((OperationStatus.Warning, []));
 
             var proposedConfig = CreateSharedConfig();
@@ -590,8 +589,10 @@ internal sealed class SystemConfigurationServiceContext
     internal SystemConfigurationServiceContext()
     {
         const string ServiceName = "test.service";
+        const string RawInterfacesString = "eth0            UP             00:50:56:36:6d:33 <BROADCAST,MULTICAST,UP,LOWER_UP>";
 
-        ScriptHandler.ExecuteGetNetworkInterfacesCommonInformationScript().ReturnsForAnyArgs((OperationStatus.Success, []));
+        ScriptHandler.ExecuteGetNetworkInterfacesScript().ReturnsForAnyArgs((OperationStatus.Success, RawInterfacesString));
+        ScriptHandler.ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs((OperationStatus.Success, []));
         ScriptHandler.ExecuteGetInterfaceIPv4SettingsScript(Arg.Any<string>()).ReturnsForAnyArgs((OperationStatus.Success, new()));
         ScriptHandler.ExecuteGetInterfaceIPv4DHCPLeaseScript(Arg.Any<string>()).ReturnsForAnyArgs((OperationStatus.Success, new()));
         ScriptHandler.ExecuteGetNetworkDNSSettingsScript().ReturnsForAnyArgs((OperationStatus.Success, new()));

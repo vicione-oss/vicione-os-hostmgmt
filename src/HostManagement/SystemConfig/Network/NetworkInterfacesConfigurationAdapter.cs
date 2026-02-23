@@ -30,8 +30,18 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
     {
         var hasWarning = false;
 
-        var (status, networkInterfacesCommonInformation) = await _scriptHandler
-            .ExecuteGetNetworkInterfacesCommonInformationScript()
+        var (status, rawInterfacesString) = await _scriptHandler
+            .ExecuteGetNetworkInterfacesScript()
+            .ConfigureAwait(false);
+
+        if (status is OperationStatus.Error)
+            return OperationStatus.Error;
+
+        var scriptOptions = new ScriptOptions();
+        scriptOptions.Add(ScriptOptionNames.Network.Interfaces, rawInterfacesString);
+
+        (status, var networkInterfacesCommonInformation) = await _scriptHandler
+            .ExecuteGetNetworkInterfacesCommonInformationScript(scriptOptions)
             .ConfigureAwait(false);
 
         if (status == OperationStatus.Error)

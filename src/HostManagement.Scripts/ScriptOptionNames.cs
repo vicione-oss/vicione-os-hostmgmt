@@ -116,6 +116,11 @@ public static class ScriptOptionNames
         /// The script argument for the gateway.
         /// </summary>
         public const string Gateway = "--gateway";
+
+        /// <summary>
+        /// The script argument for the interfaces.
+        /// </summary>
+        public const string Interfaces = "--interfaces";
     }
 
     /// <summary>
