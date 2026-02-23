@@ -284,7 +284,6 @@ public class ResourceManagerTests
                     // System
                     "install_deb_package",
                     "reset_system",
-                    "restart_system",
                     "shutdown_system",
                     "update_system",
 

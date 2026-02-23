@@ -2,11 +2,11 @@
 using System.IO.Abstractions;
 using System.Text;
 using AwesomeAssertions;
+using HostManagement.Scripts.Enums;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
-using HostManagement.Scripts.Enums;
 
 namespace HostManagement.Scripts.Tests;
 
@@ -162,7 +162,6 @@ public class ScriptRunnerTests
         [InlineData(ScriptIdentifier.SetOwnership, "set_ownership")]
         [InlineData(ScriptIdentifier.CommonSystemArchitectureGet, "get_system_architecture")]
         [InlineData(ScriptIdentifier.ResetSystem, "reset_system")]
-        [InlineData(ScriptIdentifier.RestartSystem, "restart_system")]
         [InlineData(ScriptIdentifier.ShutdownSystem, "shutdown_system")]
         [InlineData(ScriptIdentifier.UpdateSystem, "update_system")]
         [InlineData(ScriptIdentifier.SystemdUnitActiveStateGet, "get_systemd_unit_active_state")]
