@@ -47,7 +47,7 @@ usage() {
     echo
     echo "Options:"
     echo "  ${FLAG_MULTICAST_DNS_ENABLED} - Enables or disables multicast DNS."
-    echo "  ${FLAG_INTERFACES}            - The interfaces with format as returned from `ip -br link show`."
+    echo "  ${FLAG_INTERFACES}            - The interfaces with format as returned from 'ip -br link show'."
     exit 0
 }
 
