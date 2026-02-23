@@ -37,6 +37,7 @@ readonly FLAG_DNS_SUFFIX_ENABLED="--dns-suffix-enabled"
 readonly FLAG_DNS_SUFFIX="--dns-suffix"
 readonly FLAG_SEARCH_DOMAINS_ENABLED="--search-domains-enabled"
 readonly FLAG_SEARCH_DOMAINS="--search-domains"
+readonly FLAG_INTERFACES="--interfaces"
 
 #######################################
 # Methods
@@ -51,6 +52,7 @@ usage() {
     echo "    [${FLAG_DNS_SUFFIX} <suffix>]"
     echo "    [${FLAG_SEARCH_DOMAINS_ENABLED} <true|false>]"
     echo "    [${FLAG_SEARCH_DOMAINS} <domain> [<domain> ...]]"
+    echo "    [${FLAG_INTERFACES} <interfaces>]"
     echo
     echo "Options:"
     echo "  ${FLAG_NAMESERVERS_ENABLED}    - Enables or disables the DNS nameservers. (optional)"
@@ -59,12 +61,14 @@ usage() {
     echo "  ${FLAG_DNS_SUFFIX}             - Specifies a DNS suffix to configure."
     echo "  ${FLAG_SEARCH_DOMAINS_ENABLED} - Enables or disables the search domains. (optional)"
     echo "  ${FLAG_SEARCH_DOMAINS}         - Specifies one or more search domains to configure."
+    echo "  ${FLAG_INTERFACES}             - The interfaces with format as returned from 'ip -br link show'."
     echo
     echo "Examples:"
     echo "$0"
     echo "  ${FLAG_NAMESERVERS_ENABLED} false ${FLAG_NAMESERVERS} 8.8.8.8 8.8.4.4"
     echo "  ${FLAG_DNS_SUFFIX_ENABLED} false ${FLAG_DNS_SUFFIX} ifm.com"
     echo "  ${FLAG_SEARCH_DOMAINS_ENABLED} false ${FLAG_SEARCH_DOMAINS} test.de google.com"
+    echo "  ${FLAG_INTERFACES} \"ens33            UP             00:50:56:36:6d:33 <BROADCAST,MULTICAST,UP,LOWER_UP>\""
     exit 0
 }
 
@@ -93,6 +97,7 @@ main() {
     local search_domains=()
     local dns_suffix_enabled_marker="-"
     local dns_suffix=""
+    local interfaces=""
 
     while [[ $# -gt 0 ]]; do
         flag_name="$1"
@@ -141,6 +146,11 @@ main() {
                 dns_suffix="$1"
                 shift
                 ;;
+            "$FLAG_INTERFACES" )
+                assert_flag_has_arguments "$#" "${1:-}" "$flag_name"
+                interfaces="$1"
+                shift
+                ;;
             *)
                 err "$(printf "$ERR_CODE_1" "$flag_name")" 1
                 ;;
@@ -148,7 +158,7 @@ main() {
     done
 
     if [[ "${#nameservers[@]}" -gt 0 || "${#search_domains[@]}" -gt 0 || -n "$dns_suffix" ]]; then
-        mapfile -t network_interfaces < <(Scripts/Network/Helper/get_network_interfaces.sh)
+        mapfile -t network_interfaces <<< "$interfaces"
 
         if [[ "${#nameservers[@]}" -eq 0 ]]; then
             nameservers_enabled_marker="#"
