@@ -37,6 +37,11 @@ public static class ScriptOptionNames
         /// The script argument for the interface name whose status is to be determined.
         /// </summary>
         public const string InterfaceName = "--interface-name";
+
+        /// <summary>
+        /// The script argument for the interfaces.
+        /// </summary>
+        public const string Interfaces = "--interfaces";
     }
 
     /// <summary>

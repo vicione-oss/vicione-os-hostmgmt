@@ -24,6 +24,13 @@ readonly ERR_CODE_1="Unsupported flag '%s'."
 readonly ERR_CODE_2="No interface name was specified."
 
 #######################################
+# Constants
+#######################################
+
+readonly FLAG_INTERFACE_NAME="--interface-name"
+readonly FLAG_INTERFACES="--interfaces"
+
+#######################################
 # Variables
 #######################################
 
@@ -40,13 +47,14 @@ IS_DNS_FUNCTIONAL="false"
 #######################################
 
 usage() {
-    echo "Usage: $0 --interface-name <name>"
+    echo "Usage: $0 ${FLAG_INTERFACE_NAME} <name> ${FLAG_INTERFACES} <interfaces>"
     echo
     echo "Options:"
-    echo "  --interface-name - Specifies the network interface for which status information should be retrieved."
+    echo "  ${FLAG_INTERFACE_NAME} - Specifies the network interface for which status information should be retrieved."
+    echo "  ${FLAG_INTERFACES}     - The interfaces with format as returned from 'ip -br link show'."
     echo
     echo "Examples:"
-    echo "$0 --interface-name ens33"
+    echo "$0 ${FLAG_INTERFACE_NAME} ens33 ${FLAG_INTERFACES} \"ens33            UP             00:50:56:36:6d:33 <BROADCAST,MULTICAST,UP,LOWER_UP>\""
     exit 0
 }
 
@@ -101,8 +109,10 @@ get_default_gateway() {
 }
 
 get_network_interface_state() {
+    local network_interfaces="$1"
+
     INTERFACE_STATE=$(
-        Scripts/Network/Helper/get_network_interfaces.sh |
+        printf '%s\n' "$network_interfaces" |
         grep "$INTERFACE_NAME" |
         awk '{print $2}')
 }
@@ -122,7 +132,7 @@ main() {
         usage
     fi
 
-    if [[ "$1" != "--interface-name" ]]; then
+    if [[ "$1" != "${FLAG_INTERFACE_NAME}" ]]; then
         err "$(printf "$ERR_CODE_1" "$1")" 1
     fi
 
@@ -132,9 +142,17 @@ main() {
 
     INTERFACE_NAME=$2
 
+    if [[ "$3" != "${FLAG_INTERFACES}" ]]; then
+        err "$(printf "$ERR_CODE_1" "$3")" 1
+    fi
+
+    if [[ -z "${4:-}" ]]; then
+        err "$(printf "$ERR_CODE_2" "${FLAG_INTERFACES}")" 2
+    fi
+
     # Physical part
 
-    get_network_interface_state
+    get_network_interface_state "$4"
 
     # Physical or virtual part (e.g. for VLAN's)
 

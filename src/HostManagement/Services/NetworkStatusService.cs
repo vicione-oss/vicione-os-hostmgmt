@@ -40,8 +40,16 @@ internal sealed partial class NetworkStatusService(
             if (status is OperationStatus.Warning or OperationStatus.Error)
                 return LogFailedAndReturnResult(_result.Messages);
 
+            (status, var rawInterfacesString) = await _scriptHandler
+                .ExecuteGetNetworkInterfacesScript()
+                .ConfigureAwait(false);
+
+            if (status is OperationStatus.Error)
+                return LogFailedAndReturnResult(_result.Messages);
+
             var scriptOptions = new ScriptOptions();
             scriptOptions.Add(ScriptOptionNames.GetNetworkStatusInformation.InterfaceName, interfaceName);
+            scriptOptions.Add(ScriptOptionNames.GetNetworkStatusInformation.Interfaces, rawInterfacesString);
 
             (status, var networkStatusInformation) =
                 await _scriptHandler.ExecuteGetNetworkStatusInformationScript(scriptOptions);
