@@ -18,6 +18,11 @@ internal sealed class ConsoleLogger(
         if (!IsEnabled(logLevel))
             return;
 
+        var formattedMessage = formatter(state, exception);
+
+        if (exception is null && (state is null || formattedMessage == "[null]"))
+            return;
+
         var logLevelString = logLevel switch
         {
             LogLevel.Trace => useShortLogLevels ? "TRC" : "TRACE",
@@ -30,7 +35,7 @@ internal sealed class ConsoleLogger(
             _ => useShortLogLevels ? "UNK" : "UNKNOWN"
         };
 
-        var output = $"{logLevelString}: {formatter(state, exception)}";
+        var output = $"{logLevelString}: {formattedMessage}";
 
         if (exception is not null &&
             !output.Contains(exception.ToString()))

@@ -26,11 +26,23 @@ public class ConsoleLoggerTests
         public void ShouldNotLog_WhenNoInfoGiven()
         {
             // Act
-            var consoleOutput = CaptureConsoleOutput(() =>
-                _loggerWithShortLogLevels.Log(LogLevel.None, null));
+            var consoleOutput = CaptureConsoleOutput(
+                () => _loggerWithShortLogLevels.Log(LogLevel.None, null));
 
             // Assert
-            consoleOutput.Should().Be($"NON: [null]{Environment.NewLine}");
+            consoleOutput.Should().BeNullOrEmpty();
+        }
+
+        [Fact]
+        public void ShouldLog_WhenMessageIsNullAndExceptionIsGiven()
+        {
+            // Act
+            var consoleOutput = CaptureConsoleOutput(
+                () => _loggerWithShortLogLevels.Log(LogLevel.Information, _sampleLogException, null));
+
+            // Assert
+            consoleOutput.Should().Contain("INF:");
+            consoleOutput.Should().Contain(_sampleLogException.ToString());
         }
 
         [Fact]
