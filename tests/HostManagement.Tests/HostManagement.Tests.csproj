@@ -2,6 +2,7 @@
   
   <PropertyGroup>
     <RootNamespace>HostManagement.Tests</RootNamespace>
+    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
   </PropertyGroup>
 
   <ItemGroup>

@@ -4,6 +4,10 @@
     <OutputType>Exe</OutputType>
     <AssemblyName>hostmanagement</AssemblyName>
     <RootNamespace>HostManagement</RootNamespace>
+    <PublishAot>true</PublishAot>
+    <PublishTrimmed>true</PublishTrimmed>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
   </PropertyGroup>
 
   <ItemGroup>

@@ -185,6 +185,7 @@ include:
         - saas-linux-large-$RUNNER_ARCH
       project: src/HostManagement/HostManagement.csproj
       execution_matrix: *publish_matrix
+      self_contained: true
   - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-test@2.2.4
     inputs:
       image: $VICIONE_IMAGE
