@@ -258,7 +258,6 @@ public class ResourceManagerTests
                     "set_network_interface_ipv4_settings",
 
                     // Network > DNS
-                    "get_hostname",
                     "get_network_dns_settings",
                     "set_hostname",
                     "set_network_dns_settings",
