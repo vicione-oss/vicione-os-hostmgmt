@@ -1,4 +1,4 @@
-﻿using System.Collections.Frozen;
+using System.Collections.Frozen;
 using System.IO.Abstractions;
 using System.Text;
 using Microsoft.Extensions.Logging;
@@ -22,7 +22,7 @@ public sealed partial class ResourceManager
     private static ResourceManager? s_instance;
 
     private static readonly string s_resourcesDirectory =
-        string.Concat(typeof(ResourceManager).Namespace!, ".", "Resources");
+        string.Concat(typeof(ResourceManager).Namespace, ".", "Resources");
 
     private readonly ILogger _logger;
     private readonly IFileSystem _fileSystem;
