@@ -1,6 +1,4 @@
-﻿using System.Text;
 using AwesomeAssertions;
-using HostManagement.Scripts;
 using HostManagement.Scripts.Enums;
 using HostManagement.Services;
 using HostManagement.Shared.Communication.Enums;
@@ -14,12 +12,11 @@ namespace HostManagement.Tests.Services;
 
 public class SystemServiceTests
 {
-    [Collection("Non Parallel Tests")]
     public class InstallSignedDebianPackage
     {
         private const string InstallFailedMessage = "Installing signed Debian package failed";
-
-        private static readonly string s_unitTestDir = Path.Combine(Path.GetTempPath(), "_hm-unit-test");
+        private const string PackageFilePath = "/path/to/package.deb";
+        private const string PackageSignatureFilePath = "/path/to/package.deb.minisig";
 
         [Fact]
         public async Task ShouldLogErrorAndReturnErrorResult_WhenExceptionIsThrown()
@@ -27,19 +24,23 @@ public class SystemServiceTests
             // Arrange
             var logger = GetLoggerSubstitute();
             var scriptHandler = Substitute.For<IScriptHandler>();
+            var signatureValidator = Substitute.For<ISignedDebianPackageSignatureValidator>();
 
-            var publicKeys = new List<string> { "valid-public-key" };
             var signedPackage = new SignedDebianPackage
             {
-                FilePath = "/path/to/package.deb",
-                SignatureFilePath = "/path/to/package.deb.minisig"
+                FilePath = PackageFilePath,
+                SignatureFilePath = PackageSignatureFilePath
             };
 
-            // Minisign will not find the signature file so it will throw an exception
-            var expectedException = new FileNotFoundException("could not find signatureFile");
-            var expectedMessage = $"{InstallFailedMessage} ('{signedPackage.FilePath}'). {expectedException.Message}";
+            var publicKeys = new List<string> { "valid-public-key" };
 
-            var sut = new SystemService(logger, scriptHandler, new Result());
+            var expectedException = new FileNotFoundException("could not find signatureFile");
+            signatureValidator
+                .IsSignatureValid(Arg.Any<SignedDebianPackage>(), Arg.Any<List<string>>())
+                .Returns(_ => throw expectedException);
+
+            var expectedMessage = $"{InstallFailedMessage} ('{signedPackage.FilePath}'). {expectedException.Message}";
+            var sut = new SystemService(logger, scriptHandler, new Result(), signatureValidator);
 
             // Act
             var result = await sut.InstallSignedDebianPackage(signedPackage, publicKeys, CancellationToken.None);
@@ -61,85 +62,60 @@ public class SystemServiceTests
         [Fact]
         public async Task ShouldLogWarningAndReturnWarningResult_WhenOperationCanceled()
         {
-            try
+            // Arrange
+            var logger = GetLoggerSubstitute();
+            var scriptHandler = Substitute.For<IScriptHandler>();
+            var signatureValidator = GetSignatureValidatorSubstitute(isSignatureValid: true);
+
+            var signedPackage = new SignedDebianPackage
             {
-                // Arrange
-                var (package, publicKeyBase64) = await CreateSignedPackageTestFilesAsync();
-                var logger = GetLoggerSubstitute();
-                var scriptHandler = Substitute.For<IScriptHandler>();
-                var expectedLogMessage = $"Installing signed Debian package was canceled ('{package.FilePath}').";
+                FilePath = PackageFilePath,
+                SignatureFilePath = PackageSignatureFilePath
+            };
 
-                var sut = new SystemService(logger, scriptHandler, new Result());
+            var expectedLogMessage = $"Installing signed Debian package was canceled ('{signedPackage.FilePath}').";
+            var sut = new SystemService(logger, scriptHandler, new Result(), signatureValidator);
 
-                // Act
-                using var cts = new CancellationTokenSource();
-                await cts.CancelAsync();
-                var result = await sut.InstallSignedDebianPackage(package, [publicKeyBase64], cts.Token);
+            // Act
+            using var cts = new CancellationTokenSource();
+            await cts.CancelAsync();
+            var result = await sut.InstallSignedDebianPackage(signedPackage, ["valid-public-key"], cts.Token);
 
-                // Assert
-                logger.Received(1).Log(
-                    Arg.Is(LogLevel.Warning),
-                    Arg.Any<EventId>(),
-                    Arg.Is<object>(o => o.ToString()!.Contains(expectedLogMessage)),
-                    null,
-                    Arg.Any<Func<object, Exception?, string>>());
+            // Assert
+            logger.Received(1).Log(
+                Arg.Is(LogLevel.Warning),
+                Arg.Any<EventId>(),
+                Arg.Is<object>(o => o.ToString()!.Contains(expectedLogMessage)),
+                null,
+                Arg.Any<Func<object, Exception?, string>>());
 
-                result.Status.Should().Be(OperationStatus.Warning);
-                result.Message.Should().Contain(expectedLogMessage);
-            }
-            finally
-            {
-                // Cleanup
-                if (Directory.Exists(s_unitTestDir))
-                    Directory.Delete(s_unitTestDir, recursive: true);
-            }
+            result.Status.Should().Be(OperationStatus.Warning);
+            result.Message.Should().Contain(expectedLogMessage);
         }
 
         [Fact]
         public async Task ShouldReturnError_WhenPackageSignatureInvalid()
         {
-            try
+            // Arrange
+            var logger = GetLoggerSubstitute();
+            var scriptHandler = Substitute.For<IScriptHandler>();
+            var signatureValidator = GetSignatureValidatorSubstitute(isSignatureValid: false);
+
+            var signedPackage = new SignedDebianPackage
             {
-                // Arrange
-                var logger = GetLoggerSubstitute();
-                var scriptHandler = Substitute.For<IScriptHandler>();
+                FilePath = PackageFilePath,
+                SignatureFilePath = PackageSignatureFilePath
+            };
 
-                var packagePath = Path.Combine(s_unitTestDir, "package.deb");
-                var signaturePath = Path.Combine(s_unitTestDir, "package.deb.minisig");
-                var expectedMessage = $"{InstallFailedMessage} ('{packagePath}'). Package signature is invalid.";
+            var expectedMessage = $"{InstallFailedMessage} ('{signedPackage.FilePath}'). Package signature is invalid.";
+            var sut = new SystemService(logger, scriptHandler, new Result(), signatureValidator);
 
-                var invalidPublicKeyBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes("invalid-public-key"));
-                var invalidSignature =
-                    """
-                    untrusted comment: signature from minisign secret key
-                    RUSdbzO140cELjvXFidzF+eQAAZBjdqVGnUCcfR0q/uK4Cq2ApHdQuX4W8n0VA/ep4+vRnwWD9wuH3rlSqvmHjqq9saALhfHTAs=
-                    trusted comment: timestamp:1763291678    file:package.deb    hashed
-                    EmgYQcdc0B/35ZL202oDGlTmczYv40NlWOatNxjCu4FboErErG1L8Fh6OMsxjw5NPb5+LYf9eH3Nng4Lg8+ECw==
-                    """;
+            // Act
+            var result = await sut.InstallSignedDebianPackage(signedPackage, ["invalid-public-key"], CancellationToken.None);
 
-                // Create dummy files
-                Directory.CreateDirectory(s_unitTestDir);
-                await File.WriteAllTextAsync(packagePath, "dummy package", CancellationToken.None);
-                await File.WriteAllTextAsync(signaturePath, invalidSignature, CancellationToken.None);
-
-                var sut = new SystemService(logger, scriptHandler, new Result());
-
-                // Act
-                var result = await sut.InstallSignedDebianPackage(
-                    new() { FilePath = packagePath, SignatureFilePath = signaturePath },
-                    [invalidPublicKeyBase64],
-                    CancellationToken.None);
-
-                // Assert
-                result.Status.Should().Be(OperationStatus.Error);
-                result.Message.Should().Be(expectedMessage);
-            }
-            finally
-            {
-                // Cleanup
-                if (Directory.Exists(s_unitTestDir))
-                    Directory.Delete(s_unitTestDir, recursive: true);
-            }
+            // Assert
+            result.Status.Should().Be(OperationStatus.Error);
+            result.Message.Should().Be(expectedMessage);
         }
 
         [Theory]
@@ -149,113 +125,69 @@ public class SystemServiceTests
             OperationStatus operationStatus,
             string expectedScriptMessage)
         {
-            try
+            // Arrange
+            var logger = GetLoggerSubstitute();
+            var signatureValidator = GetSignatureValidatorSubstitute(isSignatureValid: true);
+
+            var signedPackage = new SignedDebianPackage
             {
-                // Arrange
-                var (package, publicKeyBase64) = await CreateSignedPackageTestFilesAsync();
-                var logger = GetLoggerSubstitute();
-                var expectedMessage = $"{InstallFailedMessage} ('{package.FilePath}').";
+                FilePath = PackageFilePath,
+                SignatureFilePath = PackageSignatureFilePath
+            };
 
-                var result = new Result();
-                var scriptOptions = new ScriptOptions();
-                scriptOptions.Add(ScriptOptionNames.InstallDebianPackage.DebianPackage, package.FilePath);
+            var expectedMessage = $"{InstallFailedMessage} ('{signedPackage.FilePath}').";
 
-                var scriptHandler = Substitute.For<IScriptHandler>();
-                scriptHandler
-                    .ExecuteInstallDebianPackageScript(Arg.Any<ScriptOptions>())
-                    .Returns(Task.FromResult(operationStatus));
+            var result = new Result();
 
-                if (operationStatus is OperationStatus.Warning)
-                    result.AddScriptWarning(ScriptIdentifier.InstallDebianPackage, expectedScriptMessage);
-                else
-                    result.AddScriptError(ScriptIdentifier.InstallDebianPackage, expectedScriptMessage);
+            var scriptHandler = Substitute.For<IScriptHandler>();
+            scriptHandler
+                .ExecuteInstallDebianPackageScript(Arg.Any<ScriptOptions>())
+                .Returns(Task.FromResult(operationStatus));
 
-                var sut = new SystemService(logger, scriptHandler, result);
+            if (operationStatus is OperationStatus.Warning)
+                result.AddScriptWarning(ScriptIdentifier.InstallDebianPackage, expectedScriptMessage);
+            else
+                result.AddScriptError(ScriptIdentifier.InstallDebianPackage, expectedScriptMessage);
 
-                // Act
-                var systemControlResult = await sut.InstallSignedDebianPackage(
-                    package,
-                    [publicKeyBase64],
-                    CancellationToken.None);
+            var sut = new SystemService(logger, scriptHandler, result, signatureValidator);
 
-                // Assert
-                systemControlResult.Status.Should().Be(OperationStatus.Error);
-                systemControlResult.Message.Should().StartWith(expectedMessage).And.Contain(expectedScriptMessage);
-            }
-            finally
-            {
-                // Cleanup
-                if (Directory.Exists(s_unitTestDir))
-                    Directory.Delete(s_unitTestDir, recursive: true);
-            }
+            // Act
+            var systemControlResult = await sut.InstallSignedDebianPackage(
+                signedPackage,
+                ["valid-public-key"],
+                CancellationToken.None);
+
+            // Assert
+            systemControlResult.Status.Should().Be(OperationStatus.Error);
+            systemControlResult.Message.Should().StartWith(expectedMessage).And.Contain(expectedScriptMessage);
         }
 
         [Fact]
         public async Task ShouldReturnSuccess_WhenPackageWasInstalled()
         {
-            try
+            // Arrange
+            var logger = GetLoggerSubstitute();
+            var signatureValidator = GetSignatureValidatorSubstitute(isSignatureValid: true);
+
+            var signedPackage = new SignedDebianPackage
             {
-                // Arrange
-                var (package, publicKeyBase64) = await CreateSignedPackageTestFilesAsync();
-                var logger = GetLoggerSubstitute();
-
-                var scriptOptions = new ScriptOptions();
-                scriptOptions.Add(ScriptOptionNames.InstallDebianPackage.DebianPackage, package.FilePath);
-
-                var scriptHandler = Substitute.For<IScriptHandler>();
-                scriptHandler
-                    .ExecuteInstallDebianPackageScript(scriptOptions)
-                    .Returns(Task.FromResult(OperationStatus.Success));
-
-                var sut = new SystemService(logger, scriptHandler, new Result());
-
-                // Act
-                var result = await sut.InstallSignedDebianPackage(package, [publicKeyBase64], CancellationToken.None);
-
-                // Assert
-                result.Status.Should().Be(OperationStatus.Success);
-                result.Message.Should().BeEmpty();
-            }
-            finally
-            {
-                // Cleanup
-                if (Directory.Exists(s_unitTestDir))
-                    Directory.Delete(s_unitTestDir, recursive: true);
-            }
-        }
-
-        private static async Task<(SignedDebianPackage package, string publicKeyBase64)> CreateSignedPackageTestFilesAsync()
-        {
-            var packagePath = Path.Combine(s_unitTestDir, "package.deb");
-            var publicKeyPath = Path.Combine(s_unitTestDir, "minisign.pub");
-
-            // Create dummy package
-            Directory.CreateDirectory(s_unitTestDir);
-            await File.WriteAllTextAsync(packagePath, "dummy package");
-
-            // Generate a key pair for testing...
-            var minisignKeyPair = Minisign.Core.GenerateKeyPair(
-                password: "hm-unit-test",
-                writeOutputFiles: true,
-                outputFolder: s_unitTestDir);
-
-            // ...and sign the package; Sign creates the file and returns the signature path
-            var signaturePath = Minisign.Core.Sign(packagePath, minisignKeyPair.MinisignPrivateKey);
-
-            // Read the public key and extract the  base64 string
-            var publicKeyLines = await File.ReadAllLinesAsync(publicKeyPath);
-            var publicKeyBase64 = publicKeyLines.FirstOrDefault(line => !line.StartsWith("untrusted comment:"));
-
-            publicKeyBase64.Should().NotBeNullOrWhiteSpace();
-
-            // Return SignedDebianPackage and publicKeyBase64
-            var signedPackage = new SignedDebianPackage()
-            {
-                FilePath = packagePath,
-                SignatureFilePath = signaturePath
+                FilePath = PackageFilePath,
+                SignatureFilePath = PackageSignatureFilePath
             };
 
-            return (signedPackage, publicKeyBase64);
+            var scriptHandler = Substitute.For<IScriptHandler>();
+            scriptHandler
+                .ExecuteInstallDebianPackageScript(Arg.Any<ScriptOptions>())
+                .Returns(Task.FromResult(OperationStatus.Success));
+
+            var sut = new SystemService(logger, scriptHandler, new Result(), signatureValidator);
+
+            // Act
+            var result = await sut.InstallSignedDebianPackage(signedPackage, ["valid-public-key"], CancellationToken.None);
+
+            // Assert
+            result.Status.Should().Be(OperationStatus.Success);
+            result.Message.Should().BeEmpty();
         }
     }
 
@@ -271,13 +203,10 @@ public class SystemServiceTests
             var logger = GetLoggerSubstitute();
             var expectedException = new InvalidOperationException("invalid operation exception");
 
-            var scriptOptions = new ScriptOptions();
-            scriptOptions.Add(ScriptOptionNames.UpdateSystem.FilePath, PathToUpdateFile);
-
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler.ExecuteUpdateSystemScript(Arg.Any<ScriptOptions>()).ThrowsAsync(expectedException);
 
-            var sut = new SystemService(logger, scriptHandler, new Result());
+            var sut = new SystemService(logger, scriptHandler, new Result(), GetSignatureValidatorSubstitute());
 
             // Act
             var result = await sut.UpdateSystem(PathToUpdateFile);
@@ -306,15 +235,12 @@ public class SystemServiceTests
             var result = new Result();
             result.AddScriptError(ScriptIdentifier.UpdateSystem, expectedScriptMessage);
 
-            var scriptOptions = new ScriptOptions();
-            scriptOptions.Add(ScriptOptionNames.UpdateSystem.FilePath, PathToUpdateFile);
-
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteUpdateSystemScript(Arg.Any<ScriptOptions>())
                 .Returns(Task.FromResult(OperationStatus.Error));
 
-            var sut = new SystemService(logger, scriptHandler, result);
+            var sut = new SystemService(logger, scriptHandler, result, GetSignatureValidatorSubstitute());
 
             // Act
             var systemControlResult = await sut.UpdateSystem(PathToUpdateFile);
@@ -341,13 +267,10 @@ public class SystemServiceTests
             // Arrange
             var logger = GetLoggerSubstitute();
 
-            var scriptOptions = new ScriptOptions();
-            scriptOptions.Add(ScriptOptionNames.UpdateSystem.FilePath, PathToUpdateFile);
-
             var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler.ExecuteUpdateSystemScript(scriptOptions).Returns(Task.FromResult(OperationStatus.Success));
+            scriptHandler.ExecuteUpdateSystemScript(Arg.Any<ScriptOptions>()).Returns(Task.FromResult(OperationStatus.Success));
 
-            var sut = new SystemService(logger, scriptHandler, new Result());
+            var sut = new SystemService(logger, scriptHandler, new Result(), GetSignatureValidatorSubstitute());
 
             // Act
             var systemControlResult = await sut.UpdateSystem(PathToUpdateFile);
@@ -372,7 +295,7 @@ public class SystemServiceTests
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler.ExecuteResetSystemScript().ThrowsAsync(expectedException);
 
-            var sut = new SystemService(logger, scriptHandler, new Result());
+            var sut = new SystemService(logger, scriptHandler, new Result(), GetSignatureValidatorSubstitute());
 
             // Act
             var result = await sut.ResetSystem();
@@ -404,7 +327,7 @@ public class SystemServiceTests
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler.ExecuteResetSystemScript().Returns(Task.FromResult(OperationStatus.Error));
 
-            var sut = new SystemService(logger, scriptHandler, result);
+            var sut = new SystemService(logger, scriptHandler, result, GetSignatureValidatorSubstitute());
 
             // Act
             var systemControlResult = await sut.ResetSystem();
@@ -433,7 +356,7 @@ public class SystemServiceTests
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler.ExecuteResetSystemScript().Returns(Task.FromResult(OperationStatus.Success));
 
-            var sut = new SystemService(logger, scriptHandler, new Result());
+            var sut = new SystemService(logger, scriptHandler, new Result(), GetSignatureValidatorSubstitute());
 
             // Act
             var systemControlResult = await sut.ResetSystem();
@@ -461,7 +384,7 @@ public class SystemServiceTests
                 .ExecuteShutdownSystemScript(Arg.Is<ScriptOptions>(so => so.Options.Contains(RestartFlag)))
                 .ThrowsAsync(expectedException);
 
-            var sut = new SystemService(logger, scriptHandler, new Result());
+            var sut = new SystemService(logger, scriptHandler, new Result(), GetSignatureValidatorSubstitute());
 
             // Act
             var result = await sut.RestartSystem();
@@ -495,7 +418,7 @@ public class SystemServiceTests
                 .ExecuteShutdownSystemScript(Arg.Is<ScriptOptions>(so => so.Options.Contains(RestartFlag)))
                 .Returns(Task.FromResult(OperationStatus.Error));
 
-            var sut = new SystemService(logger, scriptHandler, result);
+            var sut = new SystemService(logger, scriptHandler, result, GetSignatureValidatorSubstitute());
 
             // Act
             var systemControlResult = await sut.RestartSystem();
@@ -540,7 +463,7 @@ public class SystemServiceTests
                     so.Options.Contains(delayFlag)))
                 .Returns(Task.FromResult(OperationStatus.Success));
 
-            var sut = new SystemService(logger, scriptHandler, new Result());
+            var sut = new SystemService(logger, scriptHandler, new Result(), GetSignatureValidatorSubstitute());
 
             // Act
             var systemControlResult = await sut.RestartSystem(delayInSecondsMessageContent);
@@ -568,7 +491,7 @@ public class SystemServiceTests
                 .ExecuteShutdownSystemScript(Arg.Is<ScriptOptions>(so => !so.Options.Contains(RestartFlag)))
                 .ThrowsAsync(expectedException);
 
-            var sut = new SystemService(logger, scriptHandler, new Result());
+            var sut = new SystemService(logger, scriptHandler, new Result(), GetSignatureValidatorSubstitute());
 
             // Act
             var result = await sut.ShutdownSystem();
@@ -602,7 +525,7 @@ public class SystemServiceTests
                 .ExecuteShutdownSystemScript(Arg.Is<ScriptOptions>(so => !so.Options.Contains(RestartFlag)))
                 .Returns(Task.FromResult(OperationStatus.Error));
 
-            var sut = new SystemService(logger, scriptHandler, result);
+            var sut = new SystemService(logger, scriptHandler, result, GetSignatureValidatorSubstitute());
 
             // Act
             var systemControlResult = await sut.ShutdownSystem();
@@ -647,7 +570,7 @@ public class SystemServiceTests
                     so.Options.Contains(delayFlag)))
                 .Returns(Task.FromResult(OperationStatus.Success));
 
-            var sut = new SystemService(logger, scriptHandler, new Result());
+            var sut = new SystemService(logger, scriptHandler, new Result(), GetSignatureValidatorSubstitute());
 
             // Act
             var systemControlResult = await sut.ShutdownSystem(delayInSecondsMessageContent);
@@ -663,5 +586,15 @@ public class SystemServiceTests
         var logger = Substitute.For<ILogger>();
         logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
         return logger;
+    }
+
+    private static ISignedDebianPackageSignatureValidator GetSignatureValidatorSubstitute(bool isSignatureValid = true)
+    {
+        var signatureValidator = Substitute.For<ISignedDebianPackageSignatureValidator>();
+        signatureValidator
+            .IsSignatureValid(Arg.Any<SignedDebianPackage>(), Arg.Any<List<string>>())
+            .Returns(isSignatureValid);
+
+        return signatureValidator;
     }
 }

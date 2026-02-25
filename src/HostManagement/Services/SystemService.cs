@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Text;
 using HostManagement.Scripts;
 using HostManagement.Shared.Communication.Contracts;
@@ -14,14 +14,17 @@ namespace HostManagement.Services;
 /// <param name="logger">An <see cref="ILogger"/> implementation.</param>
 /// <param name="scriptHandler">An <see cref="IScriptHandler"/> implementation.</param>
 /// <param name="result">The result.</param>
+/// <param name="signatureValidator">An <see cref="ISignedDebianPackageSignatureValidator"/> implementation.</param>
 internal sealed partial class SystemService(
     ILogger logger,
     IScriptHandler scriptHandler,
-    Result result)
+    Result result,
+    ISignedDebianPackageSignatureValidator signatureValidator)
 {
     private readonly ILogger _logger = logger;
     private readonly IScriptHandler _scriptHandler = scriptHandler;
     private readonly Result _result = result;
+    private readonly ISignedDebianPackageSignatureValidator _signatureValidator = signatureValidator;
 
     /// <summary>
     /// Installs a signed Debian package using the specified public keys for signature verification.
@@ -37,7 +40,7 @@ internal sealed partial class SystemService(
     {
         try
         {
-            if (!IsSignatureValidForAnyKey(signedDebianPackage, publicKeys))
+            if (!_signatureValidator.IsSignatureValid(signedDebianPackage, publicKeys))
             {
                 var message =
                     string.Format(
@@ -385,25 +388,6 @@ internal sealed partial class SystemService(
         scriptOptions.Add(ScriptOptionNames.ShutdownSystem.Delay, delayInSeconds);
 
         return await _scriptHandler.ExecuteShutdownSystemScript(scriptOptions).ConfigureAwait(false);
-    }
-
-    private static bool IsSignatureValidForAnyKey(SignedDebianPackage signedDebianPackage, List<string> publicKeys)
-    {
-        var signature = Minisign.Core.LoadSignatureFromFile(signedDebianPackage.SignatureFilePath);
-        var signatureIsValid = false;
-
-        foreach (var key in publicKeys)
-        {
-            var publicKey = Minisign.Core.LoadPublicKeyFromString(key);
-
-            if (Minisign.Core.ValidateSignature(signedDebianPackage.FilePath, signature, publicKey))
-            {
-                signatureIsValid = true;
-                break;
-            }
-        }
-
-        return signatureIsValid;
     }
 
     [LoggerMessage(LogLevel.Information, "Installation of Debian package completed successfully. ('{FilePath}')")]
