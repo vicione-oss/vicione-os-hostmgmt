@@ -1,9 +1,9 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!-- Eigenschaften für alle Projekte des Repos -->
+  <!-- Properties for all projects in the repo -->
   <PropertyGroup>
-    <Nullable>enable</Nullable>
-    <!-- Allgemeine Informationen -->
+    <!-- General information -->
     <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
     <RuntimeIdentifiers>linux-x64;linux-arm64</RuntimeIdentifiers>
     <InvariantGlobalization>true</InvariantGlobalization>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -15,74 +15,63 @@
     <NeutralLanguage>en-US</NeutralLanguage>
     <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
 
-    <!-- Codequalität erhöhen -->
+    <!-- Code quality -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsNotAsErrors>618</WarningsNotAsErrors>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <!-- Workaround for https://github.com/dotnet/roslyn/issues/41640 -->
-    <NoWarn Condition="$(MSBuildProjectName.EndsWith('Tests'))">$(NoWarn);CS1591</NoWarn>
-    <!-- NuGet Lock File -->
+
+    <!-- NuGet lock file -->
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <RestoreLockedMode Condition="'$(CI)' == 'true'">true</RestoreLockedMode>
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <DisableImplicitLibraryPacksFolder>true</DisableImplicitLibraryPacksFolder>
   </PropertyGroup>
 
-  <!-- Zusätzliche Eigenschaften für alle Projekte im Ordner src (außer für SourceGeneration) -->
+  <!-- NuGet packages publish information -->
+  <PropertyGroup>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageProjectUrl>https://gitlab.com/vicione-oss/vicione/os/hostmgmt</PackageProjectUrl>
+    <Authors>$(Company)</Authors>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="$(MsBuildThisFileDirectory)\LICENSE.txt" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <!-- Properties for source projects -->
+  <ItemGroup Condition="$(MSBuildProjectDirectory.Contains('src'))">
+    <InternalsVisibleTo Include="$(MSBuildProjectName).Tests" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+  </ItemGroup>
   <PropertyGroup Condition=
       "$(MSBuildProjectDirectory.Contains('src')) And
       !$(MSBuildProjectName.EndsWith('SourceGeneration'))">
     <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
-
-  <!-- Für Repos die Projekte enthalten die als NuGet Paket veröffentlicht werden -->
-  <PropertyGroup>
-      <!-- https://docs.microsoft.com/de-de/nuget/reference/msbuild-targets -->
-      <PackageProjectUrl>https://gitlab.com/vicione-oss/vicione/os/hostmgmt</PackageProjectUrl>
-      <Authors>$(Company)</Authors>
-  </PropertyGroup>
-
-  <!-- Testprojekten Zugriff auf intern sichtbaren Quellcode geben (inklusive Mocking-Bibliotheken) -->
-  <ItemGroup Condition="$(MSBuildProjectDirectory.Contains('src'))">
-      <InternalsVisibleTo Include="$(MSBuildProjectName).Tests" />
-      <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
-  </ItemGroup>
-
   <!-- IsPackable is individually enabled per project -->
   <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('src'))">
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
-  <!-- Testprojekte erhalten automatisch 'xunit.runner.json' -->
-  <ItemGroup Condition="$(MSBuildProjectDirectory.Contains('tests'))">
-      <AdditionalFiles Include="$(MSBuildThisFileDirectory)xunit.runner.json" CopyToOutputDirectory="Always" />
-  </ItemGroup>
-
-  <!-- Geschwindigkeitsoptimierung für die CI-Pipelines -->
-  <PropertyGroup Condition="'$(CI)' != ''">
-    <!--
-    <RunAnalyzers>false</RunAnalyzers>
-    -->
-  </PropertyGroup>
-
-  <!-- Not active because of side effects with test coverage evaluation. -->
-  <!-- PDB Dateien beim Veröffentlichen weglassen
-  <PropertyGroup Condition="'$(Configuration)'=='Release'">
-    <DebugType>None</DebugType>
-  </PropertyGroup> -->
-
-  <!-- Testprojekte sollen beim Veröffentlichen ignoriert und nicht als NuGet-Paket verpackt werden -->
+  <!-- Properties for test projects -->
   <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('tests'))">
+    <!-- Suppress documentation of public API -->
+    <NoWarn>CS1591</NoWarn>
     <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
     <IsPublishable>true</IsPublishable>
     <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
   </PropertyGroup>
+  <!-- Test projects automatically receive 'xunit.runner.json' -->
+  <ItemGroup Condition="$(MSBuildProjectDirectory.Contains('tests'))">
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)xunit.runner.json" CopyToOutputDirectory="Always" />
+  </ItemGroup>
 
-  <!-- Beispielprojekte sollen beim Veröffentlichen ignoriert und nicht als NuGet-Paket verpackt werden -->
+  <!-- Properties for sample projects -->
   <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('samples'))">
+    <!-- Suppress documentation of public API -->
+    <NoWarn>CS1591</NoWarn>
     <IsPackable>false</IsPackable>
-    <IsPublishable>false</IsPublishable>
+    <IsPublishable>true</IsPublishable>
   </PropertyGroup>
 </Project>
