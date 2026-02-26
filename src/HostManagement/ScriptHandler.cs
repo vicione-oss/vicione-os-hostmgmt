@@ -33,8 +33,12 @@ internal sealed class ScriptHandler(Result? result = default) : IScriptHandler
     public async Task<(OperationStatus, string)> ExecuteGetArchitectureScript()
         => await ExecuteScriptAndReturnRawStandardOutput(ScriptIdentifier.CommonSystemArchitectureGet);
 
-    public async Task<(OperationStatus, string)> ExecuteGetNetworkInterfacesScript()
-        => await ExecuteScriptAndReturnRawStandardOutput(ScriptIdentifier.NetworkInterfacesGet, "all");
+    public async Task<(OperationStatus, string)> ExecuteGetNetworkInterfacesScript(string interfaceType = "")
+    {
+        return string.IsNullOrWhiteSpace(interfaceType)
+            ? await ExecuteScriptAndReturnRawStandardOutput(ScriptIdentifier.NetworkInterfacesGet)
+            : await ExecuteScriptAndReturnRawStandardOutput(ScriptIdentifier.NetworkInterfacesGet, interfaceType);
+    }
 
     public async Task<(OperationStatus, List<NetworkInterfaceCommonInformation>)> ExecuteGetNetworkInterfacesCommonInformationScript()
         => await ExecuteScriptAndReturnDeserializedType(

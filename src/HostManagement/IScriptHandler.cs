@@ -35,7 +35,8 @@ internal interface IScriptHandler
     Task<(OperationStatus, string)> ExecuteGetArchitectureScript();
 
     /// <summary>
-    /// Executes a script to get all network interfaces.
+    /// Executes a script to get the network interfaces depending on <paramref name="interfaceType"/>.
+    /// The default will get physical and virtual interfaces without vlan interfaces.
     /// </summary>
     /// <remarks>
     /// This returns a raw string evaluated via `ip -br link show` command, e.g.:
@@ -44,8 +45,18 @@ internal interface IScriptHandler
     /// <![CDATA[ens36            UP             00:50:56:36:6d:36 <BROADCAST,MULTICAST,UP,LOWER_UP>]]>
     /// </para>
     /// </remarks>
+    /// <param name="interfaceType">
+    /// The interface type to get.
+    /// <list type="bullet">
+    /// <item>"" (default) > physical, virtual, no vlan</item>
+    /// <item>"all"        > physical, virtual, vlan</item>
+    /// <item>"physical"   > physical</item>
+    /// <item>"virtual"    > virtual</item>
+    /// <item>"vlan"       > vlan</item>
+    /// </list>
+    /// </param>
     /// <returns><see cref="OperationStatus"/> and the string of interfaces.</returns>
-    Task<(OperationStatus, string)> ExecuteGetNetworkInterfacesScript();
+    Task<(OperationStatus, string)> ExecuteGetNetworkInterfacesScript(string interfaceType = "");
 
     /// <summary>
     /// Executes the script to get the common information of all network interfaces.
