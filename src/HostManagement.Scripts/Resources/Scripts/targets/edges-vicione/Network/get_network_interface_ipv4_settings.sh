@@ -144,7 +144,7 @@ main() {
     json_output+="\"DHCPEnabled\": ${DHCP_ENABLED},"
     json_output+="\"Gateway\": ${GATEWAY},"
     json_output+="\"IPv4Details\": [$(printf '%s, ' "${IP_DETAILS[@]}" | sed 's/, $//')],"
-    json_output+="\"VLANID\": ${VLAN_ID}",
+    json_output+="\"VLANID\": ${VLAN_ID},"
     json_output+="\"VLANEnabled\": ${VLAN_ENABLED}"
     json_output+="}"
 
