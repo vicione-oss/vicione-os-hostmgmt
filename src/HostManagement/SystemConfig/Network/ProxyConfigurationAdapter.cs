@@ -113,7 +113,9 @@ internal sealed class ProxyConfigurationAdapter(
         if (proxySettings is null)
             return OperationStatus.Success;
 
-        if (proxySettings.HTTP is not null && !EqualityComparer<NetworkProxyDetail>.Default.Equals(proxySettings.HTTP, currentProxySettings?.HTTP))
+        if (proxySettings.HTTP is not null &&
+            !proxySettings.HTTP.Equals(new NetworkProxyDetail()) &&
+            !EqualityComparer<NetworkProxyDetail>.Default.Equals(proxySettings.HTTP, currentProxySettings?.HTTP))
         {
             var status = await _scriptHandler
                 .ExecuteSetNetworkProxySettingsScript(
@@ -124,7 +126,9 @@ internal sealed class ProxyConfigurationAdapter(
                 return OperationStatus.Error;
         }
 
-        if (proxySettings.HTTPS is not null && !EqualityComparer<NetworkProxyDetail>.Default.Equals(proxySettings.HTTPS, currentProxySettings?.HTTPS))
+        if (proxySettings.HTTPS is not null &&
+            !proxySettings.HTTPS.Equals(new NetworkProxyDetail()) &&
+            !EqualityComparer<NetworkProxyDetail>.Default.Equals(proxySettings.HTTPS, currentProxySettings?.HTTPS))
         {
             var status = await _scriptHandler
                 .ExecuteSetNetworkProxySettingsScript(
@@ -135,7 +139,9 @@ internal sealed class ProxyConfigurationAdapter(
                 return OperationStatus.Error;
         }
 
-        if (proxySettings.FTP is not null && !EqualityComparer<NetworkProxyDetail>.Default.Equals(proxySettings.FTP, currentProxySettings?.FTP))
+        if (proxySettings.FTP is not null &&
+            !proxySettings.FTP.Equals(new NetworkProxyDetail()) &&
+            !EqualityComparer<NetworkProxyDetail>.Default.Equals(proxySettings.FTP, currentProxySettings?.FTP))
         {
             var status = await _scriptHandler
                 .ExecuteSetNetworkProxySettingsScript(
@@ -146,7 +152,9 @@ internal sealed class ProxyConfigurationAdapter(
                 return OperationStatus.Error;
         }
 
-        if (proxySettings.SFTP is not null && !EqualityComparer<NetworkProxyDetail>.Default.Equals(proxySettings.SFTP, currentProxySettings?.SFTP))
+        if (proxySettings.SFTP is not null &&
+            !proxySettings.SFTP.Equals(new NetworkProxyDetail()) &&
+            !EqualityComparer<NetworkProxyDetail>.Default.Equals(proxySettings.SFTP, currentProxySettings?.SFTP))
         {
             var status = await _scriptHandler
                 .ExecuteSetNetworkProxySettingsScript(
@@ -157,7 +165,9 @@ internal sealed class ProxyConfigurationAdapter(
                 return OperationStatus.Error;
         }
 
-        if (proxySettings.SOCKS is not null && !EqualityComparer<NetworkProxyDetail>.Default.Equals(proxySettings.SOCKS, currentProxySettings?.SOCKS))
+        if (proxySettings.SOCKS is not null &&
+            !proxySettings.SOCKS.Equals(new NetworkProxyDetail()) &&
+            !EqualityComparer<NetworkProxyDetail>.Default.Equals(proxySettings.SOCKS, currentProxySettings?.SOCKS))
         {
             var status = await _scriptHandler
                 .ExecuteSetNetworkProxySettingsScript(

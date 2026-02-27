@@ -57,6 +57,85 @@ public class ProxyConfigurationAdapterTests
 
     public sealed class SetConfiguration
     {
+#pragma warning disable CA1812
+        internal sealed class NetworkProxySettingsData : TheoryData<NetworkProxySettings, NetworkProxySettings, int>
+        {
+            public NetworkProxySettingsData()
+            {
+                var currentProxySettings = new NetworkProxySettings()
+                {
+                    HTTP = CreateDetail(true, "http://proxy", 80, "user%", "p@ss word"),
+                    HTTPS = CreateDetail(false, "https://proxy", 81),
+                    FTP = CreateDetail(true, "ftp://proxy", 21),
+                    SFTP = CreateDetail(false, "sftp://proxy", 22, "us-er", "pass_word"),
+                    SOCKS = CreateDetail(true, "socks://proxy", 1080),
+                    DoNotProxyListEnabled = true,
+                    DoNotProxyList = ["localhost",]
+                };
+
+                Add(
+                    currentProxySettings,
+                    new(),
+                    0);
+
+                Add(
+                    currentProxySettings,
+                    new()
+                    {
+                        DoNotProxyListEnabled = true,
+                        DoNotProxyList = ["changed",]
+                    },
+                    1);
+
+                Add(
+                    currentProxySettings,
+                    new()
+                    {
+                        HTTPS = CreateDetail(false, "https://proxy-changed", 81),
+                        DoNotProxyListEnabled = true,
+                        DoNotProxyList = ["changed",]
+                    },
+                    2);
+
+                Add(
+                    currentProxySettings,
+                    new()
+                    {
+                        HTTP = CreateDetail(true, "http://proxy-changed", 80, "user%", "p@ss word"),
+                        HTTPS = CreateDetail(false, "https://proxy-changed", 81),
+                        FTP = CreateDetail(true, "ftp://proxy-changed", 21),
+                        SFTP = CreateDetail(false, "sftp://proxy-changed", 22, "us-er", "pass_word"),
+                        SOCKS = CreateDetail(true, "socks://proxy-changed", 1080),
+                        DoNotProxyListEnabled = true,
+                        DoNotProxyList = ["changed",]
+                    },
+                    6);
+            }
+        }
+#pragma warning restore CA1812
+
+
+        [Theory]
+        [ClassData(typeof(NetworkProxySettingsData))]
+        internal async Task ShouldOnlyCallScripts_WhenProxyDetailIsConfigured(
+            NetworkProxySettings currentProxySettings,
+            NetworkProxySettings proposedProxySettings,
+            int expectedReceiveCount)
+        {
+            // Arrange
+            var handler = Substitute.For<IScriptHandler>();
+            var current = CreateConfig(currentProxySettings);
+            var proposed = CreateConfig(proposedProxySettings);
+
+            var sut = CreateSut(current, handler, bypassHasChanges: true);
+
+            // Act + Assert
+            var status = await sut.SetConfiguration(proposed);
+
+            status.Should().Be(OperationStatus.Success);
+            await handler.Received(expectedReceiveCount).ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>());
+        }
+
         [Fact]
         public async Task ShouldCallScripts_ForChangedProxies()
         {
