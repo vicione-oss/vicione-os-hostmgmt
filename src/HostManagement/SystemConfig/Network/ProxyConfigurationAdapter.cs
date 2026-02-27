@@ -109,6 +109,7 @@ internal sealed class ProxyConfigurationAdapter(
     {
         var proxySettings = config.NetworkProxySettings;
         var currentProxySettings = _current.NetworkProxySettings;
+
         if (proxySettings is null)
             return OperationStatus.Success;
 
