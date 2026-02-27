@@ -41,10 +41,12 @@ internal sealed class ProxyConfigurationAdapter(
         // for applications like apt, wget, curl etc. Now we need to reverse this.
         UnescapeNetworkProxySettingsAuthentication(networkProxySettings);
 
-        var modifiedNoProxyList = new List<string>();
+        config.NetworkProxySettings = networkProxySettings;
 
         if (networkProxySettings.DoNotProxyList is not null)
         {
+            var modifiedNoProxyList = new List<string>();
+
             foreach (var item in networkProxySettings.DoNotProxyList)
             {
                 var modifiedItem = item;
@@ -67,10 +69,7 @@ internal sealed class ProxyConfigurationAdapter(
                 modifiedNoProxyList.Add(modifiedItem);
             }
 
-            config.NetworkProxySettings = networkProxySettings with
-            {
-                DoNotProxyList = modifiedNoProxyList
-            };
+            config.NetworkProxySettings.DoNotProxyList = modifiedNoProxyList;
         }
 
         return OperationStatus.Success;
