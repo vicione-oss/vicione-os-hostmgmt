@@ -36,19 +36,7 @@ internal sealed class NetworkDNSConfigurationAdapter(
         if (status == OperationStatus.Error)
             return OperationStatus.Error;
 
-        config.NetworkDNSSettings = new NetworkDNSSettings
-        {
-            Hostname = networkDNSSettings.Hostname,
-            MulticastDNSEnabled = networkDNSSettings.MulticastDNSEnabled,
-            StaticHostsEnabled = networkDNSSettings.StaticHostsEnabled,
-            StaticHosts = networkDNSSettings.StaticHosts,
-            NameServersEnabled = networkDNSSettings.NameServersEnabled,
-            NameServers = networkDNSSettings.NameServers,
-            DNSSuffixEnabled = networkDNSSettings.DNSSuffixEnabled,
-            DNSSuffix = networkDNSSettings.DNSSuffix,
-            SearchDomains = networkDNSSettings.SearchDomains,
-            SearchDomainsEnabled = networkDNSSettings.SearchDomainsEnabled
-        };
+        config.NetworkDNSSettings = networkDNSSettings;
 
         return OperationStatus.Success;
     }
@@ -93,7 +81,7 @@ internal sealed class NetworkDNSConfigurationAdapter(
         if (status == OperationStatus.Warning)
             hasWarning = true;
 
-        status = await SetDNSConfiguration(config.NetworkDNSSettings).ConfigureAwait(false);
+        status = await SetDNSConfiguration(dnsSettings).ConfigureAwait(false);
 
         if (status == OperationStatus.Error)
             return OperationStatus.Error;
@@ -101,7 +89,7 @@ internal sealed class NetworkDNSConfigurationAdapter(
         if (status == OperationStatus.Warning)
             hasWarning = true;
 
-        status = await SetHostname(config.NetworkDNSSettings?.Hostname).ConfigureAwait(false);
+        status = await SetHostname(dnsSettings?.Hostname).ConfigureAwait(false);
 
         if (status == OperationStatus.Error)
             return OperationStatus.Error;
