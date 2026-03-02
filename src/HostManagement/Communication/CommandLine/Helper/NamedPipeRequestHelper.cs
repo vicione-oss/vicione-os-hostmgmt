@@ -324,6 +324,42 @@ internal static class NamedPipeRequestHelper
     }
 
     /// <summary>
+    /// Sends a named pipe request to reset the specified network interface to its default configuration.
+    /// </summary>
+    /// <param name="interfaceName">The interface name.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns><see langword="true"/> if successful, otherwise <see langword="false"/></returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    internal static async Task<bool> ResetNetworkInterface(string interfaceName, CancellationToken cancellationToken)
+    {
+        var topic = Topics.ResetNetworkInterface;
+        NamedPipeMessage? namedPipeMessage = null;
+
+        try
+        {
+            namedPipeMessage = await SendNamedPipeRequest(topic, interfaceName, cancellationToken);
+
+            var systemControlResult = SourceGeneratedTypeSerializer
+                .Deserialize(
+                    namedPipeMessage.Content,
+                    CommunicationJsonContext.Default.SystemControlResult);
+
+            if (systemControlResult.Status == OperationStatus.Error)
+            {
+                OutputError(topic, systemControlResult);
+                return false;
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            OutputException(topic, namedPipeMessage, ex);
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Sends a named pipe request to redeploy the application scripts.
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the operation.</param>

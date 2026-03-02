@@ -266,5 +266,41 @@ namespace HostManagement.SystemConfig {
                 return ResourceManager.GetString("SetConfigSucceeded", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Reset network interface failed. ähnelt.
+        /// </summary>
+        internal static string ResetNetworkInterfaceFailed {
+            get {
+                return ResourceManager.GetString("ResetNetworkInterfaceFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Network interface '{0}' has been reset to default configuration. ähnelt.
+        /// </summary>
+        internal static string ResetNetworkInterfaceSucceeded {
+            get {
+                return ResourceManager.GetString("ResetNetworkInterfaceSucceeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Network interface '{0}' not found in '{1}'. ähnelt.
+        /// </summary>
+        internal static string ResetNetworkInterfaceNotFoundInDefault {
+            get {
+                return ResourceManager.GetString("ResetNetworkInterfaceNotFoundInDefault", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Network interface '{0}' not found in current configuration. ähnelt.
+        /// </summary>
+        internal static string ResetNetworkInterfaceNotFoundInCurrent {
+            get {
+                return ResourceManager.GetString("ResetNetworkInterfaceNotFoundInCurrent", resourceCulture);
+            }
+        }
     }
 }

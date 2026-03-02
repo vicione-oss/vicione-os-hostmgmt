@@ -20,6 +20,18 @@ public static partial class Topics
     public const string SetSystemConfiguration = "SetSystemConfiguration";
     #endregion
 
+    #region Topics to get or set a specific configuration section.
+    /// <summary>
+    /// The topic to reset a network interface to its default configuration.
+    /// </summary>
+    /// <remarks>
+    /// The name of the network interface must be specified as the message content.
+    /// The default configuration is taken from 'DefaultSystemConfiguration.json'.
+    /// </remarks>
+    [RequiresContent]
+    public const string ResetNetworkInterface = "ResetNetworkInterface";
+    #endregion
+
     #region Topics to retrieve a state. This is not part of the configuration.
     /// <summary>
     /// The topic to get the original physical address (initial factory setting).

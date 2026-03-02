@@ -1,4 +1,5 @@
 using System.IO.Abstractions.TestingHelpers;
+using System.Net;
 using AwesomeAssertions;
 using HostManagement.Configuration;
 using HostManagement.Shared.Communication.Enums;
@@ -36,6 +37,47 @@ public class SystemConfigurationServiceTests
             }
         };
 
+    private static InternalSystemConfiguration CreateInternalDefaultConfigWithInterface(
+        string interfaceName = "eth0",
+        bool enabled = false,
+        bool dhcpEnabled = false,
+        string physicalAddress = "aa:bb:cc:dd:ee:ff")
+        => new()
+        {
+            Version = 1,
+            NetworkDNSSettings = new() { Hostname = "test-host", },
+            NetworkInterfacesSettings = new()
+            {
+                NetworkInterfaces =
+                [
+                    new()
+                    {
+                        CommonInformation = new()
+                        {
+                            Name = interfaceName,
+                            Enabled = enabled,
+                            PhysicalAddress = physicalAddress,
+                        },
+                        IPv4 = new()
+                        {
+                            DHCPEnabled = dhcpEnabled,
+                            Gateway = IPAddress.Parse("192.168.1.1"),
+                            IPv4Details =
+                            [
+                                new()
+                                {
+                                    IPAddress = IPAddress.Parse("192.168.1.2"),
+                                    Netmask = IPAddress.Parse("255.255.255.0"),
+                                },
+                            ],
+                            VLANEnabled = true,
+                            VLANID = 100,
+                        },
+                    },
+                ],
+            },
+        };
+
     private static SystemConfiguration CreateSharedConfig()
         => new()
         {
@@ -48,7 +90,6 @@ public class SystemConfigurationServiceTests
             },
             NetworkInterfacesSettings = new()
             {
-
                 NetworkInterfaces =
                 [
                     new()
@@ -576,6 +617,97 @@ public class SystemConfigurationServiceTests
                 cts.Token);
         }
     }
+
+    public sealed class ResetNetworkInterface
+    {
+        [Fact]
+        public async Task ShouldReturnError_WhenDefaultConfigurationDoesNotExist()
+        {
+            var context = new SystemConfigurationServiceContext();
+            context.Persistence.PreparationConfigurationExists().Returns(false);
+            context.ScriptHandler.ExecuteGetNetworkInterfacesCommonInformationScript().ReturnsForAnyArgs(
+            (
+                OperationStatus.Success,
+                [new() { Name = "eth0", Enabled = true, PhysicalAddress = "11:22:33:44:55:66", }]
+            ));
+
+            var result = await context.Sut.ResetNetworkInterface("eth0", CancellationToken.None);
+
+            result.Status.Should().Be(OperationStatus.Error);
+            result.Message.Should().Contain("Reset network interface failed");
+            result.Message.Should().Contain("DefaultSystemConfiguration.json");
+        }
+
+        [Fact]
+        public async Task ShouldReturnError_WhenInterfaceNotFoundInDefaultConfiguration()
+        {
+            var context = new SystemConfigurationServiceContext();
+            context.Persistence.PreparationConfigurationExists().Returns(true);
+            context.Persistence.LoadPreparationConfiguration(Arg.Any<CancellationToken>())
+                .Returns(CreateInternalDefaultConfigWithInterface(interfaceName: "eth1"));
+            context.ScriptHandler.ExecuteGetNetworkInterfacesCommonInformationScript().ReturnsForAnyArgs(
+            (
+                OperationStatus.Success,
+                [new() { Name = "eth0", Enabled = true, PhysicalAddress = "11:22:33:44:55:66", }]
+            ));
+
+            var result = await context.Sut.ResetNetworkInterface("eth0", CancellationToken.None);
+
+            result.Status.Should().Be(OperationStatus.Error);
+            result.Message.Should().Contain("Network interface 'eth0' not found in 'DefaultSystemConfiguration.json'.");
+        }
+
+        [Fact]
+        public async Task ShouldPersistUpdatedConfiguration_WhenResetSucceeds()
+        {
+            // Arrange: Default configuration has static IP (DHCP=false)
+            var context = new SystemConfigurationServiceContext();
+            context.Persistence.PreparationConfigurationExists().Returns(true);
+            context.Persistence.LoadPreparationConfiguration(Arg.Any<CancellationToken>())
+                .Returns(CreateInternalDefaultConfigWithInterface(dhcpEnabled: false));
+            context.Persistence.SaveUserConfiguration(Arg.Any<InternalSystemConfiguration>(), Arg.Any<CancellationToken>())
+                .ReturnsForAnyArgs(Task.CompletedTask);
+
+            // Current interface state: DHCP enabled with different IP configuration
+            context.ScriptHandler.ExecuteGetNetworkInterfacesCommonInformationScript().ReturnsForAnyArgs(
+            (
+                OperationStatus.Success,
+                [new() { Name = "eth0", Enabled = true, PhysicalAddress = "11:22:33:44:55:66", }]
+            ));
+
+            context.ScriptHandler.ExecuteGetInterfaceIPv4SettingsScript(Arg.Any<string>())
+                .Returns((OperationStatus.Success, new()
+                {
+                    DHCPEnabled = true,
+                    Gateway = IPAddress.Parse("10.10.10.1"),
+                    IPv4Details =
+                    [
+                        new()
+                        {
+                            IPAddress = IPAddress.Parse("10.10.10.2"),
+                            Netmask = IPAddress.Parse("255.255.255.0"),
+                        },
+                    ],
+                }));
+
+            // Act
+            var result = await context.Sut.ResetNetworkInterface("eth0", CancellationToken.None);
+
+            // Assert: Interface should be reset to static IP from default configuration
+            result.Status.Should().Be(OperationStatus.Success);
+            result.Message.Should().Contain("Network interface 'eth0' has been reset to default configuration.");
+
+            await context.Persistence.Received(1).SaveUserConfiguration(
+                Arg.Is<InternalSystemConfiguration>(static config =>
+                    config.NetworkInterfacesSettings!.NetworkInterfaces![0].CommonInformation!.Enabled == false &&
+                    config.NetworkInterfacesSettings!.NetworkInterfaces![0].CommonInformation!.PhysicalAddress == "aa:bb:cc:dd:ee:ff" &&
+                    config.NetworkInterfacesSettings!.NetworkInterfaces![0].IPv4!.DHCPEnabled == false &&
+                    config.NetworkInterfacesSettings!.NetworkInterfaces![0].IPv4!.Gateway!.ToString() == "192.168.1.1" &&
+                    config.NetworkInterfacesSettings!.NetworkInterfaces![0].IPv4!.IPv4Details![0].IPAddress!.ToString() == "192.168.1.2" &&
+                    config.NetworkInterfacesSettings!.NetworkInterfaces![0].IPv4!.IPv4Details![0].Netmask!.ToString() == "255.255.255.0"),
+                Arg.Any<CancellationToken>());
+        }
+    }
 }
 
 
@@ -595,7 +727,7 @@ internal sealed class SystemConfigurationServiceContext
         ScriptHandler.ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs((OperationStatus.Success, []));
         ScriptHandler.ExecuteGetInterfaceIPv4SettingsScript(Arg.Any<string>()).ReturnsForAnyArgs((OperationStatus.Success, new()));
         ScriptHandler.ExecuteGetInterfaceIPv4DHCPLeaseScript(Arg.Any<string>()).ReturnsForAnyArgs((OperationStatus.Success, new()));
-        ScriptHandler.ExecuteGetNetworkDNSSettingsScript().ReturnsForAnyArgs((OperationStatus.Success, new()));
+        ScriptHandler.ExecuteGetNetworkDNSSettingsScript().ReturnsForAnyArgs((OperationStatus.Success, new() { Hostname = "test-host", }));
         ScriptHandler.ExecuteGetNetworkProxySettingsScript().ReturnsForAnyArgs((OperationStatus.Success, new()));
         ScriptHandler.ExecuteGetNetworkNTPSettingsScript().ReturnsForAnyArgs((OperationStatus.Success, new()));
         ScriptHandler.ExecuteGetSystemdUnitStateScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs((OperationStatus.Success, new() { Name = ServiceName, }));

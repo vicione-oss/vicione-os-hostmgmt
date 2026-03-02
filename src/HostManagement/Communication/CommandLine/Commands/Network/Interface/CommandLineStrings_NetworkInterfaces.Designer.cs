@@ -422,6 +422,42 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.Interface {
         }
         
         /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Resetting network interface '{0}' failed. ähnelt.
+        /// </summary>
+        internal static string InterfaceResetFailed {
+            get {
+                return ResourceManager.GetString("InterfaceResetFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Network interface '{0}' has been reset to default configuration. ähnelt.
+        /// </summary>
+        internal static string InterfaceResetSucceeded {
+            get {
+                return ResourceManager.GetString("InterfaceResetSucceeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Reset the specified network interface to its default configuration. ähnelt.
+        /// </summary>
+        internal static string NetworkInterfaceResetCommandDescription {
+            get {
+                return ResourceManager.GetString("NetworkInterfaceResetCommandDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die reset ähnelt.
+        /// </summary>
+        internal static string NetworkInterfaceResetCommandName {
+            get {
+                return ResourceManager.GetString("NetworkInterfaceResetCommandName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die IP address &apos;{0}&apos; has been removed from the network interface &apos;{1}&apos;. ähnelt.
         /// </summary>
         internal static string InterfaceIPRemoved {

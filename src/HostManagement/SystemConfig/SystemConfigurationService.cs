@@ -1,10 +1,13 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.IO.Abstractions;
 using System.Text;
+using HostManagement.Shared.Contracts.Network;
+using InternalNetwork = HostManagement.SystemConfig.Contracts;
 using HostManagement.Configuration;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Contracts;
+using HostManagement.Shared.Extensions;
 using HostManagement.Shared.Validation;
 using HostManagement.SystemConfig.InternalValidation;
 
@@ -250,6 +253,123 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
             .ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Resets the specified network interface to its default configuration.
+    /// </summary>
+    /// <param name="interfaceName">The interface name.</param>
+    /// <param name="cancellationToken">A token to cancel the request.</param>
+    /// <returns><see cref="SystemControlResult"/></returns>
+    public async Task<SystemControlResult> ResetNetworkInterface(
+        string interfaceName,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(interfaceName, nameof(interfaceName));
+
+            var currentConfigResult = await GetConfiguration(cancellationToken).ConfigureAwait(false);
+
+            if (currentConfigResult.Status == OperationStatus.Error)
+            {
+                return SystemControlResult.CreateErrorResult(
+                    SystemConfigResources.ResetNetworkInterfaceFailed +
+                    Environment.NewLine +
+                    currentConfigResult.Message);
+            }
+
+            if (currentConfigResult.Configuration is null)
+            {
+                return SystemControlResult.CreateErrorResult(
+                    SystemConfigResources.ResetNetworkInterfaceFailed +
+                    Environment.NewLine +
+                    SystemConfigResources.ConfigWasNull);
+            }
+
+            if (!persistence.PreparationConfigurationExists())
+            {
+                var message = string.Format(
+                    CultureInfo.InvariantCulture,
+                    CompositeFormat.Parse(SystemConfigResources.NoConfigFound),
+                    AppPaths.DefaultSystemConfigurationFile);
+
+                return SystemControlResult.CreateErrorResult(
+                    SystemConfigResources.ResetNetworkInterfaceFailed +
+                    Environment.NewLine +
+                    message);
+            }
+
+            var defaultConfig = await persistence.LoadPreparationConfiguration(cancellationToken)
+                .ConfigureAwait(false);
+
+            var defaultInterface = defaultConfig
+                .NetworkInterfacesSettings?
+                .NetworkInterfaces?
+                .FirstOrDefault(@interface => string.Equals(
+                    @interface.CommonInformation?.Name,
+                    interfaceName,
+                    StringComparison.Ordinal));
+
+            if (defaultInterface is null)
+            {
+                var message = string.Format(
+                    CultureInfo.InvariantCulture,
+                    CompositeFormat.Parse(SystemConfigResources.ResetNetworkInterfaceNotFoundInDefault),
+                    interfaceName,
+                    AppPaths.DefaultSystemConfigurationFile);
+
+                return SystemControlResult.CreateErrorResult(message);
+            }
+
+            var currentInterface = currentConfigResult.Configuration.GetNetworkInterface(interfaceName);
+
+            if (currentInterface is null)
+            {
+                var message = string.Format(
+                    CultureInfo.InvariantCulture,
+                    CompositeFormat.Parse(SystemConfigResources.ResetNetworkInterfaceNotFoundInCurrent),
+                    interfaceName);
+
+                return SystemControlResult.CreateErrorResult(message);
+            }
+
+            ApplyDefaultNetworkInterfaceSettings(currentInterface, defaultInterface);
+
+            var setConfigResult = await SetConfiguration(
+                currentConfigResult.Configuration,
+                shouldPersistConfiguration: true,
+                cancellationToken)
+                .ConfigureAwait(false);
+
+            if (setConfigResult.Status == OperationStatus.Error)
+            {
+                return SystemControlResult.CreateErrorResult(
+                    SystemConfigResources.ResetNetworkInterfaceFailed +
+                    Environment.NewLine +
+                    setConfigResult.Message);
+            }
+
+            var resultMessage = setConfigResult.Status == OperationStatus.Warning
+                ? setConfigResult.Message
+                : string.Format(
+                    CultureInfo.InvariantCulture,
+                    CompositeFormat.Parse(SystemConfigResources.ResetNetworkInterfaceSucceeded),
+                    interfaceName);
+
+            return new SystemControlResult
+            {
+                Status = setConfigResult.Status,
+                Message = resultMessage
+            };
+        }
+        catch (Exception ex)
+        {
+            return SystemControlResult.CreateErrorResult(
+                SystemConfigResources.ResetNetworkInterfaceFailed +
+                Environment.NewLine +
+                ex.Message);
+        }
+    }
+
     private async Task<SetSystemConfigurationResult> PrepareConfigurationInternal(
         JsonConfigurationType jsonConfigType,
         CancellationToken cancellationToken = default)
@@ -443,7 +563,7 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
             SystemConfigResources.SetConfigSucceeded);
     }
 
-    private async Task<(OperationStatus Status, string Message, Contracts.SystemConfiguration? SystemConfiguration)>
+    private async Task<(OperationStatus Status, string Message, InternalNetwork.SystemConfiguration? SystemConfiguration)>
         GetConfigurationFromJsonInternal(
             JsonConfigurationType jsonConfiguration,
             CancellationToken cancellationToken)
@@ -485,6 +605,50 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
 
             return (OperationStatus.Error, message, default);
         }
+    }
+
+    private static void ApplyDefaultNetworkInterfaceSettings(
+        NetworkInterfaceDetail currentInterface,
+        InternalNetwork.NetworkInterfaceDetail defaultInterface)
+    {
+        var defaultCommon = defaultInterface.CommonInformation;
+
+        if (defaultCommon is not null)
+        {
+            if (defaultCommon.Enabled.HasValue)
+                currentInterface.CommonInformation.Enabled = defaultCommon.Enabled.Value;
+
+            if (defaultCommon.PhysicalAddress is not null)
+                currentInterface.CommonInformation.PhysicalAddress = defaultCommon.PhysicalAddress;
+        }
+
+        var defaultIpv4 = defaultInterface.IPv4;
+
+        if (defaultIpv4 is null)
+            return;
+
+        if (defaultIpv4.DHCPEnabled.HasValue)
+            currentInterface.IPv4.DHCPEnabled = defaultIpv4.DHCPEnabled.Value;
+
+        if (defaultIpv4.Gateway is not null)
+            currentInterface.IPv4.Gateway = defaultIpv4.Gateway;
+
+        if (defaultIpv4.IPv4Details is not null)
+        {
+            currentInterface.IPv4.IPv4Details.Clear();
+            currentInterface.IPv4.IPv4Details.AddRange(
+                defaultIpv4.IPv4Details.Select(static detail => new IPv4Detail
+                {
+                    IPAddress = detail.IPAddress,
+                    Netmask = detail.Netmask,
+                }));
+        }
+
+        if (defaultIpv4.VLANEnabled.HasValue)
+            currentInterface.IPv4.VLANEnabled = defaultIpv4.VLANEnabled.Value;
+
+        if (defaultIpv4.VLANID.HasValue)
+            currentInterface.IPv4.VLANID = defaultIpv4.VLANID.Value;
     }
 
     private async Task<Result> PersistConfiguration(

@@ -24,6 +24,7 @@ internal sealed class InterfaceCommand : Command
         Add(new InterfaceEnableCommand(CommonOptions.s_interfaceNameOption));
         Add(new InterfaceDisableCommand(CommonOptions.s_interfaceNameOption));
         Add(new InterfaceStatusCommand(CommonOptions.s_interfaceNameOption));
+        Add(new InterfaceResetCommand(CommonOptions.s_interfaceNameOption));
         Add(new InterfaceMACCommand(CommonOptions.s_interfaceNameOption, s_macAddressOption));
         Add(new IPv4Command());
     }

@@ -186,4 +186,16 @@
   <data name="SetConfigSucceeded" xml:space="preserve">
     <value>Set system configuration succeeded.</value>
   </data>
+  <data name="ResetNetworkInterfaceFailed" xml:space="preserve">
+    <value>Reset network interface failed.</value>
+  </data>
+  <data name="ResetNetworkInterfaceSucceeded" xml:space="preserve">
+    <value>Network interface '{0}' has been reset to default configuration.</value>
+  </data>
+  <data name="ResetNetworkInterfaceNotFoundInDefault" xml:space="preserve">
+    <value>Network interface '{0}' not found in '{1}'.</value>
+  </data>
+  <data name="ResetNetworkInterfaceNotFoundInCurrent" xml:space="preserve">
+    <value>Network interface '{0}' not found in current configuration.</value>
+  </data>
 </root>
