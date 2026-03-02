@@ -47,7 +47,7 @@ public class SystemServiceTests
 
             // Assert
             logger.Received(1).Log(
-                Arg.Is(LogLevel.Error),
+                LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o => o.ToString()!.StartsWith(InstallFailedMessage)),
                 Arg.Is<Exception>(ex =>
@@ -83,7 +83,7 @@ public class SystemServiceTests
 
             // Assert
             logger.Received(1).Log(
-                Arg.Is(LogLevel.Warning),
+                LogLevel.Warning,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o => o.ToString()!.Contains(expectedLogMessage)),
                 null,
@@ -213,7 +213,7 @@ public class SystemServiceTests
 
             // Assert
             logger.Received(1).Log(
-                Arg.Is(LogLevel.Error),
+                LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o => o.ToString()!.Contains(SystemCouldNotBeUpdatedMessage)),
                 Arg.Is<Exception>(ex =>
@@ -247,7 +247,7 @@ public class SystemServiceTests
 
             // Assert
             logger.Received(1).Log(
-                Arg.Is(LogLevel.Error),
+                LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o =>
                     o.ToString()!.StartsWith(SystemCouldNotBeUpdatedMessage) &&
@@ -302,7 +302,7 @@ public class SystemServiceTests
 
             // Assert
             logger.Received(1).Log(
-                Arg.Is(LogLevel.Error),
+                LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o => o.ToString()!.Contains(SystemCouldNotBeResetMessage)),
                 Arg.Is<Exception>(ex =>
@@ -334,7 +334,7 @@ public class SystemServiceTests
 
             // Assert
             logger.Received(1).Log(
-                Arg.Is(LogLevel.Error),
+                LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o =>
                     o.ToString()!.StartsWith(SystemCouldNotBeResetMessage) &&
@@ -391,7 +391,7 @@ public class SystemServiceTests
 
             // Assert
             logger.Received(1).Log(
-                Arg.Is(LogLevel.Error),
+                LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o => o.ToString()!.Contains(SystemCouldNotBeRestartedMessage)),
                 Arg.Is<Exception>(ex =>
@@ -425,7 +425,7 @@ public class SystemServiceTests
 
             // Assert
             logger.Received(1).Log(
-                Arg.Is(LogLevel.Error),
+                LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o =>
                     o.ToString()!.StartsWith(SystemCouldNotBeRestartedMessage) &&
@@ -498,7 +498,7 @@ public class SystemServiceTests
 
             // Assert
             logger.Received(1).Log(
-                Arg.Is(LogLevel.Error),
+                LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o => o.ToString()!.Contains(SystemCouldNotBeShutDownMessage)),
                 Arg.Is<Exception>(ex =>
@@ -532,7 +532,7 @@ public class SystemServiceTests
 
             // Assert
             logger.Received(1).Log(
-                Arg.Is(LogLevel.Error),
+                LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o =>
                     o.ToString()!.StartsWith(SystemCouldNotBeShutDownMessage) &&

@@ -53,7 +53,7 @@ public class SystemdUnitServiceTests
 
             // Assert
             logger.Received(1).Log(
-                Arg.Is(LogLevel.Error),
+                LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o => o.ToString()!.Contains(expectedMessage)),
                 Arg.Is<Exception>(expectedException),
@@ -145,7 +145,7 @@ public class SystemdUnitServiceTests
 
             // Assert
             logger.Received(1).Log(
-                Arg.Is(LogLevel.Error),
+                LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o => o.ToString()!.Contains(expectedMessage)),
                 Arg.Is<Exception>(expectedException),

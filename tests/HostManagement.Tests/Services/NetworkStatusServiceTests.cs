@@ -38,7 +38,7 @@ public class NetworkStatusServiceTests
 
             // Assert
             logger.Received(1).Log(
-                Arg.Is(LogLevel.Error),
+                LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(state => state.ToString()!.Contains(GetNetworkStatusInformationFailed)),
                 Arg.Is<Exception>(ex => ReferenceEquals(ex, expectedException)),
@@ -63,7 +63,7 @@ public class NetworkStatusServiceTests
 
             // Assert
             logger.Received(1).Log(
-                Arg.Is(LogLevel.Warning),
+                LogLevel.Warning,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(state => state.ToString()!.Contains(GetNetworkStatusInformationCanceled)),
                 null,
@@ -94,7 +94,7 @@ public class NetworkStatusServiceTests
 
             // Assert
             logger.Received(1).Log(
-                Arg.Is(LogLevel.Error),
+                LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(state =>
                     state.ToString()!.StartsWith(GetNetworkStatusInformationFailed) &&
@@ -132,7 +132,7 @@ public class NetworkStatusServiceTests
 
             // Assert
             logger.Received(1).Log(
-                Arg.Is(LogLevel.Error),
+                LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(state =>
                     state.ToString()!.StartsWith(GetNetworkStatusInformationFailed) &&
