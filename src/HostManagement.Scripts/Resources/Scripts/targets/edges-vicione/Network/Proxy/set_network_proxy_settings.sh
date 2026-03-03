@@ -41,7 +41,9 @@ readonly VALUE_NONE="NONE"
 #######################################
 
 usage() {
-    echo "Usage: ${0}"
+    local script_name="${0##*/}"
+
+    echo "Usage: ${script_name}"
     echo "  --url <url> --port <port> [--username <username>] [--password <password>] --enabled <${VALUE_TRUE}|${VALUE_FALSE}> |"
     echo "  --no-proxy-list <${VALUE_NONE}|entry1,entry2,...> --no-proxy-list-enabled <${VALUE_TRUE}|${VALUE_FALSE}> |"
     echo "  --clear"
@@ -58,16 +60,16 @@ usage() {
     echo "  --no-proxy-list-enabled - Enables or disables the no_proxy list (true/false)."
     echo
     echo "Examples:"
-    echo "$0"
+    echo "${script_name}"
     echo "  --url https://myproxy.de --port 1234 --username MyUser --password MyPassword --enabled true"
     echo
-    echo "$0"
+    echo "${script_name}"
     echo "  --no-proxy-list localhost,127.0.0.1 --no-proxy-list-enabled true"
     echo
-    echo "$0"
+    echo "${script_name}"
     echo "  --no-proxy-list ${VALUE_NONE} --no-proxy-list-enabled false"
     echo
-    echo "$0"
+    echo "${script_name}"
     echo "  --clear"
     exit 0
 }
