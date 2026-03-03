@@ -275,6 +275,11 @@ public static class ScriptOptionNames
         /// The script argument for the no proxy list enabled.
         /// </summary>
         public const string NoProxyListEnabled = "--no-proxy-list-enabled";
+
+        /// <summary>
+        /// The script argument to clear all proxy settings.
+        /// </summary>
+        public const string Clear = "--clear";
     }
 
     /// <summary>

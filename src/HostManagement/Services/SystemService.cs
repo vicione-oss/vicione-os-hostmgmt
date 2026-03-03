@@ -192,20 +192,24 @@ internal sealed partial class SystemService(
                 .ExecuteResetSystemScript()
                 .ConfigureAwait(false);
 
-            if (status == OperationStatus.Error)
+            var result = CheckResetSystemError(status);
+            if (result is not null)
             {
-                var message =
-                    ServicesResources.ResetSystemFailed +
-                    Environment.NewLine +
-                    _result.Messages;
+                return result;
+            }
 
-                LogError(_logger, message);
+            // Clear all proxy settings after successful reset
+            var proxyScriptOptions = new ScriptOptions();
+            proxyScriptOptions.Add(ScriptOptionNames.Proxy.Clear);
 
-                return new SystemControlResult
-                {
-                    Status = OperationStatus.Error,
-                    Message = message,
-                };
+            status = await _scriptHandler
+                .ExecuteSetNetworkProxySettingsScript(proxyScriptOptions)
+                .ConfigureAwait(false);
+
+            result = CheckResetSystemError(status);
+            if (result is not null)
+            {
+                return result;
             }
 
             return await RestartSystem();
@@ -222,6 +226,27 @@ internal sealed partial class SystemService(
                 Message = message,
             };
         }
+    }
+
+    private SystemControlResult? CheckResetSystemError(OperationStatus status)
+    {
+        if (status == OperationStatus.Error)
+        {
+            var message =
+                ServicesResources.ResetSystemFailed +
+                Environment.NewLine +
+                _result.Messages;
+
+            LogError(_logger, message);
+
+            return new SystemControlResult
+            {
+                Status = OperationStatus.Error,
+                Message = message,
+            };
+        }
+
+        return null;
     }
 
     /// <summary>
