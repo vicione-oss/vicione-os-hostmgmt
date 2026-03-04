@@ -17,14 +17,24 @@ public class SystemConfigurationServiceTests
         => new()
         {
             Version = 1,
-            NetworkDNSSettings = new() { Hostname = "test-host" },
+            NetworkDNSSettings = new()
+            {
+                Hostname = "test-host",
+                DNSSuffixEnabled = false,
+                DNSSuffix = "company"
+            }
         };
 
     private static SystemConfiguration CreateSharedConfig()
         => new()
         {
             Version = 1,
-            NetworkDNSSettings = new() { Hostname = "test-host", },
+            NetworkDNSSettings = new()
+            {
+                Hostname = "test-host",
+                DNSSuffixEnabled = false,
+                DNSSuffix = "company"
+            },
             NetworkInterfacesSettings = new()
             {
 
@@ -478,8 +488,9 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnWarning_WhenSetConfigurationReturnsWarning()
         {
             var context = new SystemConfigurationServiceContext();
-            context.ScriptHandler.ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>())
-                .ReturnsForAnyArgs(OperationStatus.Warning);
+            context.ScriptHandler.ExecuteGetNetworkInterfacesCommonInformationScript()
+                .ReturnsForAnyArgs((OperationStatus.Warning, []));
+
             var proposedConfig = CreateSharedConfig();
 
             var result = await context.Sut
