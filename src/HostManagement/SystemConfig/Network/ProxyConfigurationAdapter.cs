@@ -113,68 +113,18 @@ internal sealed class ProxyConfigurationAdapter(
         if (proxySettings is null)
             return OperationStatus.Success;
 
-        if (proxySettings.HTTP is not null &&
-            !proxySettings.HTTP.Equals(new NetworkProxyDetail()) &&
-            !EqualityComparer<NetworkProxyDetail>.Default.Equals(proxySettings.HTTP, currentProxySettings?.HTTP))
+        var proxyDetails = new (NetworkProxyDetail? Proposed, NetworkProxyDetail? Current)[]
         {
-            var status = await _scriptHandler
-                .ExecuteSetNetworkProxySettingsScript(
-                    GetProxyScriptOptions(proxySettings.HTTP))
-                .ConfigureAwait(false);
+            (proxySettings.HTTP, currentProxySettings?.HTTP),
+            (proxySettings.HTTPS, currentProxySettings?.HTTPS),
+            (proxySettings.FTP, currentProxySettings?.FTP),
+            (proxySettings.SFTP, currentProxySettings?.SFTP),
+            (proxySettings.SOCKS, currentProxySettings?.SOCKS)
+        };
 
-            if (status == OperationStatus.Error)
-                return OperationStatus.Error;
-        }
-
-        if (proxySettings.HTTPS is not null &&
-            !proxySettings.HTTPS.Equals(new NetworkProxyDetail()) &&
-            !EqualityComparer<NetworkProxyDetail>.Default.Equals(proxySettings.HTTPS, currentProxySettings?.HTTPS))
+        foreach (var (proposed, current) in proxyDetails)
         {
-            var status = await _scriptHandler
-                .ExecuteSetNetworkProxySettingsScript(
-                    GetProxyScriptOptions(proxySettings.HTTPS))
-                .ConfigureAwait(false);
-
-            if (status == OperationStatus.Error)
-                return OperationStatus.Error;
-        }
-
-        if (proxySettings.FTP is not null &&
-            !proxySettings.FTP.Equals(new NetworkProxyDetail()) &&
-            !EqualityComparer<NetworkProxyDetail>.Default.Equals(proxySettings.FTP, currentProxySettings?.FTP))
-        {
-            var status = await _scriptHandler
-                .ExecuteSetNetworkProxySettingsScript(
-                    GetProxyScriptOptions(proxySettings.FTP))
-                .ConfigureAwait(false);
-
-            if (status == OperationStatus.Error)
-                return OperationStatus.Error;
-        }
-
-        if (proxySettings.SFTP is not null &&
-            !proxySettings.SFTP.Equals(new NetworkProxyDetail()) &&
-            !EqualityComparer<NetworkProxyDetail>.Default.Equals(proxySettings.SFTP, currentProxySettings?.SFTP))
-        {
-            var status = await _scriptHandler
-                .ExecuteSetNetworkProxySettingsScript(
-                    GetProxyScriptOptions(proxySettings.SFTP))
-                .ConfigureAwait(false);
-
-            if (status == OperationStatus.Error)
-                return OperationStatus.Error;
-        }
-
-        if (proxySettings.SOCKS is not null &&
-            !proxySettings.SOCKS.Equals(new NetworkProxyDetail()) &&
-            !EqualityComparer<NetworkProxyDetail>.Default.Equals(proxySettings.SOCKS, currentProxySettings?.SOCKS))
-        {
-            var status = await _scriptHandler
-                .ExecuteSetNetworkProxySettingsScript(
-                    GetProxyScriptOptions(proxySettings.SOCKS))
-                .ConfigureAwait(false);
-
-            if (status == OperationStatus.Error)
+            if (await SetProxyDetail(proposed, current).ConfigureAwait(false) == OperationStatus.Error)
                 return OperationStatus.Error;
         }
 
@@ -195,6 +145,22 @@ internal sealed class ProxyConfigurationAdapter(
 
             if (status == OperationStatus.Error)
                 return OperationStatus.Error;
+        }
+
+        return OperationStatus.Success;
+    }
+
+    private async Task<OperationStatus> SetProxyDetail(
+        NetworkProxyDetail? proposedProxyDetail,
+        NetworkProxyDetail? currentProxyDetail)
+    {
+        if (proposedProxyDetail is not null &&
+            !proposedProxyDetail.Equals(new NetworkProxyDetail()) &&
+            !EqualityComparer<NetworkProxyDetail>.Default.Equals(proposedProxyDetail, currentProxyDetail))
+        {
+            return await _scriptHandler
+                .ExecuteSetNetworkProxySettingsScript(GetProxyScriptOptions(proposedProxyDetail))
+                .ConfigureAwait(false);
         }
 
         return OperationStatus.Success;
