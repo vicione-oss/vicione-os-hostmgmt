@@ -2,16 +2,25 @@
 
 namespace HostManagement;
 
+/// <summary>
+/// Provides console logging for the application.
+/// </summary>
+/// <param name="minimumLevel">The minimum log level to write.</param>
+/// <param name="useShortLogLevels">Whether to use short log level names.</param>
+/// <param name="addNewLine">Whether to add an extra newline after each entry.</param>
 internal sealed class ConsoleLogger(
     LogLevel minimumLevel,
     bool useShortLogLevels = true,
     bool addNewLine = false) : ILogger
 {
+    /// <inheritdoc/>
     public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
 
+    /// <inheritdoc/>
     public bool IsEnabled(LogLevel logLevel)
         => logLevel >= minimumLevel;
 
+    /// <inheritdoc/>
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
         Func<TState, Exception?, string> formatter)
     {

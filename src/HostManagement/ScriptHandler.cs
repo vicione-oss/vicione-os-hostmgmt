@@ -10,12 +10,15 @@ using SharedCommunicationSourceGenerationContext = HostManagement.Shared.Communi
 
 namespace HostManagement;
 
+/// <summary>
+/// JSON source generation context for <see cref="List{T}"/> of <see cref="NetworkInterfaceCommonInformation"/>.
+/// </summary>
 [JsonSourceGenerationOptions(
     RespectNullableAnnotations = true,
     UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
     UseStringEnumConverter = true)]
 [JsonSerializable(typeof(List<NetworkInterfaceCommonInformation>))]
-internal partial class ScriptHandlerJsonContext : JsonSerializerContext;
+internal partial class CommonInformationListJsonSerializerContext : JsonSerializerContext;
 
 /// <inheritdoc cref="IScriptHandler"/>
 internal sealed class ScriptHandler(Result? result = default) : IScriptHandler
@@ -42,7 +45,7 @@ internal sealed class ScriptHandler(Result? result = default) : IScriptHandler
 
     public async Task<(OperationStatus, List<NetworkInterfaceCommonInformation>)> ExecuteGetNetworkInterfacesCommonInformationScript()
         => await ExecuteScriptAndReturnDeserializedType(
-            ScriptHandlerJsonContext.Default.ListNetworkInterfaceCommonInformation,
+            CommonInformationListJsonSerializerContext.Default.ListNetworkInterfaceCommonInformation,
             ScriptIdentifier.NetworkInterfacesCommonInformationGet);
 
     public async Task<(OperationStatus, NetworkStatusInformation)> ExecuteGetNetworkStatusInformationScript(

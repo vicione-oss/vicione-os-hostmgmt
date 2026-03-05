@@ -24,7 +24,7 @@ internal interface IPipeClient : IDisposable
     /// Sends a request with the specified <paramref name="topic"/>, <paramref name="content"/> and
     /// <paramref name="cancellationToken"/>.
     /// </summary>
-    /// <param name="topic">The topic of the request used to identify a request handler 
+    /// <param name="topic">The topic of the request used to identify a request handler
     /// (see <see cref="Topics"/>).</param>
     /// <param name="content">The JSON serialized message content.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>

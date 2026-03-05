@@ -7,6 +7,9 @@ namespace PipeCommunicationSample;
 /// <summary>
 /// Handles the pipe connection state and work processing.
 /// </summary>
+/// <param name="pipeStreamWrapper">The pipe stream wrapper.</param>
+/// <param name="eventCallbackRegistry">The event callback registry.</param>
+/// <param name="logger">An <see cref="ILogger"/> implementation.</param>
 internal sealed partial class PipeMessageProcessor(
     PipeStreamWrapper pipeStreamWrapper,
     EventCallbackRegistry eventCallbackRegistry,
@@ -15,6 +18,11 @@ internal sealed partial class PipeMessageProcessor(
 {
     private readonly Dictionary<Guid, ExpectedResponse> _expectedResponses = [];
 
+    /// <summary>
+    /// Announces an expected response for the specified conversation.
+    /// </summary>
+    /// <param name="conversationId">The conversation identifier.</param>
+    /// <returns>The expected response handle.</returns>
     public ExpectedResponse AnnounceResponse(Guid conversationId)
     {
         var response = new ExpectedResponse();

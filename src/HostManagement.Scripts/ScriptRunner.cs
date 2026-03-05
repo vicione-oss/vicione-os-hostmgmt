@@ -144,7 +144,7 @@ public sealed class ScriptRunner
     /// <param name="timeoutInMilliseconds">The timeout in milliseconds.</param>
     /// <param name="scriptIdentifier">The script identifier.</param>
     /// <param name="processWrapper">An <see cref="IProcessWrapper"/> implementation.</param>
-    /// <param name="cancellationToken">A token to cncel the operation.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <param name="scriptArguments">Optional script arguments.</param>
     /// <remarks>
     /// <see cref="ScriptResponse.StandardOutput"/> contains:

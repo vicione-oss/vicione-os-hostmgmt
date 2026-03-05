@@ -15,6 +15,5 @@ internal interface ICallbackHandler
     /// </summary>
     /// <param name="messageContent">The JSON serialized message content.</param>
     /// <param name="cancellationToken">The cancellation token</param>
-    /// <returns></returns>
     Task Handle(string messageContent, CancellationToken cancellationToken);
 }

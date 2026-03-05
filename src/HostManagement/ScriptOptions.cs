@@ -9,6 +9,9 @@ internal sealed class ScriptOptions
 {
     private readonly List<string> _options = [];
 
+    /// <summary>
+    /// Gets the script options.
+    /// </summary>
     internal IEnumerable<string> Options => _options.AsReadOnly();
 
     /// <summary>
