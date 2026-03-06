@@ -8,7 +8,7 @@ namespace HostManagement.Shared.Communication.Extensions;
 public static class OperationStatusExtensions
 {
     /// <summary>
-    /// Gets the combines <see cref="OperationStatus"/>.
+    /// Gets the combined <see cref="OperationStatus"/>.
     /// </summary>
     /// <param name="status">This <see cref="OperationStatus"/>.</param>
     /// <param name="otherStatus">The other <see cref="OperationStatus"/>.</param>

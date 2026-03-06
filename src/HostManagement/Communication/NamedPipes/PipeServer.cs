@@ -25,7 +25,7 @@ internal sealed partial class PipeServer : IPipeServer
     /// Initializes a new <see cref="PipeServer" />.
     /// </summary>
     /// <param name="pipeName">The name of the pipe.</param>
-    /// <param name="logger">The logger.</param>
+    /// <param name="logger">An <see cref="ILogger"/> implementation.</param>
     /// <param name="options">Extra options for the pipe.</param>
     public PipeServer(string pipeName, ILogger logger, PipeOptions? options = null)
     {

@@ -4,6 +4,10 @@ using HostManagement.Shared.Communication.Enums;
 
 namespace HostManagement.Services;
 
+/// <summary>
+/// Represents the physical address service.
+/// </summary>
+/// <param name="logger">The logger instance.</param>
 internal sealed partial class PhysicalAddressService(ILogger logger)
 {
     private readonly ILogger _logger = logger;

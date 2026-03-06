@@ -9,7 +9,7 @@ namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 /// Represents a <see cref="EchoRequestHandler"/>.
 /// </summary>
 /// <param name="server">The pipe server.</param>
-/// <param name="logger">The logger.</param>
+/// <param name="logger">An <see cref="ILogger"/> implementation.</param>
 internal sealed partial class EchoRequestHandler(PipeServer server, ILogger logger) : IRequestHandler
 {
     /// <summary>
