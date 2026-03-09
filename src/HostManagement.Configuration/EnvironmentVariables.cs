@@ -21,31 +21,31 @@ public static class EnvironmentVariables
     public static IReadOnlyCollection<string> InvalidVariables => s_invalidVariables.AsReadOnly();
 
     /// <summary>
-    /// The <see cref="TargetEnvironment"/>.
+    /// The target environment/platform, e.g. 'edges-vicione' (EdgeS) or 'debian' (generic Debian).
     /// </summary>
     /// <remarks>
     /// <b>Default:</b> <see cref="TargetEnvironment.Unknown"/>
     /// </remarks>
     public static readonly TargetEnvironment TargetEnvironment =
-        GetTargetEnvironmentEnumValue(EnvironmentVariableNames.TargetEnvironment);
+        GetTargetEnvironmentEnumValue("HOSTMANAGEMENT:TARGET_ENVIRONMENT");
 
     /// <summary>
-    /// The current <see cref="LogLevel"/>.
+    /// The configured application <see cref="Microsoft.Extensions.Logging.LogLevel"/>.
     /// </summary>
     /// <remarks>
     /// <b>Default:</b> <see cref="LogLevel.Warning"/>
     /// </remarks>
     public static readonly LogLevel LogLevel =
-        GetEnumValue(EnvironmentVariableNames.LogLevel, LogLevel.Warning);
+        GetEnumValue("LOGGING:LOGLEVEL:DEFAULT", LogLevel.Warning);
 
     /// <summary>
-    /// The user of the named pipe.
+    /// The user/owner of the named pipe.
     /// </summary>
     /// <remarks>
     /// <b>Default:</b> vicione-suite
     /// </remarks>
     public static readonly string NamedPipeUser =
-        GetValue(EnvironmentVariableNames.PipeUser, "vicione-suite");
+        GetValue("HOSTMANAGEMENT:PIPE:USER", "vicione-suite");
 
     /// <summary>
     /// The group of the named pipe.
@@ -54,58 +54,58 @@ public static class EnvironmentVariables
     /// <b>Default:</b> vicione-suite
     /// </remarks>
     public static readonly string NamedPipeGroup =
-        GetValue(EnvironmentVariableNames.PipeGroup, "vicione-suite");
+        GetValue("HOSTMANAGEMENT:PIPE:GROUP", "vicione-suite");
 
     /// <summary>
-    /// The permission of the named pipe.
+    /// The permission of the named pipe (numeric notation).
     /// </summary>
     /// <remarks>
-    /// <b>Default:</b> User: rw- | Group: rw- | Others: r--
+    /// <b>Default:</b> 664 (User: rw- | Group: rw- | Others: r--)
     /// </remarks>
     public static readonly string NamedPipePermission =
-        GetValue(EnvironmentVariableNames.PipePermission, "664");
+        GetValue("HOSTMANAGEMENT:PIPE:CHMOD", "664");
 
     /// <summary>
-    /// The path where the 'DefaultSystemConfiguration.json' is located.
+    /// The directory/path where <see cref="AppPaths.DefaultSystemConfigurationFile"/> is located.
     /// </summary>
     /// <remarks>
     /// <b>Default:</b> /tmp
     /// </remarks>
     public static readonly string DefaultSystemConfigurationDirectory =
-        GetValue(EnvironmentVariableNames.DefaultSystemConfigPath, AppPaths.TempPath);
+        GetValue("HOSTMANAGEMENT:DEFAULT_SYSTEM_CONFIGURATION_DIRECTORY", AppPaths.TempPath);
 
     /// <summary>
-    /// The path where the 'SystemConfiguration.json' is located.
+    /// The directory/path where <see cref="AppPaths.SystemConfigurationFile"/> is located.
     /// </summary>
     /// <remarks>
     /// <b>Default:</b> /tmp
     /// </remarks>
     public static readonly string SystemConfigurationDirectory =
-        GetValue(EnvironmentVariableNames.SystemConfigPath, AppPaths.TempPath);
+        GetValue("HOSTMANAGEMENT:SYSTEM_CONFIGURATION_DIRECTORY", AppPaths.TempPath);
 
     /// <summary>
-    /// The path where all resources are deployed.
+    /// The directory/path where all resources will be deployed to.
     /// </summary>
     /// <remarks>
     /// <b>Default:</b> /tmp/HostManagement_Resources
     /// </remarks>
     public static readonly string ResourceDeployDirectory =
         GetValue(
-            EnvironmentVariableNames.ResourcesPath,
+            "HOSTMANAGEMENT:RESOURCE_DEPLOY_DIRECTORY",
             Path.Combine(AppPaths.TempPath, AppPaths.ResourcesDirectory));
 
     /// <summary>
-    /// The list of configurable system wide Linux services.
+    /// The list of Linux services, that can be configured by HostManagement.
     /// </summary>
     public static readonly IReadOnlyCollection<string> ConfigurableServices =
         GetUniqueConfigurableServicesWithEnsuredSystemdUnitType(
-            GetListValue(EnvironmentVariableNames.ConfigurableServices, string.Empty, true));
+            GetListValue("HOSTMANAGEMENT:CONFIGURABLE_SERVICES", string.Empty, true));
 
     /// <summary>
-    /// The list of known public keys.
+    /// The list of known public keys, used to verify installation files etc.
     /// </summary>
     public static readonly List<string> PublicKeys =
-        GetArrayValues(EnvironmentVariableNames.PublicKeys, string.Empty);
+        GetArrayValues("HOSTMANAGEMENT:PUBLIC_KEYS", string.Empty);
 
     private static List<string> GetArrayValues(string key, string defaultValue, bool acceptEmptyValue = false)
     {
