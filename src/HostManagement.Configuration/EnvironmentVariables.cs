@@ -21,13 +21,20 @@ public static class EnvironmentVariables
     public static IReadOnlyCollection<string> InvalidVariables => s_invalidVariables.AsReadOnly();
 
     /// <summary>
-    /// The target environment/platform, e.g. 'edges-vicione' (EdgeS) or 'debian' (generic Debian).
+    /// The list of Linux services, that can be configured by HostManagement.
+    /// </summary>
+    public static readonly IReadOnlyCollection<string> ConfigurableServices =
+        GetUniqueConfigurableServicesWithEnsuredSystemdUnitType(
+            GetListValue("HOSTMANAGEMENT:CONFIGURABLE_SERVICES", string.Empty, true));
+
+    /// <summary>
+    /// The directory/path where <see cref="AppPaths.DefaultSystemConfigurationFile"/> is located.
     /// </summary>
     /// <remarks>
-    /// <b>Default:</b> <see cref="TargetEnvironment.Unknown"/>
+    /// <b>Default:</b> /tmp
     /// </remarks>
-    public static readonly TargetEnvironment TargetEnvironment =
-        GetTargetEnvironmentEnumValue("HOSTMANAGEMENT:TARGET_ENVIRONMENT");
+    public static readonly string DefaultSystemConfigurationDirectory =
+        GetValue("HOSTMANAGEMENT:DEFAULT_SYSTEM_CONFIGURATION_DIRECTORY", AppPaths.TempPath);
 
     /// <summary>
     /// The configured application <see cref="Microsoft.Extensions.Logging.LogLevel"/>.
@@ -37,15 +44,6 @@ public static class EnvironmentVariables
     /// </remarks>
     public static readonly LogLevel LogLevel =
         GetEnumValue("LOGGING:LOGLEVEL:DEFAULT", LogLevel.Warning);
-
-    /// <summary>
-    /// The user/owner of the named pipe.
-    /// </summary>
-    /// <remarks>
-    /// <b>Default:</b> vicione-suite
-    /// </remarks>
-    public static readonly string NamedPipeUser =
-        GetValue("HOSTMANAGEMENT:PIPE:USER", "vicione-suite");
 
     /// <summary>
     /// The group of the named pipe.
@@ -66,22 +64,19 @@ public static class EnvironmentVariables
         GetValue("HOSTMANAGEMENT:PIPE:CHMOD", "664");
 
     /// <summary>
-    /// The directory/path where <see cref="AppPaths.DefaultSystemConfigurationFile"/> is located.
+    /// The user/owner of the named pipe.
     /// </summary>
     /// <remarks>
-    /// <b>Default:</b> /tmp
+    /// <b>Default:</b> vicione-suite
     /// </remarks>
-    public static readonly string DefaultSystemConfigurationDirectory =
-        GetValue("HOSTMANAGEMENT:DEFAULT_SYSTEM_CONFIGURATION_DIRECTORY", AppPaths.TempPath);
+    public static readonly string NamedPipeUser =
+        GetValue("HOSTMANAGEMENT:PIPE:USER", "vicione-suite");
 
     /// <summary>
-    /// The directory/path where <see cref="AppPaths.SystemConfigurationFile"/> is located.
+    /// The list of known public keys, used to verify installation files etc.
     /// </summary>
-    /// <remarks>
-    /// <b>Default:</b> /tmp
-    /// </remarks>
-    public static readonly string SystemConfigurationDirectory =
-        GetValue("HOSTMANAGEMENT:SYSTEM_CONFIGURATION_DIRECTORY", AppPaths.TempPath);
+    public static readonly List<string> PublicKeys =
+        GetArrayValues("HOSTMANAGEMENT:PUBLIC_KEYS", string.Empty);
 
     /// <summary>
     /// The directory/path where all resources will be deployed to.
@@ -95,17 +90,22 @@ public static class EnvironmentVariables
             Path.Combine(AppPaths.TempPath, AppPaths.ResourcesDirectory));
 
     /// <summary>
-    /// The list of Linux services, that can be configured by HostManagement.
+    /// The directory/path where <see cref="AppPaths.SystemConfigurationFile"/> is located.
     /// </summary>
-    public static readonly IReadOnlyCollection<string> ConfigurableServices =
-        GetUniqueConfigurableServicesWithEnsuredSystemdUnitType(
-            GetListValue("HOSTMANAGEMENT:CONFIGURABLE_SERVICES", string.Empty, true));
+    /// <remarks>
+    /// <b>Default:</b> /tmp
+    /// </remarks>
+    public static readonly string SystemConfigurationDirectory =
+        GetValue("HOSTMANAGEMENT:SYSTEM_CONFIGURATION_DIRECTORY", AppPaths.TempPath);
 
     /// <summary>
-    /// The list of known public keys, used to verify installation files etc.
+    /// The target environment/platform, e.g. 'edges-vicione' (EdgeS) or 'debian' (generic Debian).
     /// </summary>
-    public static readonly List<string> PublicKeys =
-        GetArrayValues("HOSTMANAGEMENT:PUBLIC_KEYS", string.Empty);
+    /// <remarks>
+    /// <b>Default:</b> <see cref="TargetEnvironment.Unknown"/>
+    /// </remarks>
+    public static readonly TargetEnvironment TargetEnvironment =
+        GetTargetEnvironmentEnumValue("HOSTMANAGEMENT:TARGET_ENVIRONMENT");
 
     private static List<string> GetArrayValues(string key, string defaultValue, bool acceptEmptyValue = false)
     {
