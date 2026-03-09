@@ -31,10 +31,10 @@ public static class EnvironmentVariables
     /// The directory/path where <see cref="AppPaths.DefaultSystemConfigurationFile"/> is located.
     /// </summary>
     /// <remarks>
-    /// <b>Default:</b> /tmp
+    /// <b>Default:</b> /etc/hostmanagement
     /// </remarks>
     public static readonly string DefaultSystemConfigurationDirectory =
-        GetValue("HOSTMANAGEMENT:DEFAULT_SYSTEM_CONFIGURATION_DIRECTORY", AppPaths.TempPath);
+        GetValue("HOSTMANAGEMENT:DEFAULT_SYSTEM_CONFIGURATION_DIRECTORY", "/etc/hostmanagement");
 
     /// <summary>
     /// The configured application <see cref="Microsoft.Extensions.Logging.LogLevel"/>.
@@ -49,7 +49,7 @@ public static class EnvironmentVariables
     /// The group of the named pipe.
     /// </summary>
     /// <remarks>
-    /// <b>Default:</b> vicione-suite
+    /// <b>Default:</b> vicione-suite <i>(root, if group not exists)</i>
     /// </remarks>
     public static readonly string NamedPipeGroup =
         GetValue("HOSTMANAGEMENT:PIPE:GROUP", "vicione-suite");
@@ -67,7 +67,7 @@ public static class EnvironmentVariables
     /// The user/owner of the named pipe.
     /// </summary>
     /// <remarks>
-    /// <b>Default:</b> vicione-suite
+    /// <b>Default:</b> vicione-suite <i>(root, if user not exists)</i>
     /// </remarks>
     public static readonly string NamedPipeUser =
         GetValue("HOSTMANAGEMENT:PIPE:USER", "vicione-suite");
@@ -75,6 +75,9 @@ public static class EnvironmentVariables
     /// <summary>
     /// The list of known public keys, used to verify installation files etc.
     /// </summary>
+    /// <remarks>
+    /// <b>Default:</b> <i>(must be configured via Debian packaging)</i>
+    /// </remarks>
     public static readonly List<string> PublicKeys =
         GetArrayValues("HOSTMANAGEMENT:PUBLIC_KEYS", string.Empty);
 
@@ -82,21 +85,19 @@ public static class EnvironmentVariables
     /// The directory/path where all resources will be deployed to.
     /// </summary>
     /// <remarks>
-    /// <b>Default:</b> /tmp/HostManagement_Resources
+    /// <b>Default:</b> /var/lib/hostmanagement
     /// </remarks>
     public static readonly string ResourceDeployDirectory =
-        GetValue(
-            "HOSTMANAGEMENT:RESOURCE_DEPLOY_DIRECTORY",
-            Path.Combine(AppPaths.TempPath, AppPaths.ResourcesDirectory));
+        GetValue("HOSTMANAGEMENT:RESOURCE_DEPLOY_DIRECTORY", "/var/lib/hostmanagement");
 
     /// <summary>
     /// The directory/path where <see cref="AppPaths.SystemConfigurationFile"/> is located.
     /// </summary>
     /// <remarks>
-    /// <b>Default:</b> /tmp
+    /// <b>Default:</b> /mnt/persistent/hostmanagement
     /// </remarks>
     public static readonly string SystemConfigurationDirectory =
-        GetValue("HOSTMANAGEMENT:SYSTEM_CONFIGURATION_DIRECTORY", AppPaths.TempPath);
+        GetValue("HOSTMANAGEMENT:SYSTEM_CONFIGURATION_DIRECTORY", "/mnt/persistent/hostmanagement");
 
     /// <summary>
     /// The target environment/platform, e.g. 'edges-vicione' (EdgeS) or 'debian' (generic Debian).

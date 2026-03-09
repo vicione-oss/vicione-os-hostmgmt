@@ -16,11 +16,6 @@ public static partial class AppPaths
     public const string SystemConfigurationFile = "SystemConfiguration.json";
 
     /// <summary>
-    /// The resources directory.
-    /// </summary>
-    public const string ResourcesDirectory = "HostManagement_Resources";
-
-    /// <summary>
     /// The path of the temp directory.
     /// </summary>
     public const string TempPath = "/tmp";
