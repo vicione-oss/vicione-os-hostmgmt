@@ -129,7 +129,10 @@ internal sealed class ScriptHandler(Result? result = default) : IScriptHandler
         => await ExecuteScript(ScriptIdentifier.SystemdUnitStateSet, scriptOptions.Options);
 
     public async Task<OperationStatus> ExecuteInstallDebianPackageScript(ScriptOptions scriptOptions)
-        => await ExecuteScript(ScriptIdentifier.InstallDebianPackage, scriptOptions.Options);
+        => await ExecuteScript(
+            ScriptIdentifier.InstallDebianPackage,
+            scriptOptions.Options,
+            timeoutInMilliseconds: 180_000);
 
     public async Task<OperationStatus> ExecuteUpdateSystemScript(ScriptOptions scriptOptions)
         => await ExecuteScript(ScriptIdentifier.UpdateSystem, scriptOptions.Options);
@@ -211,15 +214,17 @@ internal sealed class ScriptHandler(Result? result = default) : IScriptHandler
     private async Task<OperationStatus> ExecuteScript(
         ScriptIdentifier scriptIdentifier,
         string? scriptArgument = null,
-        bool includeWarnings = true)
-        => await ExecuteScript(scriptIdentifier, ToArgs(scriptArgument), includeWarnings);
+        bool includeWarnings = true,
+        int? timeoutInMilliseconds = null)
+        => await ExecuteScript(scriptIdentifier, ToArgs(scriptArgument), includeWarnings, timeoutInMilliseconds);
 
     private async Task<OperationStatus> ExecuteScript(
         ScriptIdentifier scriptIdentifier,
         IEnumerable<string> scriptArguments,
-        bool includeWarnings = true)
+        bool includeWarnings = true,
+        int? timeoutInMilliseconds = null)
     {
-        var (status, _) = await RunScriptAsync(scriptIdentifier, scriptArguments, includeWarnings);
+        var (status, _) = await RunScriptAsync(scriptIdentifier, scriptArguments, includeWarnings, timeoutInMilliseconds);
         return status;
     }
 
@@ -274,9 +279,12 @@ internal sealed class ScriptHandler(Result? result = default) : IScriptHandler
     private async Task<(OperationStatus Status, ScriptResponse ScriptResponse)> RunScriptAsync(
         ScriptIdentifier scriptIdentifier,
         IEnumerable<string> scriptArguments,
-        bool includeWarnings)
+        bool includeWarnings,
+        int? timeoutInMilliseconds = null)
     {
-        var scriptResponse = await ScriptRunner.GetInstance().Run(scriptIdentifier, scriptArguments);
+        var scriptResponse = timeoutInMilliseconds.HasValue
+            ? await ScriptRunner.GetInstance().Run(timeoutInMilliseconds.Value, scriptIdentifier, scriptArguments)
+            : await ScriptRunner.GetInstance().Run(scriptIdentifier, scriptArguments);
 
         if (scriptResponse.HasErrors)
         {

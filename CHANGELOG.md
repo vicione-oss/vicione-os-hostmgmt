@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `TestableIO.System.IO.Abstractions` from `22.0.16` to `22.1.0`
   - `TestableIO.System.IO.Abstractions.TestingHelpers` from `22.0.16` to `22.1.0`
   - `TestableIO.System.IO.Abstractions.Wrappers` from `22.0.16` to `22.1.0`
+- Increased timeout for the Debian package install script (ExecuteInstallDebianPackageScript) to 180 seconds to prevent errors when installing larger packages.
 
 ### Fixed
 
