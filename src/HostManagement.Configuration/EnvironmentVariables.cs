@@ -25,7 +25,7 @@ public static class EnvironmentVariables
     /// </summary>
     public static readonly IReadOnlyCollection<string> ConfigurableServices =
         GetUniqueConfigurableServicesWithEnsuredSystemdUnitType(
-            GetListValue("HOSTMANAGEMENT:CONFIGURABLE_SERVICES", string.Empty, true));
+            GetListValue("HOSTMANAGEMENT:CONFIGURABLE_SERVICES", string.Empty, false));
 
     /// <summary>
     /// The directory/path where <see cref="AppPaths.DefaultSystemConfigurationFile"/> is located.
@@ -108,7 +108,7 @@ public static class EnvironmentVariables
     public static readonly TargetEnvironment TargetEnvironment =
         GetTargetEnvironmentEnumValue("HOSTMANAGEMENT:TARGET_ENVIRONMENT");
 
-    private static List<string> GetArrayValues(string key, string defaultValue, bool acceptEmptyValue = false)
+    private static List<string> GetArrayValues(string key, string defaultValue, bool isRequired = true)
     {
         var values = AppConfiguration.Configuration
             .AsEnumerable()
@@ -118,18 +118,18 @@ public static class EnvironmentVariables
 
         foreach (var value in values)
         {
-            if (!acceptEmptyValue && string.IsNullOrWhiteSpace(value))
+            if (isRequired && string.IsNullOrWhiteSpace(value))
                 s_invalidVariables.Add(key.Replace(":", "__"));
         }
 
         return values;
     }
 
-    private static string GetValue(string key, string defaultValue, bool acceptEmptyValue = false)
+    private static string GetValue(string key, string defaultValue, bool isRequired = true)
     {
         var value = AppConfiguration.Configuration[key] ?? defaultValue;
 
-        if (!acceptEmptyValue && string.IsNullOrWhiteSpace(value))
+        if (isRequired && string.IsNullOrWhiteSpace(value))
             s_invalidVariables.Add(key.Replace(":", "__"));
 
         return value;
@@ -150,8 +150,8 @@ public static class EnvironmentVariables
         return value;
     }
 
-    private static List<string> GetListValue(string key, string defaultValue, bool acceptEmptyValue = false)
-        => GetValue(key, defaultValue, acceptEmptyValue)
+    private static List<string> GetListValue(string key, string defaultValue, bool isRequired = true)
+        => GetValue(key, defaultValue, isRequired)
             .Split(',', StringSplitOptions.RemoveEmptyEntries)
             .Select(s => s.Trim())
             .ToList();
