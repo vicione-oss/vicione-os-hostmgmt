@@ -123,7 +123,7 @@ include:
   # Registry components for artifact storage
   - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/upload@v0.1.2
     inputs:
-      name: "Upload artifacts arm64"
+      name: "Upload binaries arm64"
       stage: packaging
       file: "artifacts.tar.gz"
       remote_name: "${ARTIFACT_PREFIX}-${CI_PIPELINE_ID}-linux-arm64.tar.gz"
@@ -132,7 +132,7 @@ include:
 
   - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/upload@v0.1.2
     inputs:
-      name: "Upload artifacts x64"
+      name: "Upload binaries x64"
       stage: packaging
       file: "artifacts.tar.gz"
       remote_name: "${ARTIFACT_PREFIX}-${CI_PIPELINE_ID}-linux-x64.tar.gz"
@@ -223,7 +223,7 @@ include:
   # JFrog components for artifact releases
   - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/jfrog/release@v0.1.0
     inputs:
-      name: "Prerelease Packages to JFrog"
+      name: "Prerelease packages to JFrog"
       stage: deploy
       repository: "vicione-suite-dev"
       upload_path: "hostmanagements"
@@ -235,7 +235,7 @@ include:
 
   - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/jfrog/release@v0.1.0
     inputs:
-      name: "Release Packages to JFrog"
+      name: "Release packages to JFrog"
       stage: release
       repository: "vicione-suite-staging"
       upload_path: "hostmanagements"
@@ -246,7 +246,7 @@ include:
 
   - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/jfrog/promote@v0.1.0
     inputs:
-      name: "Public-Release Packages to JFrog"
+      name: "Public-Release packages to JFrog"
       stage: release-public
       source_repository: "vicione-suite-staging"
       destination_repository: "vicione-suite"
@@ -276,7 +276,7 @@ Markdown:
       changes:
         - "**/*.md"
 
-#################### Artifacts stage
+#################### Packaging stage
 
 Pack binaries:
   stage: packaging
@@ -311,7 +311,7 @@ Pack binaries:
 
 # Configure upload job dependencies (use VICIONE_IMAGE instead of curl - has mise + cached)
 # Override tags to use small runners (upload doesn't need large)
-Upload artifacts arm64:
+Upload binaries arm64:
   image: $VICIONE_IMAGE
   before_script: []
   tags: []
@@ -323,7 +323,7 @@ Upload artifacts arm64:
             ARCH: arm64
             RUNNER_ARCH: arm64
 
-Upload artifacts x64:
+Upload binaries x64:
   image: $VICIONE_IMAGE
   before_script: []
   tags: []
@@ -335,9 +335,7 @@ Upload artifacts x64:
             ARCH: x64
             RUNNER_ARCH: amd64
 
-#################### Packaging stage
-
-trigger deb packaging:
+Trigger Debian packaging:
   stage: packaging
   variables:
     APP_PIPELINE: ${APP_PIPELINE}
@@ -349,8 +347,8 @@ trigger deb packaging:
     branch: ${DEB_PACKAGING_BRANCH}
     strategy: depend
   needs:
-    - "Upload artifacts arm64"
-    - "Upload artifacts x64"
+    - "Upload binaries arm64"
+    - "Upload binaries x64"
     - Version
   when: manual
   rules: *rules_manual_tag
@@ -360,17 +358,17 @@ trigger deb packaging:
 # JFrog release jobs are created by jfrog component includes above
 
 # Configure JFrog job dependencies
-Prerelease Packages to JFrog:
+Prerelease packages to JFrog:
   needs:
-    - "trigger deb packaging"
+    - "Trigger Debian packaging"
 
-Release Packages to JFrog:
+Release packages to JFrog:
   needs:
-    - "trigger deb packaging"
+    - "Trigger Debian packaging"
 
-Public-Release Packages to JFrog:
+Public-Release packages to JFrog:
   needs:
-    - "Release Packages to JFrog"
+    - "Release packages to JFrog"
 
 #################### Cleanup stage
 # Cleanup job is created by registry component include above
