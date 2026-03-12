@@ -39,7 +39,7 @@ internal sealed class RestartServiceRequestHandler(ILogger logger) : RequestHand
                 logger,
                 scriptHandler,
                 scriptResult,
-                EnvironmentVariables.ConfigurableServices);
+                EnvironmentVariables.ConfigurableServices.Value);
 
             var result = await service.RestartSystemdUnit(messageContent);
 

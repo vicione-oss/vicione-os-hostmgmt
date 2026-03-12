@@ -16,7 +16,7 @@ internal sealed partial class PipeServer : IPipeServer
     private readonly string _pipeName;
     private readonly ILogger _logger;
     private readonly PipeOptions? _options;
-    private readonly RequestHandlerRegistry _handlerRegistry = new(EnvironmentVariables.TargetEnvironment);
+    private readonly RequestHandlerRegistry _handlerRegistry = new(EnvironmentVariables.Environment.Value);
     private readonly NamedPipeServerStream _rawPipeStream;
     private readonly PipeStreamWrapper _wrappedPipe;
     private readonly PipeMessageProcessor _messageProcessor;

@@ -36,7 +36,7 @@ public class SystemServiceTests
 
             var expectedException = new FileNotFoundException("could not find signatureFile");
             signatureValidator
-                .IsSignatureValid(Arg.Any<SignedDebianPackage>(), Arg.Any<List<string>>())
+                .IsSignatureValid(Arg.Any<SignedDebianPackage>(), Arg.Any<IReadOnlyCollection<string>>())
                 .Returns(_ => throw expectedException);
 
             var expectedMessage = $"{InstallFailedMessage} ('{signedPackage.FilePath}'). {expectedException.Message}";
@@ -638,7 +638,7 @@ public class SystemServiceTests
     {
         var signatureValidator = Substitute.For<ISignedDebianPackageSignatureValidator>();
         signatureValidator
-            .IsSignatureValid(Arg.Any<SignedDebianPackage>(), Arg.Any<List<string>>())
+            .IsSignatureValid(Arg.Any<SignedDebianPackage>(), Arg.Any<IReadOnlyCollection<string>>())
             .Returns(isSignatureValid);
 
         return signatureValidator;

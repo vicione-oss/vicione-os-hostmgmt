@@ -57,7 +57,7 @@ internal sealed class SystemConfigurationAdapter : ConfigurationAdapter
         _adapters.Add(
             new ServiceConfigurationAdapter(
                 scriptHandler,
-                EnvironmentVariables.ConfigurableServices,
+                EnvironmentVariables.ConfigurableServices.Value,
                 bypassHasChanges,
                 bypassApplyConfig));
     }

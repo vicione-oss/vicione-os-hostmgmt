@@ -22,7 +22,7 @@ internal static partial class PipeServerExtensions
 
         scriptOptions.Add(
             ScriptOptionNames.SetExecutePermission.Permission,
-            EnvironmentVariables.NamedPipePermission);
+            EnvironmentVariables.NamedPipePermission.Value);
 
         scriptOptions.Add(ScriptOptionNames.SetExecutePermission.File, pipePath);
 
@@ -46,21 +46,21 @@ internal static partial class PipeServerExtensions
     /// <exception cref="IOException"></exception>
     internal static async Task SetOwnership(this PipeServer pipeServer)
     {
-        var user = EnvironmentVariables.NamedPipeUser;
-        var group = EnvironmentVariables.NamedPipeGroup;
+        var user = EnvironmentVariables.NamedPipeUser.Value;
+        var group = EnvironmentVariables.NamedPipeGroup.Value;
 
-        if (!await ExistsUser(EnvironmentVariables.NamedPipeUser))
+        if (!await ExistsUser(EnvironmentVariables.NamedPipeUser.Value))
         {
             user = "root";
 
-            NamedPipeUserDoesNotExist(pipeServer.Logger, EnvironmentVariables.NamedPipeUser);
+            NamedPipeUserDoesNotExist(pipeServer.Logger, EnvironmentVariables.NamedPipeUser.Value);
         }
 
-        if (!await ExistsGroup(EnvironmentVariables.NamedPipeGroup))
+        if (!await ExistsGroup(EnvironmentVariables.NamedPipeGroup.Value))
         {
             group = "root";
 
-            NamedPipeGroupDoesNotExist(pipeServer.Logger, EnvironmentVariables.NamedPipeGroup);
+            NamedPipeGroupDoesNotExist(pipeServer.Logger, EnvironmentVariables.NamedPipeGroup.Value);
         }
 
         var pipePath = Path.Combine(AppPaths.TempPath, $"CoreFxPipe_{pipeServer.PipeName}");

@@ -30,11 +30,11 @@ public static partial class AppPaths
     /// The path of the 'DefaultSystemConfiguration.json' file.
     /// </summary>
     public static readonly string DefaultSystemConfigurationFilePath =
-        Path.Combine(EnvironmentVariables.DefaultSystemConfigurationDirectory, DefaultSystemConfigurationFile);
+        Path.Combine(EnvironmentVariables.DefaultSystemConfigurationDirectory.Value, DefaultSystemConfigurationFile);
 
     /// <summary>
     /// The path of the 'SystemConfiguration.json' file.
     /// </summary>
     public static readonly string SystemConfigurationFilePath =
-        Path.Combine(EnvironmentVariables.SystemConfigurationDirectory, SystemConfigurationFile);
+        Path.Combine(EnvironmentVariables.SystemConfigurationDirectory.Value, SystemConfigurationFile);
 }

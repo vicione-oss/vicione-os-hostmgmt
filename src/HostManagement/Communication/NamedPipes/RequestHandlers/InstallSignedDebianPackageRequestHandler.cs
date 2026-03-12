@@ -49,7 +49,7 @@ internal sealed class InstallSignedDebianPackageRequestHandler(ILogger logger) :
 
             var result = await service.InstallSignedDebianPackage(
                 signedDebianPackage,
-                EnvironmentVariables.PublicKeys,
+                EnvironmentVariables.PublicKeys.Value,
                 cancellationToken);
 
             return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
