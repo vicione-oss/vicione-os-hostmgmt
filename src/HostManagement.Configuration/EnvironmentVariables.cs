@@ -14,16 +14,6 @@ public static class EnvironmentVariables
     private static readonly List<string> s_invalidVariables = [];
 
     /// <summary>
-    /// Determines whether there are invalid environment variables.
-    /// </summary>
-    public static bool HasInvalidVariables => s_invalidVariables.Count > 0;
-
-    /// <summary>
-    /// A collection of all invalid environment variables.
-    /// </summary>
-    public static IReadOnlyCollection<string> InvalidVariables => s_invalidVariables.AsReadOnly();
-
-    /// <summary>
     /// The list of Linux services, that can be configured by HostManagement.
     /// </summary>
     /// <remarks>
@@ -114,6 +104,16 @@ public static class EnvironmentVariables
     public static readonly EnvironmentVariable<TargetEnvironment> Environment =
         CreateRequired("HOSTMANAGEMENT:TARGET_ENVIRONMENT", TargetEnvironment.Unknown);
 
+    /// <summary>
+    /// Determines whether there are invalid environment variables.
+    /// </summary>
+    public static bool HasInvalidVariables => s_invalidVariables.Count > 0;
+
+    /// <summary>
+    /// A collection of all invalid environment variables.
+    /// </summary>
+    public static IReadOnlyCollection<string> InvalidVariables => s_invalidVariables.AsReadOnly();
+
     private static EnvironmentVariable<T> Create<T>(string key, T defaultValue, bool isIndexed = false)
         where T : notnull
         => SetAndValidate(
@@ -142,19 +142,19 @@ public static class EnvironmentVariables
         };
     }
 
-    private static IReadOnlyCollection<string> NormalizeConfigurableServiceNames(IReadOnlyCollection<string> configurableServices)
+    private static IReadOnlyCollection<string> NormalizeConfigurableServiceNames(IReadOnlyCollection<string> names)
     {
-        var uniqueServicesList = new HashSet<string>();
+        var uniqueServiceNames = new HashSet<string>(StringComparer.Ordinal);
 
-        foreach (var name in configurableServices)
+        foreach (var name in names)
         {
             var finalName = SystemdUnits.HasKnownUnitTypeSuffix(name)
                 ? name
                 : name + ".service";
 
-            uniqueServicesList.Add(finalName);
+            uniqueServiceNames.Add(finalName);
         }
 
-        return [.. uniqueServicesList];
+        return [.. uniqueServiceNames];
     }
 }

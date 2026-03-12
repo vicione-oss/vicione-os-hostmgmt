@@ -209,15 +209,18 @@ internal static partial class ServiceRunner
             return false;
         }
 
-        CurrentTargetEnvironment(s_logger, EnvironmentVariables.Environment.Value.ToEnvironmentString());
+        var environmentString = EnvironmentVariables.Environment.Value.ToEnvironmentString();
+        var resourceDeployDirectory = EnvironmentVariables.ResourceDeployDirectory.Value;
+
+        CurrentTargetEnvironment(s_logger, environmentString);
 
         var resourceManagerInstance = ResourceManager.Initialize(
             s_logger,
             s_fileSystem,
-            EnvironmentVariables.ResourceDeployDirectory.Value,
-            EnvironmentVariables.Environment.Value.ToEnvironmentString());
+            resourceDeployDirectory,
+            environmentString);
 
-        ScriptRunner.Initialize(EnvironmentVariables.ResourceDeployDirectory.Value);
+        ScriptRunner.Initialize(resourceDeployDirectory);
 
         return resourceManagerInstance.DeployScripts();
     }
