@@ -163,7 +163,7 @@ public static class EnvironmentVariables
 
         foreach (var name in configurableServices)
         {
-            var finalName = SystemdUnits.KnownUnitTypes.Any(name.EndsWith)
+            var finalName = SystemdUnits.HasKnownUnitTypeSuffix(name)
                 ? name
                 : name + ".service";
 
