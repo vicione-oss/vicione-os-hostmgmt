@@ -78,10 +78,7 @@ stages:
   - build
   - test
   - packaging
-  - deploy
   - publish
-  - release
-  - release-public
   - cleanup
 
 default:
@@ -211,6 +208,7 @@ include:
   - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-nuget-push@2.2.4
     inputs:
       image: $VICIONE_IMAGE
+      stage: publish
       source: "JFrogViciOne"
       filename_pattern: "./src/*"
       rules: *rules_manual
@@ -223,8 +221,8 @@ include:
   # JFrog components for artifact releases
   - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/jfrog/release@v0.1.0
     inputs:
-      name: "Prerelease packages to JFrog"
-      stage: deploy
+      name: "Prerelease Debian"
+      stage: publish
       repository: "vicione-suite-dev"
       upload_path: "hostmanagements"
       artifact_prefix: "hostmanagement"
@@ -235,8 +233,8 @@ include:
 
   - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/jfrog/release@v0.1.0
     inputs:
-      name: "Release packages to JFrog"
-      stage: release
+      name: "Release Debian to staging"
+      stage: publish
       repository: "vicione-suite-staging"
       upload_path: "hostmanagements"
       artifact_prefix: "hostmanagement"
@@ -246,8 +244,8 @@ include:
 
   - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/jfrog/promote@v0.1.0
     inputs:
-      name: "Public-Release packages to JFrog"
-      stage: release-public
+      name: "Release Debian to public"
+      stage: publish
       source_repository: "vicione-suite-staging"
       destination_repository: "vicione-suite"
       artifact_prefix: "hostmanagement"
@@ -358,17 +356,17 @@ Trigger Debian packaging:
 # JFrog release jobs are created by jfrog component includes above
 
 # Configure JFrog job dependencies
-Prerelease packages to JFrog:
+Prerelease Debian:
   needs:
     - "Trigger Debian packaging"
 
-Release packages to JFrog:
+Release Debian to staging:
   needs:
     - "Trigger Debian packaging"
 
-Public-Release packages to JFrog:
+Release Debian to public:
   needs:
-    - "Release packages to JFrog"
+    - "Release Debian to staging"
 
 #################### Cleanup stage
 # Cleanup job is created by registry component include above
