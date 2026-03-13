@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Configuration;
@@ -7,6 +8,9 @@ namespace HostManagement.Configuration;
 /// </summary>
 public static class EnvironmentVariables
 {
+    private static readonly IConfigurationRoot s_configuration =
+        new ConfigurationBuilder().AddEnvironmentVariables().Build();
+
     private static readonly List<string> s_invalidVariables = [];
 
     /// <summary>
@@ -112,11 +116,13 @@ public static class EnvironmentVariables
 
     private static EnvironmentVariable<T> Create<T>(string key, T defaultValue, bool isIndexed = false)
         where T : notnull
-        => SetAndValidate(new EnvironmentVariable<T>(key, defaultValue, isIndexed: isIndexed));
+        => SetAndValidate(
+            new EnvironmentVariable<T>(s_configuration, key, defaultValue, isIndexed: isIndexed));
 
     private static EnvironmentVariable<T> CreateRequired<T>(string key, T defaultValue, bool isIndexed = false)
         where T : notnull
-        => SetAndValidate(new EnvironmentVariable<T>(key, defaultValue, isRequired: true, isIndexed: isIndexed));
+        => SetAndValidate(
+            new EnvironmentVariable<T>(s_configuration, key, defaultValue, isRequired: true, isIndexed: isIndexed));
 
     private static EnvironmentVariable<T> SetAndValidate<T>(EnvironmentVariable<T> variable) where T : notnull
     {
