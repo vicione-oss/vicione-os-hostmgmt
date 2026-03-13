@@ -1,7 +1,7 @@
 ﻿using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.Proxy;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.Proxy;
 
@@ -34,7 +34,7 @@ public class ProxyAuthenticationValidatorTests
         var expectedValidationEntry = new ValidationEntry("Proxy username can not be empty or whitespace.");
 
         // Act
-        var result = await new ProxyAuthenticationValidator().ValidateAsync(username, "pass");
+        var result = await new ProxyAuthenticationValidator().ValidateAsync(username, "pass", CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -51,7 +51,7 @@ public class ProxyAuthenticationValidatorTests
         var expectedValidationEntry = new ValidationEntry("Proxy password can not be empty or whitespace.");
 
         // Act
-        var result = await new ProxyAuthenticationValidator().ValidateAsync("user", password);
+        var result = await new ProxyAuthenticationValidator().ValidateAsync("user", password, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -73,7 +73,8 @@ public class ProxyAuthenticationValidatorTests
         };
 
         // Act
-        var result = await new ProxyAuthenticationValidator().ValidateAsync(username, password);
+        var result = await new ProxyAuthenticationValidator()
+            .ValidateAsync(username, password, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -90,7 +91,8 @@ public class ProxyAuthenticationValidatorTests
             "Proxy username has an invalid character count (expected max. 255 characters).");
 
         // Act
-        var result = await new ProxyAuthenticationValidator().ValidateAsync(invalidUsername, "pass");
+        var result = await new ProxyAuthenticationValidator()
+            .ValidateAsync(invalidUsername, "pass", CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -110,7 +112,8 @@ public class ProxyAuthenticationValidatorTests
             "Proxy username can not contain control characters.");
 
         // Act
-        var result = await new ProxyAuthenticationValidator().ValidateAsync(invalidUsername, "pass");
+        var result = await new ProxyAuthenticationValidator()
+            .ValidateAsync(invalidUsername, "pass", CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -127,7 +130,8 @@ public class ProxyAuthenticationValidatorTests
             "Proxy password has an invalid character count (expected max. 255 characters).");
 
         // Act
-        var result = await new ProxyAuthenticationValidator().ValidateAsync("user", invalidPassword);
+        var result = await new ProxyAuthenticationValidator()
+            .ValidateAsync("user", invalidPassword, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -147,7 +151,8 @@ public class ProxyAuthenticationValidatorTests
             "Proxy password can not contain control characters.");
 
         // Act
-        var result = await new ProxyAuthenticationValidator().ValidateAsync("user", invalidPassword);
+        var result = await new ProxyAuthenticationValidator()
+            .ValidateAsync("user", invalidPassword, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -165,7 +170,8 @@ public class ProxyAuthenticationValidatorTests
         string password)
     {
         // Act
-        var result = await new ProxyAuthenticationValidator().ValidateAsync(username, password);
+        var result = await new ProxyAuthenticationValidator()
+            .ValidateAsync(username, password, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeTrue();

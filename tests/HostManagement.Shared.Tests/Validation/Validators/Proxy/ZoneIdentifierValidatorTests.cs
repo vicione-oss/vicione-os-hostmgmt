@@ -1,8 +1,8 @@
 ﻿using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.Proxy;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.Proxy;
 
@@ -54,7 +54,7 @@ public class ZoneIdentifierValidatorTests
 
         // Act
         var result = await new ZoneIdentifierValidator(invalidNoProxyItem)
-            .ValidateAsync(emptyZoneIdentifier, s_interfaces);
+            .ValidateAsync(emptyZoneIdentifier, s_interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -77,7 +77,7 @@ public class ZoneIdentifierValidatorTests
 
         // Act
         var result = await new ZoneIdentifierValidator(invalidNoProxyItem)
-            .ValidateAsync(invalidZoneIdentifier, s_interfaces);
+            .ValidateAsync(invalidZoneIdentifier, s_interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -100,7 +100,7 @@ public class ZoneIdentifierValidatorTests
             $"has an invalid character (expected 0-9, a-f, A-F, _ or -).");
 
         var result = await new ZoneIdentifierValidator(invalidNoProxyItem)
-            .ValidateAsync(invalidZoneIdentifier, s_interfaces);
+            .ValidateAsync(invalidZoneIdentifier, s_interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -122,7 +122,7 @@ public class ZoneIdentifierValidatorTests
 
         // Act
         var result = await new ZoneIdentifierValidator(invalidNoProxyItem)
-            .ValidateAsync(invalidZoneIdentifier, s_interfaces);
+            .ValidateAsync(invalidZoneIdentifier, s_interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -137,7 +137,7 @@ public class ZoneIdentifierValidatorTests
     {
         // Act
         var result = await new ZoneIdentifierValidator(noProxyItem)
-            .ValidateAsync(zoneIdentifier, s_interfaces);
+            .ValidateAsync(zoneIdentifier, s_interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeTrue();

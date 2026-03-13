@@ -1,9 +1,9 @@
 ﻿using System.Net;
 using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Validation;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation;
 
@@ -46,7 +46,7 @@ public class SystemConfigurationValidatorTests
             .Validate(currentConfig, invalidProposedConfig!);
 
         var validationResult = await new SystemConfigurationValidator()
-            .ValidateAsync(invalidProposedConfig!);
+            .ValidateAsync(invalidProposedConfig!, CancellationToken.None);
 
         // Assert
         validationResultObsolete.IsValid.Should().BeFalse();
@@ -124,7 +124,8 @@ public class SystemConfigurationValidatorTests
         };
 
         // Act
-        var result = await new SystemConfigurationValidator().ValidateAsync(systemConfiguration);
+        var result = await new SystemConfigurationValidator()
+            .ValidateAsync(systemConfiguration, CancellationToken.None);
 
         // Assert
         result.Should().BeOfType<ValidationResult>();

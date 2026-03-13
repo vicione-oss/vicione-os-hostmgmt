@@ -1,7 +1,7 @@
 ﻿using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.DNS;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.DNS;
 
@@ -42,7 +42,7 @@ public class FQDNValidatorTests
             $"has too many characters (expected max. 253 characters including dots).");
 
         // Act
-        var result = await new FQDNValidator(customFQDNText).ValidateAsync(invalidFQDN);
+        var result = await new FQDNValidator(customFQDNText).ValidateAsync(invalidFQDN, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -65,7 +65,8 @@ public class FQDNValidatorTests
             $"{GetCustomFQDNText(customFQDNText)} '{invalidFQDN}' can not have leading or trailing dots.");
 
         // Act
-        var result = await new FQDNValidator(customFQDNText, allowLeadingDot).ValidateAsync(invalidFQDN);
+        var result = await new FQDNValidator(customFQDNText, allowLeadingDot)
+            .ValidateAsync(invalidFQDN, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -85,7 +86,7 @@ public class FQDNValidatorTests
             $"{GetCustomFQDNText(customFQDNText)} '{invalidFQDN}' can not have consecutive dots.");
 
         // Act
-        var result = await new FQDNValidator(customFQDNText).ValidateAsync(invalidFQDN);
+        var result = await new FQDNValidator(customFQDNText).ValidateAsync(invalidFQDN, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -106,7 +107,7 @@ public class FQDNValidatorTests
             $"must have at least two domain labels (e.g. \"example.com\").");
 
         // Act
-        var result = await new FQDNValidator(customFQDNText).ValidateAsync(invalidFQDN);
+        var result = await new FQDNValidator(customFQDNText).ValidateAsync(invalidFQDN, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -127,7 +128,7 @@ public class FQDNValidatorTests
             $"can not have more than one numerical label.");
 
         // Act
-        var result = await new FQDNValidator(customFQDNText).ValidateAsync(invalidFQDN);
+        var result = await new FQDNValidator(customFQDNText).ValidateAsync(invalidFQDN, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -150,7 +151,7 @@ public class FQDNValidatorTests
             $"Affected domain label is: '{invalidDomainLabel}'.");
 
         // Act
-        var result = await new FQDNValidator(customFQDNText).ValidateAsync(invalidFQDN);
+        var result = await new FQDNValidator(customFQDNText).ValidateAsync(invalidFQDN, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -171,7 +172,7 @@ public class FQDNValidatorTests
             $"has a top-level domain with an invalid character count (expected 2 to 63 characters).");
 
         // Act
-        var result = await new FQDNValidator(customFQDNText).ValidateAsync(invalidFQDN);
+        var result = await new FQDNValidator(customFQDNText).ValidateAsync(invalidFQDN, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -194,7 +195,7 @@ public class FQDNValidatorTests
             $"Affected domain label is: '{invalidDomainLabel}'.");
 
         // Act
-        var result = await new FQDNValidator(customFQDNText).ValidateAsync(invalidFQDN);
+        var result = await new FQDNValidator(customFQDNText).ValidateAsync(invalidFQDN, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -208,7 +209,8 @@ public class FQDNValidatorTests
     public async Task ShouldReturnValid_WhenFQDNValid(string? customFQDNText)
     {
         // Act
-        var result = await new FQDNValidator(customFQDNText).ValidateAsync(ValidationTestData.Domain.FQDN);
+        var result = await new FQDNValidator(customFQDNText)
+            .ValidateAsync(ValidationTestData.Domain.FQDN, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeTrue();

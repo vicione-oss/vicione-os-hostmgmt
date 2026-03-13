@@ -53,7 +53,7 @@ public class SystemConfigurationServiceTests
         {
             var context = new SystemConfigurationServiceContext();
 
-            var result = await context.Sut.GetConfiguration();
+            var result = await context.Sut.GetConfiguration(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Success);
             result.Configuration.Should().NotBeNull();
@@ -66,7 +66,7 @@ public class SystemConfigurationServiceTests
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler.ExecuteGetNetworkInterfacesCommonInformationScript().ReturnsForAnyArgs((OperationStatus.Error, []));
 
-            var result = await context.Sut.GetConfiguration();
+            var result = await context.Sut.GetConfiguration(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Error);
             result.Configuration.Should().BeNull();
@@ -79,7 +79,7 @@ public class SystemConfigurationServiceTests
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler.ExecuteGetNetworkInterfacesCommonInformationScript().ReturnsForAnyArgs((OperationStatus.Warning, []));
 
-            var result = await context.Sut.GetConfiguration();
+            var result = await context.Sut.GetConfiguration(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Warning);
             result.Configuration.Should().NotBeNull();
@@ -93,7 +93,7 @@ public class SystemConfigurationServiceTests
             context.ScriptHandler.ExecuteGetNetworkInterfacesCommonInformationScript()
                 .ThrowsAsync(new InvalidOperationException("Test exception"));
 
-            var result = await context.Sut.GetConfiguration();
+            var result = await context.Sut.GetConfiguration(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Error);
             result.Configuration.Should().BeNull();
@@ -110,7 +110,7 @@ public class SystemConfigurationServiceTests
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
             context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
 
-            var result = await context.Sut.GetConfigurationFromJson();
+            var result = await context.Sut.GetConfigurationFromJson(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Error);
             result.Configuration.Should().BeNull();
@@ -128,7 +128,7 @@ public class SystemConfigurationServiceTests
             context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>())
                 .Returns(config);
 
-            var result = await context.Sut.GetConfigurationFromJson();
+            var result = await context.Sut.GetConfigurationFromJson(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Success);
             result.Configuration.Should().NotBeNull();
@@ -146,7 +146,7 @@ public class SystemConfigurationServiceTests
             context.Persistence.LoadPreparationConfiguration(Arg.Any<CancellationToken>())
                 .Returns(config);
 
-            var result = await context.Sut.GetConfigurationFromJson();
+            var result = await context.Sut.GetConfigurationFromJson(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Success);
             result.Configuration.Should().NotBeNull();
@@ -160,10 +160,10 @@ public class SystemConfigurationServiceTests
             var context = new SystemConfigurationServiceContext();
             context.Persistence.PreparationConfigurationExists().Returns(true);
             context.Persistence.UserConfigurationExists().Returns(true);
-            context.Persistence.LoadUserConfiguration(default)
+            context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>())
                 .ThrowsAsyncForAnyArgs(new InvalidOperationException("Load failed"));
 
-            var result = await context.Sut.GetConfigurationFromJson();
+            var result = await context.Sut.GetConfigurationFromJson(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Error);
             result.Configuration.Should().BeNull();
@@ -177,7 +177,7 @@ public class SystemConfigurationServiceTests
             context.Persistence.PreparationConfigurationExists().Returns(true);
             context.Persistence.UserConfigurationExists().Returns(true);
             var config = CreateInternalConfig();
-            context.Persistence.LoadUserConfiguration(default)
+            context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>())
                 .ReturnsForAnyArgs(config);
             using var cts = new CancellationTokenSource();
 
@@ -195,7 +195,7 @@ public class SystemConfigurationServiceTests
         {
             var context = new SystemConfigurationServiceContext();
 
-            var result = await context.Sut.PrepareConfiguration();
+            var result = await context.Sut.PrepareConfiguration(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Success);
             result.Message.Should().Contain("SystemConfiguration.json");
@@ -213,7 +213,7 @@ public class SystemConfigurationServiceTests
             context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>())
                 .Returns(config);
 
-            var result = await context.Sut.PrepareConfiguration();
+            var result = await context.Sut.PrepareConfiguration(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Success);
             context.ScriptHandler.Received().UseResult(Arg.Any<Result>());
@@ -235,7 +235,7 @@ public class SystemConfigurationServiceTests
             context.Persistence.LoadPreparationConfiguration(Arg.Any<CancellationToken>())
                 .Returns(config);
 
-            var result = await context.Sut.PrepareConfiguration();
+            var result = await context.Sut.PrepareConfiguration(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Success);
             result.Message.Should().Contain("System config error");
@@ -251,12 +251,12 @@ public class SystemConfigurationServiceTests
             context.FileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new MockFileData(string.Empty));
             context.Persistence.PreparationConfigurationExists().Returns(true);
             context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
-            context.Persistence.LoadUserConfiguration(default)
+            context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>())
                 .ThrowsAsyncForAnyArgs(new InvalidOperationException("Load failed"));
-            context.Persistence.LoadPreparationConfiguration(default)
+            context.Persistence.LoadPreparationConfiguration(Arg.Any<CancellationToken>())
                 .ThrowsAsyncForAnyArgs(new InvalidOperationException("Load failed"));
 
-            var result = await context.Sut.PrepareConfiguration();
+            var result = await context.Sut.PrepareConfiguration(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Error);
             result.Message.Should().Contain("Load failed");
@@ -269,12 +269,12 @@ public class SystemConfigurationServiceTests
             context.Persistence.UserConfigurationExists().Returns(true);
             context.Persistence.PreparationConfigurationExists().Returns(true);
             var config = CreateInternalConfig();
-            context.Persistence.LoadUserConfiguration(default).ReturnsForAnyArgs(config);
-            context.Persistence.LoadPreparationConfiguration(default).ReturnsForAnyArgs(config);
-            context.ScriptHandler.ExecuteSetNetworkDNSSettingsScript(default!)
+            context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>()).ReturnsForAnyArgs(config);
+            context.Persistence.LoadPreparationConfiguration(Arg.Any<CancellationToken>()).ReturnsForAnyArgs(config);
+            context.ScriptHandler.ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>())
                 .ReturnsForAnyArgs(OperationStatus.Warning);
 
-            var result = await context.Sut.PrepareConfiguration();
+            var result = await context.Sut.PrepareConfiguration(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Error);
             result.Message.Should().Contain("Prepare system configuration not possible.");
@@ -287,12 +287,12 @@ public class SystemConfigurationServiceTests
             context.Persistence.UserConfigurationExists().Returns(true);
             context.Persistence.PreparationConfigurationExists().Returns(true);
             var config = CreateInternalConfig();
-            context.Persistence.LoadUserConfiguration(default).ReturnsForAnyArgs(config);
-            context.Persistence.LoadPreparationConfiguration(default).ReturnsForAnyArgs(config);
-            context.ScriptHandler.ExecuteSetNetworkDNSSettingsScript(default!)
+            context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>()).ReturnsForAnyArgs(config);
+            context.Persistence.LoadPreparationConfiguration(Arg.Any<CancellationToken>()).ReturnsForAnyArgs(config);
+            context.ScriptHandler.ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>())
                 .ReturnsForAnyArgs(OperationStatus.Error);
 
-            var result = await context.Sut.PrepareConfiguration();
+            var result = await context.Sut.PrepareConfiguration(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Error);
             result.Message.Should().Contain("Prepare system configuration not possible.");
@@ -309,12 +309,12 @@ public class SystemConfigurationServiceTests
             context.Persistence.PreparationConfigurationExists().Returns(true);
             context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
             var config = CreateInternalConfig();
-            context.Persistence.LoadUserConfiguration(default).ReturnsForAnyArgs(config);
-            context.Persistence.LoadPreparationConfiguration(default).ReturnsForAnyArgs(config);
-            context.ScriptHandler.ExecuteSetNetworkDNSSettingsScript(default!)
+            context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>()).ReturnsForAnyArgs(config);
+            context.Persistence.LoadPreparationConfiguration(Arg.Any<CancellationToken>()).ReturnsForAnyArgs(config);
+            context.ScriptHandler.ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>())
                 .ThrowsAsyncForAnyArgs(new InvalidOperationException("Exception during prepare"));
 
-            var result = await context.Sut.PrepareConfiguration();
+            var result = await context.Sut.PrepareConfiguration(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Error);
             result.Message.Should().Contain("Exception during prepare");
@@ -331,7 +331,8 @@ public class SystemConfigurationServiceTests
                 .ThrowsAsync(new InvalidOperationException("Test exception"));
             var proposedConfig = CreateSharedConfig();
 
-            var result = await context.Sut.SetConfiguration(proposedConfig);
+            var result = await context.Sut
+                .SetConfiguration(proposedConfig, shouldPersistConfiguration: true, CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Error);
             result.Message.Should().Contain("Test exception");
@@ -345,7 +346,8 @@ public class SystemConfigurationServiceTests
                 .ReturnsForAnyArgs((OperationStatus.Error, []));
             var proposedConfig = CreateSharedConfig();
 
-            var result = await context.Sut.SetConfiguration(proposedConfig);
+            var result = await context.Sut
+                .SetConfiguration(proposedConfig, shouldPersistConfiguration: true, CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Error);
             result.Message.Should().Contain("Get system configuration from scripts failed");
@@ -359,7 +361,8 @@ public class SystemConfigurationServiceTests
                 .ReturnsForAnyArgs((OperationStatus.Warning, []));
             var proposedConfig = CreateSharedConfig();
 
-            var result = await context.Sut.SetConfiguration(proposedConfig);
+            var result = await context.Sut
+                .SetConfiguration(proposedConfig, shouldPersistConfiguration: true, CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Warning);
             result.Message.Should().Contain("Get system configuration from scripts completed with warnings.");
@@ -372,7 +375,8 @@ public class SystemConfigurationServiceTests
             var proposedConfig = CreateSharedConfig();
             proposedConfig.NetworkInterfacesSettings.NetworkInterfaces.Clear();
 
-            var result = await context.Sut.SetConfiguration(proposedConfig);
+            var result = await context.Sut
+                .SetConfiguration(proposedConfig, shouldPersistConfiguration: true, CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Error);
             result.Message.Should().Contain("No network interfaces specified.");
@@ -382,11 +386,12 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnSuccess_WhenSetSucceeds()
         {
             var context = new SystemConfigurationServiceContext();
-            context.Persistence.SaveUserConfiguration(default!, default)
+            context.Persistence.SaveUserConfiguration(default!, Arg.Any<CancellationToken>())
                 .ReturnsForAnyArgs(Task.CompletedTask);
             var proposedConfig = CreateSharedConfig();
 
-            var result = await context.Sut.SetConfiguration(proposedConfig);
+            var result = await context.Sut
+                .SetConfiguration(proposedConfig, shouldPersistConfiguration: true, CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Success);
             result.Message.Should().NotBeEmpty();
@@ -396,11 +401,12 @@ public class SystemConfigurationServiceTests
         public async Task ShouldPersistConfiguration_WhenShouldPersistIsTrue()
         {
             var context = new SystemConfigurationServiceContext();
-            context.Persistence.SaveUserConfiguration(default!, default)
+            context.Persistence.SaveUserConfiguration(default!, Arg.Any<CancellationToken>())
                 .ReturnsForAnyArgs(Task.CompletedTask);
             var proposedConfig = CreateSharedConfig();
 
-            await context.Sut.SetConfiguration(proposedConfig, shouldPersistConfiguration: true);
+            await context.Sut
+                .SetConfiguration(proposedConfig, shouldPersistConfiguration: true, CancellationToken.None);
 
             await context.Persistence.Received(1).SaveUserConfiguration(
                 Arg.Any<InternalSystemConfiguration>(),
@@ -413,7 +419,8 @@ public class SystemConfigurationServiceTests
             var context = new SystemConfigurationServiceContext();
             var proposedConfig = CreateSharedConfig();
 
-            await context.Sut.SetConfiguration(proposedConfig, shouldPersistConfiguration: false);
+            await context.Sut
+                .SetConfiguration(proposedConfig, shouldPersistConfiguration: false, CancellationToken.None);
 
             await context.Persistence.DidNotReceive().SaveUserConfiguration(
                 Arg.Any<InternalSystemConfiguration>(),
@@ -424,11 +431,12 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnError_WhenPersistenceFails()
         {
             var context = new SystemConfigurationServiceContext();
-            context.Persistence.SaveUserConfiguration(default!, default)
+            context.Persistence.SaveUserConfiguration(default!, Arg.Any<CancellationToken>())
                 .ThrowsAsyncForAnyArgs(new InvalidOperationException("Persist failed"));
             var proposedConfig = CreateSharedConfig();
 
-            var result = await context.Sut.SetConfiguration(proposedConfig);
+            var result = await context.Sut
+                .SetConfiguration(proposedConfig, shouldPersistConfiguration: true, CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Error);
             result.Message.Should().Contain("Persist failed");
@@ -438,11 +446,12 @@ public class SystemConfigurationServiceTests
         public async Task ShouldRevertConfiguration_WhenSetConfigurationFails()
         {
             var context = new SystemConfigurationServiceContext();
-            context.ScriptHandler.ExecuteSetNetworkDNSSettingsScript(default!)
+            context.ScriptHandler.ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>())
                 .ReturnsForAnyArgs(x => throw new InvalidOperationException("test exception"), x => OperationStatus.Success);
             var proposedConfig = CreateSharedConfig();
 
-            var result = await context.Sut.SetConfiguration(proposedConfig);
+            var result = await context.Sut
+                .SetConfiguration(proposedConfig, shouldPersistConfiguration: true, CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Error);
             result.Message.Should().Contain("test exception");
@@ -453,11 +462,12 @@ public class SystemConfigurationServiceTests
         public async Task ShouldRevertConfiguration_WhenSetConfigurationReturnsError()
         {
             var context = new SystemConfigurationServiceContext();
-            context.ScriptHandler.ExecuteSetNetworkDNSSettingsScript(default!)
+            context.ScriptHandler.ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>())
                 .ReturnsForAnyArgs(OperationStatus.Error);
             var proposedConfig = CreateSharedConfig();
 
-            var result = await context.Sut.SetConfiguration(proposedConfig);
+            var result = await context.Sut
+                .SetConfiguration(proposedConfig, shouldPersistConfiguration: true, CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Error);
             result.Message.Should().Contain("Revert");
@@ -468,11 +478,12 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnWarning_WhenSetConfigurationReturnsWarning()
         {
             var context = new SystemConfigurationServiceContext();
-            context.ScriptHandler.ExecuteSetNetworkDNSSettingsScript(default!)
+            context.ScriptHandler.ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>())
                 .ReturnsForAnyArgs(OperationStatus.Warning);
             var proposedConfig = CreateSharedConfig();
 
-            var result = await context.Sut.SetConfiguration(proposedConfig);
+            var result = await context.Sut
+                .SetConfiguration(proposedConfig, shouldPersistConfiguration: true, CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Warning);
             result.Message.Should().Contain("completed with warnings");
@@ -507,20 +518,20 @@ internal sealed class SystemConfigurationServiceContext
         const string ServiceName = "test.service";
 
         ScriptHandler.ExecuteGetNetworkInterfacesCommonInformationScript().ReturnsForAnyArgs((OperationStatus.Success, []));
-        ScriptHandler.ExecuteGetInterfaceIPv4SettingsScript(default!).ReturnsForAnyArgs((OperationStatus.Success, new()));
-        ScriptHandler.ExecuteGetInterfaceIPv4DHCPLeaseScript(default!).ReturnsForAnyArgs((OperationStatus.Success, new()));
+        ScriptHandler.ExecuteGetInterfaceIPv4SettingsScript(Arg.Any<string>()).ReturnsForAnyArgs((OperationStatus.Success, new()));
+        ScriptHandler.ExecuteGetInterfaceIPv4DHCPLeaseScript(Arg.Any<string>()).ReturnsForAnyArgs((OperationStatus.Success, new()));
         ScriptHandler.ExecuteGetNetworkDNSSettingsScript().ReturnsForAnyArgs((OperationStatus.Success, new()));
         ScriptHandler.ExecuteGetNetworkProxySettingsScript().ReturnsForAnyArgs((OperationStatus.Success, new()));
         ScriptHandler.ExecuteGetNetworkNTPSettingsScript().ReturnsForAnyArgs((OperationStatus.Success, new()));
-        ScriptHandler.ExecuteGetSystemdUnitStateScript(default!).ReturnsForAnyArgs((OperationStatus.Success, new() { Name = ServiceName, }));
-        ScriptHandler.ExecuteSetInterfaceIPv4SettingsScript(default!).ReturnsForAnyArgs(OperationStatus.Success);
-        ScriptHandler.ExecuteSetNetworkDNSSettingsScript(default!).ReturnsForAnyArgs(OperationStatus.Success);
-        ScriptHandler.ExecuteSetStaticHostsScript(default!).ReturnsForAnyArgs(OperationStatus.Success);
-        ScriptHandler.ExecuteSetNetworkMulticastDNSSettingsScript(default!).ReturnsForAnyArgs(OperationStatus.Success);
-        ScriptHandler.ExecuteSetHostnameScript(default!).ReturnsForAnyArgs(OperationStatus.Success);
-        ScriptHandler.ExecuteSetNetworkProxySettingsScript(default!).ReturnsForAnyArgs(OperationStatus.Success);
-        ScriptHandler.ExecuteSetNetworkNTPSettingsScript(default!).ReturnsForAnyArgs(OperationStatus.Success);
-        ScriptHandler.ExecuteSetSystemdUnitStateScript(default!).ReturnsForAnyArgs(OperationStatus.Success);
+        ScriptHandler.ExecuteGetSystemdUnitStateScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs((OperationStatus.Success, new() { Name = ServiceName, }));
+        ScriptHandler.ExecuteSetInterfaceIPv4SettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
+        ScriptHandler.ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
+        ScriptHandler.ExecuteSetStaticHostsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
+        ScriptHandler.ExecuteSetNetworkMulticastDNSSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
+        ScriptHandler.ExecuteSetHostnameScript(Arg.Any<string>()).ReturnsForAnyArgs(OperationStatus.Success);
+        ScriptHandler.ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
+        ScriptHandler.ExecuteSetNetworkNTPSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
+        ScriptHandler.ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
         ScriptHandler.ExecuteApplyNetplanConfigurationScript().ReturnsForAnyArgs(OperationStatus.Success);
         Sut = new(FileSystem, Persistence, ScriptHandler);
 

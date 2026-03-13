@@ -1,9 +1,9 @@
 ﻿using System.Net;
 using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Utils;
 using HostManagement.Shared.Validation.Validators.DNS;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.DNS;
 
@@ -39,7 +39,7 @@ public class NameServerValidatorTests
             $"('{IPAddressValidatorUtils.IPv4LinkLocalNetworkCIDR}').");
 
         // Act
-        var result = await new NameServerValidator().ValidateAsync(linkLocalNameServer);
+        var result = await new NameServerValidator().ValidateAsync(linkLocalNameServer, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -58,7 +58,7 @@ public class NameServerValidatorTests
             $"('{IPAddressValidatorUtils.IPv6MulticastNetworkCIDR}').");
 
         // Act
-        var result = await new NameServerValidator().ValidateAsync(multicastNameServer);
+        var result = await new NameServerValidator().ValidateAsync(multicastNameServer, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -77,7 +77,7 @@ public class NameServerValidatorTests
             $"('{IPAddressValidatorUtils.IPv4BroadcastNetworkCIDR}').");
 
         // Act
-        var result = await new NameServerValidator().ValidateAsync(broadcastNameServer);
+        var result = await new NameServerValidator().ValidateAsync(broadcastNameServer, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -90,7 +90,7 @@ public class NameServerValidatorTests
     {
         // Act
         var nameServer = IPAddress.Parse(ValidationTestData.NameServer.IPv6);
-        var result = await new NameServerValidator().ValidateAsync(nameServer);
+        var result = await new NameServerValidator().ValidateAsync(nameServer, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeTrue();

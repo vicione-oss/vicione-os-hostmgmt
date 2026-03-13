@@ -1,9 +1,9 @@
 ﻿using System.Net;
 using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.DNS;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.DNS;
 
@@ -78,7 +78,7 @@ public class NetworkDNSSettingsValidatorTests
         };
 
         // Act
-        var result = await new NetworkDNSSettingsValidator().ValidateAsync(dnsSettings);
+        var result = await new NetworkDNSSettingsValidator().ValidateAsync(dnsSettings, CancellationToken.None);
 
         // Assert
         result.Should().BeOfType<ValidationResult>();

@@ -3,6 +3,7 @@
   <PropertyGroup>
     <Description>Provides data contracts for system configuration and state, including validation and serialization logic.</Description>
     <RootNamespace>HostManagement.Shared</RootNamespace>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

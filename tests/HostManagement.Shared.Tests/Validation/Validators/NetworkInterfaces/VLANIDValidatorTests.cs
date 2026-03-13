@@ -1,7 +1,7 @@
 ﻿using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.NetworkInterfaces;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.NetworkInterfaces;
 
@@ -45,7 +45,7 @@ public class VLANIDValidatorTests
             $"is invalid (expected 1 to 4094).");
 
         // Act
-        var result = await new VLANIDValidator(interfaceName).ValidateAsync(invalidVLANID);
+        var result = await new VLANIDValidator(interfaceName).ValidateAsync(invalidVLANID, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -59,7 +59,7 @@ public class VLANIDValidatorTests
     public async Task ShouldReturnValid_WhenVLANIDValid(int vlanID)
     {
         // Act
-        var result = await new VLANIDValidator().ValidateAsync(vlanID);
+        var result = await new VLANIDValidator().ValidateAsync(vlanID, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeTrue();

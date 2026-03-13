@@ -1,8 +1,8 @@
 ﻿using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.Proxy;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.Proxy;
 
@@ -61,7 +61,8 @@ public class NetworkProxySettingsValidatorTests
         };
 
         // Act
-        var result = await new NetworkProxySettingsValidator().ValidateAsync(proxySettings, interfaces);
+        var result = await new NetworkProxySettingsValidator()
+            .ValidateAsync(proxySettings, interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().Be(isValid);

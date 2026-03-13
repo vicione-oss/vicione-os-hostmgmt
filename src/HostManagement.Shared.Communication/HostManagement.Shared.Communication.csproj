@@ -3,6 +3,7 @@
   <PropertyGroup>
     <Description>Provides contracts needed for communication with the ViciOne HostManagement via named pipes.</Description>
     <RootNamespace>HostManagement.Shared.Communication</RootNamespace>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

@@ -2,10 +2,10 @@
 using System.Text;
 using System.Text.Json;
 using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Enums;
 using HostManagement.Shared.Serialization;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Serialization;
 
@@ -363,7 +363,8 @@ public class SystemConfigurationSerializerTests
             stream.Position = 0;
 
             // Act
-            var result = await SystemConfigurationSerializer.DeserializeAsync(stream);
+            var result = await SystemConfigurationSerializer
+                .DeserializeAsync(stream, cancellationToken: CancellationToken.None);
 
             // Assert
             result.Should().BeOfType<SystemConfiguration>();
@@ -392,7 +393,8 @@ public class SystemConfigurationSerializerTests
             using var stream = new MemoryStream();
 
             // Act
-            await SystemConfigurationSerializer.SerializeAsync(stream, s_sampleSystemConfiguration);
+            await SystemConfigurationSerializer
+                .SerializeAsync(stream, s_sampleSystemConfiguration, cancellationToken: CancellationToken.None);
 
             var result = Encoding.UTF8.GetString(stream.ToArray());
 

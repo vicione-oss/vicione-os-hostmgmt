@@ -1,9 +1,9 @@
 ﻿using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Validation;
-using HostManagement.Shared.Validation.Validators.Proxy;
 using HostManagement.Shared.Validation.Utils;
+using HostManagement.Shared.Validation.Validators.Proxy;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.Proxy;
 
@@ -45,7 +45,7 @@ public class NoProxyItemValidatorTests
 
         // Act
         var result = await new NoProxyItemValidator()
-            .ValidateAsync(noProxyItem!, s_interfaces);
+            .ValidateAsync(noProxyItem!, s_interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -64,7 +64,7 @@ public class NoProxyItemValidatorTests
 
         // Act
         var result = await new NoProxyItemValidator()
-            .ValidateAsync(invalidNoProxyItem, s_interfaces);
+            .ValidateAsync(invalidNoProxyItem, s_interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -84,7 +84,7 @@ public class NoProxyItemValidatorTests
 
         // Act
         var result = await new NoProxyItemValidator()
-            .ValidateAsync(multicastNoProxyItem, s_interfaces);
+            .ValidateAsync(multicastNoProxyItem, s_interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -104,7 +104,7 @@ public class NoProxyItemValidatorTests
 
         // Act
         var result = await new NoProxyItemValidator()
-            .ValidateAsync(broadcastNoProxyItem, s_interfaces);
+            .ValidateAsync(broadcastNoProxyItem, s_interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -123,7 +123,7 @@ public class NoProxyItemValidatorTests
 
         // Act
         var result = await new NoProxyItemValidator()
-            .ValidateAsync(invalidNoProxyItem, s_interfaces);
+            .ValidateAsync(invalidNoProxyItem, s_interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -143,7 +143,7 @@ public class NoProxyItemValidatorTests
 
         // Act
         var result = await new NoProxyItemValidator()
-            .ValidateAsync(multicastNoProxyItem, s_interfaces);
+            .ValidateAsync(multicastNoProxyItem, s_interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -163,7 +163,7 @@ public class NoProxyItemValidatorTests
 
         // Act
         var result = await new NoProxyItemValidator()
-            .ValidateAsync(invalidNoProxyItem, s_interfaces);
+            .ValidateAsync(invalidNoProxyItem, s_interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -203,7 +203,8 @@ public class NoProxyItemValidatorTests
             $"Proxy port '{invalidPortString}' must be a number.");
 
         // Act
-        var result = await new NoProxyItemValidator().ValidateAsync(invalidNoProxyItem, s_interfaces);
+        var result = await new NoProxyItemValidator()
+            .ValidateAsync(invalidNoProxyItem, s_interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();

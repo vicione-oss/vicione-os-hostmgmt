@@ -1,8 +1,8 @@
 ﻿using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Utils;
 using HostManagement.Shared.Validation.Validators.DNS;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.DNS;
 
@@ -38,7 +38,7 @@ public class StaticHostValidatorTests
             $"('{IPAddressValidatorUtils.IPv4LoopbackNetworkCIDR}').");
 
         // Act
-        var result = await new StaticHostValidator().ValidateAsync(staticHost);
+        var result = await new StaticHostValidator().ValidateAsync(staticHost, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -57,7 +57,7 @@ public class StaticHostValidatorTests
             $"('{IPAddressValidatorUtils.IPv4LinkLocalNetworkCIDR}').");
 
         // Act
-        var result = await new StaticHostValidator().ValidateAsync(staticHost);
+        var result = await new StaticHostValidator().ValidateAsync(staticHost, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -76,7 +76,7 @@ public class StaticHostValidatorTests
             $"('{IPAddressValidatorUtils.IPv4MulticastNetworkCIDR}').");
 
         // Act
-        var result = await new StaticHostValidator().ValidateAsync(staticHost);
+        var result = await new StaticHostValidator().ValidateAsync(staticHost, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -95,7 +95,7 @@ public class StaticHostValidatorTests
             $"('{IPAddressValidatorUtils.IPv4BroadcastNetworkCIDR}').");
 
         // Act
-        var result = await new StaticHostValidator().ValidateAsync(staticHost);
+        var result = await new StaticHostValidator().ValidateAsync(staticHost, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -107,7 +107,8 @@ public class StaticHostValidatorTests
     public async Task ShouldReturnValid_WhenStaticHostValid()
     {
         // Act
-        var result = await new StaticHostValidator().ValidateAsync(ValidationTestData.StaticHost.StaticHost2);
+        var result = await new StaticHostValidator()
+            .ValidateAsync(ValidationTestData.StaticHost.StaticHost2, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeTrue();

@@ -1,8 +1,8 @@
 ﻿using System.Net;
 using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.DNS;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.DNS;
 
@@ -33,7 +33,7 @@ public class NameServersValidatorTests
         var expectedValidationEntry = new ValidationEntry($"No name servers specified.");
 
         // Act
-        var result = await new NameServersValidator().ValidateAsync([]);
+        var result = await new NameServersValidator().ValidateAsync([], CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -56,7 +56,7 @@ public class NameServersValidatorTests
             $"Name servers have duplicate entries. Affected entries are: '{duplicateNameServer}'.");
 
         // Act
-        var result = await new NameServersValidator().ValidateAsync(nameServers);
+        var result = await new NameServersValidator().ValidateAsync(nameServers, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -79,7 +79,7 @@ public class NameServersValidatorTests
         };
 
         // Act
-        var result = await new NameServersValidator().ValidateAsync(nameServers);
+        var result = await new NameServersValidator().ValidateAsync(nameServers, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().Be(isValid);

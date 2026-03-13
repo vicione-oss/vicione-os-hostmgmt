@@ -1,7 +1,7 @@
 ﻿using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.NetworkInterfaces;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.NetworkInterfaces;
 
@@ -44,7 +44,8 @@ public class MACAddressValidatorTests
             $"MAC address of {GetCustomInterfaceNameText(interfaceName)} can not be empty or whitespace.");
 
         // Act
-        var result = await new MACAddressValidator(interfaceName).ValidateAsync(invalidMACAddress!);
+        var result = await new MACAddressValidator(interfaceName)
+            .ValidateAsync(invalidMACAddress!, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -65,7 +66,8 @@ public class MACAddressValidatorTests
             $"has invalid length (expected 12).");
 
         // Act
-        var result = await new MACAddressValidator(interfaceName).ValidateAsync(invalidMACAddress);
+        var result = await new MACAddressValidator(interfaceName)
+            .ValidateAsync(invalidMACAddress, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -86,7 +88,8 @@ public class MACAddressValidatorTests
             $"has an invalid character (expected 0-9, a-f, A-F).");
 
         // Act
-        var result = await new MACAddressValidator(interfaceName).ValidateAsync(invalidMACAddress);
+        var result = await new MACAddressValidator(interfaceName)
+            .ValidateAsync(invalidMACAddress, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -108,7 +111,8 @@ public class MACAddressValidatorTests
             $"'X0', 'X2', 'X4', 'X6', 'X8', 'XA', 'XC' or 'XE' (where X is 0-9, a-f, A-F).");
 
         // Act
-        var result = await new MACAddressValidator(interfaceName).ValidateAsync(invalidMACAddress);
+        var result = await new MACAddressValidator(interfaceName)
+            .ValidateAsync(invalidMACAddress, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -129,7 +133,8 @@ public class MACAddressValidatorTests
             $"has an invalid octet count (expected 6).");
 
         // Act
-        var result = await new MACAddressValidator(interfaceName).ValidateAsync(invalidMACAddress);
+        var result = await new MACAddressValidator(interfaceName)
+            .ValidateAsync(invalidMACAddress, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -150,7 +155,8 @@ public class MACAddressValidatorTests
             $"has an octet with invalid length (expected 2).");
 
         // Act
-        var result = await new MACAddressValidator(interfaceName).ValidateAsync(invalidMACAddress);
+        var result = await new MACAddressValidator(interfaceName)
+            .ValidateAsync(invalidMACAddress, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -171,7 +177,8 @@ public class MACAddressValidatorTests
             $"has an invalid character (expected 0-9, a-f, A-F).");
 
         // Act
-        var result = await new MACAddressValidator(interfaceName).ValidateAsync(invalidMACAddress);
+        var result = await new MACAddressValidator(interfaceName)
+            .ValidateAsync(invalidMACAddress, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -193,7 +200,8 @@ public class MACAddressValidatorTests
             $"'X0', 'X2', 'X4', 'X6', 'X8', 'XA', 'XC' or 'XE' (where X is 0-9, a-f, A-F).");
 
         // Act
-        var result = await new MACAddressValidator(interfaceName).ValidateAsync(invalidMACAddress);
+        var result = await new MACAddressValidator(interfaceName)
+            .ValidateAsync(invalidMACAddress, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -206,8 +214,10 @@ public class MACAddressValidatorTests
     public async Task ShouldReturnValid_WhenMACAddressValid(string macAddress)
     {
         // Act
-        var result = await new MACAddressValidator().ValidateAsync(macAddress);
-        var resultWithInterfaceName = await new MACAddressValidator("lan2").ValidateAsync(macAddress);
+        var result = await new MACAddressValidator().ValidateAsync(macAddress, CancellationToken.None);
+
+        var resultWithInterfaceName = await new MACAddressValidator("lan2")
+            .ValidateAsync(macAddress, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeTrue();

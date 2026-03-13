@@ -1,7 +1,7 @@
 ﻿using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.Proxy;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.Proxy;
 
@@ -35,7 +35,8 @@ public class ProxyServerValidatorTests
         var expectedValidationEntry = new ValidationEntry("Proxy server can not be empty or whitespace.");
 
         // Act
-        var result = await new ProxyServerValidator().ValidateAsync(invalidServer);
+        var result = await new ProxyServerValidator()
+            .ValidateAsync(invalidServer, cancellationToken: CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -50,7 +51,8 @@ public class ProxyServerValidatorTests
         var expectedValidationEntry = new ValidationEntry("Proxy server is invalid. Format: <protocol>://<url>.");
 
         // Act
-        var result = await new ProxyServerValidator().ValidateAsync("http://test.de:8080", ProxyType.HTTP);
+        var result = await new ProxyServerValidator()
+            .ValidateAsync("http://test.de:8080", ProxyType.HTTP, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -72,7 +74,7 @@ public class ProxyServerValidatorTests
         var expectedValidationEntry = new ValidationEntry("Proxy server is invalid. Format: <protocol>://<url>.");
 
         // Act
-        var result = await new ProxyServerValidator().ValidateAsync(invalidServer, proxyType);
+        var result = await new ProxyServerValidator().ValidateAsync(invalidServer, proxyType, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -87,7 +89,8 @@ public class ProxyServerValidatorTests
         var expectedValidationEntry = new ValidationEntry("No proxy server transport protocol specified.");
 
         // Act
-        var result = await new ProxyServerValidator().ValidateAsync("://test.de", ProxyType.HTTP);
+        var result = await new ProxyServerValidator()
+            .ValidateAsync("://test.de", ProxyType.HTTP, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -121,7 +124,7 @@ public class ProxyServerValidatorTests
             $"Expected '{proxyType.ToString().ToLowerInvariant()}' but got '{transportProtocol}'.");
 
         // Act
-        var result = await new ProxyServerValidator().ValidateAsync(server, proxyType);
+        var result = await new ProxyServerValidator().ValidateAsync(server, proxyType, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -145,7 +148,8 @@ public class ProxyServerValidatorTests
             $"Expected '{expectedTransportProtocols}' but got '{invalidProtocol}'.");
 
         // Act
-        var result = await new ProxyServerValidator().ValidateAsync(invalidServer);
+        var result = await new ProxyServerValidator()
+            .ValidateAsync(invalidServer, cancellationToken: CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -163,7 +167,8 @@ public class ProxyServerValidatorTests
             $"Proxy server '{invalidServer}' has a not well formed URI.");
 
         // Act
-        var result = await new ProxyServerValidator().ValidateAsync(invalidServer);
+        var result = await new ProxyServerValidator()
+            .ValidateAsync(invalidServer, cancellationToken: CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -180,7 +185,8 @@ public class ProxyServerValidatorTests
     public async Task ShouldReturnValid_WhenServerValid(string server)
     {
         // Act
-        var result = await new ProxyServerValidator().ValidateAsync(server);
+        var result = await new ProxyServerValidator()
+            .ValidateAsync(server, cancellationToken: CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeTrue();

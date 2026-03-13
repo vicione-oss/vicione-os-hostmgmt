@@ -139,7 +139,7 @@ public class ProxyConfigurationAdapterTests
             var sut = CreateSut(current, handler, bypassHasChanges: true);
 
             // Act + Assert
-            var status = await sut.SetConfiguration(proposed);
+            var status = await sut.SetConfiguration(proposed, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Success);
             await handler.Received(expectedReceiveCount).ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>());
@@ -169,7 +169,7 @@ public class ProxyConfigurationAdapterTests
             var sut = CreateSut(current, handler, bypassHasChanges: true);
 
             // Act
-            var status = await sut.SetConfiguration(proposed);
+            var status = await sut.SetConfiguration(proposed, CancellationToken.None);
 
             // Assert
             status.Should().Be(OperationStatus.Success);
@@ -220,7 +220,7 @@ public class ProxyConfigurationAdapterTests
             var sut = CreateSut(current, handler, bypassHasChanges: true);
 
             // Act
-            var status = await sut.SetConfiguration(proposed);
+            var status = await sut.SetConfiguration(proposed, CancellationToken.None);
 
             // Assert
             status.Should().Be(OperationStatus.Success);

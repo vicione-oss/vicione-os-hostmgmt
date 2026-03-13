@@ -25,7 +25,7 @@ public class NetworkInterfacesConfigurationAdapterTests
             handler.ExecuteGetNetworkInterfacesCommonInformationScript().Returns((OperationStatus.Error, []));
             var sut = CreateSut(handler);
 
-            var status = await sut.GetConfiguration(new());
+            var status = await sut.GetConfiguration(new(), CancellationToken.None);
 
             status.Should().Be(OperationStatus.Error);
         }
@@ -38,7 +38,7 @@ public class NetworkInterfacesConfigurationAdapterTests
             handler.ExecuteGetInterfaceIPv4SettingsScript("eth0").Returns((OperationStatus.Error, new()));
             var sut = CreateSut(handler);
 
-            var status = await sut.GetConfiguration(new());
+            var status = await sut.GetConfiguration(new(), CancellationToken.None);
 
             status.Should().Be(OperationStatus.Error);
         }
@@ -53,7 +53,7 @@ public class NetworkInterfacesConfigurationAdapterTests
             var sut = CreateSut(handler);
             SystemConfiguration config = new();
 
-            var status = await sut.GetConfiguration(config);
+            var status = await sut.GetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Success);
             config.NetworkInterfacesSettings.Should().NotBeNull();
@@ -176,7 +176,7 @@ public class NetworkInterfacesConfigurationAdapterTests
                 },
             };
 
-            var status = await sut.SetConfiguration(config);
+            var status = await sut.SetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Success);
             await handler.Received(1).ExecuteSetInterfaceIPv4SettingsScript(Arg.Any<ScriptOptions>());
@@ -220,7 +220,7 @@ public class NetworkInterfacesConfigurationAdapterTests
                 },
             };
 
-            var status = await sut.SetConfiguration(config);
+            var status = await sut.SetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Error);
         }

@@ -1,8 +1,8 @@
 ﻿using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Utils;
 using HostManagement.Shared.Validation.Validators.NTP;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators;
 
@@ -37,7 +37,7 @@ public class NTPServerValidatorTests
         var expectedValidationEntry = new ValidationEntry("NTP server can not be empty or whitespace.");
 
         // Act
-        var result = await new NTPServerValidator().ValidateAsync(ntpServer!);
+        var result = await new NTPServerValidator().ValidateAsync(ntpServer!, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -55,7 +55,7 @@ public class NTPServerValidatorTests
             $"NTP server '{invalidNTPServer}' is no valid IPv4 address.");
 
         // Act
-        var result = await new NTPServerValidator().ValidateAsync(invalidNTPServer);
+        var result = await new NTPServerValidator().ValidateAsync(invalidNTPServer, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -74,7 +74,7 @@ public class NTPServerValidatorTests
             $"('{IPAddressValidatorUtils.IPv4LinkLocalNetworkCIDR}').");
 
         // Act
-        var result = await new NTPServerValidator().ValidateAsync(linkLocalNTPServer);
+        var result = await new NTPServerValidator().ValidateAsync(linkLocalNTPServer, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -93,7 +93,7 @@ public class NTPServerValidatorTests
             $"('{IPAddressValidatorUtils.IPv4MulticastNetworkCIDR}').");
 
         // Act
-        var result = await new NTPServerValidator().ValidateAsync(multicastNTPServer);
+        var result = await new NTPServerValidator().ValidateAsync(multicastNTPServer, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -111,7 +111,7 @@ public class NTPServerValidatorTests
             $"NTP server '{invalidNTPServer}' is no valid IPv6 address.");
 
         // Act
-        var result = await new NTPServerValidator().ValidateAsync(invalidNTPServer);
+        var result = await new NTPServerValidator().ValidateAsync(invalidNTPServer, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -130,7 +130,7 @@ public class NTPServerValidatorTests
             $"('{IPAddressValidatorUtils.IPv6LinkLocalNetworkCIDR}').");
 
         // Act
-        var result = await new NTPServerValidator().ValidateAsync(linkLocalNTPServer);
+        var result = await new NTPServerValidator().ValidateAsync(linkLocalNTPServer, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -149,7 +149,7 @@ public class NTPServerValidatorTests
             $"('{IPAddressValidatorUtils.IPv6MulticastNetworkCIDR}').");
 
         // Act
-        var result = await new NTPServerValidator().ValidateAsync(multicastNTPServer);
+        var result = await new NTPServerValidator().ValidateAsync(multicastNTPServer, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -168,7 +168,7 @@ public class NTPServerValidatorTests
             $"('{IPAddressValidatorUtils.IPv4BroadcastNetworkCIDR}').");
 
         // Act
-        var result = await new NTPServerValidator().ValidateAsync(broadcastNTPServer);
+        var result = await new NTPServerValidator().ValidateAsync(broadcastNTPServer, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -183,7 +183,7 @@ public class NTPServerValidatorTests
         var ntpServer = ValidationTestData.NTPServer.FQDN;
 
         // Act
-        var result = await new NTPServerValidator().ValidateAsync(ntpServer);
+        var result = await new NTPServerValidator().ValidateAsync(ntpServer, CancellationToken.None);
 
         // Assert
         result.Should().BeOfType<ValidationResult>();
@@ -197,7 +197,7 @@ public class NTPServerValidatorTests
     public async Task ShouldReturnValid_WhenNTPServerValid(string ntpServer)
     {
         // Act
-        var result = await new NTPServerValidator().ValidateAsync(ntpServer);
+        var result = await new NTPServerValidator().ValidateAsync(ntpServer, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeTrue();

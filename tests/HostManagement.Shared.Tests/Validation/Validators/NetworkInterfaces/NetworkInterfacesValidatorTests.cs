@@ -1,9 +1,9 @@
 ﻿using System.Net;
 using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.NetworkInterfaces;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.NetworkInterfaces;
 
@@ -36,7 +36,7 @@ public class NetworkInterfacesValidatorTests
         var expectedValidationEntry = new ValidationEntry("No network interfaces specified.");
 
         // Act
-        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces);
+        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -65,7 +65,7 @@ public class NetworkInterfacesValidatorTests
             $"Network interfaces have duplicate names. Affected interfaces are: '{duplicateName}'.");
 
         // Act
-        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces);
+        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -94,7 +94,7 @@ public class NetworkInterfacesValidatorTests
             $"Network interfaces have duplicate MAC addresses. Affected MAC addresses are: '{duplicateMACAddress}'.");
 
         // Act
-        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces);
+        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -126,7 +126,7 @@ public class NetworkInterfacesValidatorTests
             $"'{interfaces[1].CommonInformation.Name}' ({secondDefaultGateway}).");
 
         // Act
-        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces);
+        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -163,7 +163,7 @@ public class NetworkInterfacesValidatorTests
             $"Affected interfaces are: '{interfaces[0].CommonInformation.Name}'.");
 
         // Act
-        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces);
+        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -201,7 +201,7 @@ public class NetworkInterfacesValidatorTests
             $"Affected IP addresses are: '{duplicateIPAddress}'.");
 
         // Act
-        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces);
+        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -234,7 +234,7 @@ public class NetworkInterfacesValidatorTests
         };
 
         // Act
-        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces);
+        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeTrue();
@@ -273,7 +273,7 @@ public class NetworkInterfacesValidatorTests
             $"'{interfaces[1].CommonInformation.Name}'.");
 
         // Act
-        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces);
+        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -292,7 +292,7 @@ public class NetworkInterfacesValidatorTests
         };
 
         // Act
-        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces);
+        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeTrue();

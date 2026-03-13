@@ -94,7 +94,7 @@ public class NetworkConfigurationAdapterTests
             };
             var sut = CreateSut(current, handler);
 
-            var status = await sut.SetConfiguration(proposed);
+            var status = await sut.SetConfiguration(proposed, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Success);
             await handler.Received(1).ExecuteApplyNetplanConfigurationScript();
@@ -109,7 +109,7 @@ public class NetworkConfigurationAdapterTests
             SystemConfiguration proposed = new();
             var sut = CreateSut(current, handler);
 
-            var status = await sut.SetConfiguration(proposed);
+            var status = await sut.SetConfiguration(proposed, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Success);
             await handler.DidNotReceive().ExecuteApplyNetplanConfigurationScript();

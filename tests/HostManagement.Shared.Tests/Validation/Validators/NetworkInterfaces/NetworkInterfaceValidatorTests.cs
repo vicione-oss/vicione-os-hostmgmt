@@ -1,8 +1,8 @@
 ﻿using System.Net;
 using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.NetworkInterfaces;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.NetworkInterfaces;
 
@@ -40,7 +40,8 @@ public class NetworkInterfaceValidatorTests
         };
 
         // Act
-        var result = await new NetworkInterfaceValidator().ValidateAsync(interfaceWithInvalidMAC);
+        var result = await new NetworkInterfaceValidator()
+            .ValidateAsync(interfaceWithInvalidMAC, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -63,7 +64,7 @@ public class NetworkInterfaceValidatorTests
         var expectedValidationEntry = new ValidationEntry("Loopback interface can not be specified.");
 
         // Act
-        var result = await new NetworkInterfaceValidator().ValidateAsync(loopbackInterface);
+        var result = await new NetworkInterfaceValidator().ValidateAsync(loopbackInterface, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -85,7 +86,8 @@ public class NetworkInterfaceValidatorTests
         };
 
         // Act
-        var result = await new NetworkInterfaceValidator().ValidateAsync(interfaceWithInvalidVLANID);
+        var result = await new NetworkInterfaceValidator()
+            .ValidateAsync(interfaceWithInvalidVLANID, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -111,7 +113,8 @@ public class NetworkInterfaceValidatorTests
             $"has no IP addresses specified although DHCP is disabled.");
 
         // Act
-        var result = await new NetworkInterfaceValidator().ValidateAsync(interfaceWithInvalidDHCPConfig);
+        var result = await new NetworkInterfaceValidator()
+            .ValidateAsync(interfaceWithInvalidDHCPConfig, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -144,7 +147,7 @@ public class NetworkInterfaceValidatorTests
         };
 
         // Act
-        var result = await new NetworkInterfaceValidator().ValidateAsync(networkInterface);
+        var result = await new NetworkInterfaceValidator().ValidateAsync(networkInterface, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().Be(isValid);
@@ -176,7 +179,8 @@ public class NetworkInterfaceValidatorTests
             "can not be identical to the IP address.");
 
         // Act
-        var result = await new NetworkInterfaceValidator().ValidateAsync(interfaceWithInvalidGateway);
+        var result = await new NetworkInterfaceValidator()
+            .ValidateAsync(interfaceWithInvalidGateway, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -209,7 +213,8 @@ public class NetworkInterfaceValidatorTests
             "can not be in a different subnet. Expected '192.168.123.0' but got '192.168.124.0'.");
 
         // Act
-        var result = await new NetworkInterfaceValidator().ValidateAsync(interfaceWithInvalidGateway);
+        var result = await new NetworkInterfaceValidator()
+            .ValidateAsync(interfaceWithInvalidGateway, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -242,7 +247,8 @@ public class NetworkInterfaceValidatorTests
             "can not be the network address of the subnet ('192.168.123.0').");
 
         // Act
-        var result = await new NetworkInterfaceValidator().ValidateAsync(interfaceWithInvalidGateway);
+        var result = await new NetworkInterfaceValidator()
+            .ValidateAsync(interfaceWithInvalidGateway, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -275,7 +281,8 @@ public class NetworkInterfaceValidatorTests
             "can not be the broadcast address of the subnet ('192.168.123.255').");
 
         // Act
-        var result = await new NetworkInterfaceValidator().ValidateAsync(interfaceWithInvalidGateway);
+        var result = await new NetworkInterfaceValidator()
+            .ValidateAsync(interfaceWithInvalidGateway, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -288,7 +295,7 @@ public class NetworkInterfaceValidatorTests
     {
         // Act
         var result = await new NetworkInterfaceValidator()
-            .ValidateAsync(ValidationTestData.Interface.Static);
+            .ValidateAsync(ValidationTestData.Interface.Static, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeTrue();

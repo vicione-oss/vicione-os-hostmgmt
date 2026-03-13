@@ -1,8 +1,8 @@
 ﻿using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.DNS;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation.Validators.DNS;
 
@@ -33,7 +33,7 @@ public class StaticHostsValidatorTests
         var expectedValidationEntry = new ValidationEntry($"No static hosts specified.");
 
         // Act
-        var result = await new StaticHostsValidator().ValidateAsync([]);
+        var result = await new StaticHostsValidator().ValidateAsync([], CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -58,7 +58,7 @@ public class StaticHostsValidatorTests
             $"'{duplicateStaticHost.IPAddress}'  '{duplicateStaticHost.Hostname}'.");
 
         // Act
-        var result = await new StaticHostsValidator().ValidateAsync(staticHosts);
+        var result = await new StaticHostsValidator().ValidateAsync(staticHosts, CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -83,8 +83,8 @@ public class StaticHostsValidatorTests
         };
 
         // Act
-        var invalidResult = await new StaticHostsValidator().ValidateAsync(invalidStaticHosts);
-        var validResult = await new StaticHostsValidator().ValidateAsync(validStaticHosts);
+        var invalidResult = await new StaticHostsValidator().ValidateAsync(invalidStaticHosts, CancellationToken.None);
+        var validResult = await new StaticHostsValidator().ValidateAsync(validStaticHosts, CancellationToken.None);
 
         // Assert
         invalidResult.IsValid.Should().BeFalse();

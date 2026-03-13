@@ -38,7 +38,7 @@ public class NetworkNTPConfigurationAdapterTests
             var originalNetworkSettings = config.NetworkNTPSettings;
             var sut = CreateSut(scriptHandler);
 
-            var status = await sut.GetConfiguration(config);
+            var status = await sut.GetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Error);
             config.NetworkNTPSettings.Should().BeSameAs(originalNetworkSettings);
@@ -58,7 +58,7 @@ public class NetworkNTPConfigurationAdapterTests
             var sut = CreateSut(scriptHandler);
             SystemConfiguration config = new();
 
-            var status = await sut.GetConfiguration(config);
+            var status = await sut.GetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Success);
             config.NetworkNTPSettings.Should().BeSameAs(scriptResult);
@@ -116,7 +116,7 @@ public class NetworkNTPConfigurationAdapterTests
             var sut = CreateSut(scriptHandler, bypassHasChanges: true, bypassApplyConfig: false);
             var config = CreateConfig(true, "2.pool.ntp.org");
 
-            var status = await sut.SetConfiguration(config);
+            var status = await sut.SetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Success);
             await scriptHandler.Received(1).ExecuteSetNetworkNTPSettingsScript(Arg.Any<ScriptOptions>());
@@ -144,7 +144,7 @@ public class NetworkNTPConfigurationAdapterTests
             var sut = CreateSut(scriptHandler, bypassHasChanges: true, bypassApplyConfig: false);
             var config = CreateConfig(true, "srv");
 
-            var status = await sut.SetConfiguration(config);
+            var status = await sut.SetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Error);
             await scriptHandler.DidNotReceive().ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>());
@@ -159,7 +159,7 @@ public class NetworkNTPConfigurationAdapterTests
             var sut = CreateSut(scriptHandler, bypassHasChanges: true, bypassApplyConfig: true);
             var config = CreateConfig(true, "3.pool.ntp.org");
 
-            var status = await sut.SetConfiguration(config);
+            var status = await sut.SetConfiguration(config, CancellationToken.None);
 
             status.Should().Be(OperationStatus.Success);
             await scriptHandler.Received(1).ExecuteSetNetworkNTPSettingsScript(Arg.Any<ScriptOptions>());
@@ -176,7 +176,7 @@ public class NetworkNTPConfigurationAdapterTests
             var sut = CreateSut(scriptHandler, bypassHasChanges: true, bypassApplyConfig: true);
             var config = CreateConfig(true); // keine Server
 
-            var status = await sut.SetConfiguration(config);
+            var status = await sut.SetConfiguration(config, CancellationToken.None);
 
             network.Should().NotBeNull();
             network!.Options.Should().ContainInOrder(
