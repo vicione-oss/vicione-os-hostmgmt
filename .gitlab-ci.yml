@@ -81,17 +81,8 @@ stages:
   - publish
   - cleanup
 
-default:
-  image: $VICIONE_IMAGE
-  tags:
-    - $RUNNER_TAG
-  before_script:
-    - *activate_mise
-
 Version:
   stage: .pre
-  before_script: []
-  tags: []
   rules: *rules
   script:
     - if [[ -f "VERSION" ]]; then VERSION=$(head -n 1 VERSION); fi
@@ -218,8 +209,6 @@ include:
       before_script:
         - *activate_mise
         - *update_nuget_source_rw
-      tags:
-        - saas-linux-small-amd64
 
   # JFrog components for artifact releases
   - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/jfrog/release@v0.1.0
@@ -260,7 +249,6 @@ include:
 Markdown:
   stage: lint
   needs: []
-  tags: []
   image:
     name: davidanson/markdownlint-cli2:v0.21.0
     entrypoint: ["/bin/sh", "-c"]
@@ -284,7 +272,6 @@ Markdown:
 
 Pack binaries:
   stage: packaging
-  before_script: []
   parallel:
     matrix: *publish_matrix
   needs:
@@ -312,13 +299,7 @@ Pack binaries:
 
 # Upload jobs are created by registry component includes above
 # They will automatically pick up artifacts.tar.gz from build jobs
-
-# Configure upload job dependencies (use VICIONE_IMAGE instead of curl - has mise + cached)
-# Override tags to use small runners (upload doesn't need large)
 Upload binaries arm64:
-  image: $VICIONE_IMAGE
-  before_script: []
-  tags: []
   needs:
     - job: "Pack binaries"
       parallel:
@@ -328,9 +309,6 @@ Upload binaries arm64:
             RUNNER_ARCH: arm64
 
 Upload binaries x64:
-  image: $VICIONE_IMAGE
-  before_script: []
-  tags: []
   needs:
     - job: "Pack binaries"
       parallel:
