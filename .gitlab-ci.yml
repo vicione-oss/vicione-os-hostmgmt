@@ -259,9 +259,12 @@ include:
 
 Markdown:
   stage: lint
-  image: $VICIONE_IMAGE
+  needs: []
+  tags: []
+  image:
+    name: davidanson/markdownlint-cli2:v0.21.0
+    entrypoint: ["/bin/sh", "-c"]
   script:
-    - npm install -g markdownlint-cli2
     - markdownlint-cli2 "**/*.md"
   rules:
     - <<: *rule_tag_manual
