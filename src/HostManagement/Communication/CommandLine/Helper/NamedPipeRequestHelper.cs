@@ -42,12 +42,6 @@ internal static partial class NamedPipeRequestHelper
         {
             namedPipeMessage = await SendNamedPipeRequest(Topics.GetSystemConfiguration, null, cancellationToken);
 
-            if (namedPipeMessage is null)
-            {
-                NamedPipeMessageWasNull(s_logger);
-                return null;
-            }
-
             var getConfigResult = SourceGeneratedTypeSerializer
                 .Deserialize(
                     namedPipeMessage.Content,
@@ -105,12 +99,6 @@ internal static partial class NamedPipeRequestHelper
                 systemConfigurationJson,
                 cancellationToken);
 
-            if (namedPipeMessage is null)
-            {
-                NamedPipeMessageWasNull(s_logger);
-                return false;
-            }
-
             var setConfigResult = SourceGeneratedTypeSerializer
                 .Deserialize(
                     namedPipeMessage.Content,
@@ -156,16 +144,10 @@ internal static partial class NamedPipeRequestHelper
         {
             namedPipeMessage = await SendNamedPipeRequest(Topics.GetViciOneSuiteVersions, null, cancellationToken);
 
-            if (namedPipeMessage is null)
-            {
-                NamedPipeMessageWasNull(s_logger);
-                return [];
-            }
-
             var getSuiteVersionsResult = SourceGeneratedTypeSerializer
-                    .Deserialize(
-                        namedPipeMessage.Content,
-                        CommunicationJsonContext.Default.GetViciOneSuiteVersionsResult);
+                .Deserialize(
+                    namedPipeMessage.Content,
+                    CommunicationJsonContext.Default.GetViciOneSuiteVersionsResult);
 
             if (getSuiteVersionsResult.Status == OperationStatus.Error)
             {
@@ -240,16 +222,10 @@ internal static partial class NamedPipeRequestHelper
                 messageContent,
                 cancellationToken);
 
-            if (namedPipeMessage is null)
-            {
-                NamedPipeMessageWasNull(s_logger);
-                return false;
-            }
-
             var installSuiteVersionResult = SourceGeneratedTypeSerializer
-                    .Deserialize(
-                        namedPipeMessage.Content,
-                        CommunicationJsonContext.Default.InstallViciOneSuiteVersionResult);
+                .Deserialize(
+                    namedPipeMessage.Content,
+                    CommunicationJsonContext.Default.InstallViciOneSuiteVersionResult);
 
             if (installSuiteVersionResult.Status == OperationStatus.Error)
             {
@@ -300,12 +276,6 @@ internal static partial class NamedPipeRequestHelper
                 messageContent,
                 cancellationToken);
 
-            if (namedPipeMessage is null)
-            {
-                NamedPipeMessageWasNull(s_logger);
-                return false;
-            }
-
             var installDebianPackageResult = SourceGeneratedTypeSerializer
                 .Deserialize(
                     namedPipeMessage.Content,
@@ -354,12 +324,6 @@ internal static partial class NamedPipeRequestHelper
         {
             namedPipeMessage = await SendNamedPipeRequest(Topics.GetNTPFallbackInformation, null);
 
-            if (namedPipeMessage is null)
-            {
-                NamedPipeMessageWasNull(s_logger);
-                return [];
-            }
-
             var ntpFallbackInformationResult = SourceGeneratedTypeSerializer
                 .Deserialize(
                     namedPipeMessage.Content,
@@ -403,12 +367,6 @@ internal static partial class NamedPipeRequestHelper
         try
         {
             namedPipeMessage = await SendNamedPipeRequest(Topics.GetOriginalPhysicalAddress, interfaceName);
-
-            if (namedPipeMessage is null)
-            {
-                NamedPipeMessageWasNull(s_logger);
-                return null;
-            }
 
             var originalPhysicalAddressResult = SourceGeneratedTypeSerializer
                 .Deserialize(
@@ -466,12 +424,6 @@ internal static partial class NamedPipeRequestHelper
                 interfaceName,
                 cancellationToken);
 
-            if (namedPipeMessage is null)
-            {
-                NamedPipeMessageWasNull(s_logger);
-                return null;
-            }
-
             var networkStatusResult = SourceGeneratedTypeSerializer
                 .Deserialize(
                     namedPipeMessage.Content,
@@ -525,12 +477,6 @@ internal static partial class NamedPipeRequestHelper
         {
             namedPipeMessage = await SendNamedPipeRequest(Topics.GetDHCPLeaseInformation, interfaceName);
 
-            if (namedPipeMessage is null)
-            {
-                NamedPipeMessageWasNull(s_logger);
-                return null;
-            }
-
             var getDhcpLeaseResult = SourceGeneratedTypeSerializer
                 .Deserialize(
                     namedPipeMessage.Content,
@@ -569,12 +515,6 @@ internal static partial class NamedPipeRequestHelper
         {
             namedPipeMessage = await SendNamedPipeRequest(Topics.RenewDHCPLease, interfaceName, cancellationToken);
 
-            if (namedPipeMessage is null)
-            {
-                NamedPipeMessageWasNull(s_logger);
-                return null;
-            }
-
             var renewDhcpLeaseResult = SourceGeneratedTypeSerializer
                 .Deserialize(
                     namedPipeMessage.Content,
@@ -611,12 +551,6 @@ internal static partial class NamedPipeRequestHelper
         try
         {
             namedPipeMessage = await SendNamedPipeRequest(Topics.RedeployScripts, null, cancellationToken);
-
-            if (namedPipeMessage is null)
-            {
-                NamedPipeMessageWasNull(s_logger);
-                return false;
-            }
 
             var redeployScriptsResult = SourceGeneratedTypeSerializer
                 .Deserialize(
@@ -663,12 +597,6 @@ internal static partial class NamedPipeRequestHelper
         try
         {
             namedPipeMessage = await SendNamedPipeRequest(Topics.GetServiceState, systemdUnitName, cancellationToken);
-
-            if (namedPipeMessage is null)
-            {
-                NamedPipeMessageWasNull(s_logger);
-                return null;
-            }
 
             var getServiceStateResult = SourceGeneratedTypeSerializer
                 .Deserialize(
@@ -726,12 +654,6 @@ internal static partial class NamedPipeRequestHelper
         {
             namedPipeMessage = await SendNamedPipeRequest(topic, systemdUnitName, cancellationToken);
 
-            if (namedPipeMessage is null)
-            {
-                NamedPipeMessageWasNull(s_logger);
-                return false;
-            }
-
             var serviceControlResult = SourceGeneratedTypeSerializer
                 .Deserialize(
                     namedPipeMessage.Content,
@@ -774,12 +696,6 @@ internal static partial class NamedPipeRequestHelper
         try
         {
             namedPipeMessage = await SendNamedPipeRequest(Topics.ResetSystem, null, cancellationToken);
-
-            if (namedPipeMessage is null)
-            {
-                NamedPipeMessageWasNull(s_logger);
-                return false;
-            }
 
             var systemControlResult = SourceGeneratedTypeSerializer
                 .Deserialize(
@@ -828,12 +744,6 @@ internal static partial class NamedPipeRequestHelper
                 delayInSeconds.ToString(),
                 cancellationToken);
 
-            if (namedPipeMessage is null)
-            {
-                NamedPipeMessageWasNull(s_logger);
-                return null;
-            }
-
             var systemControlResult = SourceGeneratedTypeSerializer
                 .Deserialize(
                     namedPipeMessage.Content,
@@ -881,12 +791,6 @@ internal static partial class NamedPipeRequestHelper
                 delayInSeconds.ToString(),
                 cancellationToken);
 
-            if (namedPipeMessage is null)
-            {
-                NamedPipeMessageWasNull(s_logger);
-                return null;
-            }
-
             var systemControlResult = SourceGeneratedTypeSerializer
                 .Deserialize(
                     namedPipeMessage.Content,
@@ -931,12 +835,6 @@ internal static partial class NamedPipeRequestHelper
         {
             namedPipeMessage = await SendNamedPipeRequest(Topics.UpdateSystem, filePath, cancellationToken);
 
-            if (namedPipeMessage is null)
-            {
-                NamedPipeMessageWasNull(s_logger);
-                return false;
-            }
-
             var systemControlResult = SourceGeneratedTypeSerializer
                 .Deserialize(
                     namedPipeMessage.Content,
@@ -966,7 +864,7 @@ internal static partial class NamedPipeRequestHelper
         }
     }
 
-    private static async Task<NamedPipeMessage?> SendNamedPipeRequest(
+    private static async Task<NamedPipeMessage> SendNamedPipeRequest(
         string topic,
         string? content,
         CancellationToken cancellationToken = default)
@@ -1005,9 +903,6 @@ internal static partial class NamedPipeRequestHelper
             await Task.Delay(250, cancellationToken);
         }
     }
-
-    [LoggerMessage(LogLevel.Error, "Named pipe message was null.")]
-    private static partial void NamedPipeMessageWasNull(ILogger logger);
 
     // General logs
     [LoggerMessage(LogLevel.Error, "{InnerMessage}")]
