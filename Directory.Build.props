@@ -1,15 +1,16 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Properties for all projects in the repo -->
   <PropertyGroup>
-    <!-- General information -->
     <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
     <RuntimeIdentifiers>linux-x64;linux-arm64</RuntimeIdentifiers>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- General information -->
     <Description>-</Description>
     <Product>ViciOne HostManagement</Product>
-    <Company>ifm software</Company>
+    <Company>ifm software gmbh</Company>
     <Year>$([System.DateTime]::Now.Year)</Year>
     <Copyright>Copyright © $(Company) $(Year)</Copyright>
     <NeutralLanguage>en-US</NeutralLanguage>
@@ -39,38 +40,36 @@
   </ItemGroup>
 
   <!-- Properties for source projects -->
+  <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('src'))">
+    <IsPackable>false</IsPackable> <!-- IsPackable is individually enabled per project -->
+  </PropertyGroup>
   <ItemGroup Condition="$(MSBuildProjectDirectory.Contains('src'))">
     <InternalsVisibleTo Include="$(MSBuildProjectName).Tests" />
-    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" /> <!-- Needed for mocking libraries -->
   </ItemGroup>
+
+  <!-- Additional properties for source projects, excluding source generation -->
   <PropertyGroup Condition=
       "$(MSBuildProjectDirectory.Contains('src')) And
       !$(MSBuildProjectName.EndsWith('SourceGeneration'))">
     <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
-  <!-- IsPackable is individually enabled per project -->
-  <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('src'))">
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
 
   <!-- Properties for test projects -->
   <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('tests'))">
-    <!-- Suppress documentation of public API -->
-    <NoWarn>CS1591</NoWarn>
+    <NoWarn>CS1591</NoWarn> <!-- Suppress documentation of public API -->
     <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
     <IsPublishable>true</IsPublishable>
     <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
   </PropertyGroup>
-  <!-- Test projects automatically receive 'xunit.runner.json' -->
   <ItemGroup Condition="$(MSBuildProjectDirectory.Contains('tests'))">
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory)xunit.runner.json" CopyToOutputDirectory="Always" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- Properties for sample projects -->
   <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('samples'))">
-    <!-- Suppress documentation of public API -->
-    <NoWarn>CS1591</NoWarn>
+    <NoWarn>CS1591</NoWarn> <!-- Suppress documentation of public API -->
     <IsPackable>false</IsPackable>
     <IsPublishable>true</IsPublishable>
   </PropertyGroup>
