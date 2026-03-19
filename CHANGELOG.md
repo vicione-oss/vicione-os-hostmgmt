@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added functionality to get the current state of a systemd unit (via named pipe topic `GetServiceState`)
 - Added optional delay in seconds to shutdown or restart of the system
 - Added NuGet packages
-  - `Microsoft.Testing.Extensions.CodeCoverage` version `18.4.1`
+  - `Microsoft.Testing.Extensions.CodeCoverage` version `18.5.2`
   - `xunit.v3.mtp-v2` version `3.2.2`
 
 ### Changed
@@ -31,15 +31,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - from `set_network_interface_ipv4_settings.sh`
 - Moved call to `get_network_interfaces.sh` from scripts to C# for MDNS
 - Improved console logger: Only log if a message and/or an exception is provided.
-- Updated `.NET Runtime` from `9.0.11` to `10.0.3`
-- Updated `.NET SDK` from `9.0.307` to `10.0.103`
+- Updated `.NET Runtime` from `9.0.11` to `10.0.5`
+- Updated `.NET SDK` from `9.0.307` to `10.0.201`
 - Updated NuGet packages
-  - `AwesomeAssertions` from `9.2.0` to `9.3.0`
-  - `Microsoft.CodeAnalysis.CSharp` from `4.14.0` to `5.0.0`
-  - `Microsoft.Extensions.Configuration.EnvironmentVariables` from `9.0.10` to `10.0.3`
-  - `Microsoft.Extensions.Logging` from `9.0.10` to `10.0.3`
-  - `Microsoft.Extensions.Logging.Abstractions` from `9.0.10` to `10.0.3`
-  - `System.CommandLine` from `2.0.0` to `2.0.3`
+  - `AwesomeAssertions` from `9.2.0` to `9.4.0`
+  - `Microsoft.CodeAnalysis.CSharp` from `4.14.0` to `5.3.0`
+  - `Microsoft.Extensions.Configuration.EnvironmentVariables` from `9.0.10` to `10.0.5`
+  - `Microsoft.Extensions.Logging` from `9.0.10` to `10.0.5`
+  - `Microsoft.Extensions.Logging.Abstractions` from `9.0.10` to `10.0.5`
+  - `System.CommandLine` from `2.0.0` to `2.0.5`
   - `TestableIO.System.IO.Abstractions` from `22.0.16` to `22.1.0`
   - `TestableIO.System.IO.Abstractions.TestingHelpers` from `22.0.16` to `22.1.0`
   - `TestableIO.System.IO.Abstractions.Wrappers` from `22.0.16` to `22.1.0`
