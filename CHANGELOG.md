@@ -3,7 +3,7 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.3.0] - [Unreleased]
+## [1.3.0] - 2026-03-23
 
 ### Added
 
@@ -59,7 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `xunit`;
   - `xunit.runner.visualstudio`
 
-## [1.2.0] - 2025-12-02
+## 1.2.0 - 2025-12-02
 
 ### Added
 
@@ -100,7 +100,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Removed default update directory for swu-update (env var `HOSTMANAGEMENT__UPDATE_DIRECTORY` must be set via environment e.g. on EdgeS to `/mnt/update`)
 
-## [1.1.0] - 2025-10-15
+## 1.1.0 - 2025-10-15
 
 ### Added
 
@@ -155,7 +155,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Removed `IStringWrapper`
 
-## [1.0.0] - 2025-07-17
+## 1.0.0 - 2025-07-17
 
 ### Added
 
@@ -226,7 +226,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed sorting of `CommandLineStrings`
 - Fixed unhandled exception "Broken pipe" when the other end of the pipe has gone away
 
-## [0.11.0] - 2025-06-16
+## 0.11.0 - 2025-06-16
 
 ### Added
 
@@ -248,7 +248,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed reading DHCP lease information
 - Fixed missing part of error message on revert config, if revert failed
 
-## [0.10.0] - 2025-05-27
+## 0.10.0 - 2025-05-27
 
 ### Added
 
@@ -282,7 +282,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed need to implement `PrepareConfiguration` if not needed
 - Removed `RestartServiceResult` (uses now `ServiceControlResult`)
 
-## [0.9.0] - 2025-04-30
+## 0.9.0 - 2025-04-30
 
 ### Added
 
@@ -348,7 +348,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed empty NTP result list
 - Fixed validation error for VLAN ID 0 when VLAN disabled
 
-## [0.8.0] - 2025-03-03
+## 0.8.0 - 2025-03-03
 
 ### Added
 
@@ -402,7 +402,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed missing interface name in CLI interface status command
 - Fixed not using correct type name for `InvalidOperationException` in `SourceGeneratedTypeSerializer`
 
-## [0.7.0] - 2025-01-31
+## 0.7.0 - 2025-01-31
 
 ### Added
 
@@ -451,7 +451,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed equality comparison of `IPv4Settings` contract
 - Fixed gateway validation logic to allow a single default gateway even if some interfaces have DHCP enabled
 
-## [0.6.0] - 2024-12-13
+## 0.6.0 - 2024-12-13
 
 ### Added
 
@@ -472,7 +472,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Disabled auto apply of system configuration on start up (temporary hotfix)
 - Disabled call to persist network interface state via a service-file (temporary hotfix)
 
-## [0.5.0] - 2024-11-18
+## 0.5.0 - 2024-11-18
 
 ### Added
 
@@ -503,7 +503,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed a problem with multiple domain names in a DHCP lease
 - Fixed a problem with time stamps in a DHCP lease
 
-## [0.4.0] - 2024-10-24
+## 0.4.0 - 2024-10-24
 
 ### Added
 
@@ -566,7 +566,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixes an error that leads to missing exception messages of messages logged via the `ConsoleLogger`
 - Fixed a problem with an uninstalled ViciOne Suite version which was uninstalled with apt remove (version was still available)
 
-## [0.3.0] - 2024-08-29
+## 0.3.0 - 2024-08-29
 
 ### Added
 
@@ -587,7 +587,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed IPv4 console output spacing
 - Fixed IPv4 IP modify command showing incorrect message when IP already defined
 
-## [0.2.0] - 2024-08-09
+## 0.2.0 - 2024-08-09
 
 ### Added
 
@@ -608,23 +608,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed `ScriptRunner` not using overwritten timeout
 - Fixed returning on warning early in `SystemConfigurationManager`
 
-## [0.1.0] - 2024-07-25
+## 0.1.0 - 2024-07-25
 
 - Initial Release
   - Implemented getting and setting of network interfaces' common information
   - Implemented getting and setting of IPv4 settings
 
-[0.1.0]: https://gitlab.i40.ifm-datalink.net/acx/vo-suite/hostmgmt/-/tags/v0.1.0
-[0.2.0]: https://gitlab.i40.ifm-datalink.net/acx/vo-suite/hostmgmt/-/tags/v0.2.0
-[0.3.0]: https://gitlab.i40.ifm-datalink.net/acx/vo-suite/hostmgmt/-/tags/v0.3.0
-[0.4.0]: https://gitlab.i40.ifm-datalink.net/acx/vo-suite/hostmgmt/-/tags/v0.4.0
-[0.5.0]: https://gitlab.i40.ifm-datalink.net/acx/vo-suite/hostmgmt/-/tags/v0.5.0
-[0.6.0]: https://gitlab.i40.ifm-datalink.net/acx/vo-suite/hostmgmt/-/tags/v0.6.0
-[0.7.0]: https://gitlab.i40.ifm-datalink.net/acx/vo-suite/hostmgmt/-/tags/v0.7.0
-[0.8.0]: https://gitlab.i40.ifm-datalink.net/acx/vo-suite/hostmgmt/-/tags/v0.8.0
-[0.9.0]: https://gitlab.i40.ifm-datalink.net/acx/vo-suite/hostmgmt/-/tags/v0.9.0
-[0.10.0]: https://gitlab.i40.ifm-datalink.net/acx/vo-suite/hostmgmt/-/tags/v0.10.0
-[0.11.0]: https://gitlab.i40.ifm-datalink.net/acx/vo-suite/hostmgmt/-/tags/v0.11.0
-[1.0.0]: https://gitlab.i40.ifm-datalink.net/acx/vo-suite/hostmgmt/-/tags/v1.0.0
-[1.1.0]: https://gitlab.i40.ifm-datalink.net/acx/vo-suite/hostmgmt/-/tags/v1.1.0
-[1.2.0]: https://gitlab.i40.ifm-datalink.net/acx/vo-suite/hostmgmt/-/tags/v1.2.0
+[1.3.0]: https://gitlab.com/vicione-oss/vicione/os/hostmgmt/-/tags/v1.3.0
