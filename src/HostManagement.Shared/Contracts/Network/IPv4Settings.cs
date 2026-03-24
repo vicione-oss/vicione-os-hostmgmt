@@ -33,12 +33,6 @@ public sealed record IPv4Settings
     public bool DHCPEnabled { get; set; }
 
     /// <summary>
-    /// The DHCP lease information.
-    /// </summary>
-    [Obsolete("This will be removed in a future version. Use 'GetDHCPLeaseInformation' pipe request instead.", false)]
-    public DHCPLease? DHCPLease { get; set; }
-
-    /// <summary>
     /// The list of IPv4 details.
     /// </summary>
     public List<IPv4Detail> IPv4Details { get; init; }
@@ -65,7 +59,6 @@ public sealed record IPv4Settings
 
         hashCode.Add(Gateway);
         hashCode.Add(DHCPEnabled);
-        hashCode.Add(DHCPLease);
         hashCode.Add(IPv4Details.GetSequenceHashCode());
         hashCode.Add(VLANEnabled);
         hashCode.Add(VLANID);
@@ -78,7 +71,6 @@ public sealed record IPv4Settings
         other is not null &&
         EqualityComparer<IPAddress>.Default.Equals(Gateway, other.Gateway) &&
         DHCPEnabled == other.DHCPEnabled &&
-        DHCPLease == other.DHCPLease &&
         IPv4Details.SequenceEqual(other.IPv4Details) &&
         VLANEnabled == other.VLANEnabled &&
         VLANID == other.VLANID;

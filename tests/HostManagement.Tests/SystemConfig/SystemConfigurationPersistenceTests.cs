@@ -429,37 +429,6 @@ public class SystemConfigurationPersistenceTests
                             IPv4 = new()
                             {
                                 DHCPEnabled = true,
-                                DHCPLease = new()
-                                {
-                                    Gateway = ipAddress,
-                                    IPv4Detail = new()
-                                    {
-                                        IPAddress = ipAddress,
-                                        Netmask = ipAddress,
-                                    },
-                                    LeaseExpires = DateTimeOffset.UtcNow,
-                                    LeaseObtained = DateTimeOffset.UtcNow,
-                                    NetworkDNSSettings = new()
-                                    {
-                                        DNSSuffix = "dnsSuffix",
-                                        DNSSuffixEnabled = true,
-                                        Hostname = "hostname",
-                                        MulticastDNSEnabled = true,
-                                        NameServers = [ipAddress],
-                                        NameServersEnabled = true,
-                                        SearchDomains = ["searchDomain"],
-                                        SearchDomainsEnabled = true,
-                                        StaticHosts =
-                                        [
-                                            new()
-                                            {
-                                                Hostname = "statichost",
-                                                IPAddress = ipAddress,
-                                            },
-                                        ],
-                                        StaticHostsEnabled = true,
-                                    },
-                                },
                                 Gateway = ipAddress,
                                 IPv4Details =
                                 [

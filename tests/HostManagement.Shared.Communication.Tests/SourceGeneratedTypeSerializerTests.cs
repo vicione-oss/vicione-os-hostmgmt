@@ -80,7 +80,6 @@ public class SourceGeneratedTypeSerializerTests
                 "IPv4": {
                   "Gateway": "120.86.52.18",
                   "DHCPEnabled": true,
-                  "DHCPLease": {{IndentedSampleDHCPLeaseJson}},
                   "IPv4Details": [
                     {
                       "IPAddress": "120.86.52.18",

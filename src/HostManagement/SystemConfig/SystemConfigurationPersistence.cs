@@ -67,16 +67,6 @@ internal sealed class SystemConfigurationPersistence(IFileSystem fileSystem) : I
 
         _fileSystem.Directory.CreateDirectory(directoryPath);
 
-        // reset readonly properties to exclude them from serialization
-        if (systemConfiguration.NetworkInterfacesSettings?.NetworkInterfaces is not null)
-        {
-            foreach (var networkInterface in systemConfiguration.NetworkInterfacesSettings.NetworkInterfaces)
-            {
-                if (networkInterface.IPv4 is not null)
-                    networkInterface.IPv4.DHCPLease = default;
-            }
-        }
-
         await using var stream = _fileSystem.FileStream.New(filePath, new FileStreamOptions()
         {
             Access = FileAccess.Write,

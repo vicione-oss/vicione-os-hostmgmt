@@ -31,37 +31,6 @@ public class SystemConfigurationSerializerTests
                     {
                         Gateway = s_ipAddress,
                         DHCPEnabled = true,
-                        DHCPLease = new()
-                        {
-                            LeaseObtained = new DateTimeOffset(2025, 06, 23, 12, 34, 56, TimeSpan.FromHours(2)),
-                            LeaseExpires = new DateTimeOffset(2025, 06, 30, 12, 34, 56, TimeSpan.FromHours(2)),
-                            Gateway = s_ipAddress,
-                            NetworkDNSSettings = new()
-                            {
-                                Hostname = "hostname",
-                                MulticastDNSEnabled = true,
-                                StaticHostsEnabled = true,
-                                StaticHosts =
-                                [
-                                    new()
-                                    {
-                                        Hostname = "statichost",
-                                        IPAddress = s_ipAddress
-                                    },
-                                ],
-                                NameServersEnabled = true,
-                                NameServers = [s_ipAddress],
-                                DNSSuffixEnabled = true,
-                                DNSSuffix = "dnsSuffix",
-                                SearchDomainsEnabled = true,
-                                SearchDomains = ["searchDomain"]
-                            },
-                            IPv4Detail = new()
-                            {
-                                IPAddress = s_ipAddress,
-                                Netmask = s_ipAddress
-                            }
-                        },
                         IPv4Details =
                         [
                             new()
@@ -176,36 +145,6 @@ public class SystemConfigurationSerializerTests
                 "IPv4": {
                   "Gateway": "120.86.52.18",
                   "DHCPEnabled": true,
-                  "DHCPLease": {
-                    "LeaseObtained": "2025-06-23T12:34:56+02:00",
-                    "LeaseExpires": "2025-06-30T12:34:56+02:00",
-                    "Gateway": "120.86.52.18",
-                    "NetworkDNSSettings": {
-                      "Hostname": "hostname",
-                      "MulticastDNSEnabled": true,
-                      "StaticHostsEnabled": true,
-                      "StaticHosts": [
-                        {
-                          "IPAddress": "120.86.52.18",
-                          "Hostname": "statichost"
-                        }
-                      ],
-                      "NameServersEnabled": true,
-                      "NameServers": [
-                        "120.86.52.18"
-                      ],
-                      "DNSSuffixEnabled": true,
-                      "DNSSuffix": "dnsSuffix",
-                      "SearchDomainsEnabled": true,
-                      "SearchDomains": [
-                        "searchDomain"
-                      ]
-                    },
-                    "IPv4Detail": {
-                      "IPAddress": "120.86.52.18",
-                      "Netmask": "120.86.52.18"
-                    }
-                  },
                   "IPv4Details": [
                     {
                       "IPAddress": "120.86.52.18",

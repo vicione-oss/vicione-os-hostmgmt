@@ -203,16 +203,6 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
         if (status == OperationStatus.Error)
             return (OperationStatus.Error, default);
 
-        if (ipv4.DHCPEnabled.HasValue && ipv4.DHCPEnabled.Value)
-        {
-            (status, var dhcpLease) = await _scriptHandler
-                .ExecuteGetInterfaceIPv4DHCPLeaseScript(interfaceName)
-                .ConfigureAwait(false);
-
-            if (status != OperationStatus.Error)
-                ipv4.DHCPLease = dhcpLease;
-        }
-
         return (status, ipv4);
     }
 }
