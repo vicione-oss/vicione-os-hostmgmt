@@ -94,68 +94,6 @@ public class NetworkNTPSettingsTests
         }
 
         [Fact]
-        public void ShouldReturnFalse_WhenDifferentFallbackNTPServers()
-        {
-            var settings1 = CreateSampleSettings();
-            var settings2 = CreateSampleSettings();
-            settings2.FallbackNTPServers = ["different-fallback.example.com"];
-
-            var result = settings1.Equals(settings2);
-
-            result.Should().BeFalse();
-        }
-
-        [Fact]
-        public void ShouldReturnFalse_WhenNullVsEmptyFallbackNTPServers()
-        {
-            var settings1 = new NetworkNTPSettings { FallbackNTPServers = null };
-            var settings2 = new NetworkNTPSettings { FallbackNTPServers = [] };
-
-            var result = settings1.Equals(settings2);
-
-            result.Should().BeFalse();
-        }
-
-        [Fact]
-        public void ShouldReturnTrue_WhenBothNullFallbackNTPServers()
-        {
-            var settings1 = new NetworkNTPSettings { FallbackNTPServers = null };
-            var settings2 = new NetworkNTPSettings { FallbackNTPServers = null };
-
-            var result = settings1.Equals(settings2);
-
-            result.Should().BeTrue();
-        }
-
-        [Fact]
-        public void ShouldReturnFalse_WhenNullVsNonNullFallbackNTPServers()
-        {
-            var settings1 = new NetworkNTPSettings { FallbackNTPServers = null };
-            var settings2 = new NetworkNTPSettings { FallbackNTPServers = ["fallback.example.com"] };
-
-            var result = settings1.Equals(settings2);
-
-            result.Should().BeFalse();
-        }
-
-        [Fact]
-        public void ShouldReturnFalse_WhenDifferentFallbackNTPServerOrder()
-        {
-            var settings1 = new NetworkNTPSettings
-            {
-                FallbackNTPServers = ["fallback1.example.com", "fallback2.example.com"]
-            };
-            var settings2 = new NetworkNTPSettings
-            {
-                FallbackNTPServers = ["fallback2.example.com", "fallback1.example.com"]
-            };
-
-            var result = settings1.Equals(settings2);
-
-            result.Should().BeFalse();
-        }
-
-        [Fact]
         public void ShouldReturnFalse_WhenNull()
         {
             var settings = CreateSampleSettings();
@@ -163,16 +101,6 @@ public class NetworkNTPSettingsTests
             var result = settings.Equals(null);
 
             result.Should().BeFalse();
-        }
-
-        [Fact]
-        public void ShouldNotThrow_WhenNullFallbackServers()
-        {
-            var settings = new NetworkNTPSettings { FallbackNTPServers = null };
-
-            var exception = Record.Exception(() => settings.GetHashCode());
-
-            exception.Should().BeNull();
         }
     }
 
@@ -208,7 +136,6 @@ public class NetworkNTPSettingsTests
     {
         return new NetworkNTPSettings
         {
-            FallbackNTPServers = ["fallback1.ntp.org", "fallback2.ntp.org"],
             NTPServersEnabled = true,
             NTPServers = ["ntp1.example.com", "ntp2.example.com"]
         };

@@ -76,8 +76,6 @@ internal sealed class SystemConfigurationPersistence(IFileSystem fileSystem) : I
                     networkInterface.IPv4.DHCPLease = default;
             }
         }
-        if (systemConfiguration.NetworkNTPSettings is not null)
-            systemConfiguration.NetworkNTPSettings.FallbackNTPServers = default;
 
         await using var stream = _fileSystem.FileStream.New(filePath, new FileStreamOptions()
         {

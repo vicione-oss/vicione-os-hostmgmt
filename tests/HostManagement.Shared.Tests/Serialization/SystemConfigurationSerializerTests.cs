@@ -143,7 +143,6 @@ public class SystemConfigurationSerializerTests
         },
         NetworkNTPSettings = new()
         {
-            FallbackNTPServers = ["fallbackNTPServer"],
             NTPServersEnabled = true,
             NTPServers = ["NTPServer"],
         },
@@ -282,9 +281,6 @@ public class SystemConfigurationSerializerTests
             ]
           },
           "NetworkNTPSettings": {
-            "FallbackNTPServers": [
-              "fallbackNTPServer"
-            ],
             "NTPServersEnabled": true,
             "NTPServers": [
               "NTPServer"

@@ -148,9 +148,7 @@ internal static class ContractsTranslator
         };
 
     private static SharedNetwork.NetworkNTPSettings ToSharedContracts(this NetworkNTPSettings intern)
-        => new(
-            intern.FallbackNTPServers?.ToList(),
-            intern.NTPServers?.ToList())
+        => new(intern.NTPServers?.ToList())
         {
             NTPServersEnabled = intern.NTPServersEnabled ?? false,
         };
@@ -265,8 +263,7 @@ internal static class ContractsTranslator
         => new()
         {
             NTPServersEnabled = shared.NTPServersEnabled,
-            NTPServers = [.. shared.NTPServers],
-            FallbackNTPServers = shared.FallbackNTPServers?.ToList(),
+            NTPServers = [.. shared.NTPServers]
         };
 
     private static ServiceDetail ToInternalContracts(this SharedService.ServiceDetail shared)

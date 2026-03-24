@@ -156,12 +156,6 @@ public class SourceGeneratedTypeSerializerTests
             ]
           },
           "NetworkNTPSettings": {
-            "FallbackNTPServers": [
-              "0.debian.pool.ntp.org",
-              "1.debian.pool.ntp.org",
-              "2.debian.pool.ntp.org",
-              "3.debian.pool.ntp.org"
-            ],
             "NTPServersEnabled": true,
             "NTPServers": [
               "ptbtime1.ptb.de",

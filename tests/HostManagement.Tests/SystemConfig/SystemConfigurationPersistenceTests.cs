@@ -1,4 +1,4 @@
-﻿using System.IO.Abstractions.TestingHelpers;
+using System.IO.Abstractions.TestingHelpers;
 using System.Net;
 using System.Text.Json;
 using AwesomeAssertions;
@@ -40,7 +40,7 @@ public class SystemConfigurationPersistenceTests
         [Fact]
         public async Task Can_load_minimal_json_file()
         {
-            _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new("""{"Version":1}"""));
+            _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new("""{"Version":2}"""));
 
             await _persistence.Invoking(x => x.LoadPreparationConfiguration(CancellationToken.None))
                 .Should().NotThrowAsync();
@@ -52,7 +52,7 @@ public class SystemConfigurationPersistenceTests
             var config =
                 """
                 {
-                    "Version": 1,
+                    "Version": 2,
                     "NetworkInterfacesSettings": {
                         "NetworkInterfaces": [
                             {
@@ -374,7 +374,7 @@ public class SystemConfigurationPersistenceTests
             var expectedJson =
                 """
                 {
-                  "Version": 1
+                  "Version": 2
                 }
                 """
                 .UseEnvironmentNewLine();
@@ -477,7 +477,6 @@ public class SystemConfigurationPersistenceTests
                 },
                 NetworkNTPSettings = new()
                 {
-                    FallbackNTPServers = ["fallbackNTPServer"],
                     NTPServersEnabled = true,
                     NTPServers = ["NTPServer"],
                 },
@@ -534,13 +533,13 @@ public class SystemConfigurationPersistenceTests
                         State = ServiceState.Enabled,
                     },
                 ],
-                Version = 1,
+                Version = 2,
             };
 
             var expectedJson =
             """
             {
-              "Version": 1,
+              "Version": 2,
               "NetworkInterfacesSettings": {
                 "NetworkInterfaces": [
                   {

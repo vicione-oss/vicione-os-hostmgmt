@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace HostManagement.SystemConfig.Contracts;
 
@@ -21,7 +21,7 @@ namespace HostManagement.SystemConfig.Contracts;
 internal class SystemConfiguration
 {
     [JsonRequired]
-    public int Version { get; init; } = 1;
+    public int Version { get; init; } = 2;
     public NetworkInterfacesSettings? NetworkInterfacesSettings { get; set; }
     public NetworkDNSSettings? NetworkDNSSettings { get; set; }
     public NetworkProxySettings? NetworkProxySettings { get; set; }

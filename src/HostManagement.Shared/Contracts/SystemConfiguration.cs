@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Contracts.Service;
 using HostManagement.Shared.Extensions;
@@ -18,7 +18,7 @@ public class SystemConfiguration
     /// The version of the system configuration.
     /// </summary>
     [JsonRequired]
-    public int Version { get; init; } = 1;
+    public int Version { get; init; } = 2;
 
     /// <summary>
     /// Initializes new <see cref="SystemConfiguration"/>.

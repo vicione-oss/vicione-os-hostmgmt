@@ -34,10 +34,6 @@ NTP_SERVERS_ENABLED="false"
 # Methods
 #######################################
 
-get_fallback_ntp_servers() {
-    timedatectl show-timesync --property=FallbackNTPServers | cut -d "=" -f2-
-}
-
 get_ntp_servers() {
     sed 's/^#\?NTP=//' <<< "$CONTENT" || true
 }
@@ -64,14 +60,7 @@ load_ntp_server_content()
 #######################################
 
 main() {
-    local fallback_ntp_servers=()
     local ntp_servers=()
-
-    IFS=' ' read -r -a fallback_ntp_array <<< "$(get_fallback_ntp_servers)"
-
-    for fallback_ntp_server in "${fallback_ntp_array[@]}"; do
-        fallback_ntp_servers+=("\"${fallback_ntp_server}\"")
-    done
 
     load_ntp_server_content
     get_ntp_servers_enabled_state
@@ -85,7 +74,6 @@ main() {
     fi
 
     json_output="{"
-    json_output+="\"FallbackNTPServers\": [$(printf '%s, ' "${fallback_ntp_servers[@]}" | sed 's/, $//')],"
     json_output+="\"NTPServersEnabled\": ${NTP_SERVERS_ENABLED},"
     json_output+="\"NTPServers\": [$(printf '%s, ' "${ntp_servers[@]}" | sed 's/, $//')]"
     json_output+="}"
