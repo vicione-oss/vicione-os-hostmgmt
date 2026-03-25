@@ -1,4 +1,4 @@
-﻿using HostManagement.Communication.NamedPipes.RequestHandlers;
+using HostManagement.Communication.NamedPipes.RequestHandlers;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Enums;
 
@@ -25,7 +25,7 @@ internal sealed class PipeMessageProcessor(
         switch (message.Type)
         {
             case MessageType.Request:
-                var response = await requestHandlerRegistry.HandleRequest(message, cancellationToken).ConfigureAwait(false);
+                var response = await requestHandlerRegistry.HandleRequestAsync(message, cancellationToken).ConfigureAwait(false);
                 await PipeStreamWrapper.SendMessageAsync(response, cancellationToken).ConfigureAwait(false);
                 break;
             case MessageType.Response:

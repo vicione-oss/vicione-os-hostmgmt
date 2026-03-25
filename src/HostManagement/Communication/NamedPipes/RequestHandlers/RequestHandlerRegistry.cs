@@ -21,7 +21,9 @@ internal sealed class RequestHandlerRegistry(TargetEnvironment targetEnvironment
     /// <param name="message">The named pipe message.</param>
     /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <returns><see cref="NamedPipeMessage"/></returns>
-    public async Task<NamedPipeMessage> HandleRequest(NamedPipeMessage message, CancellationToken cancellationToken)
+    public async Task<NamedPipeMessage> HandleRequestAsync(
+        NamedPipeMessage message,
+        CancellationToken cancellationToken)
     {
         if (!_handlers.TryGetValue(message.Topic, out var handler))
             return message.CreateDefaultResponse($"No handler registered for topic '{message.Topic}'.");
@@ -32,7 +34,7 @@ internal sealed class RequestHandlerRegistry(TargetEnvironment targetEnvironment
 
             if (IsHandlerSupported(handler))
             {
-                response = await handler.Handle(message.Content, cancellationToken).ConfigureAwait(false);
+                response = await handler.HandleAsync(message.Content, cancellationToken).ConfigureAwait(false);
             }
             else
             {

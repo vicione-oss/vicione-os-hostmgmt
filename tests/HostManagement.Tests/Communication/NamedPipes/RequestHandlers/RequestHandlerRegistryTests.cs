@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using AwesomeAssertions;
 using Xunit;
@@ -55,7 +55,7 @@ public sealed class RequestHandlerRegistryTests
             var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne);
 
             // Act
-            var response = await registry.HandleRequest(request, CancellationToken.None);
+            var response = await registry.HandleRequestAsync(request, CancellationToken.None);
 
             // Assert
             response.Should().NotBeNull();
@@ -80,7 +80,7 @@ public sealed class RequestHandlerRegistryTests
             registry.RegisterHandler(handler);
 
             // Act
-            var response = await registry.HandleRequest(request, CancellationToken.None);
+            var response = await registry.HandleRequestAsync(request, CancellationToken.None);
 
             // Assert
             response.Should().NotBeNull();
@@ -112,7 +112,7 @@ public sealed class RequestHandlerRegistryTests
             registry.RegisterHandler(handler);
 
             // Act
-            var response = await registry.HandleRequest(request, CancellationToken.None);
+            var response = await registry.HandleRequestAsync(request, CancellationToken.None);
 
             // Assert
             response.Should().NotBeNull();
@@ -141,7 +141,7 @@ public sealed class RequestHandlerRegistryTests
             registry.RegisterHandler(handler);
 
             // Act
-            var response = await registry.HandleRequest(request, CancellationToken.None);
+            var response = await registry.HandleRequestAsync(request, CancellationToken.None);
 
             // Assert
             response.Should().NotBeNull();
@@ -172,7 +172,7 @@ public sealed class RequestHandlerRegistryTests
             registry.RegisterHandler(handler);
 
             // Act
-            var response = await registry.HandleRequest(request, CancellationToken.None);
+            var response = await registry.HandleRequestAsync(request, CancellationToken.None);
 
             // Assert
             response.Should().NotBeNull();
@@ -199,7 +199,7 @@ public sealed class RequestHandlerRegistryTests
         public OperationResult CreateErrorInstance(string message)
             => GetNetworkStatusInformationResult.CreateErrorResult(message);
 
-        public Task<string> Handle(string messageContent, CancellationToken cancellationToken)
+        public Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
         {
             WasHandleCalled = true;
 
