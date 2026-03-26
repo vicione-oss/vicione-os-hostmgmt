@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Validation: Removed obsolete method `Validate` in `SystemConfigurationValidator`
+- Shared: Removed installation of ViciOne Suite via update server (was replaced with generic functionality in [1.2.0](#120---2025-12-02))
 
 ## [1.3.0] - 2026-03-23
 
@@ -103,7 +104,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fixed that consumers were not able to use `Shared.Communication` NuGet package due to reference to source generator (introduced in [1.1.0])
+- Fixed that consumers were not able to use `Shared.Communication` NuGet package due to reference to source generator (introduced in [1.1.0](#110---2025-10-15))
 - Prevent deadlocks when reading output of scripts
 
 ## 1.1.0 - 2025-10-15

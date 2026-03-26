@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using HostManagement.Scripts.Enums;
 using HostManagement.Scripts.Extensions;
 
@@ -290,12 +290,6 @@ public sealed class ScriptRunner
             ScriptIdentifier.NetworkNTPFallbackInformationGet => resourceManager.GetResource("get_network_ntp_fallback_information"),
             ScriptIdentifier.NetworkNTPSettingsGet => resourceManager.GetResource("get_network_ntp_settings"),
             ScriptIdentifier.NetworkNTPSettingsSet => resourceManager.GetResource("set_network_ntp_settings"),
-
-            // ViciOne Suite
-            ScriptIdentifier.ViciOneSuiteInstalledVersionGet => resourceManager.GetResource("get_vicione_suite_installed_version"),
-            ScriptIdentifier.ViciOneSuiteVersionsGet => resourceManager.GetResource("get_vicione_suite_versions"),
-            ScriptIdentifier.ViciOneSuiteDebFileGet => resourceManager.GetResource("get_vicione_suite_deb_file"),
-            ScriptIdentifier.ViciOneSuiteInstallDebFile => resourceManager.GetResource("install_deb_file"),
 
             // Install
             ScriptIdentifier.InstallDebianPackage => resourceManager.GetResource("install_deb_package"),

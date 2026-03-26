@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using AwesomeAssertions;
 using HostManagement.Shared.Communication.Contracts;
@@ -181,8 +181,6 @@ public class SourceGeneratedTypeSerializerTests
     private static readonly JsonTypeInfo<RedeployScriptsResult> s_redeployContext = SourceGenerationContext.Default.RedeployScriptsResult;
     private static readonly JsonTypeInfo<GetSystemConfigurationResult> s_loadContext = SourceGenerationContext.Default.GetSystemConfigurationResult;
     private static readonly JsonTypeInfo<SetSystemConfigurationResult> s_applyContext = SourceGenerationContext.Default.SetSystemConfigurationResult;
-    private static readonly JsonTypeInfo<GetViciOneSuiteVersionsResult> s_getSuiteContext = SourceGenerationContext.Default.GetViciOneSuiteVersionsResult;
-    private static readonly JsonTypeInfo<InstallViciOneSuiteVersionResult> s_installSuiteContext = SourceGenerationContext.Default.InstallViciOneSuiteVersionResult;
     private static readonly JsonTypeInfo<GetDHCPLeaseInformationResult> s_getDHCPLeaseContext = SourceGenerationContext.Default.GetDHCPLeaseInformationResult;
     private static readonly JsonTypeInfo<GetNetworkStatusInformationResult> s_getNetworkContext = SourceGenerationContext.Default.GetNetworkStatusInformationResult;
     private static readonly JsonTypeInfo<GetNTPFallbackInformationResult> s_getNTPFallbackContext = SourceGenerationContext.Default.GetNTPFallbackInformationResult;
@@ -218,8 +216,6 @@ public class SourceGeneratedTypeSerializerTests
                 ["RedeployScriptsResult", SourceGenerationContext.Default.RedeployScriptsResult, nullJson],
                 ["GetSystemConfigurationResult", SourceGenerationContext.Default.GetSystemConfigurationResult, nullJson],
                 ["SetSystemConfigurationResult", SourceGenerationContext.Default.SetSystemConfigurationResult, nullJson],
-                ["GetViciOneSuiteVersionsResult", SourceGenerationContext.Default.GetViciOneSuiteVersionsResult, nullJson],
-                ["InstallViciOneSuiteVersionResult", SourceGenerationContext.Default.InstallViciOneSuiteVersionResult, nullJson],
                 ["GetDHCPLeaseInformationResult", SourceGenerationContext.Default.GetDHCPLeaseInformationResult, nullJson],
                 ["GetNetworkStatusInformationResult", SourceGenerationContext.Default.GetNetworkStatusInformationResult, nullJson],
                 ["GetNTPFallbackInformationResult", SourceGenerationContext.Default.GetNTPFallbackInformationResult, nullJson],
@@ -240,8 +236,6 @@ public class SourceGeneratedTypeSerializerTests
         [ "RedeployScriptsResult", s_redeployContext, """{"ResultType":"","Status":"Success","Message":null}""" ],
         [ "GetSystemConfigurationResult", s_loadContext, $$"""{"ResultType":"","Status":"Warning","Message":"Warning","Configuration":{{s_sampleSystemConfigurationJson}}}""" ],
         [ "SetSystemConfigurationResult", s_applyContext, """{"ResultType":"","Status":"Error","Message":"Error"}""" ],
-        [ "GetViciOneSuiteVersionsResult", s_getSuiteContext, """{"ResultType":"","Status":"Warning","Message":"Warning","SuiteVersions":[]}""" ],
-        [ "InstallViciOneSuiteVersionResult", s_installSuiteContext, """{"ResultType":"","Status":"Error","Message":"Error"}""" ],
         [ "GetDHCPLeaseInformationResult", s_getDHCPLeaseContext, $$"""{"ResultType":"","Status":"Warning","Message":"Warning","DHCPLease":{{s_sampleDHCPLeaseJson}}}""" ],
         [ "GetNetworkStatusInformationResult", s_getNetworkContext, $$"""{"ResultType":"","Status":"Warning","Message":"Warning","NetworkStatusInformation":{{s_sampleNetworkStatusJson}}}""" ],
         [ "GetNTPFallbackInformationResult", s_getNTPFallbackContext, $$"""{"ResultType":"","Status":"Warning","Message":"Warning","FallbackNTPServers":{{s_sampleFallbackNTPInformationJson}}}""" ],
@@ -260,8 +254,6 @@ public class SourceGeneratedTypeSerializerTests
         [ "RedeployScriptsResult", s_redeployContext, """{"ResultType":"Mismatch","Status":"Success","Message":null}""" ],
         [ "GetSystemConfigurationResult", s_loadContext, $$"""{"ResultType":"Mismatch","Status":"Warning","Message":"Warning","Configuration":{{s_sampleSystemConfigurationJson}}}""" ],
         [ "SetSystemConfigurationResult", s_applyContext, """{"ResultType":"Mismatch","Status":"Error","Message":"Error"}""" ],
-        [ "GetViciOneSuiteVersionsResult", s_getSuiteContext, """{"ResultType":"Mismatch","Status":"Warning","Message":"Warning","SuiteVersions":[]}""" ],
-        [ "InstallViciOneSuiteVersionResult", s_installSuiteContext, """{"ResultType":"Mismatch","Status":"Error","Message":"Error"}""" ],
         [ "GetDHCPLeaseInformationResult", s_getDHCPLeaseContext, $$"""{"ResultType":"Mismatch","Status":"Warning","Message":"Warning","DHCPLease":{{s_sampleDHCPLeaseJson}}}""" ],
         [ "GetNetworkStatusInformationResult", s_getNetworkContext, $$"""{"ResultType":"Mismatch","Status":"Warning","Message":"Warning","NetworkStatusInformation":{{s_sampleNetworkStatusJson}}}""" ],
         [ "GetNTPFallbackInformationResult", s_getNTPFallbackContext, $$"""{"ResultType":"Mismatch","Status":"Warning","Message":"Warning","FallbackNTPServers":{{s_sampleFallbackNTPInformationJson}}}""" ],
@@ -286,8 +278,6 @@ public class SourceGeneratedTypeSerializerTests
                 [ SourceGenerationContext.Default.RedeployScriptsResult, defaultResponseJson ],
                 [ SourceGenerationContext.Default.GetSystemConfigurationResult, defaultResponseJson ],
                 [ SourceGenerationContext.Default.SetSystemConfigurationResult, defaultResponseJson ],
-                [ SourceGenerationContext.Default.GetViciOneSuiteVersionsResult, defaultResponseJson ],
-                [ SourceGenerationContext.Default.InstallViciOneSuiteVersionResult, defaultResponseJson ],
                 [ SourceGenerationContext.Default.GetDHCPLeaseInformationResult, defaultResponseJson ],
                 [ SourceGenerationContext.Default.GetNetworkStatusInformationResult, defaultResponseJson ],
                 [ SourceGenerationContext.Default.GetNTPFallbackInformationResult, defaultResponseJson ],
@@ -317,16 +307,6 @@ public class SourceGeneratedTypeSerializerTests
 
         [s_applyContext, """{"ResultType":"SetSystemConfigurationResult","Status":"Error"}"""],
         [s_applyContext, """{"ResultType":"SetSystemConfigurationResult","Message":"Error"}"""],
-
-        [s_getSuiteContext, """{"ResultType":"GetViciOneSuiteVersionsResult","Status":"Warning"}"""],
-        [s_getSuiteContext, """{"ResultType":"GetViciOneSuiteVersionsResult","Message":"Warning"}"""],
-        [s_getSuiteContext, """{"ResultType":"GetViciOneSuiteVersionsResult","SuiteVersions":[]}"""],
-        [s_getSuiteContext, """{"ResultType":"GetViciOneSuiteVersionsResult","Status":"Warning","Message":"Warning"}"""],
-        [s_getSuiteContext, """{"ResultType":"GetViciOneSuiteVersionsResult","Status":"Warning","SuiteVersions":[]}"""],
-        [s_getSuiteContext, """{"ResultType":"GetViciOneSuiteVersionsResult","Message":"Warning","SuiteVersions":[]}"""],
-
-        [s_installSuiteContext, """{"ResultType":"InstallViciOneSuiteVersionResult","Status":"Error"}"""],
-        [s_installSuiteContext, """{"ResultType":"InstallViciOneSuiteVersionResult","Message":"Error"}"""],
 
         [s_getDHCPLeaseContext, """{"ResultType":"GetDHCPLeaseInformationResult","Status":"Warning"}"""],
         [s_getDHCPLeaseContext, """{"ResultType":"GetDHCPLeaseInformationResult","Message":"Warning"}"""],
@@ -392,12 +372,6 @@ public class SourceGeneratedTypeSerializerTests
         [s_applyContext, """{"ResultType":"SetSystemConfigurationResult","Status":"Error","Message":"Error","AdditionalMember":"Additional"}"""],
         [s_applyContext, """{"ResultType":"SetSystemConfigurationResult","AdditionalMember":"Additional","Status":"Error","Message":"Error"}"""],
 
-        [s_getSuiteContext, """{"ResultType":"GetViciOneSuiteVersionsResult","Status":"Warning","Message":"Warning","SuiteVersions":[],"AdditionalMember":"Additional"}"""],
-        [s_getSuiteContext, """{"ResultType":"GetViciOneSuiteVersionsResult","Status":"Warning","Message":"Warning","AdditionalMember":"Additional","SuiteVersions":[]}"""],
-
-        [s_installSuiteContext, """{"ResultType":"InstallViciOneSuiteVersionResult","Status":"Error","Message":"Error","AdditionalMember":"Additional"}"""],
-        [s_installSuiteContext, """{"ResultType":"InstallViciOneSuiteVersionResult","AdditionalMember":"Additional","Status":"Error","Message":"Error"}"""],
-
         [s_getDHCPLeaseContext, $$"""{"ResultType":"GetDHCPLeaseInformationResult","Status":"Warning","Message":"Warning","DHCPLease":{{s_sampleDHCPLeaseJson}},"AdditionalMember":"Additional"}"""],
         [s_getDHCPLeaseContext, $$"""{"ResultType":"GetDHCPLeaseInformationResult","Status":"Warning","Message":"Warning","AdditionalMember":"Additional","DHCPLease":{{s_sampleDHCPLeaseJson}}}"""],
 
@@ -441,7 +415,6 @@ public class SourceGeneratedTypeSerializerTests
             return
             [
                 [s_redeployContext, $$"""{"ResultType":{{invalidNullData}},"Status":"Success","Message":""}"""],
-                [s_getSuiteContext, $$"""{"ResultType":"GetViciOneSuiteVersionsResult","Status":"Warning","Message":"Warning","SuiteVersions":{{invalidNullData}}}"""],
                 [s_getNetworkContext, $$"""{"ResultType":"GetNetworkStatusInformationResult","Status":"Warning","Message":"Warning","NetworkStatusInformation":{{invalidNullData}}}"""],
                 [s_getNTPFallbackContext, $$"""{"ResultType":"GetNTPFallbackInformationResult","Status":"Warning","Message":"Warning","FallbackNTPServers":{{invalidNullData}}}"""],
                 [s_getServiceStateContext, $$"""{"ResultType":"GetServiceStateResult","Status":"Warning","Message":"Warning","ActiveState":{{invalidNullData}}}"""]
@@ -454,8 +427,6 @@ public class SourceGeneratedTypeSerializerTests
         [s_redeployContext, """{"ResultType":"RedeployScriptsResult","Status":"Success","Message":null}"""],
         [s_loadContext, $$"""{"ResultType":"GetSystemConfigurationResult","Status":"Warning","Message":"Warning","Configuration":{{s_sampleSystemConfigurationJson}}}"""],
         [s_applyContext, """{"ResultType":"SetSystemConfigurationResult","Status":"Error","Message":"Error"}"""],
-        [s_getSuiteContext, """{"ResultType":"GetViciOneSuiteVersionsResult","Status":"Warning","Message":"Warning","SuiteVersions":[]}"""],
-        [s_installSuiteContext, """{"ResultType":"InstallViciOneSuiteVersionResult","Status":"Error","Message":"Error"}"""],
 
         [s_getDHCPLeaseContext, $$"""{"ResultType":"GetDHCPLeaseInformationResult","Status":"Warning","Message":"Warning","DHCPLease":{{s_sampleDHCPLeaseJson}}}"""],
         [s_getDHCPLeaseContext, """{"ResultType":"GetDHCPLeaseInformationResult","Status":"Warning","Message":"Warning","DHCPLease":null}"""],

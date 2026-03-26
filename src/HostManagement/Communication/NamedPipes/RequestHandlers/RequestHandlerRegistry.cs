@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using HostManagement.Communication.NamedPipes.Extensions;
 using HostManagement.Configuration;
 using HostManagement.Shared.Communication;
@@ -102,10 +102,6 @@ internal sealed class RequestHandlerRegistry(TargetEnvironment targetEnvironment
                 Topics.StopService => true,
                 Topics.RestartService => true,
 
-                Topics.InstallSignedDebianPackage => true,
-                Topics.GetViciOneSuiteVersions => true,
-                Topics.InstallViciOneSuiteVersion => true,
-
                 Topics.GetSystemConfiguration => true,
                 Topics.SetSystemConfiguration => true,
 
@@ -114,6 +110,7 @@ internal sealed class RequestHandlerRegistry(TargetEnvironment targetEnvironment
                 Topics.GetDHCPLeaseInformation => true,
                 Topics.GetNTPFallbackInformation => true,
 
+                Topics.InstallSignedDebianPackage => true,
                 Topics.ResetSystem => true,
                 Topics.RestartSystem => true,
                 Topics.ShutdownSystem => true,

@@ -1,4 +1,4 @@
-﻿namespace HostManagement.Scripts;
+namespace HostManagement.Scripts;
 
 /// <summary>
 /// Provides all script option names for shell scripts.
@@ -62,60 +62,6 @@ public static class ScriptOptionNames
     }
 
     /// <summary>
-    /// Option names for the get_vicione_suite_deb_file script.
-    /// </summary>
-    [Obsolete("This will be removed in a future version.", false)]
-    public static class GetViciOneSuiteDebFile
-    {
-        /// <summary>
-        /// The script argument for the ViciOne Suite repository endpoint (URL).
-        /// </summary>
-        public const string SuiteRepositoryEndpoint = "--url";
-
-        /// <summary>
-        /// The script argument for the ViciOne Suite Debian file (.deb file).
-        /// </summary>
-        public const string SuiteDebianFile = "--deb-file";
-
-        /// <summary>
-        /// The script argument for the ViciOne Suite repository username.
-        /// </summary>
-        public const string SuiteRepositoryUsername = "--username";
-
-        /// <summary>
-        /// The script argument for the ViciOne Suite repository password.
-        /// </summary>
-        public const string SuiteRepositoryPassword = "--password";
-
-        /// <summary>
-        /// The script argument for the ViciOne Suite Debian file download directory.
-        /// </summary>
-        public const string SuiteDebianFileDownloadDirectory = "--download-path";
-    }
-
-    /// <summary>
-    /// Option names for the get_vicione_suite_versions script.
-    /// </summary>
-    [Obsolete("This will be removed in a future version.", false)]
-    public static class GetViciOneSuiteVersions
-    {
-        /// <summary>
-        /// The script argument for the ViciOne Suite repository endpoint (URL).
-        /// </summary>
-        public const string SuiteRepositoryEndpoint = "--url";
-
-        /// <summary>
-        /// The script argument for the ViciOne Suite repository username.
-        /// </summary>
-        public const string SuiteRepositoryUsername = "--username";
-
-        /// <summary>
-        /// The script argument for the ViciOne Suite repository password.
-        /// </summary>
-        public const string SuiteRepositoryPassword = "--password";
-    }
-
-    /// <summary>
     /// Option names for the install_deb_file script.
     /// </summary>
     public static class InstallDebianPackage
@@ -124,28 +70,6 @@ public static class ScriptOptionNames
         /// The script argument for the Debian package path.
         /// </summary>
         public const string DebianPackage = "--deb-package";
-    }
-
-    /// <summary>
-    /// Option names for the install_deb_file script.
-    /// </summary>
-    [Obsolete("Use InstallDebianPackage instead. This will be removed in a future version.", false)]
-    public static class InstallViciOneSuiteDebFile
-    {
-        /// <summary>
-        /// The script argument for the ViciOne Suite Debian file (.deb file).
-        /// </summary>
-        public const string SuiteDebianFile = "--deb-file";
-
-        /// <summary>
-        /// The script argument for the ViciOne Suite Debian file download directory.
-        /// </summary>
-        public const string SuiteDebianFileDownloadDirectory = "--download-path";
-
-        /// <summary>
-        /// The script argument to force reinstall the current ViciOne Suite.
-        /// </summary>
-        public const string ForceReinstall = "--force-reinstall";
     }
 
     /// <summary>

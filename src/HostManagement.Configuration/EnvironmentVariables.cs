@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Configuration;
@@ -93,33 +93,6 @@ public static class EnvironmentVariables
         GetValue(
             EnvironmentVariableNames.ResourcesPath,
             Path.Combine(AppPaths.TempPath, AppPaths.ResourcesDirectory));
-
-    /// <summary>
-    /// The ViciOne Suite Debian package download path.
-    /// </summary>
-    /// <remarks>
-    /// <b>Default:</b> /tmp
-    /// </remarks>
-    public static readonly string SuiteDownloadDirectory =
-        GetValue(EnvironmentVariableNames.SuiteDownloadPath, AppPaths.TempPath);
-
-    /// <summary>
-    /// The ViciOne Suite repository endpoint (URL).
-    /// </summary>
-    public static readonly string SuiteRepositoryEndpoint =
-        GetValue(EnvironmentVariableNames.SuiteRepoEndpoint, string.Empty, true);
-
-    /// <summary>
-    /// The ViciOne Suite repository username.
-    /// </summary>
-    public static readonly string SuiteRepositoryUsername =
-        GetValue(EnvironmentVariableNames.SuiteRepoUsername, string.Empty, true);
-
-    /// <summary>
-    /// The ViciOne Suite repository password.
-    /// </summary>
-    public static readonly string SuiteRepositoryPassword =
-        GetValue(EnvironmentVariableNames.SuiteRepoPassword, string.Empty, true);
 
     /// <summary>
     /// The list of configurable system wide Linux services.

@@ -1,4 +1,4 @@
-﻿using System.IO.Abstractions;
+using System.IO.Abstractions;
 using System.Text;
 using AwesomeAssertions;
 using Microsoft.Extensions.Logging;
@@ -290,16 +290,7 @@ public class ResourceManagerTests
                     // SystemdUnit
                     "get_systemd_unit_active_state",
                     "get_systemd_unit_state",
-                    "set_systemd_unit_state",
-
-                    // ViciOne > Install
-                    "get_authorization_data",
-                    "get_installed_package_version",
-                    "get_vicione_suite_deb_file",
-                    "get_vicione_suite_installed_version",
-                    "get_vicione_suite_versions",
-                    "install_deb_file",
-                    "is_repository_reachable"
+                    "set_systemd_unit_state"
                 }
             )
         ];

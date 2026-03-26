@@ -74,11 +74,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>CommandLineStrings_Systemd.resx</DependentUpon>
     </Compile>
-    <Compile Update="Communication\CommandLine\Commands\ViciOneSuite\CommandLineStrings_ViciOneSuite.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>CommandLineStrings_ViciOneSuite.resx</DependentUpon>
-    </Compile>
     <Compile Update="SystemConfig\InternalValidation\InternalValidationResultMessages.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -93,11 +88,6 @@
       <DependentUpon>ServicesResources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-    </Compile>
-    <Compile Update="ViciOneSuite\ViciOneSuiteResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ViciOneSuiteResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
 
@@ -142,10 +132,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>CommandLineStrings_Systemd.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Update="Communication\CommandLine\Commands\ViciOneSuite\CommandLineStrings_ViciOneSuite.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>CommandLineStrings_ViciOneSuite.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
     <EmbeddedResource Update="SystemConfig\InternalValidation\InternalValidationResultMessages.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>InternalValidationResultMessages.Designer.cs</LastGenOutput>
@@ -157,10 +143,6 @@
     <EmbeddedResource Update="Services\ServicesResources.resx">
       <LastGenOutput>ServicesResources.Designer.cs</LastGenOutput>
       <Generator>ResXFileCodeGenerator</Generator>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ViciOneSuite\ViciOneSuiteResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>ViciOneSuiteResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 

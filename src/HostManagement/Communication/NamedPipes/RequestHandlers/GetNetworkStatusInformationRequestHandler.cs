@@ -1,10 +1,10 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
-using Microsoft.Extensions.Logging;
 using HostManagement.Services;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Serialization;
+using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 
@@ -16,7 +16,7 @@ internal sealed class GetNetworkStatusInformationRequestHandler(ILogger logger)
     : RequestHandler<GetNetworkStatusInformationResult>
 {
     /// <summary>
-    /// The topic of the <see cref="GetViciOneSuiteVersionsRequestHandler"/>.
+    /// The topic of the <see cref="GetNetworkStatusInformationRequestHandler"/>.
     /// </summary>
     public override string Topic => Topics.GetNetworkStatusInformation;
 

@@ -1,4 +1,4 @@
-﻿namespace HostManagement.Configuration;
+namespace HostManagement.Configuration;
 
 /// <summary>
 /// Provides environment variable names of the application.
@@ -44,30 +44,6 @@ internal static class EnvironmentVariableNames
     /// Directory to which all resources (scripts) are deployed when the service starts.
     /// </summary>
     internal const string ResourcesPath = "HOSTMANAGEMENT:RESOURCE_DEPLOY_DIRECTORY";
-
-    /// <summary>
-    /// Directory to which the ViciOne Suite Debian package is downloaded during installation/update.
-    /// </summary>
-    [Obsolete("This will be removed in a future version.", false)]
-    internal const string SuiteDownloadPath = "HOSTMANAGEMENT:SUITE_DOWNLOAD_DIRECTORY";
-
-    /// <summary>
-    /// ViciOne Suite repository endpoint (URL).
-    /// </summary>
-    [Obsolete("This will be removed in a future version.", false)]
-    internal const string SuiteRepoEndpoint = "HOSTMANAGEMENT:SUITE_REPOSITORY:ENDPOINT";
-
-    /// <summary>
-    /// ViciOne Suite repository username.
-    /// </summary>
-    [Obsolete("This will be removed in a future version.", false)]
-    internal const string SuiteRepoUsername = "HOSTMANAGEMENT:SUITE_REPOSITORY:USERNAME";
-
-    /// <summary>
-    /// ViciOne Suite repository password.
-    /// </summary>
-    [Obsolete("This will be removed in a future version.", false)]
-    internal const string SuiteRepoPassword = "HOSTMANAGEMENT:SUITE_REPOSITORY:PASSWORD";
 
     /// <summary>
     /// Directory in which <c>SystemConfiguration.json</c> is located.

@@ -1,4 +1,4 @@
-﻿namespace HostManagement.Scripts.Enums;
+namespace HostManagement.Scripts.Enums;
 
 /// <summary>
 /// Represents a script identifier.
@@ -30,6 +30,11 @@ public enum ScriptIdentifier
     /// Script to get the system architecture.
     /// </summary>
     CommonSystemArchitectureGet,
+
+    /// <summary>
+    /// Script to install a Debian package.
+    /// </summary>
+    InstallDebianPackage,
 
     /// <summary>
     /// Script to reset the system.
@@ -168,37 +173,6 @@ public enum ScriptIdentifier
     /// Script to set NTP settings.
     /// </summary>
     NetworkNTPSettingsSet,
-    #endregion
-
-    #region ViciOne Suite
-    /// <summary>
-    /// Script to get the installed version of the ViciOne Suite.
-    /// </summary>
-    [Obsolete("This will be removed in a future version.", false)]
-    ViciOneSuiteInstalledVersionGet,
-
-    /// <summary>
-    /// Script to get the ViciOne Suite versions.
-    /// </summary>
-    [Obsolete("This will be removed in a future version.", false)]
-    ViciOneSuiteVersionsGet,
-
-    /// <summary>
-    /// Script to get the ViciOne Suite Debian file for installation.
-    /// </summary>
-    [Obsolete("This will be removed in a future version.", false)]
-    ViciOneSuiteDebFileGet,
-
-    /// <summary>
-    /// Script to install the ViciOne Suite Debian file.
-    /// </summary>
-    [Obsolete("Use InstallDebianPackage instead. This will be removed in a future version.", false)]
-    ViciOneSuiteInstallDebFile,
-
-    /// <summary>
-    /// Script to install a Debian package.
-    /// </summary>
-    InstallDebianPackage,
     #endregion
 
     #region Test
