@@ -11,10 +11,10 @@ The **HostManagement (HM)** project is an AOT-compiled .NET application for Debi
 
 A description of the conceptual ideas and design decisions can be found under: [Concept]
 
-| | | |
-| :- | :- | :- |
-| **[Getting Started](#getting-started)** <br> Quick Start / Target Environments | **[Usage](#usage)** <br> CLI / Service / Environment Variables / Logging | **[Project Structure](#project-structure)** <br> Main Components / Project Structure Details |
-| **[Contributing](#contributing)** <br> Development / Publishing / Toolchain / GitHub Copilot | **[License](#license)** <br> License Status | |
+|                                                                                              |                                                                          |                                                                                              |
+| :------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------- | :------------------------------------------------------------------------------------------- |
+| **[Getting Started](#getting-started)** <br> Quick Start / Target Environments               | **[Usage](#usage)** <br> CLI / Service / Environment Variables / Logging | **[Project Structure](#project-structure)** <br> Main Components / Project Structure Details |
+| **[Contributing](#contributing)** <br> Development / Publishing / Toolchain / GitHub Copilot | **[License](#license)** <br> License Status                              |                                                                                              |
 
 ## Getting Started
 
@@ -368,6 +368,25 @@ To be able to build and publish, the following steps are required:
 ### Install the Toolchain
 
 Instructions for installing the toolchain, e.g. in VMware, can be found in [/docs/InstallToolchain.md](/docs/InstallToolchain.md).
+
+### Local Tooling with mise
+
+The repository uses [mise](https://mise.jdx.dev/) to pin needed tools (e.g. .NET SDK) and to provide helper tasks.
+
+* Install mise itself, see [mise Getting Started](https://mise.jdx.dev/getting-started.html)
+* Install tools pre-defined in [mise.toml](mise.toml):
+
+  ```bash
+  mise install
+  ```
+
+* Generate CLI help documentation:
+
+  ```bash
+  mise run extract-help
+  ```
+
+  Generated output file path is: `local/cli_help/cli_help_export.md` (configured in `mise.toml`).
 
 ### GitHub Copilot
 
