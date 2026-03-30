@@ -1,12 +1,12 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
-using Microsoft.Extensions.Logging;
 using HostManagement.Configuration;
+using HostManagement.Services;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Serialization;
 using HostManagement.Shared.Contracts.System;
-using HostManagement.Services;
+using Microsoft.Extensions.Logging;
 using SharedJsonContext = HostManagement.Shared.Contracts.SourceGenerationContext;
 
 namespace HostManagement.Communication.NamedPipes.RequestHandlers;
@@ -47,7 +47,10 @@ internal sealed class InstallSignedDebianPackageRequestHandler(ILogger logger) :
 
             var scriptResult = new Result();
             var scriptHandler = new ScriptHandler(scriptResult);
-            var service = new SystemService(logger, scriptHandler, scriptResult);
+
+            var signatureValidator = new MinisignSignedDebianPackageSignatureValidator();
+            var service = new SystemService(logger, scriptHandler, scriptResult, signatureValidator);
+
             var result = await service.InstallSignedDebianPackage(
                 signedDebianPackage,
                 EnvironmentVariables.PublicKeys,
