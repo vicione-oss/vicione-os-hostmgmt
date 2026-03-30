@@ -5,6 +5,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0] - [Unreleased]
 
+### Removed
+
+- Validation: Removed obsolete method `Validate` in `SystemConfigurationValidator`
+
 ## [1.3.0] - 2026-03-23
 
 ### Added
