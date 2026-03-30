@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validation: Removed obsolete method `Validate` in `SystemConfigurationValidator`
 - Shared: Removed installation of ViciOne Suite via update server (was replaced with generic functionality in [1.2.0](#120---2025-12-02))
 
+### Fixed
+
+- Fixed a bug where proxy settings were not cleared during a system reset.
+
 ## [1.3.0] - 2026-03-23
 
 ### Added
