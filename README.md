@@ -99,6 +99,29 @@ The dependencies are:
 > [!note]
 > To show help and usage information, use the options `-?, -h, --help`.
 
+#### Configuration template commands
+
+The CLI provides two helper commands for working with `SystemConfiguration` templates.
+
+* Generate a JSON configuration template with sample data:
+
+  `sudo hostmanagement --create-configuration-template`
+
+  > [!note]
+  > The output can be redirected.
+
+* Validate a configuration template file:
+
+  `sudo hostmanagement --validate-configuration-template --path configuration-template.json`
+
+  > [!note]
+  > This command validates a modified configuration template. It is not intended for normal operation.
+  >
+  > The validation result is written to the console output.
+
+  > [!important]
+  > The configuration is not fully validated because the internal `SystemConfigurationValidatorInternal` is not used here. The configurable services are not accessible in this context.
+
 #### Example "service status" command
 
 The command
