@@ -1,7 +1,6 @@
-﻿using System.CommandLine;
-using Microsoft.Extensions.Logging;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine;
-using HostManagement.Configuration;
+using HostManagement.Communication.CommandLine.Output;
 
 namespace HostManagement;
 
@@ -11,9 +10,6 @@ namespace HostManagement;
 /// </summary>
 internal static partial class CommandLineRunner
 {
-    private static readonly ILogger s_logger =
-        new ConsoleLogger(EnvironmentVariables.LogLevel, useShortLogLevels: false);
-
     /// <summary>
     /// Starts the application with a command line interface.
     /// </summary>
@@ -44,11 +40,11 @@ internal static partial class CommandLineRunner
         }
         catch (Exception ex)
         {
-            LogCommandLineError(s_logger, ex.ToString());
+            SimpleOutput.WriteLineError(
+                "An error occurred while running the command line interface. {0}",
+                ex.ToString());
+
             return 1;
         }
     }
-
-    [LoggerMessage(LogLevel.Error, "An error occurred while running the command line interface. {InnerMessage}")]
-    private static partial void LogCommandLineError(ILogger logger, string? innerMessage);
 }
