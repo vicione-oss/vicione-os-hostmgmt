@@ -1,4 +1,5 @@
-﻿using System.IO.Pipes;
+using System.IO.Pipes;
+using System.Net.Sockets;
 using System.Text.Json;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Extensions;
@@ -7,40 +8,36 @@ using Microsoft.Extensions.Logging;
 namespace HostManagement.Shared.Communication;
 
 /// <summary>
-/// Wraps the raw pipe stream with messaging and request/response capability.
+/// Wraps the raw pipe stream with messaging capability.
 /// </summary>
+/// <param name="stream">The raw pipe stream.</param>
+/// <param name="logger">An <see cref="ILogger"/> implementation.</param>
 public sealed partial class PipeStreamWrapper(PipeStream stream, ILogger logger) : IDisposable
 {
-    private readonly ILogger _logger = logger;
-
     // Prevents more than one thread from writing to the pipe stream at once
     private readonly SemaphoreSlim _writeLock = new(1, 1);
 
+    private readonly PipeStream _stream = stream ?? throw new ArgumentNullException(nameof(stream));
+    private readonly ILogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
     /// <summary>
-    /// Logs that the pipe has closed and throws exception to trigger graceful closure.
+    /// Disposes this <see cref="PipeStreamWrapper"/>.
     /// </summary>
-    private void ClosePipe()
+    public void Dispose()
     {
-        PipeHasClosed(_logger);
-
-        // OperationCanceledException is handled as pipe closing gracefully.
-        throw new OperationCanceledException();
+        _stream.Dispose();
+        _writeLock.Dispose();
     }
-
-    /// <summary>
-    /// Releases all resources used by the current instance of the <see cref="PipeStreamWrapper"/> class.
-    /// </summary>
-    public void Dispose() => _writeLock.Dispose();
 
     /// <summary>
     /// Reads the message off the input stream.
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The read message type and payload.</returns>
-    public async Task<NamedPipeMessage> ReadMessage(CancellationToken cancellationToken)
+    public async Task<NamedPipeMessage> ReadMessageAsync(CancellationToken cancellationToken = default)
     {
         // Read the length to see how long the message is
-        var messagePayloadLength = await stream.ReadVarInt(cancellationToken).ConfigureAwait(false);
+        var messagePayloadLength = await _stream.ReadVarIntAsync(cancellationToken).ConfigureAwait(false);
 
         if (messagePayloadLength == 0)
             ClosePipe();
@@ -50,7 +47,7 @@ public sealed partial class PipeStreamWrapper(PipeStream stream, ILogger logger)
 
         while (payloadBytesRead < messagePayloadLength)
         {
-            var readBytes = await stream
+            var readBytes = await _stream
                 .ReadAsync(
                     messagePayloadBytes.AsMemory(payloadBytesRead, messagePayloadLength - payloadBytesRead),
                     cancellationToken)
@@ -84,7 +81,7 @@ public sealed partial class PipeStreamWrapper(PipeStream stream, ILogger logger)
     /// </summary>
     /// <param name="message">The message.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    public async Task SendMessage(NamedPipeMessage message, CancellationToken cancellationToken)
+    public async Task SendMessageAsync(NamedPipeMessage message, CancellationToken cancellationToken = default)
     {
         using var messageStream = new MemoryStream(128);
 
@@ -104,15 +101,46 @@ public sealed partial class PipeStreamWrapper(PipeStream stream, ILogger logger)
         try
         {
             // Write out the message length
-            await stream.WriteAsync(messageLengthBytes, cancellationToken).ConfigureAwait(false);
+            await _stream.WriteAsync(messageLengthBytes, cancellationToken).ConfigureAwait(false);
 
             // Write the message payload
-            await stream.WriteAsync(messageBytes, cancellationToken).ConfigureAwait(false);
+            await _stream.WriteAsync(messageBytes, cancellationToken).ConfigureAwait(false);
         }
-        catch (IOException ex) when (IsBrokenPipe(ex))
+        catch (OperationCanceledException)
         {
-            // the other end of the pipe has gone away
-            PipeClosedBeforeWriteCouldComplete(_logger);
+            // Normale cancel (Dispose or external Token) > no error log
+            throw;
+        }
+        catch (IOException ex)
+        {
+            if (ex.InnerException is null)
+            {
+                if (ex.Message?.IndexOf("Pipe is broken", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    // System.IO.IOException: Pipe is broken.
+                    PipeClosedBeforeWriteCouldComplete(_logger);
+                }
+                else
+                {
+                    SendPipeMessageFailed(_logger, ex);
+                }
+            }
+            else if (ex.InnerException is SocketException socketException &&
+                     socketException.NativeErrorCode == 32)
+            {
+                // System.IO.IOException: Broken pipe
+                PipeClosedBeforeWriteCouldComplete(_logger);
+            }
+            else
+            {
+                SendPipeMessageFailed(_logger, ex);
+            }
+
+            return;
+        }
+        catch (Exception ex)
+        {
+            SendPipeMessageFailed(_logger, ex);
             return;
         }
         finally
@@ -124,16 +152,12 @@ public sealed partial class PipeStreamWrapper(PipeStream stream, ILogger logger)
         MessageDetails(_logger, message.ConversationId, message.Content);
     }
 
-    private static bool IsBrokenPipe(IOException ex)
+    private void ClosePipe()
     {
-        // On Linux, EPipe (errno 32) becomes HRESULT 0x80070020
-        const int EPIPE_HRESULT = unchecked((int)0x80070020);
+        PipeHasClosed(_logger);
 
-        if (ex.HResult == EPIPE_HRESULT)
-            return true;
-
-        // fallback
-        return ex.Message?.IndexOf("Broken pipe", StringComparison.OrdinalIgnoreCase) >= 0;
+        // OperationCanceledException is handled as pipe closing gracefully.
+        throw new OperationCanceledException();
     }
 
     [LoggerMessage(LogLevel.Debug, "ConversationId: {ConversationId}; Content: {Content}")]
@@ -148,6 +172,9 @@ public sealed partial class PipeStreamWrapper(PipeStream stream, ILogger logger)
     [LoggerMessage(LogLevel.Information, "Pipe closed before write could complete.")]
     private static partial void PipeClosedBeforeWriteCouldComplete(ILogger logger);
 
-    [LoggerMessage(LogLevel.Information, "Pipe has closed.")]
+    [LoggerMessage(LogLevel.Debug, "Pipe has closed.")]
     private static partial void PipeHasClosed(ILogger logger);
+
+    [LoggerMessage(LogLevel.Error, "Sending named pipe message failed.")]
+    private static partial void SendPipeMessageFailed(ILogger logger, Exception exception);
 }

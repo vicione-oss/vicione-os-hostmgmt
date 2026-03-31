@@ -61,7 +61,7 @@ internal sealed partial class PipeClient : IPipeClient
         var message = new NamedPipeMessage { Topic = topic, Type = MessageType.Request, Content = content };
         var expectedResponse = _messageProcessor.AnnounceResponse(message.ConversationId);
 
-        await _wrappedPipe.SendMessage(message, cancellationToken);
+        await _wrappedPipe.SendMessageAsync(message, cancellationToken);
 
         cancellationToken.Register(() =>
         {

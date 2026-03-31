@@ -1,4 +1,3 @@
-﻿
 namespace HostManagement.Shared.Communication.Extensions;
 
 /// <summary>
@@ -13,7 +12,7 @@ public static class StreamExtensions
     /// <param name="stream">The stream to read from.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The read number.</returns>
-    public static async Task<int> ReadVarInt(this Stream stream, CancellationToken cancellationToken)
+    public static async Task<int> ReadVarIntAsync(this Stream stream, CancellationToken cancellationToken = default)
     {
         var lengthReadBuffer = new byte[1];
 

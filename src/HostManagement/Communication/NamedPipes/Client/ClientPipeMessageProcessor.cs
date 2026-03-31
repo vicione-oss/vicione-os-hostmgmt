@@ -31,7 +31,7 @@ internal sealed partial class ClientPipeMessageProcessor(
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     protected override async Task ProcessMessage(CancellationToken cancellationToken)
     {
-        var message = await PipeStreamWrapper.ReadMessage(cancellationToken).ConfigureAwait(false);
+        var message = await PipeStreamWrapper.ReadMessageAsync(cancellationToken).ConfigureAwait(false);
 
         switch (message.Type)
         {

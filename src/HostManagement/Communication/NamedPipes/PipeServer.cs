@@ -47,7 +47,7 @@ internal sealed partial class PipeServer : IPipeServer
     public PipeState State => _messageProcessor?.State ?? PipeState.NotOpened;
 
     public Task PublishEvent(string topic, string content, CancellationToken cancellationToken = default)
-        => _wrappedPipe.SendMessage(
+        => _wrappedPipe.SendMessageAsync(
             new NamedPipeMessage
             {
                 Topic = topic,
