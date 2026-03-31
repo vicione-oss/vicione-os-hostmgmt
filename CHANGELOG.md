@@ -3,7 +3,7 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - [Unreleased]
+## [Unreleased]
 
 ### Removed
 
@@ -51,12 +51,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `TestableIO.System.IO.Abstractions.Wrappers` from `22.0.16` to `22.1.0`
 - Increased timeout for the Debian package install script (ExecuteInstallDebianPackageScript) to 180 seconds to prevent errors when installing larger packages.
 
-### Fixed
-
-- Fixed cli command `NoProxyListClearCommand` not disabling the feature on clear
-- Fixed `RenewDHCPLease` request not able to support new result type `GetDHCPLeaseInformationResult` (old but obsolete `RenewDHCPLeaseResult` still works)
-- Fixed format of warning message when getting network status information returns warning
-
 ### Removed
 
 - Removed NuGet packages
@@ -64,6 +58,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Microsoft.NET.Test.Sdk`
   - `xunit`;
   - `xunit.runner.visualstudio`
+
+### Fixed
+
+- Fixed cli command `NoProxyListClearCommand` not disabling the feature on clear
+- Fixed `RenewDHCPLease` request not able to support new result type `GetDHCPLeaseInformationResult` (old but obsolete `RenewDHCPLeaseResult` still works)
+- Fixed format of warning message when getting network status information returns warning
 
 ## 1.2.0 - 2025-12-02
 
@@ -97,14 +97,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced NuGet package `FluentAssertions` with `AwesomeAssertions`
 - Shared: Marked installation of ViciOne Suite via update server as **obsolete** (will be replaced with generic functionality to install signed Debian packages)
 
+### Removed
+
+- Removed default update directory for swu-update (env var `HOSTMANAGEMENT__UPDATE_DIRECTORY` must be set via environment e.g. on EdgeS to `/mnt/update`)
+
 ### Fixed
 
 - Fixed that consumers were not able to use `Shared.Communication` NuGet package due to reference to source generator (introduced in [1.1.0])
 - Prevent deadlocks when reading output of scripts
-
-### Removed
-
-- Removed default update directory for swu-update (env var `HOSTMANAGEMENT__UPDATE_DIRECTORY` must be set via environment e.g. on EdgeS to `/mnt/update`)
 
 ## 1.1.0 - 2025-10-15
 
@@ -147,6 +147,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Shared: Marked `DHCPLease` as **obsolete** (will be replaced with `GetDHCPLeaseInformationResult` request and removed from config)
 - Increased timeout to download ViciOne Suite from 5 minutes to 60 minutes
 
+### Removed
+
+- Removed `IStringWrapper`
+
 ### Fixed
 
 - Fixed wrong log message when `NetworkStatusInformation` requested via CLI was null
@@ -156,10 +160,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed possibility to have multiple colons in the proxy server string by adding additional validation
 - CLI: Fixed `list-interfaces` names-only output (unnecessary colon was shown)
 - CLI: Fixed indentation level of global DNS output in `list-interfaces` command
-
-### Removed
-
-- Removed `IStringWrapper`
 
 ## 1.0.0 - 2025-07-17
 
