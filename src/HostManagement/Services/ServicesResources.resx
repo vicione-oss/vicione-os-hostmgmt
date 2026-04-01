@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -146,6 +146,9 @@
   </data>
   <data name="GetOriginalPhysicalAddressFailed" xml:space="preserve">
     <value>Getting original physical address failed.</value>
+  </data>
+  <data name="GetSystemdUnitActiveStateCanceled" xml:space="preserve">
+    <value>Getting active state of systemd unit '{0}' was canceled.</value>
   </data>
   <data name="GetSystemdUnitActiveStateFailed" xml:space="preserve">
     <value>Getting active state of systemd unit '{0}' failed.</value>

@@ -31,8 +31,6 @@ internal sealed class GetServiceStateRequestHandler(ILogger logger) : RequestHan
     {
         try
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             ArgumentException.ThrowIfNullOrWhiteSpace(messageContent, nameof(messageContent));
 
             var scriptResult = new Result();
@@ -44,7 +42,7 @@ internal sealed class GetServiceStateRequestHandler(ILogger logger) : RequestHan
                 scriptResult,
                 EnvironmentVariables.ConfigurableServices);
 
-            var result = await service.GetSystemdUnitActiveState(messageContent);
+            var result = await service.GetSystemdUnitActiveState(messageContent, cancellationToken);
 
             return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
         }
