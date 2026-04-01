@@ -1,10 +1,10 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Text.Json;
 using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Contracts.NetworkStatus;
+using Xunit;
 
 namespace HostManagement.Shared.Communication.Tests.Contracts;
 
@@ -168,11 +168,6 @@ public sealed class OperationResultFactoryTests
 
             case GetSystemConfigurationResult config:
                 config.Configuration.Should().BeNull();
-                break;
-
-            case GetViciOneSuiteVersionsResult suite:
-                suite.SuiteVersions.Should().NotBeNull();
-                suite.SuiteVersions.Should().BeEmpty();
                 break;
         }
     }

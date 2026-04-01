@@ -1,4 +1,4 @@
-﻿using System.IO.Pipes;
+using System.IO.Pipes;
 using HostManagement.Communication.NamedPipes.RequestHandlers;
 using HostManagement.Configuration;
 using HostManagement.Shared.Communication;
@@ -94,7 +94,6 @@ internal sealed partial class PipeServer : IPipeServer
 
         RegisterRedeployScriptsRequestHandler();
         RegisterServiceRequestHandlers();
-        RegisterViciOneRequestHandlers();
         RegisterInstallDebianPackageRequestHandler();
         RegisterSystemConfigurationRequestHandler();
         RegisterStateRequestHandlers();
@@ -155,12 +154,6 @@ internal sealed partial class PipeServer : IPipeServer
         _handlerRegistry.RegisterHandler(new RestartSystemRequestHandler(_logger));
         _handlerRegistry.RegisterHandler(new ShutdownSystemRequestHandler(_logger));
         _handlerRegistry.RegisterHandler(new UpdateSystemRequestHandler(_logger));
-    }
-
-    private void RegisterViciOneRequestHandlers()
-    {
-        _handlerRegistry.RegisterHandler(new GetViciOneSuiteVersionsRequestHandler(_logger));
-        _handlerRegistry.RegisterHandler(new InstallViciOneSuiteVersionRequestHandler(_logger));
     }
 
     [LoggerMessage(LogLevel.Information, "Connected to client.")]

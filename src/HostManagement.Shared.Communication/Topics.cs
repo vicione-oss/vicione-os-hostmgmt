@@ -1,4 +1,4 @@
-﻿using HostManagement.Shared.Contracts.System;
+using HostManagement.Shared.Contracts.System;
 
 namespace HostManagement.Shared.Communication;
 
@@ -64,19 +64,6 @@ public static partial class Topics
     #endregion
 
     #region Topics to request an action. This is not part of the configuration. The action may result in a new state and/or return data.
-    /// <summary>
-    /// The topic to get all supported ViciOne Suite versions.
-    /// </summary>
-    [Obsolete("This will be removed in a future version.", false)]
-    public const string GetViciOneSuiteVersions = "GetViciOneSuiteVersions";
-
-    /// <summary>
-    /// The topic to install a specified ViciOne Suite version.
-    /// </summary>
-    [RequiresContent]
-    [Obsolete("Use InstallSignedDebianPackage instead. This will be removed in a future version.", false)]
-    public const string InstallViciOneSuiteVersion = "InstallViciOneSuiteVersion";
-
     /// <summary>
     /// The topic to install a signed Debian package.
     /// </summary>

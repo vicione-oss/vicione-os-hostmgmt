@@ -1,7 +1,7 @@
-﻿using System.Net;
+using System.Net;
 using AwesomeAssertions;
-using Xunit;
 using HostManagement.Scripts;
+using Xunit;
 
 namespace HostManagement.Tests;
 
@@ -13,8 +13,6 @@ public class ScriptOptionsTests
     {
         { ScriptOptionNames.GetNetworkStatusInformation.InterfaceName, "--interface-name" },
         { ScriptOptionNames.GetSystemdUnitState.Name, "--name" },
-        { ScriptOptionNames.GetViciOneSuiteDebFile.SuiteRepositoryEndpoint, "--url" },
-        { ScriptOptionNames.InstallViciOneSuiteDebFile.SuiteDebianFile, "--deb-file" },
         { ScriptOptionNames.NetworkDNS.SearchDomains, "--search-domains" }
     };
 
