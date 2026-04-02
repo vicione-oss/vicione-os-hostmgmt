@@ -1,4 +1,4 @@
-﻿using AwesomeAssertions;
+using AwesomeAssertions;
 using Xunit;
 using HostManagement.Communication.NamedPipes.RequestHandlers;
 using HostManagement.Shared.Communication.Contracts;
@@ -75,7 +75,7 @@ public sealed class RequestHandlerTests
         public override JsonTypeInfo<ServiceControlResult> TypedJsonTypeInfo
             => SourceGenerationContext.Default.ServiceControlResult;
 
-        public override Task<string> Handle(string messageContent, CancellationToken cancellationToken)
+        public override Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
             => Task.FromResult(string.Empty);
     }
 

@@ -1,4 +1,4 @@
-﻿using System.IO.Abstractions;
+using System.IO.Abstractions;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using HostManagement.Shared.Communication;
@@ -24,11 +24,9 @@ internal sealed class GetSystemConfigurationRequestHandler : RequestHandler<GetS
     /// <summary>
     /// Handles the get system configuration request.
     /// </summary>
-    /// <param name="messageContent">The message content.</param>
-    /// <param name="cancellationToken">A token to cancel the request.</param>
-    /// <returns>The response.</returns>
+    /// <inheritdoc/>
     /// <exception cref="InvalidOperationException"/>
-    public override async Task<string> Handle(string messageContent, CancellationToken cancellationToken)
+    public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
     {
         try
         {

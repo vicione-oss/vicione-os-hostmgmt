@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization.Metadata;
+using System.Text.Json.Serialization.Metadata;
 using HostManagement.Shared.Communication.Contracts;
 
 namespace HostManagement.Communication.NamedPipes.RequestHandlers;
@@ -15,7 +15,7 @@ internal abstract class RequestHandler<T> : IRequestHandler<T> where T : Operati
 
     public JsonTypeInfo JsonTypeInfo => TypedJsonTypeInfo;
 
-    public abstract Task<string> Handle(string messageContent, CancellationToken cancellationToken);
+    public abstract Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken);
     public virtual T CreateTypedErrorInstance(string message) => T.CreateErrorResult(message);
     OperationResult IRequestHandler.CreateErrorInstance(string message) => CreateTypedErrorInstance(message);
 }

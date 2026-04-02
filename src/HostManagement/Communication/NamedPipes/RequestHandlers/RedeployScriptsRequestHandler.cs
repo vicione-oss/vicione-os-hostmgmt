@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using HostManagement.Scripts;
 using HostManagement.Shared.Communication;
@@ -24,11 +24,9 @@ internal sealed class RedeployScriptsRequestHandler : RequestHandler<RedeployScr
     /// <summary>
     /// Handles the redeploy scripts request.
     /// </summary>
-    /// <param name="messageContent">The message content.</param>
-    /// <param name="cancellationToken">A token to cancel the request.</param>
-    /// <returns>The response.</returns>
+    /// <inheritdoc/>
     /// <exception cref="InvalidOperationException"/>
-    public override Task<string> Handle(string messageContent, CancellationToken cancellationToken)
+    public override Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
     {
         RedeployScriptsResult result;
 

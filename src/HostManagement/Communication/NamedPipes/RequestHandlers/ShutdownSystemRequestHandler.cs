@@ -25,11 +25,9 @@ internal sealed class ShutdownSystemRequestHandler(ILogger logger) : RequestHand
     /// <summary>
     /// Handles the shutdown system request.
     /// </summary>
-    /// <param name="messageContent">The message content.</param>
-    /// <param name="cancellationToken">A token to cancel the request.</param>
-    /// <returns>The response.</returns>
+    /// <inheritdoc/>
     /// <exception cref="InvalidOperationException"/>
-    public override async Task<string> Handle(string messageContent, CancellationToken cancellationToken = default)
+    public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken = default)
     {
         try
         {

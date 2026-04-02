@@ -1,10 +1,10 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Text;
-using Microsoft.Extensions.Logging;
 using HostManagement.Scripts;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Enums;
+using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Services;
 
@@ -32,13 +32,18 @@ internal sealed partial class SystemdUnitService(
     /// Gets the active state of the specified systemd unit.
     /// </summary>
     /// <param name="systemdUnit">The systemd unit.</param>
+    /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <returns><see cref="GetServiceStateResult"/></returns>
-    public async Task<GetServiceStateResult> GetSystemdUnitActiveState(string systemdUnit)
+    public async Task<GetServiceStateResult> GetSystemdUnitActiveState(
+        string systemdUnit,
+        CancellationToken cancellationToken)
     {
         var failedCompositeFormat = CompositeFormat.Parse(ServicesResources.GetSystemdUnitActiveStateFailed);
 
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var scriptOptions = new ScriptOptions();
             scriptOptions.Add(ScriptOptionNames.GetSystemdUnitActiveState.Name, systemdUnit);
 
@@ -52,6 +57,24 @@ internal sealed partial class SystemdUnitService(
                 Status = OperationStatus.Success,
                 Message = string.Empty,
                 ActiveState = activeState
+            };
+        }
+        catch (OperationCanceledException)
+        {
+            var message =
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    CompositeFormat.Parse(
+                        ServicesResources.GetSystemdUnitActiveStateCanceled),
+                    systemdUnit);
+
+            GetSystemdUnitActiveStateCanceled(_logger, message);
+
+            return new GetServiceStateResult
+            {
+                Status = OperationStatus.Warning,
+                Message = message,
+                ActiveState = "unknown"
             };
         }
         catch (Exception ex)
@@ -220,6 +243,9 @@ internal sealed partial class SystemdUnitService(
             Message = simpleMessage,
         };
     }
+
+    [LoggerMessage(LogLevel.Warning, "{InnerMessage}")]
+    private static partial void GetSystemdUnitActiveStateCanceled(ILogger logger, string? innerMessage);
 
     [LoggerMessage(LogLevel.Error, "{InnerMessage}")]
     private static partial void LogError(ILogger logger, string? innerMessage, Exception? exception);

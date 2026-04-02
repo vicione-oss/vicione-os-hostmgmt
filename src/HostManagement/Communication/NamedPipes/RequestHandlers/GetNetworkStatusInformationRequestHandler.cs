@@ -26,11 +26,9 @@ internal sealed class GetNetworkStatusInformationRequestHandler(ILogger logger)
     /// <summary>
     /// Handles the get network status information request.
     /// </summary>
-    /// <param name="messageContent">The message content.</param>
-    /// <param name="cancellationToken">A token to cancel the request.</param>
-    /// <returns>The response.</returns>
+    /// <inheritdoc/>
     /// <exception cref="InvalidOperationException"/>
-    public override async Task<string> Handle(string messageContent, CancellationToken cancellationToken)
+    public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
     {
         try
         {

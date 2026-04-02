@@ -1,11 +1,11 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
-using Microsoft.Extensions.Logging;
 using HostManagement.Configuration;
+using HostManagement.Services;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Serialization;
-using HostManagement.Services;
+using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 
@@ -26,11 +26,9 @@ internal sealed class StopServiceRequestHandler(ILogger logger) : RequestHandler
     /// <summary>
     /// Handles the stop service request.
     /// </summary>
-    /// <param name="messageContent">The message content.</param>
-    /// <param name="cancellationToken">A token to cancel the request.</param>
-    /// <returns>The response.</returns>
+    /// <inheritdoc/>
     /// <exception cref="InvalidOperationException"/>
-    public override async Task<string> Handle(string messageContent, CancellationToken cancellationToken = default)
+    public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken = default)
     {
         try
         {
