@@ -295,6 +295,22 @@ Add the following NuGet sources:
 * `dotnet nuget add source https://jfrog.i40.ifm-datalink.net/artifactory/api/nuget/v3/vicione-nuget.org-proxy/index.json -n JFrogNuGetProxy -u <user> -p <token> --protocol-version 3`
 * `dotnet nuget add source https://jfrog.i40.ifm-datalink.net/artifactory/api/nuget/v3/vicione-nuget/index.json -n JFrogViciOne -u <user> -p <token> --protocol-version 3`
 
+To be able to use **symbolic links**, which are used for the **script resources**, the following steps are required:
+
+1. Activate `Developer Mode` of Windows via `Settings` > `System` > `Advanced`
+
+    > [!note]
+    > Prior to **Windows 11 25H2**, these settings appear in `Settings` > `System` > `For developers`.
+    >
+    > Enabling Developer mode requires administrator access.
+
+1. Add `symlinks = true` to `.gitconfig`
+
+    ```text
+    [core]
+      symlinks = true
+    ```
+
 #### Linux
 
 Add the following NuGet sources:
