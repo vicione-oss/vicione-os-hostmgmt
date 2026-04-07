@@ -1,15 +1,15 @@
 using System.Globalization;
 using System.IO.Abstractions;
 using System.Text;
-using HostManagement.Shared.Contracts.Network;
-using InternalNetwork = HostManagement.SystemConfig.Contracts;
 using HostManagement.Configuration;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Contracts;
+using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Extensions;
 using HostManagement.Shared.Validation;
 using HostManagement.SystemConfig.InternalValidation;
+using InternalNetwork = HostManagement.SystemConfig.Contracts;
 
 namespace HostManagement.SystemConfig;
 
@@ -272,7 +272,7 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
             if (currentConfigResult.Status == OperationStatus.Error)
             {
                 return SystemControlResult.CreateErrorResult(
-                    SystemConfigResources.ResetNetworkInterfaceFailed +
+                    GetResetFailedMessage() +
                     Environment.NewLine +
                     currentConfigResult.Message);
             }
@@ -280,7 +280,7 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
             if (currentConfigResult.Configuration is null)
             {
                 return SystemControlResult.CreateErrorResult(
-                    SystemConfigResources.ResetNetworkInterfaceFailed +
+                    GetResetFailedMessage() +
                     Environment.NewLine +
                     SystemConfigResources.ConfigWasNull);
             }
@@ -293,12 +293,13 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
                     AppPaths.DefaultSystemConfigurationFile);
 
                 return SystemControlResult.CreateErrorResult(
-                    SystemConfigResources.ResetNetworkInterfaceFailed +
+                    GetResetFailedMessage() +
                     Environment.NewLine +
                     message);
             }
 
-            var defaultConfig = await persistence.LoadPreparationConfiguration(cancellationToken)
+            var defaultConfig = await persistence
+                .LoadPreparationConfiguration(cancellationToken)
                 .ConfigureAwait(false);
 
             var defaultInterface = defaultConfig
@@ -313,7 +314,7 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
             {
                 var message = string.Format(
                     CultureInfo.InvariantCulture,
-                    CompositeFormat.Parse(SystemConfigResources.ResetNetworkInterfaceNotFoundInDefault),
+                    CompositeFormat.Parse(SystemConfigResources.ResetNetworkInterfaceNotFoundInConfig),
                     interfaceName,
                     AppPaths.DefaultSystemConfigurationFile);
 
@@ -343,7 +344,7 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
             if (setConfigResult.Status == OperationStatus.Error)
             {
                 return SystemControlResult.CreateErrorResult(
-                    SystemConfigResources.ResetNetworkInterfaceFailed +
+                    GetResetFailedMessage() +
                     Environment.NewLine +
                     setConfigResult.Message);
             }
@@ -364,10 +365,17 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
         catch (Exception ex)
         {
             return SystemControlResult.CreateErrorResult(
-                SystemConfigResources.ResetNetworkInterfaceFailed +
+                GetResetFailedMessage() +
                 Environment.NewLine +
                 ex.Message);
         }
+
+
+        string GetResetFailedMessage()
+            => string.Format(
+                CultureInfo.InvariantCulture,
+                CompositeFormat.Parse(SystemConfigResources.ResetNetworkInterfaceFailed),
+                interfaceName);
     }
 
     private async Task<SetSystemConfigurationResult> PrepareConfigurationInternal(

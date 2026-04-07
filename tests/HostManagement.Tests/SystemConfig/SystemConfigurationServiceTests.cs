@@ -38,14 +38,14 @@ public class SystemConfigurationServiceTests
         };
 
     private static InternalSystemConfiguration CreateInternalDefaultConfigWithInterface(
-        string interfaceName = "eth0",
+        string interfaceName = Lan1,
         bool enabled = false,
         bool dhcpEnabled = false,
         string physicalAddress = "aa:bb:cc:dd:ee:ff")
         => new()
         {
             Version = 1,
-            NetworkDNSSettings = new() { Hostname = "test-host", },
+            NetworkDNSSettings = new() { Hostname = TestHostname },
             NetworkInterfacesSettings = new()
             {
                 NetworkInterfaces =
@@ -56,7 +56,7 @@ public class SystemConfigurationServiceTests
                         {
                             Name = interfaceName,
                             Enabled = enabled,
-                            PhysicalAddress = physicalAddress,
+                            PhysicalAddress = physicalAddress
                         },
                         IPv4 = new()
                         {
@@ -67,15 +67,15 @@ public class SystemConfigurationServiceTests
                                 new()
                                 {
                                     IPAddress = IPAddress.Parse("192.168.1.2"),
-                                    Netmask = IPAddress.Parse("255.255.255.0"),
-                                },
+                                    Netmask = IPAddress.Parse("255.255.255.0")
+                                }
                             ],
                             VLANEnabled = true,
-                            VLANID = 100,
-                        },
-                    },
-                ],
-            },
+                            VLANID = 100
+                        }
+                    }
+                ]
+            }
         };
 
     private static SystemConfiguration CreateSharedConfig()
@@ -97,15 +97,15 @@ public class SystemConfigurationServiceTests
                         CommonInformation = new()
                         {
                             Name = Lan1,
-                            Enabled = true,
+                            Enabled = true
                         },
                         IPv4 = new()
                         {
-                            DHCPEnabled = true,
-                        },
-                    },
-                ],
-            },
+                            DHCPEnabled = true
+                        }
+                    }
+                ]
+            }
         };
 
     public sealed class GetConfiguration
@@ -625,17 +625,19 @@ public class SystemConfigurationServiceTests
         {
             var context = new SystemConfigurationServiceContext();
             context.Persistence.PreparationConfigurationExists().Returns(false);
-            context.ScriptHandler.ExecuteGetNetworkInterfacesCommonInformationScript().ReturnsForAnyArgs(
-            (
-                OperationStatus.Success,
-                [new() { Name = "eth0", Enabled = true, PhysicalAddress = "11:22:33:44:55:66", }]
-            ));
+            context.ScriptHandler
+                .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
+                .ReturnsForAnyArgs(
+                (
+                    OperationStatus.Success,
+                    [new() { Name = Lan1, Enabled = true, PhysicalAddress = "11:22:33:44:55:66" }]
+                ));
 
-            var result = await context.Sut.ResetNetworkInterface("eth0", CancellationToken.None);
+            var result = await context.Sut.ResetNetworkInterface(Lan1, CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Error);
-            result.Message.Should().Contain("Reset network interface failed");
-            result.Message.Should().Contain("DefaultSystemConfiguration.json");
+            result.Message.Should().Contain($"Reset network interface '{Lan1}' failed");
+            result.Message.Should().Contain(DefaultConfigFile);
         }
 
         [Fact]
@@ -643,18 +645,22 @@ public class SystemConfigurationServiceTests
         {
             var context = new SystemConfigurationServiceContext();
             context.Persistence.PreparationConfigurationExists().Returns(true);
-            context.Persistence.LoadPreparationConfiguration(Arg.Any<CancellationToken>())
-                .Returns(CreateInternalDefaultConfigWithInterface(interfaceName: "eth1"));
-            context.ScriptHandler.ExecuteGetNetworkInterfacesCommonInformationScript().ReturnsForAnyArgs(
-            (
-                OperationStatus.Success,
-                [new() { Name = "eth0", Enabled = true, PhysicalAddress = "11:22:33:44:55:66", }]
-            ));
+            context.Persistence
+                .LoadPreparationConfiguration(Arg.Any<CancellationToken>())
+                .Returns(CreateInternalDefaultConfigWithInterface(interfaceName: "lan2"));
 
-            var result = await context.Sut.ResetNetworkInterface("eth0", CancellationToken.None);
+            context.ScriptHandler
+                .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
+                .ReturnsForAnyArgs(
+                (
+                    OperationStatus.Success,
+                    [new() { Name = Lan1, Enabled = true, PhysicalAddress = "11:22:33:44:55:66" }]
+                ));
+
+            var result = await context.Sut.ResetNetworkInterface(Lan1, CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Error);
-            result.Message.Should().Contain("Network interface 'eth0' not found in 'DefaultSystemConfiguration.json'.");
+            result.Message.Should().Contain($"Network interface '{Lan1}' not found in '{DefaultConfigFile}'.");
         }
 
         [Fact]
@@ -663,19 +669,24 @@ public class SystemConfigurationServiceTests
             // Arrange: Default configuration has static IP (DHCP=false)
             var context = new SystemConfigurationServiceContext();
             context.Persistence.PreparationConfigurationExists().Returns(true);
-            context.Persistence.LoadPreparationConfiguration(Arg.Any<CancellationToken>())
+            context.Persistence
+                .LoadPreparationConfiguration(Arg.Any<CancellationToken>())
                 .Returns(CreateInternalDefaultConfigWithInterface(dhcpEnabled: false));
-            context.Persistence.SaveUserConfiguration(Arg.Any<InternalSystemConfiguration>(), Arg.Any<CancellationToken>())
+            context.Persistence
+                .SaveUserConfiguration(Arg.Any<InternalSystemConfiguration>(), Arg.Any<CancellationToken>())
                 .ReturnsForAnyArgs(Task.CompletedTask);
 
             // Current interface state: DHCP enabled with different IP configuration
-            context.ScriptHandler.ExecuteGetNetworkInterfacesCommonInformationScript().ReturnsForAnyArgs(
-            (
-                OperationStatus.Success,
-                [new() { Name = "eth0", Enabled = true, PhysicalAddress = "11:22:33:44:55:66", }]
-            ));
+            context.ScriptHandler
+                .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
+                .ReturnsForAnyArgs(
+                (
+                    OperationStatus.Success,
+                    [new() { Name = Lan1, Enabled = true, PhysicalAddress = "11:22:33:44:55:66" }]
+                ));
 
-            context.ScriptHandler.ExecuteGetInterfaceIPv4SettingsScript(Arg.Any<string>())
+            context.ScriptHandler
+                .ExecuteGetInterfaceIPv4SettingsScript(Arg.Any<string>())
                 .Returns((OperationStatus.Success, new()
                 {
                     DHCPEnabled = true,
@@ -685,17 +696,17 @@ public class SystemConfigurationServiceTests
                         new()
                         {
                             IPAddress = IPAddress.Parse("10.10.10.2"),
-                            Netmask = IPAddress.Parse("255.255.255.0"),
-                        },
-                    ],
+                            Netmask = IPAddress.Parse("255.255.255.0")
+                        }
+                    ]
                 }));
 
             // Act
-            var result = await context.Sut.ResetNetworkInterface("eth0", CancellationToken.None);
+            var result = await context.Sut.ResetNetworkInterface(Lan1, CancellationToken.None);
 
             // Assert: Interface should be reset to static IP from default configuration
             result.Status.Should().Be(OperationStatus.Success);
-            result.Message.Should().Contain("Network interface 'eth0' has been reset to default configuration.");
+            result.Message.Should().Contain($"Network interface '{Lan1}' has been reset to default configuration.");
 
             await context.Persistence.Received(1).SaveUserConfiguration(
                 Arg.Is<InternalSystemConfiguration>(static config =>
@@ -708,40 +719,39 @@ public class SystemConfigurationServiceTests
                 Arg.Any<CancellationToken>());
         }
     }
-}
 
-
-internal sealed class SystemConfigurationServiceContext
-{
-    internal MockFileSystem FileSystem { get; } = new();
-    internal IPersistence Persistence { get; } = Substitute.For<IPersistence>();
-    internal IScriptHandler ScriptHandler { get; } = Substitute.For<IScriptHandler>();
-    internal SystemConfigurationService Sut { get; }
-
-    internal SystemConfigurationServiceContext()
+    internal sealed class SystemConfigurationServiceContext
     {
-        const string ServiceName = "test.service";
-        const string RawInterfacesString = "eth0            UP             00:50:56:36:6d:33 <BROADCAST,MULTICAST,UP,LOWER_UP>";
+        internal MockFileSystem FileSystem { get; } = new();
+        internal IPersistence Persistence { get; } = Substitute.For<IPersistence>();
+        internal IScriptHandler ScriptHandler { get; } = Substitute.For<IScriptHandler>();
+        internal SystemConfigurationService Sut { get; }
 
-        ScriptHandler.ExecuteGetNetworkInterfacesScript().ReturnsForAnyArgs((OperationStatus.Success, RawInterfacesString));
-        ScriptHandler.ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs((OperationStatus.Success, []));
-        ScriptHandler.ExecuteGetInterfaceIPv4SettingsScript(Arg.Any<string>()).ReturnsForAnyArgs((OperationStatus.Success, new()));
-        ScriptHandler.ExecuteGetInterfaceIPv4DHCPLeaseScript(Arg.Any<string>()).ReturnsForAnyArgs((OperationStatus.Success, new()));
-        ScriptHandler.ExecuteGetNetworkDNSSettingsScript().ReturnsForAnyArgs((OperationStatus.Success, new() { Hostname = "test-host", }));
-        ScriptHandler.ExecuteGetNetworkProxySettingsScript().ReturnsForAnyArgs((OperationStatus.Success, new()));
-        ScriptHandler.ExecuteGetNetworkNTPSettingsScript().ReturnsForAnyArgs((OperationStatus.Success, new()));
-        ScriptHandler.ExecuteGetSystemdUnitStateScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs((OperationStatus.Success, new() { Name = ServiceName, }));
-        ScriptHandler.ExecuteSetInterfaceIPv4SettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
-        ScriptHandler.ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
-        ScriptHandler.ExecuteSetStaticHostsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
-        ScriptHandler.ExecuteSetNetworkMulticastDNSSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
-        ScriptHandler.ExecuteSetHostnameScript(Arg.Any<string>()).ReturnsForAnyArgs(OperationStatus.Success);
-        ScriptHandler.ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
-        ScriptHandler.ExecuteSetNetworkNTPSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
-        ScriptHandler.ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
-        ScriptHandler.ExecuteApplyNetplanConfigurationScript().ReturnsForAnyArgs(OperationStatus.Success);
-        Sut = new(FileSystem, Persistence, ScriptHandler);
+        internal SystemConfigurationServiceContext()
+        {
+            const string ServiceName = "test.service";
+            const string RawInterfacesString = $"{Lan1}            UP             00:50:56:36:6d:33 <BROADCAST,MULTICAST,UP,LOWER_UP>";
 
-        Environment.SetEnvironmentVariable("CONFIGURABLE_SERVICES", ServiceName);
+            ScriptHandler.ExecuteGetNetworkInterfacesScript().ReturnsForAnyArgs((OperationStatus.Success, RawInterfacesString));
+            ScriptHandler.ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs((OperationStatus.Success, []));
+            ScriptHandler.ExecuteGetInterfaceIPv4SettingsScript(Arg.Any<string>()).ReturnsForAnyArgs((OperationStatus.Success, new()));
+            ScriptHandler.ExecuteGetInterfaceIPv4DHCPLeaseScript(Arg.Any<string>()).ReturnsForAnyArgs((OperationStatus.Success, new()));
+            ScriptHandler.ExecuteGetNetworkDNSSettingsScript().ReturnsForAnyArgs((OperationStatus.Success, new() { Hostname = TestHostname }));
+            ScriptHandler.ExecuteGetNetworkProxySettingsScript().ReturnsForAnyArgs((OperationStatus.Success, new()));
+            ScriptHandler.ExecuteGetNetworkNTPSettingsScript().ReturnsForAnyArgs((OperationStatus.Success, new()));
+            ScriptHandler.ExecuteGetSystemdUnitStateScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs((OperationStatus.Success, new() { Name = ServiceName }));
+            ScriptHandler.ExecuteSetInterfaceIPv4SettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
+            ScriptHandler.ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
+            ScriptHandler.ExecuteSetStaticHostsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
+            ScriptHandler.ExecuteSetNetworkMulticastDNSSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
+            ScriptHandler.ExecuteSetHostnameScript(Arg.Any<string>()).ReturnsForAnyArgs(OperationStatus.Success);
+            ScriptHandler.ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
+            ScriptHandler.ExecuteSetNetworkNTPSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
+            ScriptHandler.ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
+            ScriptHandler.ExecuteApplyNetplanConfigurationScript().ReturnsForAnyArgs(OperationStatus.Success);
+            Sut = new(FileSystem, Persistence, ScriptHandler);
+
+            Environment.SetEnvironmentVariable("CONFIGURABLE_SERVICES", ServiceName);
+        }
     }
 }

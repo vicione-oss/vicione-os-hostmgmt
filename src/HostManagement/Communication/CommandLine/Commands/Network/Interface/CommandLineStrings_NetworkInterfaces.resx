@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -261,17 +261,8 @@
   <data name="InterfaceNotFound" xml:space="preserve">
     <value>Network interface '{0}' was not found.</value>
   </data>
-  <data name="InterfaceResetFailed" xml:space="preserve">
-    <value>Resetting network interface '{0}' failed.</value>
-  </data>
   <data name="InterfaceResetSucceeded" xml:space="preserve">
     <value>Network interface '{0}' has been reset to default configuration.</value>
-  </data>
-  <data name="NetworkInterfaceResetCommandDescription" xml:space="preserve">
-    <value>Reset the specified network interface to its default configuration.</value>
-  </data>
-  <data name="NetworkInterfaceResetCommandName" xml:space="preserve">
-    <value>reset</value>
   </data>
   <data name="Interfaces" xml:space="preserve">
     <value>Interfaces</value>
@@ -335,6 +326,12 @@
   </data>
   <data name="NetworkInterfaceMACCommandName" xml:space="preserve">
     <value>mac</value>
+  </data>
+  <data name="NetworkInterfaceResetCommandDescription" xml:space="preserve">
+    <value>Reset the specified network interface to its default configuration.</value>
+  </data>
+  <data name="NetworkInterfaceResetCommandName" xml:space="preserve">
+    <value>reset</value>
   </data>
   <data name="NetworkInterfaceStatusCommandDescription" xml:space="preserve">
     <value>Show enabled status of the specified network interface.</value>

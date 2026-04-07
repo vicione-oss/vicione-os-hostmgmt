@@ -1,8 +1,6 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
-using HostManagement.Shared.Contracts;
-using HostManagement.Shared.Extensions;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Interface;
 
@@ -31,20 +29,8 @@ internal sealed class InterfaceResetCommand : ConfigCommandBase
 
     private static async Task ResetHandler(string interfaceName, CancellationToken cancellationToken)
     {
-        if (await GetConfiguration(cancellationToken) is not SystemConfiguration config)
-            return;
-
-        if (config.GetNetworkInterface(interfaceName) is null)
-        {
-            SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.InterfaceNotFound, interfaceName);
-            return;
-        }
-
         if (!await NamedPipeRequestHelper.ResetNetworkInterface(interfaceName, cancellationToken))
-        {
-            SimpleOutput.WriteLine(CommandLineStrings_NetworkInterfaces.InterfaceResetFailed, interfaceName);
             return;
-        }
 
         SimpleOutput.WriteLine(CommandLineStrings_NetworkInterfaces.InterfaceResetSucceeded, interfaceName);
     }
