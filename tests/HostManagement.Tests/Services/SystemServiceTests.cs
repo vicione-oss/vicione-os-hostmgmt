@@ -1,4 +1,4 @@
-﻿using AwesomeAssertions;
+using AwesomeAssertions;
 using HostManagement.Scripts.Enums;
 using HostManagement.Services;
 using HostManagement.Shared.Communication.Enums;
@@ -353,17 +353,20 @@ public class SystemServiceTests
         {
             // Arrange
             var logger = GetLoggerSubstitute();
-            var signatureValidator = Substitute.For<ISignedDebianPackageSignatureValidator>();
             var expectedScriptMessage = "A script error clearing proxy settings.";
 
             var result = new Result();
             result.AddScriptError(ScriptIdentifier.NetworkProxySettingsSet, expectedScriptMessage);
 
             var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler.ExecuteResetSystemScript().Returns(Task.FromResult(OperationStatus.Success));
-            scriptHandler.ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>()).Returns(Task.FromResult(OperationStatus.Error));
+            scriptHandler
+                .ExecuteResetSystemScript()
+                .Returns(Task.FromResult(OperationStatus.Success));
+            scriptHandler
+                .ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>())
+                .Returns(Task.FromResult(OperationStatus.Error));
 
-            var sut = new SystemService(logger, scriptHandler, result, signatureValidator);
+            var sut = new SystemService(logger, scriptHandler, result, GetSignatureValidatorSubstitute());
 
             // Act
             var systemControlResult = await sut.ResetSystem();
@@ -373,14 +376,14 @@ public class SystemServiceTests
                 LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o =>
-                    o.ToString()!.StartsWith("System could not be reset.") &&
+                    o.ToString()!.StartsWith(SystemCouldNotBeResetMessage) &&
                     o.ToString()!.Contains(expectedScriptMessage)),
                 null,
                 Arg.Any<Func<object, Exception?, string>>());
 
             systemControlResult.Status.Should().Be(OperationStatus.Error);
             systemControlResult.Message.Should()
-                .StartWith("System could not be reset.").And
+                .StartWith(SystemCouldNotBeResetMessage).And
                 .Contain(expectedScriptMessage);
         }
 
@@ -390,8 +393,12 @@ public class SystemServiceTests
             // Arrange
             var logger = GetLoggerSubstitute();
             var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler.ExecuteResetSystemScript().Returns(Task.FromResult(OperationStatus.Success));
-            scriptHandler.ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>()).Returns(Task.FromResult(OperationStatus.Success));
+            scriptHandler
+                .ExecuteResetSystemScript()
+                .Returns(Task.FromResult(OperationStatus.Success));
+            scriptHandler
+                .ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>())
+                .Returns(Task.FromResult(OperationStatus.Success));
 
             var sut = new SystemService(logger, scriptHandler, new Result(), GetSignatureValidatorSubstitute());
 
@@ -401,24 +408,7 @@ public class SystemServiceTests
             // Assert
             systemControlResult.Status.Should().Be(OperationStatus.Success);
             systemControlResult.Message.Should().Contain("The system will restart now.");
-        }
 
-        [Fact]
-        public async Task ShouldCallExecuteSetNetworkProxySettingsScript_WhenResetSystemSucceeds()
-        {
-            // Arrange
-            var logger = GetLoggerSubstitute();
-            var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler.ExecuteResetSystemScript().Returns(Task.FromResult(OperationStatus.Success));
-            scriptHandler.ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>()).Returns(Task.FromResult(OperationStatus.Success));
-            var signatureValidator = Substitute.For<ISignedDebianPackageSignatureValidator>();
-
-            var sut = new SystemService(logger, scriptHandler, new Result(), signatureValidator);
-
-            // Act
-            await sut.ResetSystem();
-
-            // Assert
             _ = scriptHandler.Received(1).ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>());
         }
     }

@@ -192,11 +192,8 @@ internal sealed partial class SystemService(
                 .ExecuteResetSystemScript()
                 .ConfigureAwait(false);
 
-            var result = CheckResetSystemError(status);
-            if (result is not null)
-            {
-                return result;
-            }
+            if (status is OperationStatus.Error)
+                return LogErrorAndReturnSystemControlResult();
 
             // Clear all proxy settings after successful reset
             var proxyScriptOptions = new ScriptOptions();
@@ -206,11 +203,8 @@ internal sealed partial class SystemService(
                 .ExecuteSetNetworkProxySettingsScript(proxyScriptOptions)
                 .ConfigureAwait(false);
 
-            result = CheckResetSystemError(status);
-            if (result is not null)
-            {
-                return result;
-            }
+            if (status is OperationStatus.Error)
+                return LogErrorAndReturnSystemControlResult();
 
             return await RestartSystem();
         }
@@ -228,25 +222,20 @@ internal sealed partial class SystemService(
         }
     }
 
-    private SystemControlResult? CheckResetSystemError(OperationStatus status)
+    private SystemControlResult LogErrorAndReturnSystemControlResult()
     {
-        if (status == OperationStatus.Error)
+        var message =
+            ServicesResources.ResetSystemFailed +
+            Environment.NewLine +
+            _result.Messages;
+
+        LogError(_logger, message);
+
+        return new SystemControlResult
         {
-            var message =
-                ServicesResources.ResetSystemFailed +
-                Environment.NewLine +
-                _result.Messages;
-
-            LogError(_logger, message);
-
-            return new SystemControlResult
-            {
-                Status = OperationStatus.Error,
-                Message = message,
-            };
-        }
-
-        return null;
+            Status = OperationStatus.Error,
+            Message = message,
+        };
     }
 
     /// <summary>
