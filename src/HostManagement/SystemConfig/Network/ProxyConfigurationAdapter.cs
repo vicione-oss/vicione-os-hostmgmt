@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using HostManagement.Scripts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.SystemConfig.Contracts;
@@ -100,26 +100,28 @@ internal sealed class ProxyConfigurationAdapter(
         SystemConfiguration currentConfig,
         SystemConfiguration proposedConfig)
     {
-        return !EqualityComparer<NetworkProxySettings>.Default.Equals(currentConfig.NetworkProxySettings, proposedConfig.NetworkProxySettings);
+        return !EqualityComparer<NetworkProxySettings>.Default.Equals(
+            currentConfig.NetworkProxySettings,
+            proposedConfig.NetworkProxySettings);
     }
 
     private protected override async Task<OperationStatus> PrepareConfiguration(
         SystemConfiguration config,
         CancellationToken cancellationToken = default)
     {
-        var proxySettings = config.NetworkProxySettings;
+        var proposedProxySettings = config.NetworkProxySettings;
         var currentProxySettings = _current.NetworkProxySettings;
 
-        if (proxySettings is null)
+        if (proposedProxySettings is null)
             return OperationStatus.Success;
 
         var proxyDetails = new (NetworkProxyDetail? Proposed, NetworkProxyDetail? Current)[]
         {
-            (proxySettings.HTTP, currentProxySettings?.HTTP),
-            (proxySettings.HTTPS, currentProxySettings?.HTTPS),
-            (proxySettings.FTP, currentProxySettings?.FTP),
-            (proxySettings.SFTP, currentProxySettings?.SFTP),
-            (proxySettings.SOCKS, currentProxySettings?.SOCKS)
+            (proposedProxySettings.HTTP, currentProxySettings?.HTTP),
+            (proposedProxySettings.HTTPS, currentProxySettings?.HTTPS),
+            (proposedProxySettings.FTP, currentProxySettings?.FTP),
+            (proposedProxySettings.SFTP, currentProxySettings?.SFTP),
+            (proposedProxySettings.SOCKS, currentProxySettings?.SOCKS)
         };
 
         foreach (var (proposed, current) in proxyDetails)
@@ -130,8 +132,8 @@ internal sealed class ProxyConfigurationAdapter(
 
         return await
             SetDoNotProxyList(
-                proxySettings.DoNotProxyListEnabled,
-                proxySettings.DoNotProxyList,
+                proposedProxySettings.DoNotProxyListEnabled,
+                proposedProxySettings.DoNotProxyList,
                 currentProxySettings?.DoNotProxyListEnabled,
                 currentProxySettings?.DoNotProxyList)
             .ConfigureAwait(false);
@@ -157,17 +159,11 @@ internal sealed class ProxyConfigurationAdapter(
     {
         var scriptOptions = new ScriptOptions();
 
-        scriptOptions.Add(
-            ScriptOptionNames.Proxy.Enabled,
-            proxyDetail.Enabled);
+        scriptOptions.Add(ScriptOptionNames.Proxy.Enabled, proxyDetail.Enabled);
 
-        scriptOptions.Add(
-            ScriptOptionNames.Proxy.URL,
-            proxyDetail.Server ?? string.Empty); // Make the compiler happy. A validator prevents us from getting here with invalid values.
-
-        scriptOptions.Add(
-            ScriptOptionNames.Proxy.Port,
-            proxyDetail.Port ?? -1); // Make the compiler happy. A validator prevents us from getting here with invalid values.
+        // Make the compiler happy. A validator prevents us from getting here with invalid values for server and port.
+        scriptOptions.Add(ScriptOptionNames.Proxy.URL, proxyDetail.Server ?? string.Empty);
+        scriptOptions.Add(ScriptOptionNames.Proxy.Port, proxyDetail.Port ?? -1);
 
         if (proxyDetail.Username is not null &&
             proxyDetail.Password is not null)
@@ -222,13 +218,8 @@ internal sealed class ProxyConfigurationAdapter(
             ? GetNoProxyListString(noProxyList)
             : "NONE";
 
-        scriptOptions.Add(
-            ScriptOptionNames.Proxy.NoProxyList,
-            noProxyListString);
-
-        scriptOptions.Add(
-            ScriptOptionNames.Proxy.NoProxyListEnabled,
-            noProxyListEnabled);
+        scriptOptions.Add(ScriptOptionNames.Proxy.NoProxyList, noProxyListString);
+        scriptOptions.Add(ScriptOptionNames.Proxy.NoProxyListEnabled, noProxyListEnabled);
 
         return scriptOptions;
     }
