@@ -12,10 +12,7 @@ namespace HostManagement.Services;
 /// <param name="logger">An <see cref="ILogger"/> implementation.</param>
 /// <param name="scriptHandler">An <see cref="IScriptHandler"/> implementation.</param>
 /// <param name="result">The result.</param>
-internal sealed partial class NetworkStatusService(
-    ILogger logger,
-    IScriptHandler scriptHandler,
-    Result result)
+internal sealed partial class NetworkStatusService(ILogger logger, IScriptHandler scriptHandler, Result result)
 {
     private readonly ILogger _logger = logger;
     private readonly IScriptHandler _scriptHandler = scriptHandler;
@@ -35,16 +32,27 @@ internal sealed partial class NetworkStatusService(
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var status = await _scriptHandler.ExecuteIsNetworkInterfaceAvailableScript(interfaceName);
+            var status = await _scriptHandler
+                .ExecuteIsNetworkInterfaceAvailableScript(interfaceName)
+                .ConfigureAwait(false);
 
             if (status is OperationStatus.Warning or OperationStatus.Error)
                 return LogFailedAndReturnResult(_result.Messages);
 
+            (status, var rawInterfacesString) = await _scriptHandler
+                .ExecuteGetNetworkInterfacesScript()
+                .ConfigureAwait(false);
+
+            if (status is OperationStatus.Error)
+                return LogFailedAndReturnResult(_result.Messages);
+
             var scriptOptions = new ScriptOptions();
             scriptOptions.Add(ScriptOptionNames.GetNetworkStatusInformation.InterfaceName, interfaceName);
+            scriptOptions.Add(ScriptOptionNames.GetNetworkStatusInformation.Interfaces, rawInterfacesString);
 
-            (status, var networkStatusInformation) =
-                await _scriptHandler.ExecuteGetNetworkStatusInformationScript(scriptOptions);
+            (status, var networkStatusInformation) = await _scriptHandler
+                .ExecuteGetNetworkStatusInformationScript(scriptOptions)
+                .ConfigureAwait(false);
 
             if (status == OperationStatus.Error)
                 return LogFailedAndReturnResult(_result.Messages);

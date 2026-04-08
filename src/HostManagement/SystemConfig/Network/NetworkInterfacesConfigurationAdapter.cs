@@ -28,17 +28,24 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
         SystemConfiguration config,
         CancellationToken cancellationToken = default)
     {
-        var hasWarning = false;
+        var (status, rawInterfacesString) = await _scriptHandler
+            .ExecuteGetNetworkInterfacesScript()
+            .ConfigureAwait(false);
 
-        var (status, networkInterfacesCommonInformation) = await _scriptHandler
-            .ExecuteGetNetworkInterfacesCommonInformationScript()
+        if (status is OperationStatus.Error)
+            return OperationStatus.Error;
+
+        var scriptOptions = new ScriptOptions();
+        scriptOptions.Add(ScriptOptionNames.Network.Interfaces, rawInterfacesString);
+
+        (status, var networkInterfacesCommonInformation) = await _scriptHandler
+            .ExecuteGetNetworkInterfacesCommonInformationScript(scriptOptions)
             .ConfigureAwait(false);
 
         if (status == OperationStatus.Error)
             return OperationStatus.Error;
 
-        if (status == OperationStatus.Warning)
-            hasWarning = true;
+        var hasWarning = status == OperationStatus.Warning;
 
         var networkInterfaces = new List<NetworkInterfaceDetail>();
 
@@ -78,25 +85,25 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
         // interfaces' yaml file. That is because the DNS script depends on a clean file
         // (meaning no DNS info configured).
         return
-            !EqualityComparer<NetworkInterfaceDetail>.Default.SequenceEqual(currentConfig.NetworkInterfacesSettings?.NetworkInterfaces,
+            !EqualityComparer<NetworkInterfaceDetail>.Default.SequenceEqual(
+                currentConfig.NetworkInterfacesSettings?.NetworkInterfaces,
                 proposedConfig.NetworkInterfacesSettings?.NetworkInterfaces) ||
-            !EqualityComparer<NetworkDNSSettings>.Default.Equals(currentConfig.NetworkDNSSettings, proposedConfig.NetworkDNSSettings);
+            !EqualityComparer<NetworkDNSSettings>.Default.Equals(
+                currentConfig.NetworkDNSSettings,
+                proposedConfig.NetworkDNSSettings);
     }
 
     private protected override async Task<OperationStatus> PrepareConfiguration(
         SystemConfiguration config,
         CancellationToken cancellationToken = default)
     {
-        OperationStatus status;
-        var hasWarnings = false;
-
         if (config.NetworkInterfacesSettings?.NetworkInterfaces?.Count > 0)
         {
             foreach (var proposedInterface in config.NetworkInterfacesSettings.NetworkInterfaces)
             {
                 var interfaceName = proposedInterface.CommonInformation?.Name ?? string.Empty;
 
-                status = await _scriptHandler
+                var status = await _scriptHandler
                     .ExecuteIsNetworkInterfaceAvailableScript(interfaceName)
                     .ConfigureAwait(false);
 
@@ -124,41 +131,28 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
 
                 if (status == OperationStatus.Error)
                     return OperationStatus.Error;
-
-                if (status == OperationStatus.Warning)
-                    hasWarnings = true;
             }
         }
 
-        return hasWarnings ? OperationStatus.Warning : OperationStatus.Success;
+        return OperationStatus.Success;
     }
 
-    private static void AddVLANScriptOptions(
-        ScriptOptions scriptOptions,
-        IPv4Settings? ipv4Settings)
+    private static void AddVLANScriptOptions(ScriptOptions scriptOptions, IPv4Settings? ipv4Settings)
     {
         if (ipv4Settings is not null && ipv4Settings.VLANEnabled.HasValue && ipv4Settings.VLANID.HasValue)
         {
             if (ipv4Settings.VLANEnabled.Value)
             {
                 // TODO Remove "if check" around VLANEnabled and VLANID script options when implemented and uncomment VLANEnabled
-                //scriptOptions.Add(
-                //    ScriptOptionNames.Network.VLANEnabled,
-                //    ipv4Settings.VLANEnabled);
+                //scriptOptions.Add(ScriptOptionNames.Network.VLANEnabled, ipv4Settings.VLANEnabled);
 
-                scriptOptions.Add(
-                    ScriptOptionNames.Network.VLANID,
-                    ipv4Settings.VLANID.Value);
+                scriptOptions.Add(ScriptOptionNames.Network.VLANID, ipv4Settings.VLANID.Value);
             }
         }
     }
 
     private static void AddInterfaceNameScriptOption(ScriptOptions scriptOptions, string interfaceName)
-    {
-        scriptOptions.Add(
-            ScriptOptionNames.Network.InterfaceName,
-            interfaceName);
-    }
+        => scriptOptions.Add(ScriptOptionNames.Network.InterfaceName, interfaceName);
 
     private void AddMACAddressScriptOption(ScriptOptions scriptOptions, string? physicalAddress)
     {
@@ -168,32 +162,20 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
         if (string.IsNullOrWhiteSpace(physicalAddress))
             return;
 
-        scriptOptions.Add(
-            ScriptOptionNames.Network.MACAddress,
-            physicalAddress);
+        scriptOptions.Add(ScriptOptionNames.Network.MACAddress, physicalAddress);
     }
 
-    private static void AddInterfaceEnabledScriptOption(
-        ScriptOptions scriptOptions,
-        bool? enabled)
+    private static void AddInterfaceEnabledScriptOption(ScriptOptions scriptOptions, bool? enabled)
     {
         if (enabled.HasValue)
-        {
-            scriptOptions.Add(
-                ScriptOptionNames.Network.Enabled,
-                enabled.Value);
-        }
+            scriptOptions.Add(ScriptOptionNames.Network.Enabled, enabled.Value);
     }
 
-    private static void AddIPv4ScriptOptions(
-        ScriptOptions scriptOptions,
-        IPv4Settings? ipv4Settings)
+    private static void AddIPv4ScriptOptions(ScriptOptions scriptOptions, IPv4Settings? ipv4Settings)
     {
         if (ipv4Settings is not null && ipv4Settings.DHCPEnabled.HasValue)
         {
-            scriptOptions.Add(
-                ScriptOptionNames.Network.DHCPEnabled,
-                ipv4Settings.DHCPEnabled.Value);
+            scriptOptions.Add(ScriptOptionNames.Network.DHCPEnabled, ipv4Settings.DHCPEnabled.Value);
 
             for (var i = 0; i < ipv4Settings.IPv4Details?.Count; i++)
             {
@@ -206,16 +188,13 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
                 if (i == 0 &&
                     ipv4Settings.Gateway is not null)
                 {
-                    scriptOptions.Add(
-                        ScriptOptionNames.Network.Gateway,
-                        ipv4Settings.Gateway);
+                    scriptOptions.Add(ScriptOptionNames.Network.Gateway, ipv4Settings.Gateway);
                 }
             }
         }
     }
 
-    private async Task<(OperationStatus, IPv4Settings?)> GetInterfaceIPv4Settings(
-        string interfaceName)
+    private async Task<(OperationStatus, IPv4Settings?)> GetInterfaceIPv4Settings(string interfaceName)
     {
         var (status, ipv4) = await _scriptHandler
             .ExecuteGetInterfaceIPv4SettingsScript(interfaceName)

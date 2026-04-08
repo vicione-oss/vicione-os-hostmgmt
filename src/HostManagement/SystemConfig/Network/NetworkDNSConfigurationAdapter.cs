@@ -1,4 +1,4 @@
-﻿using HostManagement.Scripts;
+using HostManagement.Scripts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.SystemConfig.Contracts;
 
@@ -148,6 +148,15 @@ internal sealed class NetworkDNSConfigurationAdapter(
 
         if (!scriptOptions.Options.Any())
             return OperationStatus.Success;
+
+        var (status, rawInterfacesString) = await _scriptHandler
+            .ExecuteGetNetworkInterfacesScript()
+            .ConfigureAwait(false);
+
+        if (status is OperationStatus.Error)
+            return OperationStatus.Error;
+
+        scriptOptions.Add(ScriptOptionNames.NetworkDNS.Interfaces, rawInterfacesString);
 
         return await _scriptHandler
             .ExecuteSetNetworkDNSSettingsScript(scriptOptions)

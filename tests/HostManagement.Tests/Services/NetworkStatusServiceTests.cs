@@ -122,6 +122,10 @@ public class NetworkStatusServiceTests
                 .Returns(Task.FromResult(OperationStatus.Success));
 
             scriptHandler
+                .ExecuteGetNetworkInterfacesScript()
+                .Returns(Task.FromResult((OperationStatus.Success, "")));
+
+            scriptHandler
                 .ExecuteGetNetworkStatusInformationScript(Arg.Any<ScriptOptions>())
                 .Returns(Task.FromResult((OperationStatus.Error, NetworkStatusInformation.Empty)));
 
@@ -163,6 +167,10 @@ public class NetworkStatusServiceTests
             scriptHandler
                 .ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>())
                 .Returns(Task.FromResult(OperationStatus.Success));
+
+            scriptHandler
+                .ExecuteGetNetworkInterfacesScript()
+                .Returns(Task.FromResult((OperationStatus.Success, "")));
 
             scriptHandler
                 .ExecuteGetNetworkStatusInformationScript(Arg.Any<ScriptOptions>())

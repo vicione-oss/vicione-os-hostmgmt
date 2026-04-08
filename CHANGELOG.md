@@ -5,6 +5,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Moved call to `get_network_interfaces.sh` from scripts to C#
+  - from `get_network_interfaces_common_information.sh`
+  - from `get_network_status_information.sh`
+  - from `set_network_dns_settings.sh`
+
 ### Removed
 
 - Validation: Removed obsolete method `Validate` in `SystemConfigurationValidator`

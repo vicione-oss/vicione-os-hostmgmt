@@ -1,11 +1,25 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace HostManagement.Scripts;
 
 /// <summary>
 /// Provides all script option names for shell scripts.
 /// </summary>
-[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "Nested classes provide logical grouping of script option names")]
+[SuppressMessage(
+    "Design",
+    "CA1034:Nested types should not be visible",
+    Justification = "Nested classes provide logical grouping of script option names")]
 public static class ScriptOptionNames
 {
+    private const string EnabledFlag = "--enabled";
+    private const string FileFlag = "--file";
+    private const string GroupFlag = "--group";
+    private const string InterfacesFlag = "--interfaces";
+    private const string InterfaceNameFlag = "--interface-name";
+    private const string IpAddressFlag = "--ip-address";
+    private const string NameFlag = "--name";
+    private const string UserFlag = "--user";
+
     /// <summary>
     /// Option names for the check group exists script.
     /// </summary>
@@ -14,7 +28,7 @@ public static class ScriptOptionNames
         /// <summary>
         /// The script argument for the group.
         /// </summary>
-        public const string Group = "--group";
+        public const string Group = GroupFlag;
     }
 
     /// <summary>
@@ -25,7 +39,7 @@ public static class ScriptOptionNames
         /// <summary>
         /// The script argument for the user.
         /// </summary>
-        public const string User = "--user";
+        public const string User = UserFlag;
     }
 
     /// <summary>
@@ -36,7 +50,12 @@ public static class ScriptOptionNames
         /// <summary>
         /// The script argument for the interface name whose status is to be determined.
         /// </summary>
-        public const string InterfaceName = "--interface-name";
+        public const string InterfaceName = InterfaceNameFlag;
+
+        /// <summary>
+        /// The script argument for the interfaces.
+        /// </summary>
+        public const string Interfaces = InterfacesFlag;
     }
 
     /// <summary>
@@ -47,7 +66,7 @@ public static class ScriptOptionNames
         /// <summary>
         /// The script argument for the systemd unit name whose status is to be determined.
         /// </summary>
-        public const string Name = "--name";
+        public const string Name = NameFlag;
     }
 
     /// <summary>
@@ -90,7 +109,7 @@ public static class ScriptOptionNames
         /// <summary>
         /// The script argument for the interface name.
         /// </summary>
-        public const string InterfaceName = "--interface-name";
+        public const string InterfaceName = InterfaceNameFlag;
 
         /// <summary>
         /// The script argument for the MAC address.
@@ -100,7 +119,7 @@ public static class ScriptOptionNames
         /// <summary>
         /// The script argument for the interface enabled state.
         /// </summary>
-        public const string Enabled = "--enabled";
+        public const string Enabled = EnabledFlag;
 
         /// <summary>
         /// The script argument for the interface DHCP enabled state.
@@ -110,12 +129,17 @@ public static class ScriptOptionNames
         /// <summary>
         /// The script argument for an IP address in CIDR notation.
         /// </summary>
-        public const string IPAddress = "--ip-address";
+        public const string IPAddress = IpAddressFlag;
 
         /// <summary>
         /// The script argument for the gateway.
         /// </summary>
         public const string Gateway = "--gateway";
+
+        /// <summary>
+        /// The script argument for the interfaces.
+        /// </summary>
+        public const string Interfaces = InterfacesFlag;
     }
 
     /// <summary>
@@ -152,6 +176,11 @@ public static class ScriptOptionNames
         /// The script argument for the search domains.
         /// </summary>
         public const string SearchDomains = "--search-domains";
+
+        /// <summary>
+        /// The script argument for the interfaces.
+        /// </summary>
+        public const string Interfaces = InterfacesFlag;
     }
 
     /// <summary>
@@ -162,12 +191,12 @@ public static class ScriptOptionNames
         /// <summary>
         /// The script argument for the enabled state.
         /// </summary>
-        public const string Enabled = "--enabled";
+        public const string Enabled = EnabledFlag;
 
         /// <summary>
         /// The script argument for the IP address.
         /// </summary>
-        public const string IPAddress = "--ip-address";
+        public const string IPAddress = IpAddressFlag;
 
         /// <summary>
         /// The script argument for the hostname.
@@ -188,7 +217,7 @@ public static class ScriptOptionNames
         /// <summary>
         /// The script argument for the interfaces.
         /// </summary>
-        public const string Interfaces = "--interfaces";
+        public const string Interfaces = InterfacesFlag;
     }
 
     /// <summary>
@@ -215,7 +244,7 @@ public static class ScriptOptionNames
         /// <summary>
         /// The script argument for the proxy enabled state.
         /// </summary>
-        public const string Enabled = "--enabled";
+        public const string Enabled = EnabledFlag;
 
         /// <summary>
         /// The script argument for the proxy server URL.
@@ -251,7 +280,10 @@ public static class ScriptOptionNames
     /// <summary>
     /// Option names for the set execute permission script.
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1711:Identifiers should not have incorrect suffix", Justification = "Permission is part of the script's purpose, not a .NET permission type")]
+    [SuppressMessage(
+        "Naming",
+        "CA1711:Identifiers should not have incorrect suffix",
+        Justification = "Permission is part of the script's purpose, not a .NET permission type")]
     public static class SetExecutePermission
     {
         /// <summary>
@@ -262,7 +294,7 @@ public static class ScriptOptionNames
         /// <summary>
         /// The script argument for the file.
         /// </summary>
-        public const string File = "--file";
+        public const string File = FileFlag;
     }
 
     /// <summary>
@@ -273,17 +305,17 @@ public static class ScriptOptionNames
         /// <summary>
         /// The script argument for the user.
         /// </summary>
-        public const string User = "--user";
+        public const string User = UserFlag;
 
         /// <summary>
         /// The script argument for the group.
         /// </summary>
-        public const string Group = "--group";
+        public const string Group = GroupFlag;
 
         /// <summary>
         /// The script argument for the file.
         /// </summary>
-        public const string File = "--file";
+        public const string File = FileFlag;
     }
 
     /// <summary>
@@ -294,7 +326,7 @@ public static class ScriptOptionNames
         /// <summary>
         /// The script argument for the systemd unit name.
         /// </summary>
-        public const string Name = "--name";
+        public const string Name = NameFlag;
 
         /// <summary>
         /// The script argument for the systemd unit state.
@@ -327,6 +359,6 @@ public static class ScriptOptionNames
         /// <summary>
         /// The script argument for the system file path.
         /// </summary>
-        public const string FilePath = "--file";
+        public const string FilePath = FileFlag;
     }
 }

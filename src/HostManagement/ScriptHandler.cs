@@ -43,10 +43,12 @@ internal sealed class ScriptHandler(Result? result = default) : IScriptHandler
             : await ExecuteScriptAndReturnRawStandardOutput(ScriptIdentifier.NetworkInterfacesGet, interfaceType);
     }
 
-    public async Task<(OperationStatus, List<NetworkInterfaceCommonInformation>)> ExecuteGetNetworkInterfacesCommonInformationScript()
+    public async Task<(OperationStatus, List<NetworkInterfaceCommonInformation>)> ExecuteGetNetworkInterfacesCommonInformationScript(
+        ScriptOptions scriptOptions)
         => await ExecuteScriptAndReturnDeserializedType(
             CommonInformationListJsonSerializerContext.Default.ListNetworkInterfaceCommonInformation,
-            ScriptIdentifier.NetworkInterfacesCommonInformationGet);
+            ScriptIdentifier.NetworkInterfacesCommonInformationGet,
+            scriptOptions.Options);
 
     public async Task<(OperationStatus, NetworkStatusInformation)> ExecuteGetNetworkStatusInformationScript(
         ScriptOptions scriptOptions)
