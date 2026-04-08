@@ -337,12 +337,12 @@ The project uses custom GitHub Copilot instructions:
 * Global instructions: [`copilot-instructions.md`]
 * Testing instructions: [`testing.instructions.md`]
 
-Additional, local instructions can be stored in `.github/instructions/user-defined.instructions.md`.  
+Additional, local instructions can be stored in `.github/instructions/user-defined.instructions.md`.
 This file is excluded via [`.gitignore`] and is not committed.
 
 ## License
 
-This project is licensed under the MIT License.  
+This project is licensed under the MIT License.
 The full license text is available in [`LICENSE.txt`](./LICENSE.txt).
 
 [Concept]: docs/Concept.md

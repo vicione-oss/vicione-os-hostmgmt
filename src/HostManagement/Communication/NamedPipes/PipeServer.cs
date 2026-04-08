@@ -146,6 +146,7 @@ internal sealed partial class PipeServer : IPipeServer
     {
         _handlerRegistry.RegisterHandler(new GetSystemConfigurationRequestHandler());
         _handlerRegistry.RegisterHandler(new SetSystemConfigurationRequestHandler());
+        _handlerRegistry.RegisterHandler(new ResetNetworkInterfaceRequestHandler());
     }
 
     private void RegisterSystemRequestHandlers()

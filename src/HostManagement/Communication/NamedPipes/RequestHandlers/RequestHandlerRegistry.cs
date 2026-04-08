@@ -119,6 +119,7 @@ internal sealed class RequestHandlerRegistry(TargetEnvironment targetEnvironment
                 Topics.UpdateSystem => true,
 
                 Topics.RenewDHCPLease => true,
+                Topics.ResetNetworkInterface => true,
 
                 _ => false
             },

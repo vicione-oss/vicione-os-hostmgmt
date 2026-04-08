@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -170,6 +170,18 @@
   </data>
   <data name="PrepareConfigSucceeded" xml:space="preserve">
     <value>Prepare system configuration from '{0}' succeeded.</value>
+  </data>
+  <data name="ResetNetworkInterfaceFailed" xml:space="preserve">
+    <value>Reset network interface '{0}' failed.</value>
+  </data>
+  <data name="ResetNetworkInterfaceNotFoundInConfig" xml:space="preserve">
+    <value>Network interface '{0}' not found in '{1}'.</value>
+  </data>
+  <data name="ResetNetworkInterfaceNotFoundInCurrent" xml:space="preserve">
+    <value>Network interface '{0}' not found in current configuration.</value>
+  </data>
+  <data name="ResetNetworkInterfaceSucceeded" xml:space="preserve">
+    <value>Network interface '{0}' has been reset to default configuration.</value>
   </data>
   <data name="RevertConfigFailedAfterSetFailed" xml:space="preserve">
     <value>Revert system configuration failed, after setting system configuration failed.</value>

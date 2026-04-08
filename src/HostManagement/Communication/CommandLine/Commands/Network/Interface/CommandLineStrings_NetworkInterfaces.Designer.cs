@@ -19,7 +19,7 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.Interface {
     // -Klasse über ein Tool wie ResGen oder Visual Studio automatisch generiert.
     // Um einen Member hinzuzufügen oder zu entfernen, bearbeiten Sie die .ResX-Datei und führen dann ResGen
     // mit der /str-Option erneut aus, oder Sie erstellen Ihr VS-Projekt neu.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CommandLineStrings_NetworkInterfaces {
@@ -494,6 +494,15 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.Interface {
         }
         
         /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Network interface &apos;{0}&apos; has been reset to default configuration. ähnelt.
+        /// </summary>
+        internal static string InterfaceResetSucceeded {
+            get {
+                return ResourceManager.GetString("InterfaceResetSucceeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Interfaces ähnelt.
         /// </summary>
         internal static string Interfaces {
@@ -679,6 +688,24 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.Interface {
         internal static string NetworkInterfaceMACCommandName {
             get {
                 return ResourceManager.GetString("NetworkInterfaceMACCommandName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Reset the specified network interface to its default configuration. ähnelt.
+        /// </summary>
+        internal static string NetworkInterfaceResetCommandDescription {
+            get {
+                return ResourceManager.GetString("NetworkInterfaceResetCommandDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die reset ähnelt.
+        /// </summary>
+        internal static string NetworkInterfaceResetCommandName {
+            get {
+                return ResourceManager.GetString("NetworkInterfaceResetCommandName", resourceCulture);
             }
         }
         

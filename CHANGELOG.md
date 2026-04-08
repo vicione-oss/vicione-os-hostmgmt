@@ -5,6 +5,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added functionality to reset network interfaces to factory default settings
+
 ### Changed
 
 - Moved call to `get_network_interfaces.sh` from scripts to C#

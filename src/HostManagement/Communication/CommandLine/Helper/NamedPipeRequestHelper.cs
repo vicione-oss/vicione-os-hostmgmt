@@ -154,7 +154,6 @@ internal static class NamedPipeRequestHelper
     /// Sends a named pipe request to get the NTP fallback information.
     /// </summary>
     /// <returns>The list of fallback NTP servers or an empty list if the request failed.</returns>
-    /// <exception cref="InvalidOperationException"></exception>
     internal static async Task<List<string>> GetNTPFallbackInformation()
     {
         var topic = Topics.GetNTPFallbackInformation;
@@ -190,7 +189,6 @@ internal static class NamedPipeRequestHelper
     /// <param name="interfaceName">The interface name to get the original physical address for.</param>
     /// <returns>The original physical address or <see langword="null"/> if getting the original
     /// physical address failed.</returns>
-    /// <exception cref="InvalidOperationException"></exception>
     internal static async Task<string?> GetOriginalPhysicalAddress(string interfaceName)
     {
         var topic = Topics.GetOriginalPhysicalAddress;
@@ -228,7 +226,6 @@ internal static class NamedPipeRequestHelper
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The <see cref="NetworkStatusInformation"/> or <see langword="null"/> if getting
     /// the status information failed.</returns>
-    /// <exception cref="InvalidOperationException"></exception>
     internal static async Task<NetworkStatusInformation?> GetNetworkStatusInformation(
         string interfaceName,
         CancellationToken cancellationToken)
@@ -269,7 +266,6 @@ internal static class NamedPipeRequestHelper
     /// <param name="interfaceName">The interface name for which the DHCP lease information shall
     /// be retrieved.</param>
     /// <returns>The <see cref="DHCPLease"/> or <see langword="null"/> if the request failed.</returns>
-    /// <exception cref="InvalidOperationException"></exception>
     internal static async Task<DHCPLease?> GetDHCPLeaseInformation(string interfaceName)
     {
         var topic = Topics.GetDHCPLeaseInformation;
@@ -299,7 +295,6 @@ internal static class NamedPipeRequestHelper
     /// <param name="interfaceName">The interface name for which the DHCP lease shall be renewed.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The <see cref="DHCPLease"/> or <see langword="null"/> if renewing the DHCP lease failed.</returns>
-    /// <exception cref="InvalidOperationException"></exception>
     internal static async Task<DHCPLease?> RenewDHCPLease(string interfaceName, CancellationToken cancellationToken)
     {
         var topic = Topics.RenewDHCPLease;
@@ -324,11 +319,45 @@ internal static class NamedPipeRequestHelper
     }
 
     /// <summary>
+    /// Sends a named pipe request to reset the specified network interface to its default configuration.
+    /// </summary>
+    /// <param name="interfaceName">The interface name.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns><see langword="true"/> if successful, otherwise <see langword="false"/></returns>
+    internal static async Task<bool> ResetNetworkInterface(string interfaceName, CancellationToken cancellationToken)
+    {
+        var topic = Topics.ResetNetworkInterface;
+        NamedPipeMessage? namedPipeMessage = null;
+
+        try
+        {
+            namedPipeMessage = await SendNamedPipeRequest(topic, interfaceName, cancellationToken);
+
+            var systemControlResult = SourceGeneratedTypeSerializer
+                .Deserialize(
+                    namedPipeMessage.Content,
+                    CommunicationJsonContext.Default.SystemControlResult);
+
+            if (systemControlResult.Status == OperationStatus.Error)
+            {
+                OutputError(topic, systemControlResult);
+                return false;
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            OutputException(topic, namedPipeMessage, ex);
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Sends a named pipe request to redeploy the application scripts.
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns><see langword="true"/> if successful, otherwise <see langword="false"/></returns>
-    /// <exception cref="InvalidOperationException"></exception>
     internal static async Task<bool> RedeployScripts(CancellationToken cancellationToken)
     {
         var topic = Topics.RedeployScripts;
@@ -364,7 +393,6 @@ internal static class NamedPipeRequestHelper
     /// <param name="systemdUnitName">The systemd unit name.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The active state.</returns>
-    /// <exception cref="InvalidOperationException"></exception>
     internal static async Task<string?> GetSystemdUnitActiveState(
         string systemdUnitName,
         CancellationToken cancellationToken)
@@ -403,7 +431,6 @@ internal static class NamedPipeRequestHelper
     /// <param name="controlAction">The control action.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns><see langword="true"/> if successful, otherwise <see langword="false"/></returns>
-    /// <exception cref="InvalidOperationException"></exception>
     internal static async Task<bool> ControlSystemdUnit(
         string systemdUnitName,
         ServiceControlAction controlAction,
@@ -448,7 +475,6 @@ internal static class NamedPipeRequestHelper
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns><see langword="true"/> if successful, otherwise <see langword="false"/></returns>
-    /// <exception cref="InvalidOperationException"></exception>
     internal static async Task<bool> ResetSystem(CancellationToken cancellationToken)
     {
         var topic = Topics.ResetSystem;
@@ -484,7 +510,6 @@ internal static class NamedPipeRequestHelper
     /// <param name="delayInSeconds">The delay in seconds.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>An optional message.</returns>
-    /// <exception cref="InvalidOperationException"></exception>
     internal static async Task<string?> RestartSystem(int delayInSeconds, CancellationToken cancellationToken)
     {
         var topic = Topics.RestartSystem;
@@ -520,7 +545,6 @@ internal static class NamedPipeRequestHelper
     /// <param name="delayInSeconds">The delay in seconds.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>An optional message.</returns>
-    /// <exception cref="InvalidOperationException"></exception>
     internal static async Task<string?> ShutdownSystem(int delayInSeconds, CancellationToken cancellationToken)
     {
         var topic = Topics.ShutdownSystem;
@@ -556,7 +580,6 @@ internal static class NamedPipeRequestHelper
     /// <param name="filePath">The file path to the update file.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns><see langword="true"/> if successful, otherwise <see langword="false"/></returns>
-    /// <exception cref="InvalidOperationException"></exception>
     internal static async Task<bool> UpdateSystem(string filePath, CancellationToken cancellationToken)
     {
         var topic = Topics.UpdateSystem;

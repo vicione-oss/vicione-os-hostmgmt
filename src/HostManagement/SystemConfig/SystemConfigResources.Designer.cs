@@ -19,7 +19,7 @@ namespace HostManagement.SystemConfig {
     // -Klasse über ein Tool wie ResGen oder Visual Studio automatisch generiert.
     // Um einen Member hinzuzufügen oder zu entfernen, bearbeiten Sie die .ResX-Datei und führen dann ResGen
     // mit der /str-Option erneut aus, oder Sie erstellen Ihr VS-Projekt neu.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class SystemConfigResources {
@@ -219,6 +219,42 @@ namespace HostManagement.SystemConfig {
         internal static string PrepareConfigSucceeded {
             get {
                 return ResourceManager.GetString("PrepareConfigSucceeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Reset network interface &apos;{0}&apos; failed. ähnelt.
+        /// </summary>
+        internal static string ResetNetworkInterfaceFailed {
+            get {
+                return ResourceManager.GetString("ResetNetworkInterfaceFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Network interface &apos;{0}&apos; not found in &apos;{1}&apos;. ähnelt.
+        /// </summary>
+        internal static string ResetNetworkInterfaceNotFoundInConfig {
+            get {
+                return ResourceManager.GetString("ResetNetworkInterfaceNotFoundInConfig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Network interface &apos;{0}&apos; not found in current configuration. ähnelt.
+        /// </summary>
+        internal static string ResetNetworkInterfaceNotFoundInCurrent {
+            get {
+                return ResourceManager.GetString("ResetNetworkInterfaceNotFoundInCurrent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Network interface &apos;{0}&apos; has been reset to default configuration. ähnelt.
+        /// </summary>
+        internal static string ResetNetworkInterfaceSucceeded {
+            get {
+                return ResourceManager.GetString("ResetNetworkInterfaceSucceeded", resourceCulture);
             }
         }
         
