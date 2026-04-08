@@ -100,11 +100,6 @@ public sealed class OperationResultFactoryTests
             // Workaround because we use SystemControlResult but maintain compatibility until removed
             typedResultObject.ResultType.Should().Be(nameof(SystemControlResult));
         }
-        else if (result is RenewDHCPLeaseResult)
-        {
-            // Workaround because we use GetDHCPLeaseInformationResult but maintain compatibility until removed
-            typedResultObject.ResultType.Should().Be(nameof(GetDHCPLeaseInformationResult));
-        }
         else
         {
             typedResultObject.ResultType.Should().Be(typeof(T).Name);
@@ -128,11 +123,6 @@ public sealed class OperationResultFactoryTests
         {
             // Workaround because we use SystemControlResult but maintain compatibility until removed
             result.ResultType.Should().Be(nameof(SystemControlResult));
-        }
-        else if (result is RenewDHCPLeaseResult)
-        {
-            // Workaround because we use GetDHCPLeaseInformationResult but maintain compatibility until removed
-            result.ResultType.Should().Be(nameof(GetDHCPLeaseInformationResult));
         }
         else
         {

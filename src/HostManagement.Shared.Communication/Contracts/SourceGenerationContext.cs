@@ -20,7 +20,6 @@ namespace HostManagement.Shared.Communication.Contracts;
 [JsonSerializable(typeof(GetServiceStateResult))]
 [JsonSerializable(typeof(InstallSignedDebianPackageResult))]
 [JsonSerializable(typeof(RedeployScriptsResult))]
-[JsonSerializable(typeof(RenewDHCPLeaseResult))]
 [JsonSerializable(typeof(ServiceControlResult))]
 [JsonSerializable(typeof(ResetSystemResult))]
 [JsonSerializable(typeof(RestartSystemResult))]
