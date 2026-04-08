@@ -128,26 +128,13 @@ internal sealed class ProxyConfigurationAdapter(
                 return OperationStatus.Error;
         }
 
-        if (proxySettings.DoNotProxyListEnabled.HasValue &&
-            proxySettings.DoNotProxyList is not null &&
-            (
-                !EqualityComparer<string>.Default.SequenceEqual(proxySettings.DoNotProxyList, currentProxySettings?.DoNotProxyList) ||
-                !EqualityComparer<bool?>.Default.Equals(proxySettings.DoNotProxyListEnabled, currentProxySettings?.DoNotProxyListEnabled)
-            ))
-        {
-            var scriptOptions = GetNoProxyListScriptOptions(
+        return await
+            SetDoNotProxyList(
+                proxySettings.DoNotProxyListEnabled,
                 proxySettings.DoNotProxyList,
-                proxySettings.DoNotProxyListEnabled.Value);
-
-            var status = await _scriptHandler
-                .ExecuteSetNetworkProxySettingsScript(scriptOptions)
-                .ConfigureAwait(false);
-
-            if (status == OperationStatus.Error)
-                return OperationStatus.Error;
-        }
-
-        return OperationStatus.Success;
+                currentProxySettings?.DoNotProxyListEnabled,
+                currentProxySettings?.DoNotProxyList)
+            .ConfigureAwait(false);
     }
 
     private async Task<OperationStatus> SetProxyDetail(
@@ -197,6 +184,32 @@ internal sealed class ProxyConfigurationAdapter(
         }
 
         return scriptOptions;
+    }
+
+    private async Task<OperationStatus> SetDoNotProxyList(
+        bool? proposedListEnabled,
+        List<string>? proposedList,
+        bool? currentListEnabled,
+        List<string>? currentList)
+    {
+        if (proposedListEnabled.HasValue &&
+            proposedList is not null &&
+            (
+                !EqualityComparer<string>.Default.SequenceEqual(proposedList, currentList) ||
+                !EqualityComparer<bool?>.Default.Equals(proposedListEnabled, currentListEnabled)
+            ))
+        {
+            var scriptOptions = GetNoProxyListScriptOptions(proposedList, proposedListEnabled.Value);
+
+            var status = await _scriptHandler
+                .ExecuteSetNetworkProxySettingsScript(scriptOptions)
+                .ConfigureAwait(false);
+
+            if (status == OperationStatus.Error)
+                return OperationStatus.Error;
+        }
+
+        return OperationStatus.Success;
     }
 
     private static ScriptOptions GetNoProxyListScriptOptions(
