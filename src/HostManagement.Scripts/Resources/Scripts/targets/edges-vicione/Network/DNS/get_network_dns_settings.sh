@@ -206,10 +206,7 @@ set_configuration_path() {
 #######################################
 
 main() {
-    local hostname
     local json_output
-
-    hostname=$(Scripts/Network/DNS/get_hostname.sh)
 
     set_configuration_path
     load_configuration_content
@@ -225,7 +222,7 @@ main() {
     determine_static_hosts
 
     json_output="{"
-    json_output+="\"Hostname\": \"${hostname}\","
+    json_output+="\"Hostname\": \"${HOSTNAME}\","
     json_output+="\"MulticastDNSEnabled\": ${MULTICAST_DNS_ENABLED},"
     json_output+="\"StaticHostsEnabled\": ${STATIC_HOSTS_ENABLED},"
     json_output+="\"StaticHosts\": [${STATIC_HOSTS_JSON}],"
