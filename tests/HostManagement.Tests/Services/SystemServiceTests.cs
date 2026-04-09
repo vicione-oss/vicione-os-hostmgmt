@@ -349,12 +349,56 @@ public class SystemServiceTests
         }
 
         [Fact]
+        public async Task ShouldLogErrorAndReturnErrorResult_WhenClearProxySettingsReturnsError()
+        {
+            // Arrange
+            var logger = GetLoggerSubstitute();
+            var expectedScriptMessage = "A script error clearing proxy settings.";
+
+            var result = new Result();
+            result.AddScriptError(ScriptIdentifier.NetworkProxySettingsSet, expectedScriptMessage);
+
+            var scriptHandler = Substitute.For<IScriptHandler>();
+            scriptHandler
+                .ExecuteResetSystemScript()
+                .Returns(Task.FromResult(OperationStatus.Success));
+            scriptHandler
+                .ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>())
+                .Returns(Task.FromResult(OperationStatus.Error));
+
+            var sut = new SystemService(logger, scriptHandler, result, GetSignatureValidatorSubstitute());
+
+            // Act
+            var systemControlResult = await sut.ResetSystem();
+
+            // Assert
+            logger.Received(1).Log(
+                LogLevel.Error,
+                Arg.Any<EventId>(),
+                Arg.Is<object>(o =>
+                    o.ToString()!.StartsWith(SystemCouldNotBeResetMessage) &&
+                    o.ToString()!.Contains(expectedScriptMessage)),
+                null,
+                Arg.Any<Func<object, Exception?, string>>());
+
+            systemControlResult.Status.Should().Be(OperationStatus.Error);
+            systemControlResult.Message.Should()
+                .StartWith(SystemCouldNotBeResetMessage).And
+                .Contain(expectedScriptMessage);
+        }
+
+        [Fact]
         public async Task ShouldReturnSuccess_WhenResetSystemSucceeds()
         {
             // Arrange
             var logger = GetLoggerSubstitute();
             var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler.ExecuteResetSystemScript().Returns(Task.FromResult(OperationStatus.Success));
+            scriptHandler
+                .ExecuteResetSystemScript()
+                .Returns(Task.FromResult(OperationStatus.Success));
+            scriptHandler
+                .ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>())
+                .Returns(Task.FromResult(OperationStatus.Success));
 
             var sut = new SystemService(logger, scriptHandler, new Result(), GetSignatureValidatorSubstitute());
 
@@ -364,6 +408,8 @@ public class SystemServiceTests
             // Assert
             systemControlResult.Status.Should().Be(OperationStatus.Success);
             systemControlResult.Message.Should().Contain("The system will restart now.");
+
+            _ = scriptHandler.Received(1).ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>());
         }
     }
 
