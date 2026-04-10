@@ -3,6 +3,19 @@ dotnet = "10.0.300" # Pin SDK version
 
 [tasks.extract-help]
 description = "Extracts HostManagement CLI help to a Markdown file"
-run = 'mkdir -p "$EXPORT_PATH" && dotnet run --no-launch-profile --project "$PROJECT_FILE" --property WarningLevel=0 -- --extract-help > "$EXPORT_PATH/$FILENAME"'
-run_windows = 'pwsh -NoProfile -Command $null = New-Item -ItemType Directory -Force -Path %EXPORT_PATH% && dotnet run --no-launch-profile --project %PROJECT_FILE% --property WarningLevel=0 -- --extract-help > %EXPORT_PATH%/%FILENAME%'
-env = { PROJECT_FILE = "src/HostManagement/HostManagement.csproj", EXPORT_PATH = "local/cli_help", FILENAME = "cli_help_export.md" }
+
+run = [
+  'mkdir -p $EXPORT_PATH',
+  'dotnet run --no-launch-profile --project $PROJECT_FILE --property WarningLevel=0 -- --extract-help > $EXPORT_PATH/$FILENAME'
+]
+
+run_windows = [
+  'pwsh -NoProfile -Command $null = New-Item -ItemType Directory -Force -Path %EXPORT_PATH%',
+  'dotnet run --no-launch-profile --project %PROJECT_FILE% --property WarningLevel=0 -- --extract-help > %EXPORT_PATH%/%FILENAME%'
+]
+
+env = {
+  PROJECT_FILE = "src/HostManagement/HostManagement.csproj",
+  EXPORT_PATH = "local/cli_help",
+  FILENAME = "cli_help_export.md"
+}
