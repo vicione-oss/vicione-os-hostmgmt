@@ -80,7 +80,6 @@ public class SourceGeneratedTypeSerializerTests
                 "IPv4": {
                   "Gateway": "120.86.52.18",
                   "DHCPEnabled": true,
-                  "DHCPLease": {{IndentedSampleDHCPLeaseJson}},
                   "IPv4Details": [
                     {
                       "IPAddress": "120.86.52.18",
@@ -156,12 +155,6 @@ public class SourceGeneratedTypeSerializerTests
             ]
           },
           "NetworkNTPSettings": {
-            "FallbackNTPServers": [
-              "0.debian.pool.ntp.org",
-              "1.debian.pool.ntp.org",
-              "2.debian.pool.ntp.org",
-              "3.debian.pool.ntp.org"
-            ],
             "NTPServersEnabled": true,
             "NTPServers": [
               "ptbtime1.ptb.de",
@@ -185,7 +178,6 @@ public class SourceGeneratedTypeSerializerTests
     private static readonly JsonTypeInfo<GetNetworkStatusInformationResult> s_getNetworkContext = SourceGenerationContext.Default.GetNetworkStatusInformationResult;
     private static readonly JsonTypeInfo<GetNTPFallbackInformationResult> s_getNTPFallbackContext = SourceGenerationContext.Default.GetNTPFallbackInformationResult;
     private static readonly JsonTypeInfo<GetServiceStateResult> s_getServiceStateContext = SourceGenerationContext.Default.GetServiceStateResult;
-    private static readonly JsonTypeInfo<RenewDHCPLeaseResult> s_renewDHCPLeaseContext = SourceGenerationContext.Default.RenewDHCPLeaseResult;
     private static readonly JsonTypeInfo<ServiceControlResult> s_serviceControlContext = SourceGenerationContext.Default.ServiceControlResult;
     private static readonly JsonTypeInfo<UpdateSystemResult> s_updateSystemContext = SourceGenerationContext.Default.UpdateSystemResult;
     private static readonly JsonTypeInfo<RestartSystemResult> s_restartSystemContext = SourceGenerationContext.Default.RestartSystemResult;
@@ -220,7 +212,6 @@ public class SourceGeneratedTypeSerializerTests
                 ["GetNetworkStatusInformationResult", SourceGenerationContext.Default.GetNetworkStatusInformationResult, nullJson],
                 ["GetNTPFallbackInformationResult", SourceGenerationContext.Default.GetNTPFallbackInformationResult, nullJson],
                 ["GetServiceStateResult", SourceGenerationContext.Default.GetServiceStateResult, nullJson],
-                ["RenewDHCPLeaseResult", SourceGenerationContext.Default.RenewDHCPLeaseResult, nullJson],
                 ["ServiceControlResult", SourceGenerationContext.Default.ServiceControlResult, nullJson],
                 ["UpdateSystemResult", SourceGenerationContext.Default.UpdateSystemResult, nullJson],
                 ["RestartSystemResult", SourceGenerationContext.Default.RestartSystemResult, nullJson],
@@ -240,7 +231,6 @@ public class SourceGeneratedTypeSerializerTests
         [ "GetNetworkStatusInformationResult", s_getNetworkContext, $$"""{"ResultType":"","Status":"Warning","Message":"Warning","NetworkStatusInformation":{{s_sampleNetworkStatusJson}}}""" ],
         [ "GetNTPFallbackInformationResult", s_getNTPFallbackContext, $$"""{"ResultType":"","Status":"Warning","Message":"Warning","FallbackNTPServers":{{s_sampleFallbackNTPInformationJson}}}""" ],
         [ "GetServiceStateResult", s_getServiceStateContext, """{"ResultType":"","Status":"Warning","Message":"Warning","ActiveState":"active"}""" ],
-        [ "GetDHCPLeaseInformationResult", s_renewDHCPLeaseContext, """{"ResultType":"","Status":"Warning","Message":"Warning","DHCPLease":null}""" ],
         [ "ServiceControlResult", s_serviceControlContext, """{"ResultType":"","Status":"Warning","Message":"Warning"}""" ],
         [ "SystemControlResult", s_updateSystemContext, """{"ResultType":"","Status":"Warning","Message":"Warning"}""" ],
         [ "SystemControlResult", s_restartSystemContext, """{"ResultType":"","Status":"Warning","Message":"Warning"}""" ],
@@ -258,7 +248,6 @@ public class SourceGeneratedTypeSerializerTests
         [ "GetNetworkStatusInformationResult", s_getNetworkContext, $$"""{"ResultType":"Mismatch","Status":"Warning","Message":"Warning","NetworkStatusInformation":{{s_sampleNetworkStatusJson}}}""" ],
         [ "GetNTPFallbackInformationResult", s_getNTPFallbackContext, $$"""{"ResultType":"Mismatch","Status":"Warning","Message":"Warning","FallbackNTPServers":{{s_sampleFallbackNTPInformationJson}}}""" ],
         [ "GetServiceStateResult", s_getServiceStateContext, """{"ResultType":"Mismatch","Status":"Warning","Message":"Warning","ActiveState":"active"}""" ],
-        [ "GetDHCPLeaseInformationResult", s_renewDHCPLeaseContext, """{"ResultType":"Mismatch","Status":"Warning","Message":"Warning","DHCPLease":null}""" ],
         [ "ServiceControlResult", s_serviceControlContext, """{"ResultType":"Mismatch","Status":"Warning","Message":"Warning"}""" ],
         [ "SystemControlResult", s_updateSystemContext, """{"ResultType":"Mismatch","Status":"Warning","Message":"Warning"}""" ],
         [ "SystemControlResult", s_restartSystemContext, """{"ResultType":"Mismatch","Status":"Warning","Message":"Warning"}""" ],
@@ -282,7 +271,6 @@ public class SourceGeneratedTypeSerializerTests
                 [ SourceGenerationContext.Default.GetNetworkStatusInformationResult, defaultResponseJson ],
                 [ SourceGenerationContext.Default.GetNTPFallbackInformationResult, defaultResponseJson ],
                 [ SourceGenerationContext.Default.GetServiceStateResult, defaultResponseJson ],
-                [ SourceGenerationContext.Default.RenewDHCPLeaseResult, defaultResponseJson ],
                 [ SourceGenerationContext.Default.ServiceControlResult, defaultResponseJson ],
                 [ SourceGenerationContext.Default.UpdateSystemResult, defaultResponseJson ],
                 [ SourceGenerationContext.Default.RestartSystemResult, defaultResponseJson ],
@@ -335,13 +323,6 @@ public class SourceGeneratedTypeSerializerTests
         [s_getServiceStateContext, """{"ResultType":"GetServiceStateResult","Status":"Warning","ActiveState":"failed"}"""],
         [s_getServiceStateContext, """{"ResultType":"GetServiceStateResult","Message":"Warning","ActiveState":"failed"}"""],
 
-        [s_renewDHCPLeaseContext, """{"ResultType":"GetDHCPLeaseInformationResult","Status":"Warning"}"""],
-        [s_renewDHCPLeaseContext, """{"ResultType":"GetDHCPLeaseInformationResult","Message":"Warning"}"""],
-        [s_renewDHCPLeaseContext, """{"ResultType":"GetDHCPLeaseInformationResult","DHCPLease":null}"""],
-        [s_renewDHCPLeaseContext, """{"ResultType":"GetDHCPLeaseInformationResult","Status":"Warning","Message":"Warning"}"""],
-        [s_renewDHCPLeaseContext, """{"ResultType":"GetDHCPLeaseInformationResult","Status":"Warning","DHCPLease":null}"""],
-        [s_renewDHCPLeaseContext, """{"ResultType":"GetDHCPLeaseInformationResult","Message":"Warning","DHCPLease":null}"""],
-
         [s_serviceControlContext, """{"ResultType":"ServiceControlResult","Status":"Warning"}"""],
         [s_serviceControlContext, """{"ResultType":"ServiceControlResult","Message":"Warning"}"""],
 
@@ -383,9 +364,6 @@ public class SourceGeneratedTypeSerializerTests
 
         [s_getServiceStateContext, """{"ResultType":"GetServiceStateResult","Status":"Warning","Message":"Warning","ActiveState":"active","AdditionalMember":"Additional"}"""],
         [s_getServiceStateContext, """{"ResultType":"GetServiceStateResult","Status":"Warning","Message":"Warning","AdditionalMember":"Additional","ActiveState":"active"}"""],
-
-        [s_renewDHCPLeaseContext, $$"""{"ResultType":"GetDHCPLeaseInformationResult","Status":"Warning","Message":"Warning","DHCPLease":{{s_sampleDHCPLeaseJson}},"AdditionalMember":"Additional"}"""],
-        [s_renewDHCPLeaseContext, $$"""{"ResultType":"GetDHCPLeaseInformationResult","Status":"Warning","Message":"Warning","AdditionalMember":"Additional","DHCPLease":{{s_sampleDHCPLeaseJson}}}"""],
 
         [s_serviceControlContext, """{"ResultType":"ServiceControlResult","Status":"Warning","Message":"Warning","AdditionalMember":"Additional"}"""],
         [s_serviceControlContext, """{"ResultType":"ServiceControlResult","AdditionalMember":"Additional","Status":"Warning","Message":"Warning"}"""],
@@ -438,7 +416,6 @@ public class SourceGeneratedTypeSerializerTests
 
         [s_getServiceStateContext, """{"ResultType":"GetServiceStateResult","Status":"Warning","Message":"Warning","ActiveState":"active"}"""],
 
-        [s_renewDHCPLeaseContext, $$"""{"ResultType":"GetDHCPLeaseInformationResult","Status":"Warning","Message":"Warning","DHCPLease":{{s_sampleDHCPLeaseJson}}}"""],
         [s_serviceControlContext, """{"ResultType":"ServiceControlResult","Status":"Success","Message":"Success"}"""],
         [s_updateSystemContext, """{"ResultType":"SystemControlResult","Status":"Success","Message":"Success"}"""],
         [s_restartSystemContext, """{"ResultType":"SystemControlResult","Status":"Success","Message":"Success"}"""],
@@ -551,7 +528,7 @@ public class SourceGeneratedTypeSerializerTests
 
         [Theory]
         [MemberData(nameof(ValidMemberData))]
-        public void ShouldReturnGetSystemConfigurationResult_WhenJsonValid<TType>(
+        public void ShouldReturnResultType_WhenJsonValid<TType>(
             JsonTypeInfo<TType> jsonTypeInfo,
             string json)
         {
@@ -567,7 +544,7 @@ public class SourceGeneratedTypeSerializerTests
     {
         [Theory]
         [MemberData(nameof(ValidMemberData))]
-        public void ShouldSerializeResult_WhenCalled<TType>(
+        public void ShouldSerializeResultType_WhenCalled<TType>(
             JsonTypeInfo<TType> jsonTypeInfo,
             string json)
         {

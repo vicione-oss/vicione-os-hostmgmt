@@ -1,8 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.SystemConfig;
+using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Services;
 
@@ -170,9 +170,11 @@ internal sealed partial class DHCPLeaseService(ILogger logger)
     private static bool IsDHCPLeaseNull(OperationStatus status, DHCPLease dhcpLease)
         => status == OperationStatus.Success && dhcpLease.LeaseObtained is null;
 
-    private GetDHCPLeaseInformationResult LogAndReturnGetDHCPLeaseFailed(string additionalMessage)
+    private GetDHCPLeaseInformationResult LogAndReturnGetDHCPLeaseFailed(
+        string additionalMessage,
+        bool wasRenewal = false)
     {
-        var simpleMessage = ServicesResources.GetDHCPLeaseFailed;
+        var simpleMessage = wasRenewal ? ServicesResources.RenewDHCPLeaseFailed : ServicesResources.GetDHCPLeaseFailed;
         var message = simpleMessage + Environment.NewLine + additionalMessage;
 
         GetDHCPLeaseFailed(_logger, message);
@@ -186,19 +188,7 @@ internal sealed partial class DHCPLeaseService(ILogger logger)
     }
 
     private GetDHCPLeaseInformationResult LogAndReturnRenewDHCPLeaseFailed(string additionalMessage)
-    {
-        var simpleMessage = ServicesResources.RenewDHCPLeaseFailed;
-        var message = simpleMessage + Environment.NewLine + additionalMessage;
-
-        RenewDHCPLeaseFailed(_logger, message);
-
-        return new GetDHCPLeaseInformationResult
-        {
-            Status = OperationStatus.Error,
-            Message = simpleMessage,
-            DHCPLease = null,
-        };
-    }
+        => LogAndReturnGetDHCPLeaseFailed(additionalMessage, true);
 
     [LoggerMessage(LogLevel.Warning, "{InnerMessage}")]
     private static partial void GetDHCPLeaseCanceled(ILogger logger, string? innerMessage);

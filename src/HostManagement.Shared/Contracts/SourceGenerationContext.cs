@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Contracts.NetworkStatus;
 using HostManagement.Shared.Contracts.System;
 
@@ -13,6 +14,7 @@ namespace HostManagement.Shared.Contracts;
     UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
     UseStringEnumConverter = true)]
 [JsonSerializable(typeof(SystemConfiguration))]
+[JsonSerializable(typeof(DHCPLease))]
 [JsonSerializable(typeof(NetworkStatusInformation))]
 [JsonSerializable(typeof(SignedDebianPackage))]
 public partial class SourceGenerationContext : JsonSerializerContext;

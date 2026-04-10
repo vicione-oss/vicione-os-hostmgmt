@@ -114,13 +114,6 @@ public class NetworkInterfacesConfigurationAdapterTests
                 .ExecuteGetInterfaceIPv4SettingsScript(Lan1)
                 .Returns((OperationStatus.Success, new() { DHCPEnabled = dhcpEnabled }));
 
-            if (dhcpEnabled)
-            {
-                scriptHandler
-                    .ExecuteGetInterfaceIPv4DHCPLeaseScript(Lan1)
-                    .Returns((OperationStatus.Success, new() { LeaseExpires = DateTimeOffset.UtcNow }));
-            }
-
             var sut = CreateSut(scriptHandler);
             var config = new SystemConfiguration();
 
@@ -136,17 +129,7 @@ public class NetworkInterfacesConfigurationAdapterTests
             networkInterface.CommonInformation.Name.Should().Be(Lan1);
             networkInterface.IPv4.Should().NotBeNull();
 
-            if (dhcpEnabled)
-            {
-                _ = await scriptHandler.Received(1).ExecuteGetInterfaceIPv4DHCPLeaseScript(Lan1);
-                networkInterface.IPv4.DHCPLease.Should().NotBeNull();
-                networkInterface.IPv4.DHCPLease.LeaseExpires.Should().NotBe(default);
-            }
-            else
-            {
-                _ = await scriptHandler.DidNotReceive().ExecuteGetInterfaceIPv4DHCPLeaseScript(Lan1);
-                networkInterface.IPv4.DHCPLease.Should().BeNull();
-            }
+            _ = await scriptHandler.DidNotReceive().ExecuteGetInterfaceIPv4DHCPLeaseScript(Lan1);
         }
     }
 

@@ -304,12 +304,12 @@ internal static class NamedPipeRequestHelper
         {
             namedPipeMessage = await SendNamedPipeRequest(topic, interfaceName, cancellationToken);
 
-            var renewDhcpLeaseResult = SourceGeneratedTypeSerializer
+            var getDHCPLeaseInformationResult = SourceGeneratedTypeSerializer
                 .Deserialize(
                     namedPipeMessage.Content,
                     CommunicationJsonContext.Default.GetDHCPLeaseInformationResult);
 
-            return renewDhcpLeaseResult.DHCPLease;
+            return getDHCPLeaseInformationResult.DHCPLease;
         }
         catch (Exception ex)
         {

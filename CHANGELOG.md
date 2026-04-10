@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Validation: Removed obsolete method `Validate` in `SystemConfigurationValidator`
 - Shared: Removed installation of ViciOne Suite via update server (was replaced with generic functionality in [1.2.0](#120---2025-12-02))
+- Removed obsolete `FallbackNTPServers` from `SystemConfiguration` (separate `GetNTPFallbackInformation` request was added in [1.0.0](#100---2025-07-17))
+- Removed obsolete `DHCPLease` from `SystemConfiguration` (separate `GetDHCPLeaseInformation` request was added in [1.0.0](#100---2025-07-17))
+- Removed obsolete `RenewDHCPLeaseResult` (new `GetDHCPLeaseInformationResult` was added in [1.0.0](#100---2025-07-17))
 
 ### Fixed
 
