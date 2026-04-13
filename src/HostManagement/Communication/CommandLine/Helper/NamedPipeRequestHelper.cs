@@ -260,31 +260,13 @@ internal static class NamedPipeRequestHelper
     /// <summary>
     /// Sends a named pipe request to get the DHCP lease information.
     /// </summary>
-    /// <param name="interfaceName">The interface name for which the DHCP lease information shall
-    /// be retrieved.</param>
+    /// <param name="interfaceName">
+    /// The interface name for which the DHCP lease information shall be retrieved.
+    /// </param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The <see cref="DHCPLease"/> or <see langword="null"/> if the request failed.</returns>
-    internal static async Task<DHCPLease?> GetDHCPLeaseInformation(string interfaceName)
-    {
-        var topic = Topics.GetDHCPLeaseInformation;
-        NamedPipeMessage? namedPipeMessage = null;
-
-        try
-        {
-            namedPipeMessage = await SendNamedPipeRequest(topic, interfaceName);
-
-            var getDhcpLeaseResult = SourceGeneratedTypeSerializer
-                .Deserialize(
-                    namedPipeMessage.Content,
-                    CommunicationJsonContext.Default.GetDHCPLeaseInformationResult);
-
-            return getDhcpLeaseResult.DHCPLease;
-        }
-        catch (Exception ex)
-        {
-            OutputException(topic, namedPipeMessage, ex);
-            return null;
-        }
-    }
+    internal static async Task<DHCPLease?> GetDHCPLeaseInformation(string interfaceName, CancellationToken cancellationToken)
+        => await GetDHCPLease(Topics.GetDHCPLeaseInformation, interfaceName, cancellationToken);
 
     /// <summary>
     /// Sends a named pipe request to renew the DHCP lease.
@@ -293,27 +275,7 @@ internal static class NamedPipeRequestHelper
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The <see cref="DHCPLease"/> or <see langword="null"/> if renewing the DHCP lease failed.</returns>
     internal static async Task<DHCPLease?> RenewDHCPLease(string interfaceName, CancellationToken cancellationToken)
-    {
-        var topic = Topics.RenewDHCPLease;
-        NamedPipeMessage? namedPipeMessage = null;
-
-        try
-        {
-            namedPipeMessage = await SendNamedPipeRequest(topic, interfaceName, cancellationToken);
-
-            var getDHCPLeaseInformationResult = SourceGeneratedTypeSerializer
-                .Deserialize(
-                    namedPipeMessage.Content,
-                    CommunicationJsonContext.Default.GetDHCPLeaseInformationResult);
-
-            return getDHCPLeaseInformationResult.DHCPLease;
-        }
-        catch (Exception ex)
-        {
-            OutputException(topic, namedPipeMessage, ex);
-            return null;
-        }
-    }
+        => await GetDHCPLease(Topics.RenewDHCPLease, interfaceName, cancellationToken);
 
     /// <summary>
     /// Sends a named pipe request to reset the specified network interface to its default configuration.
@@ -603,6 +565,31 @@ internal static class NamedPipeRequestHelper
         {
             OutputException(topic, namedPipeMessage, ex);
             return false;
+        }
+    }
+
+    private static async Task<DHCPLease?> GetDHCPLease(
+        string topic,
+        string interfaceName,
+        CancellationToken cancellationToken)
+    {
+        NamedPipeMessage? namedPipeMessage = null;
+
+        try
+        {
+            namedPipeMessage = await SendNamedPipeRequest(topic, interfaceName, cancellationToken);
+
+            var getDHCPLeaseInformationResult = SourceGeneratedTypeSerializer
+                .Deserialize(
+                    namedPipeMessage.Content,
+                    CommunicationJsonContext.Default.GetDHCPLeaseInformationResult);
+
+            return getDHCPLeaseInformationResult.DHCPLease;
+        }
+        catch (Exception ex)
+        {
+            OutputException(topic, namedPipeMessage, ex);
+            return null;
         }
     }
 
