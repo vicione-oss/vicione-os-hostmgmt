@@ -284,33 +284,7 @@ internal static class NamedPipeRequestHelper
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns><see langword="true"/> if successful, otherwise <see langword="false"/></returns>
     internal static async Task<bool> ResetNetworkInterface(string interfaceName, CancellationToken cancellationToken)
-    {
-        var topic = Topics.ResetNetworkInterface;
-        NamedPipeMessage? namedPipeMessage = null;
-
-        try
-        {
-            namedPipeMessage = await SendNamedPipeRequest(topic, interfaceName, cancellationToken);
-
-            var systemControlResult = SourceGeneratedTypeSerializer
-                .Deserialize(
-                    namedPipeMessage.Content,
-                    CommunicationJsonContext.Default.SystemControlResult);
-
-            if (systemControlResult.Status == OperationStatus.Error)
-            {
-                OutputError(topic, systemControlResult);
-                return false;
-            }
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            OutputException(topic, namedPipeMessage, ex);
-            return false;
-        }
-    }
+        => await ControlSystem(Topics.ResetNetworkInterface, interfaceName, cancellationToken);
 
     /// <summary>
     /// Sends a named pipe request to redeploy the application scripts.
@@ -435,33 +409,7 @@ internal static class NamedPipeRequestHelper
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns><see langword="true"/> if successful, otherwise <see langword="false"/></returns>
     internal static async Task<bool> ResetSystem(CancellationToken cancellationToken)
-    {
-        var topic = Topics.ResetSystem;
-        NamedPipeMessage? namedPipeMessage = null;
-
-        try
-        {
-            namedPipeMessage = await SendNamedPipeRequest(topic, null, cancellationToken);
-
-            var systemControlResult = SourceGeneratedTypeSerializer
-                .Deserialize(
-                    namedPipeMessage.Content,
-                    CommunicationJsonContext.Default.SystemControlResult);
-
-            if (systemControlResult.Status == OperationStatus.Error)
-            {
-                OutputError(topic, systemControlResult);
-                return false;
-            }
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            OutputException(topic, namedPipeMessage, ex);
-            return false;
-        }
-    }
+        => await ControlSystem(Topics.UpdateSystem, null, cancellationToken);
 
     /// <summary>
     /// Sends a named pipe request to restart the system.
@@ -488,13 +436,15 @@ internal static class NamedPipeRequestHelper
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns><see langword="true"/> if successful, otherwise <see langword="false"/></returns>
     internal static async Task<bool> UpdateSystem(string filePath, CancellationToken cancellationToken)
+        => await ControlSystem(Topics.UpdateSystem, filePath, cancellationToken);
+
+    private static async Task<bool> ControlSystem(string topic, string? content, CancellationToken cancellationToken)
     {
-        var topic = Topics.UpdateSystem;
         NamedPipeMessage? namedPipeMessage = null;
 
         try
         {
-            namedPipeMessage = await SendNamedPipeRequest(topic, filePath, cancellationToken);
+            namedPipeMessage = await SendNamedPipeRequest(topic, content, cancellationToken);
 
             var systemControlResult = SourceGeneratedTypeSerializer
                 .Deserialize(
