@@ -470,33 +470,7 @@ internal static class NamedPipeRequestHelper
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>An optional message.</returns>
     internal static async Task<string?> RestartSystem(int delayInSeconds, CancellationToken cancellationToken)
-    {
-        var topic = Topics.RestartSystem;
-        NamedPipeMessage? namedPipeMessage = null;
-
-        try
-        {
-            namedPipeMessage = await SendNamedPipeRequest(topic, delayInSeconds.ToString(), cancellationToken);
-
-            var systemControlResult = SourceGeneratedTypeSerializer
-                .Deserialize(
-                    namedPipeMessage.Content,
-                    CommunicationJsonContext.Default.SystemControlResult);
-
-            if (systemControlResult.Status == OperationStatus.Error)
-            {
-                OutputError(topic, systemControlResult);
-                return null;
-            }
-
-            return systemControlResult.Message;
-        }
-        catch (Exception ex)
-        {
-            OutputException(topic, namedPipeMessage, ex);
-            return null;
-        }
-    }
+        => await ShutdownOrRestart(Topics.RestartSystem, delayInSeconds, cancellationToken);
 
     /// <summary>
     /// Sends a named pipe request to shutdown the system.
@@ -505,33 +479,7 @@ internal static class NamedPipeRequestHelper
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>An optional message.</returns>
     internal static async Task<string?> ShutdownSystem(int delayInSeconds, CancellationToken cancellationToken)
-    {
-        var topic = Topics.ShutdownSystem;
-        NamedPipeMessage? namedPipeMessage = null;
-
-        try
-        {
-            namedPipeMessage = await SendNamedPipeRequest(topic, delayInSeconds.ToString(), cancellationToken);
-
-            var systemControlResult = SourceGeneratedTypeSerializer
-                .Deserialize(
-                    namedPipeMessage.Content,
-                    CommunicationJsonContext.Default.SystemControlResult);
-
-            if (systemControlResult.Status == OperationStatus.Error)
-            {
-                OutputError(topic, systemControlResult);
-                return null;
-            }
-
-            return systemControlResult.Message;
-        }
-        catch (Exception ex)
-        {
-            OutputException(topic, namedPipeMessage, ex);
-            return null;
-        }
-    }
+        => await ShutdownOrRestart(Topics.ShutdownSystem, delayInSeconds, cancellationToken);
 
     /// <summary>
     /// Sends a named pipe request to update the system.
@@ -585,6 +533,37 @@ internal static class NamedPipeRequestHelper
                     CommunicationJsonContext.Default.GetDHCPLeaseInformationResult);
 
             return getDHCPLeaseInformationResult.DHCPLease;
+        }
+        catch (Exception ex)
+        {
+            OutputException(topic, namedPipeMessage, ex);
+            return null;
+        }
+    }
+
+    private static async Task<string?> ShutdownOrRestart(
+        string topic,
+        int delayInSeconds,
+        CancellationToken cancellationToken)
+    {
+        NamedPipeMessage? namedPipeMessage = null;
+
+        try
+        {
+            namedPipeMessage = await SendNamedPipeRequest(topic, delayInSeconds.ToString(), cancellationToken);
+
+            var systemControlResult = SourceGeneratedTypeSerializer
+                .Deserialize(
+                    namedPipeMessage.Content,
+                    CommunicationJsonContext.Default.SystemControlResult);
+
+            if (systemControlResult.Status == OperationStatus.Error)
+            {
+                OutputError(topic, systemControlResult);
+                return null;
+            }
+
+            return systemControlResult.Message;
         }
         catch (Exception ex)
         {
