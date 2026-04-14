@@ -31,8 +31,6 @@ internal sealed class GetServiceStateRequestHandler(ILogger logger) : RequestHan
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(messageContent, nameof(messageContent));
-
             var scriptResult = new Result();
             var scriptHandler = new ScriptHandler(scriptResult);
 

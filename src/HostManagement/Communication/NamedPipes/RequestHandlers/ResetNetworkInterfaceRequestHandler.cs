@@ -1,4 +1,4 @@
-﻿using System.IO.Abstractions;
+using System.IO.Abstractions;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using HostManagement.Shared.Communication;
@@ -30,8 +30,6 @@ internal sealed class ResetNetworkInterfaceRequestHandler : RequestHandler<Syste
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(messageContent, nameof(messageContent));
-
             var fileSystem = new FileSystem();
             var configurationService = new SystemConfigurationService(
                 fileSystem,

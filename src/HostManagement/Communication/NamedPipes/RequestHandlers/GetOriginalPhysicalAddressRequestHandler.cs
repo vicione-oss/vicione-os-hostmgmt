@@ -28,8 +28,6 @@ internal sealed class GetOriginalPhysicalAddressRequestHandler(ILogger logger)
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(messageContent, nameof(messageContent));
-
             var service = new PhysicalAddressService(logger);
             var result = await service.GetOriginalPhysicalAddress(messageContent, cancellationToken);
 

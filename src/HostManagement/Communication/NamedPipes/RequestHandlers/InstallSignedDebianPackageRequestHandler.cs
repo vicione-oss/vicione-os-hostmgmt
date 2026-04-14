@@ -34,8 +34,6 @@ internal sealed class InstallSignedDebianPackageRequestHandler(ILogger logger) :
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(messageContent, nameof(messageContent));
-
             var signedDebianPackage = JsonSerializer
                 .Deserialize(messageContent, SharedJsonContext.Default.SignedDebianPackage)
                 ?? throw new InvalidOperationException(

@@ -30,8 +30,6 @@ internal sealed class RenewDHCPLeaseRequestHandler(ILogger logger) : RequestHand
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(messageContent, nameof(messageContent));
-
             var service = new DHCPLeaseService(logger);
             var result = await service.RenewDHCPLease(messageContent, cancellationToken);
 

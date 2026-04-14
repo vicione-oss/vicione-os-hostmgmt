@@ -32,8 +32,6 @@ internal sealed class GetNetworkStatusInformationRequestHandler(ILogger logger)
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(messageContent, nameof(messageContent));
-
             var scriptResult = new Result();
             var scriptHandler = new ScriptHandler(scriptResult);
             var service = new NetworkStatusService(logger, scriptHandler, scriptResult);

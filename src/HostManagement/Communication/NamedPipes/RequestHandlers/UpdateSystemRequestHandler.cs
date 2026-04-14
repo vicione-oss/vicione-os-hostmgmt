@@ -31,8 +31,6 @@ internal sealed class UpdateSystemRequestHandler(ILogger logger) : RequestHandle
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(messageContent, nameof(messageContent));
-
             var scriptResult = new Result();
             var scriptHandler = new ScriptHandler(scriptResult);
             var signatureValidator = new MinisignSignedDebianPackageSignatureValidator();
