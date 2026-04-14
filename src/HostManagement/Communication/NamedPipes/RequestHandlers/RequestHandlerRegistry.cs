@@ -28,39 +28,37 @@ internal sealed class RequestHandlerRegistry(TargetEnvironment targetEnvironment
         NamedPipeMessage message,
         CancellationToken cancellationToken)
     {
-        if (message.Topic is null)
+        var topic = message.Topic;
+        var content = message.Content;
+
+        if (topic is null)
             return message.CreateDefaultResponse("Error processing request. Message topic was null.");
 
-        if (IsTopicInvalid(message.Topic))
-            return message.CreateDefaultResponse($"Error processing request. Topic '{message.Topic}' is invalid.");
+        if (IsTopicInvalid(topic))
+            return message.CreateDefaultResponse($"Error processing request. Topic '{topic}' is invalid.");
 
-
-        if (!_handlers.TryGetValue(message.Topic, out var handler))
-            return message.CreateDefaultResponse($"No handler registered for topic '{message.Topic}'.");
+        if (!_handlers.TryGetValue(topic, out var handler))
+            return message.CreateDefaultResponse($"No handler registered for topic '{topic}'.");
 
         try
         {
-            string response;
+            if (!IsHandlerSupported(handler))
+            {
+                return message.CreateResponse(
+                    JsonSerializer.Serialize(
+                        handler.CreateErrorInstance($"Handler with topic '{topic}' not supported on this platform."),
+                        handler.JsonTypeInfo));
+            }
 
-            if (IsHandlerSupported(handler))
+            if (IsRequiredContentMissing(topic, content))
             {
-                if (IsRequiredContentMissing(message.Topic, message.Content))
-                {
-                    response = JsonSerializer.Serialize(
-                        handler.CreateErrorInstance($"Handler with topic '{message.Topic}' requires a message content."),
-                        handler.JsonTypeInfo);
-                }
-                else
-                {
-                    response = await handler.HandleAsync(message.Content, cancellationToken).ConfigureAwait(false);
-                }
+                return message.CreateResponse(
+                    JsonSerializer.Serialize(
+                        handler.CreateErrorInstance($"Handler with topic '{topic}' requires a message content."),
+                        handler.JsonTypeInfo));
             }
-            else
-            {
-                response = JsonSerializer.Serialize(
-                    handler.CreateErrorInstance($"Handler with topic '{message.Topic}' not supported on this platform."),
-                    handler.JsonTypeInfo);
-            }
+
+            var response = await handler.HandleAsync(content, cancellationToken).ConfigureAwait(false);
 
             return message.CreateResponse(response);
         }
