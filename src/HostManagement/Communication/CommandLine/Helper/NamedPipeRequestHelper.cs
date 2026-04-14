@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization.Metadata;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Communication.NamedPipes.Client;
 using HostManagement.Shared.Communication;
@@ -34,34 +35,24 @@ internal static class NamedPipeRequestHelper
     internal static async Task<SystemConfiguration?> GetConfiguration(CancellationToken cancellationToken)
     {
         var topic = Topics.GetSystemConfiguration;
-        NamedPipeMessage? namedPipeMessage = null;
 
-        try
+        var getConfigResult = await SendNamedPipeRequest(
+            CommunicationJsonContext.Default.GetSystemConfigurationResult,
+            topic,
+            null,
+            cancellationToken);
+
+        if (getConfigResult.Status == OperationStatus.Error ||
+            getConfigResult.Configuration is null)
         {
-            namedPipeMessage = await SendNamedPipeRequest(topic, null, cancellationToken);
-
-            var getConfigResult = SourceGeneratedTypeSerializer
-                .Deserialize(
-                    namedPipeMessage.Content,
-                    CommunicationJsonContext.Default.GetSystemConfigurationResult);
-
-            if (getConfigResult.Status == OperationStatus.Error ||
-                getConfigResult.Configuration is null)
-            {
-                OutputError(topic, getConfigResult);
-                return null;
-            }
-
-            if (getConfigResult.Status == OperationStatus.Warning)
-                OutputWarning(topic, getConfigResult);
-
-            return getConfigResult.Configuration;
-        }
-        catch (Exception ex)
-        {
-            OutputException(topic, namedPipeMessage, ex);
+            OutputError(topic, getConfigResult);
             return null;
         }
+
+        if (getConfigResult.Status == OperationStatus.Warning)
+            OutputWarning(topic, getConfigResult);
+
+        return getConfigResult.Configuration;
     }
 
     /// <summary>
@@ -73,35 +64,36 @@ internal static class NamedPipeRequestHelper
     internal static async Task<bool> SetConfiguration(SystemConfiguration config, CancellationToken cancellationToken)
     {
         var topic = Topics.SetSystemConfiguration;
-        NamedPipeMessage? namedPipeMessage = null;
+        string? systemConfigurationJson;
 
         try
         {
-            var systemConfigurationJson = SystemConfigurationSerializer.Serialize(config);
-
-            namedPipeMessage = await SendNamedPipeRequest(topic, systemConfigurationJson, cancellationToken);
-
-            var setConfigResult = SourceGeneratedTypeSerializer
-                .Deserialize(
-                    namedPipeMessage.Content,
-                    CommunicationJsonContext.Default.SetSystemConfigurationResult);
-
-            if (setConfigResult.Status == OperationStatus.Error)
-            {
-                OutputError(topic, setConfigResult);
-                return false;
-            }
-
-            if (setConfigResult.Status == OperationStatus.Warning)
-                OutputWarning(topic, setConfigResult);
-
-            return true;
+            systemConfigurationJson = SystemConfigurationSerializer.Serialize(config);
         }
         catch (Exception ex)
         {
-            OutputException(topic, namedPipeMessage, ex);
+            var message = $"Could not serialize system configuration for request with topic '{topic}'. {ex.Message}";
+
+            SimpleOutput.WriteLineError(message);
             return false;
         }
+
+        var setConfigResult = await SendNamedPipeRequest(
+            CommunicationJsonContext.Default.SetSystemConfigurationResult,
+            topic,
+            systemConfigurationJson,
+            cancellationToken);
+
+        if (setConfigResult.Status == OperationStatus.Error)
+        {
+            OutputError(topic, setConfigResult);
+            return false;
+        }
+
+        if (setConfigResult.Status == OperationStatus.Warning)
+            OutputWarning(topic, setConfigResult);
+
+        return true;
     }
 
     /// <summary>
@@ -115,36 +107,26 @@ internal static class NamedPipeRequestHelper
         CancellationToken cancellationToken)
     {
         var topic = Topics.InstallSignedDebianPackage;
-        NamedPipeMessage? namedPipeMessage = null;
 
-        try
+        var installDebianPackageResult = await SendNamedPipeRequest(
+            CommunicationJsonContext.Default.SystemControlResult,
+            topic,
+            messageContent,
+            cancellationToken);
+
+        if (installDebianPackageResult.Status == OperationStatus.Error)
         {
-            namedPipeMessage = await SendNamedPipeRequest(topic, messageContent, cancellationToken);
-
-            var installDebianPackageResult = SourceGeneratedTypeSerializer
-                .Deserialize(
-                    namedPipeMessage.Content,
-                    CommunicationJsonContext.Default.SystemControlResult);
-
-            if (installDebianPackageResult.Status == OperationStatus.Error)
-            {
-                OutputError(topic, installDebianPackageResult);
-                return false;
-            }
-
-            if (installDebianPackageResult.Status == OperationStatus.Warning)
-            {
-                OutputWarning(topic, installDebianPackageResult);
-                return false;
-            }
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            OutputException(topic, namedPipeMessage, ex);
+            OutputError(topic, installDebianPackageResult);
             return false;
         }
+
+        if (installDebianPackageResult.Status == OperationStatus.Warning)
+        {
+            OutputWarning(topic, installDebianPackageResult);
+            return false;
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -154,30 +136,19 @@ internal static class NamedPipeRequestHelper
     internal static async Task<List<string>> GetNTPFallbackInformation()
     {
         var topic = Topics.GetNTPFallbackInformation;
-        NamedPipeMessage? namedPipeMessage = null;
 
-        try
+        var ntpFallbackInformationResult = await SendNamedPipeRequest(
+            CommunicationJsonContext.Default.GetNTPFallbackInformationResult,
+            topic,
+            null);
+
+        if (ntpFallbackInformationResult.Status == OperationStatus.Error)
         {
-            namedPipeMessage = await SendNamedPipeRequest(topic, null);
-
-            var ntpFallbackInformationResult = SourceGeneratedTypeSerializer
-                .Deserialize(
-                    namedPipeMessage.Content,
-                    CommunicationJsonContext.Default.GetNTPFallbackInformationResult);
-
-            if (ntpFallbackInformationResult.Status == OperationStatus.Error)
-            {
-                OutputError(topic, ntpFallbackInformationResult);
-                return [];
-            }
-
-            return ntpFallbackInformationResult.FallbackNTPServers;
-        }
-        catch (Exception ex)
-        {
-            OutputException(topic, namedPipeMessage, ex);
+            OutputError(topic, ntpFallbackInformationResult);
             return [];
         }
+
+        return ntpFallbackInformationResult.FallbackNTPServers;
     }
 
     /// <summary>
@@ -189,31 +160,20 @@ internal static class NamedPipeRequestHelper
     internal static async Task<string?> GetOriginalPhysicalAddress(string interfaceName)
     {
         var topic = Topics.GetOriginalPhysicalAddress;
-        NamedPipeMessage? namedPipeMessage = null;
 
-        try
+        var originalPhysicalAddressResult = await SendNamedPipeRequest(
+            CommunicationJsonContext.Default.GetOriginalPhysicalAddressResult,
+            topic,
+            interfaceName);
+
+        if (originalPhysicalAddressResult.Status == OperationStatus.Error ||
+            originalPhysicalAddressResult.OriginalPhysicalAddress is null)
         {
-            namedPipeMessage = await SendNamedPipeRequest(topic, interfaceName);
-
-            var originalPhysicalAddressResult = SourceGeneratedTypeSerializer
-                .Deserialize(
-                    namedPipeMessage.Content,
-                    CommunicationJsonContext.Default.GetOriginalPhysicalAddressResult);
-
-            if (originalPhysicalAddressResult.Status == OperationStatus.Error ||
-                originalPhysicalAddressResult.OriginalPhysicalAddress is null)
-            {
-                OutputError(topic, originalPhysicalAddressResult);
-                return null;
-            }
-
-            return originalPhysicalAddressResult.OriginalPhysicalAddress;
-        }
-        catch (Exception ex)
-        {
-            OutputException(topic, namedPipeMessage, ex);
+            OutputError(topic, originalPhysicalAddressResult);
             return null;
         }
+
+        return originalPhysicalAddressResult.OriginalPhysicalAddress;
     }
 
     /// <summary>
@@ -228,33 +188,23 @@ internal static class NamedPipeRequestHelper
         CancellationToken cancellationToken)
     {
         var topic = Topics.GetNetworkStatusInformation;
-        NamedPipeMessage? namedPipeMessage = null;
 
-        try
+        var networkStatusResult = await SendNamedPipeRequest(
+            CommunicationJsonContext.Default.GetNetworkStatusInformationResult,
+            topic,
+            interfaceName,
+            cancellationToken);
+
+        if (networkStatusResult.Status == OperationStatus.Error)
         {
-            namedPipeMessage = await SendNamedPipeRequest(topic, interfaceName, cancellationToken);
-
-            var networkStatusResult = SourceGeneratedTypeSerializer
-                .Deserialize(
-                    namedPipeMessage.Content,
-                    CommunicationJsonContext.Default.GetNetworkStatusInformationResult);
-
-            if (networkStatusResult.Status == OperationStatus.Error)
-            {
-                OutputError(topic, networkStatusResult);
-                return null;
-            }
-
-            if (networkStatusResult.Status == OperationStatus.Warning)
-                OutputWarning(topic, networkStatusResult);
-
-            return networkStatusResult.NetworkStatusInformation;
-        }
-        catch (Exception ex)
-        {
-            OutputException(topic, namedPipeMessage, ex);
+            OutputError(topic, networkStatusResult);
             return null;
         }
+
+        if (networkStatusResult.Status == OperationStatus.Warning)
+            OutputWarning(topic, networkStatusResult);
+
+        return networkStatusResult.NetworkStatusInformation;
     }
 
     /// <summary>
@@ -294,30 +244,20 @@ internal static class NamedPipeRequestHelper
     internal static async Task<bool> RedeployScripts(CancellationToken cancellationToken)
     {
         var topic = Topics.RedeployScripts;
-        NamedPipeMessage? namedPipeMessage = null;
 
-        try
+        var redeployScriptsResult = await SendNamedPipeRequest(
+            CommunicationJsonContext.Default.RedeployScriptsResult,
+            topic,
+            null,
+            cancellationToken);
+
+        if (redeployScriptsResult.Status == OperationStatus.Error)
         {
-            namedPipeMessage = await SendNamedPipeRequest(topic, null, cancellationToken);
-
-            var redeployScriptsResult = SourceGeneratedTypeSerializer
-                .Deserialize(
-                    namedPipeMessage.Content,
-                    CommunicationJsonContext.Default.RedeployScriptsResult);
-
-            if (redeployScriptsResult.Status == OperationStatus.Error)
-            {
-                OutputError(topic, redeployScriptsResult);
-                return false;
-            }
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            OutputException(topic, namedPipeMessage, ex);
+            OutputError(topic, redeployScriptsResult);
             return false;
         }
+
+        return true;
     }
 
     /// <summary>
@@ -331,30 +271,20 @@ internal static class NamedPipeRequestHelper
         CancellationToken cancellationToken)
     {
         var topic = Topics.GetServiceState;
-        NamedPipeMessage? namedPipeMessage = null;
 
-        try
+        var getServiceStateResult = await SendNamedPipeRequest(
+            CommunicationJsonContext.Default.GetServiceStateResult,
+            topic,
+            systemdUnitName,
+            cancellationToken);
+
+        if (getServiceStateResult.Status == OperationStatus.Error)
         {
-            namedPipeMessage = await SendNamedPipeRequest(topic, systemdUnitName, cancellationToken);
-
-            var getServiceStateResult = SourceGeneratedTypeSerializer
-                .Deserialize(
-                    namedPipeMessage.Content,
-                    CommunicationJsonContext.Default.GetServiceStateResult);
-
-            if (getServiceStateResult.Status == OperationStatus.Error)
-            {
-                OutputError(topic, getServiceStateResult);
-                return null;
-            }
-
-            return getServiceStateResult.ActiveState;
-        }
-        catch (Exception ex)
-        {
-            OutputException(topic, namedPipeMessage, ex);
+            OutputError(topic, getServiceStateResult);
             return null;
         }
+
+        return getServiceStateResult.ActiveState;
     }
 
     /// <summary>
@@ -369,8 +299,6 @@ internal static class NamedPipeRequestHelper
         ServiceControlAction controlAction,
         CancellationToken cancellationToken)
     {
-        NamedPipeMessage? namedPipeMessage = null;
-
         var topic = controlAction switch
         {
             ServiceControlAction.Start => Topics.StartService,
@@ -379,28 +307,19 @@ internal static class NamedPipeRequestHelper
             _ => throw new ArgumentOutOfRangeException(nameof(controlAction), controlAction, null)
         };
 
-        try
+        var serviceControlResult = await SendNamedPipeRequest(
+            CommunicationJsonContext.Default.ServiceControlResult,
+            topic,
+            systemdUnitName,
+            cancellationToken);
+
+        if (serviceControlResult.Status == OperationStatus.Error)
         {
-            namedPipeMessage = await SendNamedPipeRequest(topic, systemdUnitName, cancellationToken);
-
-            var serviceControlResult = SourceGeneratedTypeSerializer
-                .Deserialize(
-                    namedPipeMessage.Content,
-                    CommunicationJsonContext.Default.ServiceControlResult);
-
-            if (serviceControlResult.Status == OperationStatus.Error)
-            {
-                OutputError(topic, serviceControlResult);
-                return false;
-            }
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            OutputException(topic, namedPipeMessage, ex);
+            OutputError(topic, serviceControlResult);
             return false;
         }
+
+        return true;
     }
 
     /// <summary>
@@ -409,7 +328,7 @@ internal static class NamedPipeRequestHelper
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns><see langword="true"/> if successful, otherwise <see langword="false"/></returns>
     internal static async Task<bool> ResetSystem(CancellationToken cancellationToken)
-        => await ControlSystem(Topics.UpdateSystem, null, cancellationToken);
+        => await ControlSystem(Topics.ResetSystem, null, cancellationToken);
 
     /// <summary>
     /// Sends a named pipe request to restart the system.
@@ -440,30 +359,19 @@ internal static class NamedPipeRequestHelper
 
     private static async Task<bool> ControlSystem(string topic, string? content, CancellationToken cancellationToken)
     {
-        NamedPipeMessage? namedPipeMessage = null;
+        var systemControlResult = await SendNamedPipeRequest(
+            CommunicationJsonContext.Default.SystemControlResult,
+            topic,
+            content,
+            cancellationToken);
 
-        try
+        if (systemControlResult.Status == OperationStatus.Error)
         {
-            namedPipeMessage = await SendNamedPipeRequest(topic, content, cancellationToken);
-
-            var systemControlResult = SourceGeneratedTypeSerializer
-                .Deserialize(
-                    namedPipeMessage.Content,
-                    CommunicationJsonContext.Default.SystemControlResult);
-
-            if (systemControlResult.Status == OperationStatus.Error)
-            {
-                OutputError(topic, systemControlResult);
-                return false;
-            }
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            OutputException(topic, namedPipeMessage, ex);
+            OutputError(topic, systemControlResult);
             return false;
         }
+
+        return true;
     }
 
     private static async Task<DHCPLease?> GetDHCPLease(
@@ -471,24 +379,19 @@ internal static class NamedPipeRequestHelper
         string interfaceName,
         CancellationToken cancellationToken)
     {
-        NamedPipeMessage? namedPipeMessage = null;
+        var getDHCPLeaseInformationResult = await SendNamedPipeRequest(
+            CommunicationJsonContext.Default.GetDHCPLeaseInformationResult,
+            topic,
+            interfaceName,
+            cancellationToken);
 
-        try
+        if (getDHCPLeaseInformationResult.Status == OperationStatus.Error)
         {
-            namedPipeMessage = await SendNamedPipeRequest(topic, interfaceName, cancellationToken);
-
-            var getDHCPLeaseInformationResult = SourceGeneratedTypeSerializer
-                .Deserialize(
-                    namedPipeMessage.Content,
-                    CommunicationJsonContext.Default.GetDHCPLeaseInformationResult);
-
-            return getDHCPLeaseInformationResult.DHCPLease;
-        }
-        catch (Exception ex)
-        {
-            OutputException(topic, namedPipeMessage, ex);
+            OutputError(topic, getDHCPLeaseInformationResult);
             return null;
         }
+
+        return getDHCPLeaseInformationResult.DHCPLease;
     }
 
     private static async Task<string?> ShutdownOrRestart(
@@ -496,36 +399,27 @@ internal static class NamedPipeRequestHelper
         int delayInSeconds,
         CancellationToken cancellationToken)
     {
-        NamedPipeMessage? namedPipeMessage = null;
+        var systemControlResult = await SendNamedPipeRequest(
+            CommunicationJsonContext.Default.SystemControlResult,
+            topic,
+            delayInSeconds.ToString(),
+            cancellationToken);
 
-        try
+        if (systemControlResult.Status == OperationStatus.Error)
         {
-            namedPipeMessage = await SendNamedPipeRequest(topic, delayInSeconds.ToString(), cancellationToken);
-
-            var systemControlResult = SourceGeneratedTypeSerializer
-                .Deserialize(
-                    namedPipeMessage.Content,
-                    CommunicationJsonContext.Default.SystemControlResult);
-
-            if (systemControlResult.Status == OperationStatus.Error)
-            {
-                OutputError(topic, systemControlResult);
-                return null;
-            }
-
-            return systemControlResult.Message;
-        }
-        catch (Exception ex)
-        {
-            OutputException(topic, namedPipeMessage, ex);
+            OutputError(topic, systemControlResult);
             return null;
         }
+
+        return systemControlResult.Message;
     }
 
-    private static async Task<NamedPipeMessage> SendNamedPipeRequest(
+    private static async Task<T> SendNamedPipeRequest<T>(
+        JsonTypeInfo<T> jsonTypeInfo,
         string topic,
         string? content,
         CancellationToken cancellationToken = default)
+            where T : OperationResult, IOperationResultFactory<T>
     {
         PipeClient? client = null;
 
@@ -533,9 +427,11 @@ internal static class NamedPipeRequestHelper
         {
             client = new PipeClient("HostPipe", s_logger);
 
-            return content is null
+            var namedPipeMessage = content is null
                 ? await client.SendRequest(topic, cancellationToken: cancellationToken)
                 : await client.SendRequest(topic, content, cancellationToken);
+
+            return DeserializeNamedPipeMessageContent(jsonTypeInfo, namedPipeMessage);
         }
         finally
         {
@@ -556,14 +452,19 @@ internal static class NamedPipeRequestHelper
         }
     }
 
-    private static void OutputException(string topic, NamedPipeMessage? namedPipeMessage, Exception exception)
+    private static T DeserializeNamedPipeMessageContent<T>(JsonTypeInfo<T> jsonTypeInfo, NamedPipeMessage message)
+        where T : OperationResult, IOperationResultFactory<T>
     {
-        var message = $"Named pipe request for topic '{topic}' had an exception. {exception.Message}";
-
-        if (namedPipeMessage?.Content is string content)
-            message += $" Message content was: {content}";
-
-        SimpleOutput.WriteLineError(message);
+        try
+        {
+            return SourceGeneratedTypeSerializer.Deserialize(message.Content, jsonTypeInfo);
+        }
+        catch (Exception ex)
+        {
+            return T.CreateErrorResult(
+                $"Named pipe message content could not be deserialized for topic '{message.Topic}' " +
+                $"(Conversation ID: {message.ConversationId}). {ex.Message}");
+        }
     }
 
     private static void OutputError(string topic, OperationResult operationResult)
