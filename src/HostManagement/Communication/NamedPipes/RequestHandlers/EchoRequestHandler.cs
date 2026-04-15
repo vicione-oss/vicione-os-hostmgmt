@@ -40,8 +40,6 @@ internal sealed partial class EchoRequestHandler(PipeServer server, ILogger logg
     /// <inheritdoc/>
     public Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(messageContent, nameof(messageContent));
-
         HandlingEchoRequest(logger, messageContent);
 
         switch (messageContent)

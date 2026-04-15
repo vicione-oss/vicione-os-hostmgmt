@@ -32,8 +32,6 @@ internal sealed class StartServiceRequestHandler(ILogger logger) : RequestHandle
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(messageContent, nameof(messageContent));
-
             var scriptResult = new Result();
             var scriptHandler = new ScriptHandler(scriptResult);
 

@@ -32,8 +32,6 @@ internal sealed class SetSystemConfigurationRequestHandler : RequestHandler<SetS
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(messageContent, nameof(messageContent));
-
             var configToApply = SystemConfigurationSerializer.Deserialize(messageContent);
             var fileSystem = new FileSystem();
             var configurationService = new SystemConfigurationService(fileSystem, new SystemConfigurationPersistence(fileSystem), new ScriptHandler());

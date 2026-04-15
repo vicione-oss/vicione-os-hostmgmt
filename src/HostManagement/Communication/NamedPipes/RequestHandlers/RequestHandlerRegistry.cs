@@ -12,6 +12,9 @@ namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 /// <param name="targetEnvironment">The target environment.</param>
 internal sealed class RequestHandlerRegistry(TargetEnvironment targetEnvironment)
 {
+    private static readonly List<string> s_validTopics = [.. Topics.GetAllTopics()];
+    private static readonly List<string> s_topicsWithRequiredContent = [.. Topics.GetTopicsWithRequiredContent()];
+
     private readonly Dictionary<string, IRequestHandler> _handlers = [];
     private readonly TargetEnvironment _targetEnvironment = targetEnvironment;
 
@@ -25,31 +28,37 @@ internal sealed class RequestHandlerRegistry(TargetEnvironment targetEnvironment
         NamedPipeMessage message,
         CancellationToken cancellationToken)
     {
-        if (!_handlers.TryGetValue(message.Topic, out var handler))
-            return message.CreateDefaultResponse($"No handler registered for topic '{message.Topic}'.");
+        var topic = message.Topic;
+        var content = message.Content;
+
+        if (topic is null)
+            return message.CreateDefaultResponse("Error processing request. Message topic was null.");
+
+        if (IsTopicInvalid(topic))
+            return message.CreateDefaultResponse($"Error processing request. Topic '{topic}' is invalid.");
+
+        if (!_handlers.TryGetValue(topic, out var handler))
+            return message.CreateDefaultResponse($"No handler registered for topic '{topic}'.");
 
         try
         {
-            string response;
-
-            if (IsHandlerSupported(handler))
+            if (!IsHandlerSupported(handler))
             {
-                response = await handler.HandleAsync(message.Content, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                response = JsonSerializer.Serialize(
-                    handler.CreateErrorInstance($"Handler with topic '{message.Topic}' not supported on this platform."),
-                    handler.JsonTypeInfo);
+                return message.CreateResponse(
+                    JsonSerializer.Serialize(
+                        handler.CreateErrorInstance($"Handler with topic '{topic}' not supported on this platform."),
+                        handler.JsonTypeInfo));
             }
 
-            return message.CreateResponse(response);
-        }
-        catch (ArgumentException ex) when (ex.Message.Contains("messageContent"))
-        {
-            var response = JsonSerializer.Serialize(
-                handler.CreateErrorInstance("Error processing request. Message content was missing or empty."),
-                handler.JsonTypeInfo);
+            if (IsRequiredContentMissing(topic, content))
+            {
+                return message.CreateResponse(
+                    JsonSerializer.Serialize(
+                        handler.CreateErrorInstance($"Handler with topic '{topic}' requires a message content."),
+                        handler.JsonTypeInfo));
+            }
+
+            var response = await handler.HandleAsync(content, cancellationToken).ConfigureAwait(false);
 
             return message.CreateResponse(response);
         }
@@ -69,6 +78,11 @@ internal sealed class RequestHandlerRegistry(TargetEnvironment targetEnvironment
         if (!_handlers.TryAdd(handler.Topic, handler))
             throw new InvalidOperationException($"A handler for topic '{handler.Topic}' is already registered.");
     }
+
+    private static bool IsRequiredContentMissing(string topic, string content)
+        => s_topicsWithRequiredContent.Contains(topic) && string.IsNullOrWhiteSpace(content);
+
+    private static bool IsTopicInvalid(string topic) => !s_validTopics.Contains(topic);
 
     private bool IsHandlerSupported(IRequestHandler handler)
     {

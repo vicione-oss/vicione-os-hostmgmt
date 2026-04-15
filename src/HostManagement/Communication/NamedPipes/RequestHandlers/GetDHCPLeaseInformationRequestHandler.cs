@@ -31,8 +31,6 @@ internal sealed class GetDHCPLeaseInformationRequestHandler(ILogger logger)
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(messageContent, nameof(messageContent));
-
             var service = new DHCPLeaseService(logger);
             var result = await service.GetDHCPLeaseInformation(messageContent, cancellationToken);
 

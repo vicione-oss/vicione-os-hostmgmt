@@ -32,8 +32,6 @@ internal sealed class RestartServiceRequestHandler(ILogger logger) : RequestHand
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(messageContent, nameof(messageContent));
-
             var scriptResult = new Result();
             var scriptHandler = new ScriptHandler(scriptResult);
 

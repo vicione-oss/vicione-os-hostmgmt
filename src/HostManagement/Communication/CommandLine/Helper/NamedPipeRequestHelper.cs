@@ -19,9 +19,6 @@ namespace HostManagement.Communication.CommandLine.Helper;
 /// </summary>
 internal static class NamedPipeRequestHelper
 {
-    private static readonly List<string> s_validTopics = [.. Topics.GetAllTopics()];
-    private static readonly List<string> s_topicsWithRequiredContent = [.. Topics.GetTopicsWithRequiredContent()];
-
     /*
      * The only usage of the logger is the 'PipeClient'. Other console output is done via 'SimpleOutput' class.
      * We have to use 'LogLevel' directly because 'EnvironmentVariables.LogLevel' can't be used in a non-daemon context.
@@ -619,12 +616,6 @@ internal static class NamedPipeRequestHelper
         try
         {
             client = new PipeClient("HostPipe", s_logger);
-
-            if (!s_validTopics.Contains(topic))
-                throw new InvalidOperationException($"Topic '{topic}' is not supported.");
-
-            if (s_topicsWithRequiredContent.Contains(topic) && content is null)
-                throw new InvalidOperationException($"Parameter '{nameof(content)}' cannot be null for topic '{topic}'.");
 
             return content is null
                 ? await client.SendRequest(topic, cancellationToken: cancellationToken)

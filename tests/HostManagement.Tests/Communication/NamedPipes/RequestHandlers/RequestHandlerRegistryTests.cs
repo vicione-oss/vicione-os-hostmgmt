@@ -1,12 +1,12 @@
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using AwesomeAssertions;
-using Xunit;
 using HostManagement.Communication.NamedPipes.RequestHandlers;
 using HostManagement.Configuration;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
+using Xunit;
 
 namespace HostManagement.Tests.Communication.NamedPipes.RequestHandlers;
 
@@ -41,13 +41,12 @@ public sealed class RequestHandlerRegistryTests
     public class HandleRequest
     {
         [Fact]
-        public async Task ShouldReturnDefaultResponse_WhenNoHandlerRegistered()
+        public async Task ShouldReturnDefaultResponse_WhenTopicNull()
         {
             // Arrange
-            var unknownTopic = "unknown.topic";
             var request = new NamedPipeMessage
             {
-                Topic = unknownTopic,
+                Topic = null!,
                 Type = MessageType.Request,
                 Content = "lan1"
             };
@@ -59,7 +58,53 @@ public sealed class RequestHandlerRegistryTests
 
             // Assert
             response.Should().NotBeNull();
-            response.Content.Should().Contain($"No handler registered for topic \\u0027{unknownTopic}\\u0027.");
+            response.Content.Should().Contain("Error processing request. Message topic was null.");
+        }
+
+        [Fact]
+        public async Task ShouldReturnDefaultResponse_WhenTopicInvalid()
+        {
+            // Arrange
+            var invalidTopic = "invalidTopic";
+
+            var request = new NamedPipeMessage
+            {
+                Topic = invalidTopic,
+                Type = MessageType.Request,
+                Content = "lan1"
+            };
+
+            var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne);
+
+            // Act
+            var response = await registry.HandleRequestAsync(request, CancellationToken.None);
+
+            // Assert
+            response.Should().NotBeNull();
+            response.Content.Should().Contain($"Error processing request. Topic \\u0027{invalidTopic}\\u0027 is invalid.");
+        }
+
+        [Fact]
+        public async Task ShouldReturnDefaultResponse_WhenNoHandlerRegistered()
+        {
+            // Arrange
+            var validButUnknownTopic = Topics.GetNetworkStatusInformation;
+
+            var request = new NamedPipeMessage
+            {
+                Topic = validButUnknownTopic,
+                Type = MessageType.Request,
+                Content = "lan1"
+            };
+
+            var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne);
+
+            // Act
+            var response = await registry.HandleRequestAsync(request, CancellationToken.None);
+
+            // Assert
+            response.Should().NotBeNull();
+            response.Content.Should().Contain($"No handler registered for topic \\u0027{validButUnknownTopic}\\u0027.");
         }
 
         [Fact]
@@ -86,41 +131,6 @@ public sealed class RequestHandlerRegistryTests
             response.Should().NotBeNull();
             response.Content.Should().Contain("Error processing request:");
             handler.WasHandleCalled.Should().BeTrue();
-        }
-
-        [Fact]
-        public async Task ShouldReturnSerializedError_WhenHandlerThrowsArgumentExceptionForMessageContent()
-        {
-            // Arrange
-            var topicWithRequiredMessageContent = Topics.GetNetworkStatusInformation;
-            var networkStatusJsonTypeInfo = SourceGenerationContext.Default.GetNetworkStatusInformationResult;
-            var argumentException = new ArgumentException("messageContent was missing or empty.");
-
-            var handler = new FakeHandler(
-                topicWithRequiredMessageContent,
-                networkStatusJsonTypeInfo,
-                handleException: argumentException);
-
-            var request = new NamedPipeMessage
-            {
-                Topic = topicWithRequiredMessageContent,
-                Type = MessageType.Request,
-                Content = "" // should throw ArgumentException in handler
-            };
-
-            var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne);
-            registry.RegisterHandler(handler);
-
-            // Act
-            var response = await registry.HandleRequestAsync(request, CancellationToken.None);
-
-            // Assert
-            response.Should().NotBeNull();
-
-            var result = JsonSerializer.Deserialize(response.Content, networkStatusJsonTypeInfo);
-            result.Should().NotBeNull();
-            result.Status.Should().Be(OperationStatus.Error);
-            result.Message.Should().Be("Error processing request. Message content was missing or empty.");
         }
 
         [Fact]
@@ -154,11 +164,45 @@ public sealed class RequestHandlerRegistryTests
             result.Message.Should().Contain($"Handler with topic '{unsupportedTopic}' not supported on this platform.");
         }
 
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        public async Task ShouldReturnSerializedError_WhenRequiredContentMissing(string? content)
+        {
+            // Arrange
+            var topic = Topics.GetNetworkStatusInformation;
+            var handler = new FakeHandler(topic, s_networkStatusJsonTypeInfo, handleResult: "handled");
+
+            var request = new NamedPipeMessage
+            {
+                Topic = topic,
+                Type = MessageType.Request,
+                Content = content!
+            };
+
+            var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne);
+            registry.RegisterHandler(handler);
+
+            // Act
+            var response = await registry.HandleRequestAsync(request, CancellationToken.None);
+
+            // Assert
+            response.Should().NotBeNull();
+            handler.WasHandleCalled.Should().BeFalse();
+
+            var result = JsonSerializer.Deserialize(response.Content, s_networkStatusJsonTypeInfo);
+
+            result.Should().NotBeNull();
+            result.Status.Should().Be(OperationStatus.Error);
+            result.Message.Should().Contain($"Handler with topic '{topic}' requires a message content.");
+        }
+
         [Fact]
         public async Task ShouldDispatchToHandler_WhenHandlerSupported()
         {
             // Arrange
-            var supportedTopic = Topics.GetNetworkStatusInformation; // Environment EdgeS does support this topic
+            var supportedTopic = Topics.GetNetworkStatusInformation;
             var handler = new FakeHandler(supportedTopic, s_networkStatusJsonTypeInfo, handleResult: "handled");
 
             var request = new NamedPipeMessage
