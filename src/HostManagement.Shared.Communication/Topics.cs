@@ -156,6 +156,10 @@ public static partial class Topics
     /// <summary>
     /// The "echo" topic.
     /// </summary>
+    /// <remarks>
+    /// "ping", "trigger" or non-empty string must be specified as the message content.
+    /// </remarks>
+    [RequiresContent]
     public const string Echo = "echo";
     #endregion
 }
