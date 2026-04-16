@@ -10,7 +10,7 @@ namespace HostManagement.Communication.NamedPipes;
 /// <param name="pipeStreamWrapper">A pipe stream wrapper.</param>
 /// <param name="requestHandlerRegistry">A request handler registry.</param>
 internal sealed class PipeMessageProcessor(
-    PipeStreamWrapper pipeStreamWrapper,
+    IPipeStreamWrapper pipeStreamWrapper,
     RequestHandlerRegistry requestHandlerRegistry)
     : MessageProcessorBase(pipeStreamWrapper)
 {
