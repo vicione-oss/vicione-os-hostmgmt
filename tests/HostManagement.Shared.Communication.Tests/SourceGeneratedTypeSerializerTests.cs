@@ -171,6 +171,7 @@ public class SourceGeneratedTypeSerializerTests
         }
         """;
 
+    private static readonly JsonTypeInfo<Response> s_responseContext = SourceGenerationContext.Default.Response;
     private static readonly JsonTypeInfo<RedeployScriptsResult> s_redeployContext = SourceGenerationContext.Default.RedeployScriptsResult;
     private static readonly JsonTypeInfo<GetSystemConfigurationResult> s_loadContext = SourceGenerationContext.Default.GetSystemConfigurationResult;
     private static readonly JsonTypeInfo<SetSystemConfigurationResult> s_applyContext = SourceGenerationContext.Default.SetSystemConfigurationResult;
@@ -205,6 +206,7 @@ public class SourceGeneratedTypeSerializerTests
 
             return
             [
+                ["Response", s_responseContext, nullJson],
                 ["RedeployScriptsResult", s_redeployContext, nullJson],
                 ["GetSystemConfigurationResult", s_loadContext, nullJson],
                 ["SetSystemConfigurationResult", s_applyContext, nullJson],
@@ -283,6 +285,8 @@ public class SourceGeneratedTypeSerializerTests
 
     public static IEnumerable<object[]> MissingMemberData =>
     [
+        [s_responseContext, """{}"""],
+
         [s_redeployContext, """{"ResultType":"RedeployScriptsResult","Status":"Success"}"""],
         [s_redeployContext, """{"ResultType":"RedeployScriptsResult","Message":null}"""],
 
@@ -344,6 +348,8 @@ public class SourceGeneratedTypeSerializerTests
 
     public static IEnumerable<object[]> AdditionalMemberData =>
     [
+        [s_responseContext, $$"""{"Message":"Warning","Configuration":{{s_sampleSystemConfigurationJson}}}"""],
+
         [s_redeployContext, $$"""{"ResultType":"RedeployScriptsResult","Status":"Success","Message":null,"Configuration":{{s_sampleSystemConfigurationJson}}}"""],
         [s_redeployContext, """{"ResultType":"RedeployScriptsResult","AdditionalMember":"Additional","Status":"Success","Message":null}"""],
 
@@ -392,6 +398,7 @@ public class SourceGeneratedTypeSerializerTests
 
             return
             [
+                [s_responseContext, $$"""{"Message":{{invalidNullData}}}"""],
                 [s_redeployContext, $$"""{"ResultType":{{invalidNullData}},"Status":"Success","Message":""}"""],
                 [s_getNetworkContext, $$"""{"ResultType":"GetNetworkStatusInformationResult","Status":"Warning","Message":"Warning","NetworkStatusInformation":{{invalidNullData}}}"""],
                 [s_getNTPFallbackContext, $$"""{"ResultType":"GetNTPFallbackInformationResult","Status":"Warning","Message":"Warning","FallbackNTPServers":{{invalidNullData}}}"""],
@@ -402,6 +409,8 @@ public class SourceGeneratedTypeSerializerTests
 
     public static IEnumerable<object[]> ValidMemberData =>
     [
+        [s_responseContext, """{"Message":"This is a default response."}"""],
+
         [s_redeployContext, """{"ResultType":"RedeployScriptsResult","Status":"Success","Message":null}"""],
         [s_loadContext, $$"""{"ResultType":"GetSystemConfigurationResult","Status":"Warning","Message":"Warning","Configuration":{{s_sampleSystemConfigurationJson}}}"""],
         [s_applyContext, """{"ResultType":"SetSystemConfigurationResult","Status":"Error","Message":"Error"}"""],
