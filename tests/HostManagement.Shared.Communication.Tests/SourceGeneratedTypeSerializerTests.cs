@@ -205,19 +205,19 @@ public class SourceGeneratedTypeSerializerTests
 
             return
             [
-                ["RedeployScriptsResult", SourceGenerationContext.Default.RedeployScriptsResult, nullJson],
-                ["GetSystemConfigurationResult", SourceGenerationContext.Default.GetSystemConfigurationResult, nullJson],
-                ["SetSystemConfigurationResult", SourceGenerationContext.Default.SetSystemConfigurationResult, nullJson],
-                ["GetDHCPLeaseInformationResult", SourceGenerationContext.Default.GetDHCPLeaseInformationResult, nullJson],
-                ["GetNetworkStatusInformationResult", SourceGenerationContext.Default.GetNetworkStatusInformationResult, nullJson],
-                ["GetNTPFallbackInformationResult", SourceGenerationContext.Default.GetNTPFallbackInformationResult, nullJson],
-                ["GetServiceStateResult", SourceGenerationContext.Default.GetServiceStateResult, nullJson],
-                ["ServiceControlResult", SourceGenerationContext.Default.ServiceControlResult, nullJson],
-                ["UpdateSystemResult", SourceGenerationContext.Default.UpdateSystemResult, nullJson],
-                ["RestartSystemResult", SourceGenerationContext.Default.RestartSystemResult, nullJson],
-                ["ShutdownSystemResult", SourceGenerationContext.Default.ShutdownSystemResult, nullJson],
-                ["ResetSystemResult", SourceGenerationContext.Default.ResetSystemResult, nullJson],
-                ["InstallSignedDebianPackageResult", SourceGenerationContext.Default.InstallSignedDebianPackageResult, nullJson]
+                ["RedeployScriptsResult", s_redeployContext, nullJson],
+                ["GetSystemConfigurationResult", s_loadContext, nullJson],
+                ["SetSystemConfigurationResult", s_applyContext, nullJson],
+                ["GetDHCPLeaseInformationResult", s_getDHCPLeaseContext, nullJson],
+                ["GetNetworkStatusInformationResult", s_getNetworkContext, nullJson],
+                ["GetNTPFallbackInformationResult", s_getNTPFallbackContext, nullJson],
+                ["GetServiceStateResult", s_getServiceStateContext, nullJson],
+                ["ServiceControlResult", s_serviceControlContext, nullJson],
+                ["UpdateSystemResult", s_updateSystemContext, nullJson],
+                ["RestartSystemResult", s_restartSystemContext, nullJson],
+                ["ShutdownSystemResult", s_shutdownSystemContext, nullJson],
+                ["ResetSystemResult", s_resetSystemContext, nullJson],
+                ["InstallSignedDebianPackageResult", s_installPackageContext, nullJson]
             ];
         }
     }
@@ -264,19 +264,19 @@ public class SourceGeneratedTypeSerializerTests
 
             return
             [
-                [ SourceGenerationContext.Default.RedeployScriptsResult, defaultResponseJson ],
-                [ SourceGenerationContext.Default.GetSystemConfigurationResult, defaultResponseJson ],
-                [ SourceGenerationContext.Default.SetSystemConfigurationResult, defaultResponseJson ],
-                [ SourceGenerationContext.Default.GetDHCPLeaseInformationResult, defaultResponseJson ],
-                [ SourceGenerationContext.Default.GetNetworkStatusInformationResult, defaultResponseJson ],
-                [ SourceGenerationContext.Default.GetNTPFallbackInformationResult, defaultResponseJson ],
-                [ SourceGenerationContext.Default.GetServiceStateResult, defaultResponseJson ],
-                [ SourceGenerationContext.Default.ServiceControlResult, defaultResponseJson ],
-                [ SourceGenerationContext.Default.UpdateSystemResult, defaultResponseJson ],
-                [ SourceGenerationContext.Default.RestartSystemResult, defaultResponseJson ],
-                [ SourceGenerationContext.Default.ShutdownSystemResult, defaultResponseJson ],
-                [ SourceGenerationContext.Default.ResetSystemResult, defaultResponseJson ],
-                [ SourceGenerationContext.Default.InstallSignedDebianPackageResult, defaultResponseJson ]
+                [ s_redeployContext, defaultResponseJson ],
+                [ s_loadContext, defaultResponseJson ],
+                [ s_applyContext, defaultResponseJson ],
+                [ s_getDHCPLeaseContext, defaultResponseJson ],
+                [ s_getNetworkContext, defaultResponseJson ],
+                [ s_getNTPFallbackContext, defaultResponseJson ],
+                [ s_getServiceStateContext, defaultResponseJson ],
+                [ s_serviceControlContext, defaultResponseJson ],
+                [ s_updateSystemContext, defaultResponseJson ],
+                [ s_restartSystemContext, defaultResponseJson ],
+                [ s_shutdownSystemContext, defaultResponseJson ],
+                [ s_resetSystemContext, defaultResponseJson ],
+                [ s_installPackageContext, defaultResponseJson ]
             ];
         }
     }
