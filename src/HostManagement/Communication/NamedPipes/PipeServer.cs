@@ -44,8 +44,6 @@ internal sealed partial class PipeServer : IPipeServer
 
     public string PipePath => _pipePath;
 
-    public ILogger Logger => _logger;
-
     public PipeState State => _messageProcessor?.State ?? PipeState.NotOpened;
 
     public Task PublishEvent(string topic, string content, CancellationToken cancellationToken = default)
