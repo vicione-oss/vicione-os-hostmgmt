@@ -1,4 +1,4 @@
-﻿using HostManagement.Shared.Communication.Enums;
+using HostManagement.Shared.Communication.Enums;
 
 namespace HostManagement.Shared.Communication;
 
@@ -6,7 +6,7 @@ namespace HostManagement.Shared.Communication;
 /// Represents the <see cref="MessageProcessorBase"/>.
 /// </summary>
 /// <param name="pipeStreamWrapper">A <see cref="PipeStreamWrapper"/>.</param>
-public abstract class MessageProcessorBase(PipeStreamWrapper pipeStreamWrapper) : IDisposable
+public abstract class MessageProcessorBase(IPipeStreamWrapper pipeStreamWrapper) : IDisposable
 {
     private bool _disposed;
     private TaskCompletionSource<object?>? _pipeCloseCompletionSource;
@@ -20,7 +20,7 @@ public abstract class MessageProcessorBase(PipeStreamWrapper pipeStreamWrapper) 
     /// <summary>
     /// Gets the PipeStreamWrapper.
     /// </summary>
-    protected PipeStreamWrapper PipeStreamWrapper { get; } = pipeStreamWrapper;
+    protected IPipeStreamWrapper PipeStreamWrapper { get; } = pipeStreamWrapper;
 
     /// <summary>
     /// Gets the state of the pipe.

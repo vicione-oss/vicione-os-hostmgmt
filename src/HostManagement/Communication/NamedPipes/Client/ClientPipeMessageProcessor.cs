@@ -1,4 +1,4 @@
-﻿using HostManagement.Shared.Communication;
+using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Enums;
 using Microsoft.Extensions.Logging;
 
@@ -11,7 +11,7 @@ namespace HostManagement.Communication.NamedPipes.Client;
 /// <param name="eventCallbackRegistry">An event callback registry.</param>
 /// <param name="logger">A logger.</param>
 internal sealed partial class ClientPipeMessageProcessor(
-    PipeStreamWrapper pipeStreamWrapper,
+    IPipeStreamWrapper pipeStreamWrapper,
     EventCallbackRegistry eventCallbackRegistry,
     ILogger logger)
     : MessageProcessorBase(pipeStreamWrapper)

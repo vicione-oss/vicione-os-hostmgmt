@@ -12,7 +12,7 @@ namespace HostManagement.Shared.Communication;
 /// </summary>
 /// <param name="stream">The raw pipe stream.</param>
 /// <param name="logger">An <see cref="ILogger"/> implementation.</param>
-public sealed partial class PipeStreamWrapper(PipeStream stream, ILogger logger) : IDisposable
+public sealed partial class PipeStreamWrapper(PipeStream stream, ILogger logger) : IPipeStreamWrapper
 {
     // Prevents more than one thread from writing to the pipe stream at once
     private readonly SemaphoreSlim _writeLock = new(1, 1);
@@ -29,11 +29,7 @@ public sealed partial class PipeStreamWrapper(PipeStream stream, ILogger logger)
         _writeLock.Dispose();
     }
 
-    /// <summary>
-    /// Reads the message off the input stream.
-    /// </summary>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The read message type and payload.</returns>
+    /// <inheritdoc/>
     public async Task<NamedPipeMessage> ReadMessageAsync(CancellationToken cancellationToken = default)
     {
         // Read the length to see how long the message is
@@ -76,11 +72,7 @@ public sealed partial class PipeStreamWrapper(PipeStream stream, ILogger logger)
         return namedPipeMessage;
     }
 
-    /// <summary>
-    /// Sends a message.
-    /// </summary>
-    /// <param name="message">The message.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <inheritdoc/>
     public async Task SendMessageAsync(NamedPipeMessage message, CancellationToken cancellationToken = default)
     {
         using var messageStream = new MemoryStream(128);
