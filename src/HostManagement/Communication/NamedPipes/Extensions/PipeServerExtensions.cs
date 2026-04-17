@@ -1,4 +1,4 @@
-﻿using HostManagement.Configuration;
+using HostManagement.Configuration;
 using HostManagement.Scripts;
 using HostManagement.Scripts.Enums;
 using Microsoft.Extensions.Logging;
@@ -17,14 +17,13 @@ internal static partial class PipeServerExtensions
     /// <exception cref="IOException"></exception>
     internal static async Task SetExecutePermission(this PipeServer pipeServer)
     {
-        var pipePath = Path.Combine(AppPaths.TempPath, $"CoreFxPipe_{pipeServer.PipeName}");
         var scriptOptions = new ScriptOptions();
 
         scriptOptions.Add(
             ScriptOptionNames.SetExecutePermission.Permission,
             EnvironmentVariables.NamedPipePermission.Value);
 
-        scriptOptions.Add(ScriptOptionNames.SetExecutePermission.File, pipePath);
+        scriptOptions.Add(ScriptOptionNames.SetExecutePermission.File, pipeServer.PipePath);
 
         var scriptResponse = await ScriptRunner
             .GetInstance()
@@ -60,12 +59,10 @@ internal static partial class PipeServerExtensions
             group = "root";
         }
 
-        var pipePath = Path.Combine(AppPaths.TempPath, $"CoreFxPipe_{pipeServer.PipeName}");
-
         var scriptOptions = new ScriptOptions();
         scriptOptions.Add(ScriptOptionNames.SetOwnership.User, user);
         scriptOptions.Add(ScriptOptionNames.SetOwnership.Group, group);
-        scriptOptions.Add(ScriptOptionNames.SetOwnership.File, pipePath);
+        scriptOptions.Add(ScriptOptionNames.SetOwnership.File, pipeServer.PipePath);
 
         var scriptResponse = await ScriptRunner
             .GetInstance()

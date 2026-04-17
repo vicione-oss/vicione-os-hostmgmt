@@ -1,4 +1,4 @@
-﻿using HostManagement.Shared.Communication;
+using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Enums;
 
 namespace HostManagement.Communication.NamedPipes;
@@ -8,6 +8,11 @@ namespace HostManagement.Communication.NamedPipes;
 /// </summary>
 internal interface IPipeServer : IDisposable
 {
+    /// <summary>
+    /// The path of the pipe.
+    /// </summary>
+    string PipePath { get; }
+
     /// <summary>
     /// The state of the pipe connection.
     /// </summary>
