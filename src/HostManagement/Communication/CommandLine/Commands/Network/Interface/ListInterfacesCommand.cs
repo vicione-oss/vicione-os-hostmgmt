@@ -83,10 +83,10 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
         int indentationLevel,
         NetworkInterfaceCommonInformation commonInformation)
     {
-        var originalPhysicalAddress = await NamedPipeRequestHelper.GetOriginalPhysicalAddress(commonInformation.Name);
-        originalPhysicalAddress ??= CommandLineStrings_NetworkInterfaces.Unknown;
-
         var physicalAddress = commonInformation.PhysicalAddress;
+        var originalPhysicalAddress =
+            await NamedPipeRequestHelper.GetOriginalPhysicalAddress(commonInformation.Name, CancellationToken.None)
+            ?? CommandLineStrings_NetworkInterfaces.Unknown;
 
         var multiKeyValueOutput = output
             .AddMultiKeyValueOutput(indentationLevel)

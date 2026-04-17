@@ -1,4 +1,4 @@
-﻿using HostManagement.Communication.CommandLine.Helper;
+using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 
@@ -36,7 +36,7 @@ internal sealed class NTPListCommand : ConfigCommandBase
                 .WriteLine();
         }
 
-        var ntpFallbackServers = await NamedPipeRequestHelper.GetNTPFallbackInformation();
+        var ntpFallbackServers = await NamedPipeRequestHelper.GetNTPFallbackInformation(cancellationToken);
 
         new ListOutput()
             .WithTitle(CommandLineStrings_NTP.FallbackServers)
