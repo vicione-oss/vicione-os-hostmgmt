@@ -22,6 +22,7 @@ internal static partial class CommandLineRunner
             if (args.Length == 0)
                 args = ["--help"];
 
+            #region Command arguments available outside of 'System.CommandLine'
 #if DEBUG
             if (args[0].Equals("--extract-help"))
             {
@@ -29,6 +30,31 @@ internal static partial class CommandLineRunner
                 return 0;
             }
 #endif
+            if (args[0].Equals("--create-configuration-template"))
+            {
+                SystemConfigurationTemplate.CreateAndOutput();
+                return 0;
+            }
+
+            if (args[0].Equals("--validate-configuration-template"))
+            {
+                if (args.Length == 1)
+                {
+                    SimpleOutput.WriteLineError("Expected flag '--path'.");
+                    return 1;
+                }
+
+                if (args.Length == 2)
+                {
+                    SimpleOutput.WriteLineError("Expected value for flag '--path'.");
+                    return 1;
+                }
+
+                await SystemConfigurationTemplate.Validate(args[2]);
+                return 0;
+            }
+            #endregion
+
             // Per default, if a command is cancelled, it has a termination timeout of 2 seconds.
             // For now we don't want to force termination, if cancellation takes some time.
             var invocationConfig = new InvocationConfiguration() { ProcessTerminationTimeout = null };
