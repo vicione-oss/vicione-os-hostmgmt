@@ -132,15 +132,17 @@ internal static class NamedPipeRequestHelper
     /// <summary>
     /// Sends a named pipe request to get the NTP fallback information.
     /// </summary>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The list of fallback NTP servers or an empty list if the request failed.</returns>
-    internal static async Task<List<string>> GetNTPFallbackInformation()
+    internal static async Task<List<string>> GetNTPFallbackInformation(CancellationToken cancellationToken)
     {
         var topic = Topics.GetNTPFallbackInformation;
 
         var ntpFallbackInformationResult = await SendNamedPipeRequest(
             CommunicationJsonContext.Default.GetNTPFallbackInformationResult,
             topic,
-            null);
+            null,
+            cancellationToken);
 
         if (ntpFallbackInformationResult.Status == OperationStatus.Error)
         {
@@ -155,16 +157,20 @@ internal static class NamedPipeRequestHelper
     /// Sends a named pipe request to get the original physical address.
     /// </summary>
     /// <param name="interfaceName">The interface name to get the original physical address for.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The original physical address or <see langword="null"/> if getting the original
     /// physical address failed.</returns>
-    internal static async Task<string?> GetOriginalPhysicalAddress(string interfaceName)
+    internal static async Task<string?> GetOriginalPhysicalAddress(
+        string interfaceName,
+        CancellationToken cancellationToken)
     {
         var topic = Topics.GetOriginalPhysicalAddress;
 
         var originalPhysicalAddressResult = await SendNamedPipeRequest(
             CommunicationJsonContext.Default.GetOriginalPhysicalAddressResult,
             topic,
-            interfaceName);
+            interfaceName,
+            cancellationToken);
 
         if (originalPhysicalAddressResult.Status == OperationStatus.Error ||
             originalPhysicalAddressResult.OriginalPhysicalAddress is null)
@@ -418,7 +424,7 @@ internal static class NamedPipeRequestHelper
         JsonTypeInfo<T> jsonTypeInfo,
         string topic,
         string? content,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
             where T : OperationResult, IOperationResultFactory<T>
     {
         PipeClient? client = null;

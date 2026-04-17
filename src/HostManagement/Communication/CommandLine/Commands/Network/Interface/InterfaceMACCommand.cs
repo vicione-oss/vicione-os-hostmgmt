@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Common.Utilities;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
@@ -53,7 +53,7 @@ internal sealed class InterfaceMACCommand : ConfigCommandBase
             var physicalAddress = interfaceToConfigure.CommonInformation.PhysicalAddress;
 
             var originalPhysicalAddress = await NamedPipeRequestHelper
-                .GetOriginalPhysicalAddress(interfaceToConfigure.CommonInformation.Name);
+                .GetOriginalPhysicalAddress(interfaceToConfigure.CommonInformation.Name, cancellationToken);
 
             originalPhysicalAddress ??= CommandLineStrings_NetworkInterfaces.Unknown;
 
