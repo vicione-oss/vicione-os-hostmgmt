@@ -15,5 +15,5 @@ internal interface ISignedDebianPackageSignatureValidator
     /// <returns>
     /// <see langword="true"/> if the signature is valid for at least one key; otherwise <see langword="false"/>.
     /// </returns>
-    bool IsSignatureValid(SignedDebianPackage signedDebianPackage, List<string> publicKeys);
+    bool IsSignatureValid(SignedDebianPackage signedDebianPackage, IReadOnlyCollection<string> publicKeys);
 }

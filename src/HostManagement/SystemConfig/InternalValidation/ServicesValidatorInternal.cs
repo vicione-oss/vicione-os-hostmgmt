@@ -12,7 +12,7 @@ internal sealed class ServicesValidatorInternal
 {
     public static Task Validate(
         SystemConfiguration proposed,
-        IEnumerable<string> configurableServices,
+        IReadOnlyCollection<string> configurableServices,
         ValidationResult result)
     {
         const char WildcardChar = '*';

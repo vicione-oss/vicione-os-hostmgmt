@@ -21,7 +21,7 @@ internal abstract class ServiceCommandBase(string name, string description) : Co
     private protected static string GetSystemdUnitWithUnitType(string systemdUnitName)
     {
         // Ensure the provided service name has a unit type
-        return SystemdUnits.KnownUnitTypes.Any(systemdUnitName.EndsWith)
+        return SystemdUnits.HasKnownUnitTypeSuffix(systemdUnitName)
             ? systemdUnitName
             : systemdUnitName + ".service";
     }

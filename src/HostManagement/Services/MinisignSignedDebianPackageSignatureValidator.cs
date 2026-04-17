@@ -8,7 +8,7 @@ namespace HostManagement.Services;
 internal sealed class MinisignSignedDebianPackageSignatureValidator : ISignedDebianPackageSignatureValidator
 {
     /// <inheritdoc/>
-    public bool IsSignatureValid(SignedDebianPackage signedDebianPackage, List<string> publicKeys)
+    public bool IsSignatureValid(SignedDebianPackage signedDebianPackage, IReadOnlyCollection<string> publicKeys)
     {
         var signature = Minisign.Core.LoadSignatureFromFile(signedDebianPackage.SignatureFilePath);
 

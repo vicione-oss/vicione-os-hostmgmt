@@ -18,7 +18,7 @@ namespace HostManagement;
 /// </summary>
 internal static partial class ServiceRunner
 {
-    private static readonly ILogger s_logger = new ConsoleLogger(EnvironmentVariables.LogLevel);
+    private static readonly ILogger s_logger = new ConsoleLogger(EnvironmentVariables.LogLevel.Value);
     private static readonly FileSystem s_fileSystem = new();
     private static readonly string s_setConfigFlag = Path.Combine(AppPaths.TempPath, "set-config.flag");
 
@@ -36,7 +36,7 @@ internal static partial class ServiceRunner
                 return 0;
             }
 
-            if (EnvironmentVariables.TargetEnvironment is TargetEnvironment.EdgeSViciOne)
+            if (EnvironmentVariables.Environment.Value is TargetEnvironment.EdgeSViciOne)
             {
                 // 'PrepareConfiguration' should only be called on supported target environments, like 'edges-vicione'.
                 // However, if it is called on a not supported environment, like 'debian' or 'unknown',
@@ -209,15 +209,18 @@ internal static partial class ServiceRunner
             return false;
         }
 
-        CurrentTargetEnvironment(s_logger, EnvironmentVariables.TargetEnvironment.ToEnvironmentString());
+        var environmentString = EnvironmentVariables.Environment.Value.ToEnvironmentString();
+        var resourceDeployDirectory = EnvironmentVariables.ResourceDeployDirectory.Value;
+
+        CurrentTargetEnvironment(s_logger, environmentString);
 
         var resourceManagerInstance = ResourceManager.Initialize(
             s_logger,
             s_fileSystem,
-            EnvironmentVariables.ResourceDeployDirectory,
-            EnvironmentVariables.TargetEnvironment.ToEnvironmentString());
+            resourceDeployDirectory,
+            environmentString);
 
-        ScriptRunner.Initialize(EnvironmentVariables.ResourceDeployDirectory);
+        ScriptRunner.Initialize(resourceDeployDirectory);
 
         return resourceManagerInstance.DeployScripts();
     }

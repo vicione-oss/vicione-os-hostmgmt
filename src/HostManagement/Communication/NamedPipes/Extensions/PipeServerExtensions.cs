@@ -22,20 +22,19 @@ internal static partial class PipeServerExtensions
 
         scriptOptions.Add(
             ScriptOptionNames.SetExecutePermission.Permission,
-            EnvironmentVariables.NamedPipePermission);
+            EnvironmentVariables.NamedPipePermission.Value);
 
         scriptOptions.Add(ScriptOptionNames.SetExecutePermission.File, pipePath);
 
-        var scriptResponse = await ScriptRunner.GetInstance().Run(
-            ScriptIdentifier.SetExecutePermission,
-            scriptOptions.Options);
+        var scriptResponse = await ScriptRunner
+            .GetInstance()
+            .Run(ScriptIdentifier.SetExecutePermission, scriptOptions.Options);
 
         if (scriptResponse.HasErrors)
         {
             throw new IOException(
-                $"An error occurred while setting execute permission for '{pipePath}'." +
-                Environment.NewLine +
-                scriptResponse.StandardError);
+                $"An error occurred while setting execute permission for '{pipePath}'. " +
+                $"{scriptResponse.StandardError}");
         }
     }
 
@@ -46,60 +45,48 @@ internal static partial class PipeServerExtensions
     /// <exception cref="IOException"></exception>
     internal static async Task SetOwnership(this PipeServer pipeServer)
     {
-        var user = EnvironmentVariables.NamedPipeUser;
-        var group = EnvironmentVariables.NamedPipeGroup;
+        var user = EnvironmentVariables.NamedPipeUser.Value;
+        var group = EnvironmentVariables.NamedPipeGroup.Value;
 
-        if (!await ExistsUser(EnvironmentVariables.NamedPipeUser))
+        if (!await ExistsUser(user))
         {
+            NamedPipeUserDoesNotExist(pipeServer.Logger, user);
             user = "root";
-
-            NamedPipeUserDoesNotExist(pipeServer.Logger, EnvironmentVariables.NamedPipeUser);
         }
 
-        if (!await ExistsGroup(EnvironmentVariables.NamedPipeGroup))
+        if (!await ExistsGroup(group))
         {
+            NamedPipeGroupDoesNotExist(pipeServer.Logger, group);
             group = "root";
-
-            NamedPipeGroupDoesNotExist(pipeServer.Logger, EnvironmentVariables.NamedPipeGroup);
         }
 
         var pipePath = Path.Combine(AppPaths.TempPath, $"CoreFxPipe_{pipeServer.PipeName}");
+
         var scriptOptions = new ScriptOptions();
-
-        scriptOptions.Add(
-            ScriptOptionNames.SetOwnership.User,
-            user);
-
-        scriptOptions.Add(
-            ScriptOptionNames.SetOwnership.Group,
-            group);
-
+        scriptOptions.Add(ScriptOptionNames.SetOwnership.User, user);
+        scriptOptions.Add(ScriptOptionNames.SetOwnership.Group, group);
         scriptOptions.Add(ScriptOptionNames.SetOwnership.File, pipePath);
 
-        var scriptResponse = await ScriptRunner.GetInstance().Run(
-            ScriptIdentifier.SetOwnership,
-            scriptOptions.Options);
+        var scriptResponse = await ScriptRunner
+            .GetInstance()
+            .Run(ScriptIdentifier.SetOwnership, scriptOptions.Options);
 
         if (scriptResponse.HasErrors)
         {
             throw new IOException(
-                $"An error occurred while setting ownership for '{pipePath}'." +
-                Environment.NewLine +
-                scriptResponse.StandardError);
+                $"An error occurred while setting ownership for '{pipePath}'. " +
+                $"{scriptResponse.StandardError}");
         }
     }
 
     private static async Task<bool> ExistsUser(string user)
     {
         var scriptOptions = new ScriptOptions();
+        scriptOptions.Add(ScriptOptionNames.CheckUserExists.User, user);
 
-        scriptOptions.Add(
-            ScriptOptionNames.CheckUserExists.User,
-            user);
-
-        var scriptResponse = await ScriptRunner.GetInstance().Run(
-            ScriptIdentifier.CheckUserExists,
-            scriptOptions.Options);
+        var scriptResponse = await ScriptRunner
+            .GetInstance()
+            .Run(ScriptIdentifier.CheckUserExists, scriptOptions.Options);
 
         return !scriptResponse.HasErrors;
     }
@@ -107,14 +94,11 @@ internal static partial class PipeServerExtensions
     private static async Task<bool> ExistsGroup(string group)
     {
         var scriptOptions = new ScriptOptions();
+        scriptOptions.Add(ScriptOptionNames.CheckGroupExists.Group, group);
 
-        scriptOptions.Add(
-            ScriptOptionNames.CheckGroupExists.Group,
-            group);
-
-        var scriptResponse = await ScriptRunner.GetInstance().Run(
-            ScriptIdentifier.CheckGroupExists,
-            scriptOptions.Options);
+        var scriptResponse = await ScriptRunner
+            .GetInstance()
+            .Run(ScriptIdentifier.CheckGroupExists, scriptOptions.Options);
 
         return !scriptResponse.HasErrors;
     }

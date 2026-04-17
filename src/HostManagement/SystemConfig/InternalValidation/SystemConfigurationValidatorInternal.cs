@@ -22,7 +22,7 @@ internal static class SystemConfigurationValidatorInternal
         {
             await ServicesValidatorInternal.Validate(
                 proposed,
-                EnvironmentVariables.ConfigurableServices,
+                EnvironmentVariables.ConfigurableServices.Value,
                 validationResult);
 
             return validationResult;

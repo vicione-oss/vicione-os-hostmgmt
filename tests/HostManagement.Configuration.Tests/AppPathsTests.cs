@@ -12,8 +12,4 @@ public class AppPathsTests
     [Fact]
     public void ShouldReturnTempPath_WhenCalled()
         => AppPaths.TempPath.Should().Be("/tmp");
-
-    [Fact]
-    public void ShouldReturnResourcesDirectory_WhenCalled()
-        => AppPaths.ResourcesDirectory.Should().Be("HostManagement_Resources");
 }

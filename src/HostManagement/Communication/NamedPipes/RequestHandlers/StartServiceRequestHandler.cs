@@ -39,7 +39,7 @@ internal sealed class StartServiceRequestHandler(ILogger logger) : RequestHandle
                 logger,
                 scriptHandler,
                 scriptResult,
-                EnvironmentVariables.ConfigurableServices);
+                EnvironmentVariables.ConfigurableServices.Value);
 
             var result = await service.StartSystemdUnit(messageContent);
 

@@ -35,7 +35,7 @@ internal sealed partial class SystemService(
     /// <returns><see cref="SystemControlResult"/></returns>
     public async Task<SystemControlResult> InstallSignedDebianPackage(
         SignedDebianPackage signedDebianPackage,
-        List<string> publicKeys,
+        IReadOnlyCollection<string> publicKeys,
         CancellationToken cancellationToken)
     {
         try

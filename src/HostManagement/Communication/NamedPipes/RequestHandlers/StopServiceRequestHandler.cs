@@ -39,7 +39,7 @@ internal sealed class StopServiceRequestHandler(ILogger logger) : RequestHandler
                 logger,
                 scriptHandler,
                 scriptResult,
-                EnvironmentVariables.ConfigurableServices);
+                EnvironmentVariables.ConfigurableServices.Value);
 
             var result = await service.StopSystemdUnit(messageContent);
 
