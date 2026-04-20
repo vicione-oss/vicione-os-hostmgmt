@@ -1,14 +1,13 @@
-﻿using HostManagement.Configuration;
+using HostManagement.Configuration;
 using HostManagement.Scripts;
 using HostManagement.Scripts.Enums;
-using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipes.Extensions;
 
 /// <summary>
 /// Provides extension methods for the <see cref="PipeServer"/>.
 /// </summary>
-internal static partial class PipeServerExtensions
+internal static class PipeServerExtensions
 {
     /// <summary>
     /// Sets the execute permissions of the named pipe.
@@ -17,25 +16,20 @@ internal static partial class PipeServerExtensions
     /// <exception cref="IOException"></exception>
     internal static async Task SetExecutePermission(this PipeServer pipeServer)
     {
-        var pipePath = Path.Combine(AppPaths.TempPath, $"CoreFxPipe_{pipeServer.PipeName}");
         var scriptOptions = new ScriptOptions();
 
         scriptOptions.Add(
             ScriptOptionNames.SetExecutePermission.Permission,
             EnvironmentVariables.NamedPipePermission.Value);
 
-        scriptOptions.Add(ScriptOptionNames.SetExecutePermission.File, pipePath);
+        scriptOptions.Add(ScriptOptionNames.SetExecutePermission.File, pipeServer.PipePath);
 
         var scriptResponse = await ScriptRunner
             .GetInstance()
             .Run(ScriptIdentifier.SetExecutePermission, scriptOptions.Options);
 
         if (scriptResponse.HasErrors)
-        {
-            throw new IOException(
-                $"An error occurred while setting execute permission for '{pipePath}'. " +
-                $"{scriptResponse.StandardError}");
-        }
+            throw new IOException(scriptResponse.StandardError);
     }
 
     /// <summary>
@@ -49,34 +43,22 @@ internal static partial class PipeServerExtensions
         var group = EnvironmentVariables.NamedPipeGroup.Value;
 
         if (!await ExistsUser(user))
-        {
-            NamedPipeUserDoesNotExist(pipeServer.Logger, user);
             user = "root";
-        }
 
         if (!await ExistsGroup(group))
-        {
-            NamedPipeGroupDoesNotExist(pipeServer.Logger, group);
             group = "root";
-        }
-
-        var pipePath = Path.Combine(AppPaths.TempPath, $"CoreFxPipe_{pipeServer.PipeName}");
 
         var scriptOptions = new ScriptOptions();
         scriptOptions.Add(ScriptOptionNames.SetOwnership.User, user);
         scriptOptions.Add(ScriptOptionNames.SetOwnership.Group, group);
-        scriptOptions.Add(ScriptOptionNames.SetOwnership.File, pipePath);
+        scriptOptions.Add(ScriptOptionNames.SetOwnership.File, pipeServer.PipePath);
 
         var scriptResponse = await ScriptRunner
             .GetInstance()
             .Run(ScriptIdentifier.SetOwnership, scriptOptions.Options);
 
         if (scriptResponse.HasErrors)
-        {
-            throw new IOException(
-                $"An error occurred while setting ownership for '{pipePath}'. " +
-                $"{scriptResponse.StandardError}");
-        }
+            throw new IOException(scriptResponse.StandardError);
     }
 
     private static async Task<bool> ExistsUser(string user)
@@ -102,10 +84,4 @@ internal static partial class PipeServerExtensions
 
         return !scriptResponse.HasErrors;
     }
-
-    [LoggerMessage(LogLevel.Information, "User '{NamedPipeUser}' does not exist, using 'root' instead.")]
-    private static partial void NamedPipeUserDoesNotExist(ILogger logger, string namedPipeUser);
-
-    [LoggerMessage(LogLevel.Information, "Group '{NamedPipeGroup}' does not exist, using 'root' instead.")]
-    private static partial void NamedPipeGroupDoesNotExist(ILogger logger, string namedPipeGroup);
 }

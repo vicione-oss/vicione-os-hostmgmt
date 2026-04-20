@@ -14,6 +14,7 @@ internal sealed partial class PipeServer : IPipeServer
     private const int MaxNumberOfServerInstances = 1;
 
     private readonly string _pipeName;
+    private readonly string _pipePath;
     private readonly ILogger _logger;
     private readonly PipeOptions? _options;
     private readonly RequestHandlerRegistry _handlerRegistry = new(EnvironmentVariables.Environment.Value);
@@ -30,6 +31,7 @@ internal sealed partial class PipeServer : IPipeServer
     public PipeServer(string pipeName, ILogger logger, PipeOptions? options = null)
     {
         _pipeName = pipeName;
+        _pipePath = Path.Combine(AppPaths.TempPath, $"CoreFxPipe_{pipeName}");
         _logger = logger;
         _options = options;
 
@@ -40,9 +42,7 @@ internal sealed partial class PipeServer : IPipeServer
         _messageProcessor = new PipeMessageProcessor(_wrappedPipe, _handlerRegistry);
     }
 
-    public string PipeName => _pipeName;
-
-    public ILogger Logger => _logger;
+    public string PipePath => _pipePath;
 
     public PipeState State => _messageProcessor?.State ?? PipeState.NotOpened;
 
