@@ -16,8 +16,8 @@ internal sealed partial class PipeServer : IPipeServer
     private readonly string _pipeName;
     private readonly string _pipePath;
     private readonly ILogger _logger;
+    private readonly RequestHandlerRegistry _requestHandlerRegistry;
     private readonly PipeOptions? _options;
-    private readonly RequestHandlerRegistry _handlerRegistry = new(EnvironmentVariables.Environment.Value);
     private readonly NamedPipeServerStream _rawPipeStream;
     private readonly PipeStreamWrapper _wrappedPipe;
     private readonly PipeMessageProcessor _messageProcessor;
@@ -27,19 +27,23 @@ internal sealed partial class PipeServer : IPipeServer
     /// </summary>
     /// <param name="pipeName">The name of the pipe.</param>
     /// <param name="logger">An <see cref="ILogger"/> implementation.</param>
+    /// <param name="requestHandlerRegistry">The <see cref="RequestHandlerRegistry"/>.</param>
     /// <param name="options">Extra options for the pipe.</param>
-    public PipeServer(string pipeName, ILogger logger, PipeOptions? options = null)
+    public PipeServer(
+        string pipeName,
+        ILogger logger,
+        RequestHandlerRegistry requestHandlerRegistry,
+        PipeOptions? options = null)
     {
         _pipeName = pipeName;
         _pipePath = Path.Combine(AppPaths.TempPath, $"CoreFxPipe_{pipeName}");
         _logger = logger;
+        _requestHandlerRegistry = requestHandlerRegistry ?? throw new ArgumentNullException(nameof(requestHandlerRegistry));
         _options = options;
-
-        InitHandlerRegistry();
 
         _rawPipeStream = CreatePipe();
         _wrappedPipe = new PipeStreamWrapper(_rawPipeStream, _logger);
-        _messageProcessor = new PipeMessageProcessor(_wrappedPipe, _handlerRegistry);
+        _messageProcessor = new PipeMessageProcessor(_wrappedPipe, _requestHandlerRegistry);
     }
 
     public string PipePath => _pipePath;
@@ -85,22 +89,6 @@ internal sealed partial class PipeServer : IPipeServer
         PipeHasBeenDisposed(_logger, _pipeName);
     }
 
-    private void InitHandlerRegistry()
-    {
-#if DEBUG
-        // Testing purposes
-        _handlerRegistry.RegisterHandler(new EchoRequestHandler(this, _logger));
-#endif
-
-        RegisterRedeployScriptsRequestHandler();
-        RegisterServiceRequestHandlers();
-        RegisterInstallDebianPackageRequestHandler();
-        RegisterSystemConfigurationRequestHandler();
-        RegisterStateRequestHandlers();
-        RegisterSystemRequestHandlers();
-        RegisterRenewDHCPLeaseRequestHandler();
-    }
-
     private NamedPipeServerStream CreatePipe()
     {
         var pipeOptionsToPass = _options == null
@@ -115,46 +103,6 @@ internal sealed partial class PipeServer : IPipeServer
             MaxNumberOfServerInstances,
             PipeTransmissionMode.Byte,
             pipeOptionsToPass);
-    }
-
-    private void RegisterInstallDebianPackageRequestHandler()
-        => _handlerRegistry.RegisterHandler(new InstallSignedDebianPackageRequestHandler(_logger));
-
-    private void RegisterRedeployScriptsRequestHandler()
-        => _handlerRegistry.RegisterHandler(new RedeployScriptsRequestHandler());
-
-    private void RegisterRenewDHCPLeaseRequestHandler()
-        => _handlerRegistry.RegisterHandler(new RenewDHCPLeaseRequestHandler(_logger));
-
-    private void RegisterServiceRequestHandlers()
-    {
-        _handlerRegistry.RegisterHandler(new GetServiceStateRequestHandler(_logger));
-        _handlerRegistry.RegisterHandler(new StartServiceRequestHandler(_logger));
-        _handlerRegistry.RegisterHandler(new StopServiceRequestHandler(_logger));
-        _handlerRegistry.RegisterHandler(new RestartServiceRequestHandler(_logger));
-    }
-
-    private void RegisterStateRequestHandlers()
-    {
-        _handlerRegistry.RegisterHandler(new GetOriginalPhysicalAddressRequestHandler(_logger));
-        _handlerRegistry.RegisterHandler(new GetNetworkStatusInformationRequestHandler(_logger));
-        _handlerRegistry.RegisterHandler(new GetDHCPLeaseInformationRequestHandler(_logger));
-        _handlerRegistry.RegisterHandler(new GetNTPFallbackInformationRequestHandler(_logger));
-    }
-
-    private void RegisterSystemConfigurationRequestHandler()
-    {
-        _handlerRegistry.RegisterHandler(new GetSystemConfigurationRequestHandler());
-        _handlerRegistry.RegisterHandler(new SetSystemConfigurationRequestHandler());
-        _handlerRegistry.RegisterHandler(new ResetNetworkInterfaceRequestHandler());
-    }
-
-    private void RegisterSystemRequestHandlers()
-    {
-        _handlerRegistry.RegisterHandler(new ResetSystemRequestHandler(_logger));
-        _handlerRegistry.RegisterHandler(new RestartSystemRequestHandler(_logger));
-        _handlerRegistry.RegisterHandler(new ShutdownSystemRequestHandler(_logger));
-        _handlerRegistry.RegisterHandler(new UpdateSystemRequestHandler(_logger));
     }
 
     [LoggerMessage(LogLevel.Information, "Connected to client.")]

@@ -1,7 +1,8 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO.Abstractions;
 using HostManagement.Communication.NamedPipes;
 using HostManagement.Communication.NamedPipes.Extensions;
+using HostManagement.Communication.NamedPipes.RequestHandlers;
 using HostManagement.Configuration;
 using HostManagement.Scripts;
 using HostManagement.Shared.Communication.Contracts;
@@ -179,7 +180,13 @@ internal static partial class ServiceRunner
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                using var pipeServer = new PipeServer("HostPipe", s_logger);
+                var registry = GetRequestHandlerRegistry();
+
+                using var pipeServer = new PipeServer("HostPipe", s_logger, registry);
+#if DEBUG
+                // Testing purposes
+                registry.RegisterHandler(new EchoRequestHandler(pipeServer, s_logger));
+#endif
 
                 await pipeServer.SetExecutePermission();
                 await pipeServer.SetOwnership();
@@ -276,6 +283,52 @@ internal static partial class ServiceRunner
 
         ServiceAlreadyRunning(s_logger);
         return true;
+    }
+
+    private static RequestHandlerRegistry GetRequestHandlerRegistry()
+    {
+        var registry = new RequestHandlerRegistry(EnvironmentVariables.Environment.Value);
+        registry.RegisterHandler(new InstallSignedDebianPackageRequestHandler(s_logger));
+        registry.RegisterHandler(new RedeployScriptsRequestHandler());
+        registry.RegisterHandler(new RenewDHCPLeaseRequestHandler(s_logger));
+        registry.RegisterHandlers(GetServiceRequestHandlers());
+        registry.RegisterHandlers(GetStateRequestHandlers());
+        registry.RegisterHandlers(GetSystemConfigurationRequestHandlers());
+        registry.RegisterHandlers(GetSystemRequestHandlers());
+
+        return registry;
+
+
+        static IEnumerable<IRequestHandler> GetServiceRequestHandlers()
+        {
+            yield return new GetServiceStateRequestHandler(s_logger);
+            yield return new StartServiceRequestHandler(s_logger);
+            yield return new StopServiceRequestHandler(s_logger);
+            yield return new RestartServiceRequestHandler(s_logger);
+        }
+
+        static IEnumerable<IRequestHandler> GetStateRequestHandlers()
+        {
+            yield return new GetOriginalPhysicalAddressRequestHandler(s_logger);
+            yield return new GetNetworkStatusInformationRequestHandler(s_logger);
+            yield return new GetDHCPLeaseInformationRequestHandler(s_logger);
+            yield return new GetNTPFallbackInformationRequestHandler(s_logger);
+        }
+
+        static IEnumerable<IRequestHandler> GetSystemConfigurationRequestHandlers()
+        {
+            yield return new GetSystemConfigurationRequestHandler();
+            yield return new SetSystemConfigurationRequestHandler();
+            yield return new ResetNetworkInterfaceRequestHandler();
+        }
+
+        static IEnumerable<IRequestHandler> GetSystemRequestHandlers()
+        {
+            yield return new ResetSystemRequestHandler(s_logger);
+            yield return new RestartSystemRequestHandler(s_logger);
+            yield return new ShutdownSystemRequestHandler(s_logger);
+            yield return new UpdateSystemRequestHandler(s_logger);
+        }
     }
 
     [LoggerMessage(LogLevel.Error, "An error occurred while starting the service. Could not determine if the service is already running. {StandardError}")]
