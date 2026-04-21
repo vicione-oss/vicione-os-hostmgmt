@@ -1,5 +1,6 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using System.Net;
+using HostManagement.Communication.CommandLine.Commands.Network.Interface;
 using HostManagement.Communication.CommandLine.Extensions;
 using HostManagement.Communication.CommandLine.Validators;
 
@@ -12,7 +13,7 @@ internal static class CommonOptions
 {
     internal static readonly Option<string> s_interfaceNameOption = new("--interface-name", ["-n"])
     {
-        Description = "The name of the network interface.",
+        Description = CommandLineStrings_NetworkInterfaces.InterfaceNameArgumentDescription,
         Required = true,
         Arity = ArgumentArity.ExactlyOne
     };

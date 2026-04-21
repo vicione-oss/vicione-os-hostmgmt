@@ -485,6 +485,15 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.Interface {
         }
         
         /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die The name of the network interface. ähnelt.
+        /// </summary>
+        internal static string InterfaceNameArgumentDescription {
+            get {
+                return ResourceManager.GetString("InterfaceNameArgumentDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Network interface &apos;{0}&apos; was not found. ähnelt.
         /// </summary>
         internal static string InterfaceNotFound {

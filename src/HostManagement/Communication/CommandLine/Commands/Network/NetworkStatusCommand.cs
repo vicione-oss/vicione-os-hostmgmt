@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Commands.Network.Interface;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
@@ -21,7 +21,8 @@ internal sealed class NetworkStatusCommand : ConfigCommandBase
     {
         var interfaceNameArgument = new Argument<string>("name")
         {
-            Arity = ArgumentArity.ExactlyOne
+            Arity = ArgumentArity.ExactlyOne,
+            Description = CommandLineStrings_NetworkInterfaces.InterfaceNameArgumentDescription
         };
 
         Add(interfaceNameArgument);
