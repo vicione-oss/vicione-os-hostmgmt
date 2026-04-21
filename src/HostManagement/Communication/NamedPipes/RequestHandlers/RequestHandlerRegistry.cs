@@ -79,6 +79,12 @@ internal sealed class RequestHandlerRegistry(TargetEnvironment targetEnvironment
             throw new InvalidOperationException($"A handler for topic '{handler.Topic}' is already registered.");
     }
 
+    public void RegisterHandlers(IEnumerable<IRequestHandler> handlers)
+    {
+        foreach (var handler in handlers)
+            RegisterHandler(handler);
+    }
+
     private static bool IsRequiredContentMissing(string topic, string content)
         => s_topicsWithRequiredContent.Contains(topic) && string.IsNullOrWhiteSpace(content);
 
