@@ -23,8 +23,8 @@ public sealed class RequestHandlerRegistryTests
         {
             // Arrange
             var duplicateTopic = Topics.GetNTPFallbackInformation;
-            var handler1 = new FakeHandler(duplicateTopic, s_networkStatusJsonTypeInfo, handleResult: "h1");
-            var handler2 = new FakeHandler(duplicateTopic, s_networkStatusJsonTypeInfo, handleResult: "h2");
+            var handler1 = new FakeHandler(duplicateTopic, handleResult: "h1");
+            var handler2 = new FakeHandler(duplicateTopic, handleResult: "h2");
 
             var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne);
             registry.RegisterHandler(handler1);
@@ -112,7 +112,7 @@ public sealed class RequestHandlerRegistryTests
         {
             // Arrange
             var validTopic = Topics.GetNetworkStatusInformation;
-            var handler = new FakeHandler(validTopic, s_networkStatusJsonTypeInfo, handleThrows: true);
+            var handler = new FakeHandler(validTopic, handleThrows: true);
 
             var request = new NamedPipeMessage
             {
@@ -138,7 +138,7 @@ public sealed class RequestHandlerRegistryTests
         {
             // Arrange
             var unsupportedTopic = Topics.GetNetworkStatusInformation; // Environment Debian does not support this topic
-            var handler = new FakeHandler(unsupportedTopic, s_networkStatusJsonTypeInfo, handleResult: "handled");
+            var handler = new FakeHandler(unsupportedTopic, handleResult: "handled");
 
             var request = new NamedPipeMessage
             {
@@ -172,7 +172,7 @@ public sealed class RequestHandlerRegistryTests
         {
             // Arrange
             var topic = Topics.GetNetworkStatusInformation;
-            var handler = new FakeHandler(topic, s_networkStatusJsonTypeInfo, handleResult: "handled");
+            var handler = new FakeHandler(topic, handleResult: "handled");
 
             var request = new NamedPipeMessage
             {
@@ -203,7 +203,7 @@ public sealed class RequestHandlerRegistryTests
         {
             // Arrange
             var supportedTopic = Topics.GetNetworkStatusInformation;
-            var handler = new FakeHandler(supportedTopic, s_networkStatusJsonTypeInfo, handleResult: "handled");
+            var handler = new FakeHandler(supportedTopic, handleResult: "handled");
 
             var request = new NamedPipeMessage
             {
@@ -227,23 +227,24 @@ public sealed class RequestHandlerRegistryTests
 
     private sealed class FakeHandler(
         string topic,
-        JsonTypeInfo typeInfo,
         string? handleResult = null,
         bool handleThrows = false,
-        Exception? handleException = null) : IRequestHandler
+        Exception? handleException = null) : RequestHandler<GetNetworkStatusInformationResult>
     {
         private readonly bool _handleThrows = handleThrows;
         private readonly Exception? _handleException = handleException;
 
-        public string Topic { get; } = topic;
-        public JsonTypeInfo JsonTypeInfo { get; } = typeInfo;
         public string HandleResult { get; } = handleResult ?? string.Empty;
         public bool WasHandleCalled { get; private set; }
+        public override string Topic { get; } = topic;
 
-        public OperationResult CreateErrorInstance(string message)
+        public override JsonTypeInfo<GetNetworkStatusInformationResult> TypedJsonTypeInfo
+            => s_networkStatusJsonTypeInfo;
+
+        public override GetNetworkStatusInformationResult CreateTypedErrorInstance(string message)
             => GetNetworkStatusInformationResult.CreateErrorResult(message);
 
-        public Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
+        public override Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
         {
             WasHandleCalled = true;
 
