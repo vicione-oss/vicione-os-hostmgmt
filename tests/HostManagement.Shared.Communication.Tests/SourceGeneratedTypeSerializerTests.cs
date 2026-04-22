@@ -180,11 +180,7 @@ public class SourceGeneratedTypeSerializerTests
     private static readonly JsonTypeInfo<GetNTPFallbackInformationResult> s_getNTPFallbackContext = SourceGenerationContext.Default.GetNTPFallbackInformationResult;
     private static readonly JsonTypeInfo<GetServiceStateResult> s_getServiceStateContext = SourceGenerationContext.Default.GetServiceStateResult;
     private static readonly JsonTypeInfo<ServiceControlResult> s_serviceControlContext = SourceGenerationContext.Default.ServiceControlResult;
-    private static readonly JsonTypeInfo<UpdateSystemResult> s_updateSystemContext = SourceGenerationContext.Default.UpdateSystemResult;
-    private static readonly JsonTypeInfo<RestartSystemResult> s_restartSystemContext = SourceGenerationContext.Default.RestartSystemResult;
-    private static readonly JsonTypeInfo<ShutdownSystemResult> s_shutdownSystemContext = SourceGenerationContext.Default.ShutdownSystemResult;
-    private static readonly JsonTypeInfo<ResetSystemResult> s_resetSystemContext = SourceGenerationContext.Default.ResetSystemResult;
-    private static readonly JsonTypeInfo<InstallSignedDebianPackageResult> s_installPackageContext = SourceGenerationContext.Default.InstallSignedDebianPackageResult;
+    private static readonly JsonTypeInfo<SystemControlResult> s_systemControlContext = SourceGenerationContext.Default.SystemControlResult;
 
     private static readonly string s_sampleDHCPLeaseJson = GetNonIndentedJson(IndentedSampleDHCPLeaseJson);
     private static readonly string s_sampleNetworkStatusJson = GetNonIndentedJson(IndentedSampleNetworkStatusJson);
@@ -215,11 +211,7 @@ public class SourceGeneratedTypeSerializerTests
                 ["GetNTPFallbackInformationResult", s_getNTPFallbackContext, nullJson],
                 ["GetServiceStateResult", s_getServiceStateContext, nullJson],
                 ["ServiceControlResult", s_serviceControlContext, nullJson],
-                ["UpdateSystemResult", s_updateSystemContext, nullJson],
-                ["RestartSystemResult", s_restartSystemContext, nullJson],
-                ["ShutdownSystemResult", s_shutdownSystemContext, nullJson],
-                ["ResetSystemResult", s_resetSystemContext, nullJson],
-                ["InstallSignedDebianPackageResult", s_installPackageContext, nullJson]
+                ["SystemControlResult", s_systemControlContext, nullJson]
             ];
         }
     }
@@ -234,11 +226,7 @@ public class SourceGeneratedTypeSerializerTests
         [ "GetNTPFallbackInformationResult", s_getNTPFallbackContext, $$"""{"ResultType":"","Status":"Warning","Message":"Warning","FallbackNTPServers":{{s_sampleFallbackNTPInformationJson}}}""" ],
         [ "GetServiceStateResult", s_getServiceStateContext, """{"ResultType":"","Status":"Warning","Message":"Warning","ActiveState":"active"}""" ],
         [ "ServiceControlResult", s_serviceControlContext, """{"ResultType":"","Status":"Warning","Message":"Warning"}""" ],
-        [ "SystemControlResult", s_updateSystemContext, """{"ResultType":"","Status":"Warning","Message":"Warning"}""" ],
-        [ "SystemControlResult", s_restartSystemContext, """{"ResultType":"","Status":"Warning","Message":"Warning"}""" ],
-        [ "SystemControlResult", s_shutdownSystemContext, """{"ResultType":"","Status":"Warning","Message":"Warning"}""" ],
-        [ "SystemControlResult", s_resetSystemContext, """{"ResultType":"","Status":"Warning","Message":"Warning"}""" ],
-        [ "SystemControlResult", s_installPackageContext, """{"ResultType":"","Status":"Warning","Message":"Warning"}""" ]
+        [ "SystemControlResult", s_systemControlContext, """{"ResultType":"","Status":"Warning","Message":"Warning"}""" ]
     ];
 
     public static IEnumerable<object[]> ResultTypeMismatchData =>
@@ -251,11 +239,7 @@ public class SourceGeneratedTypeSerializerTests
         [ "GetNTPFallbackInformationResult", s_getNTPFallbackContext, $$"""{"ResultType":"Mismatch","Status":"Warning","Message":"Warning","FallbackNTPServers":{{s_sampleFallbackNTPInformationJson}}}""" ],
         [ "GetServiceStateResult", s_getServiceStateContext, """{"ResultType":"Mismatch","Status":"Warning","Message":"Warning","ActiveState":"active"}""" ],
         [ "ServiceControlResult", s_serviceControlContext, """{"ResultType":"Mismatch","Status":"Warning","Message":"Warning"}""" ],
-        [ "SystemControlResult", s_updateSystemContext, """{"ResultType":"Mismatch","Status":"Warning","Message":"Warning"}""" ],
-        [ "SystemControlResult", s_restartSystemContext, """{"ResultType":"Mismatch","Status":"Warning","Message":"Warning"}""" ],
-        [ "SystemControlResult", s_shutdownSystemContext, """{"ResultType":"Mismatch","Status":"Warning","Message":"Warning"}""" ],
-        [ "SystemControlResult", s_resetSystemContext, """{"ResultType":"Mismatch","Status":"Warning","Message":"Warning"}""" ],
-        [ "SystemControlResult", s_installPackageContext, """{"ResultType":"Mismatch","Status":"Warning","Message":"Warning"}""" ]
+        [ "SystemControlResult", s_systemControlContext, """{"ResultType":"Mismatch","Status":"Warning","Message":"Warning"}""" ]
     ];
 
     public static IEnumerable<object[]> DefaultResponseData
@@ -274,11 +258,7 @@ public class SourceGeneratedTypeSerializerTests
                 [ s_getNTPFallbackContext, defaultResponseJson ],
                 [ s_getServiceStateContext, defaultResponseJson ],
                 [ s_serviceControlContext, defaultResponseJson ],
-                [ s_updateSystemContext, defaultResponseJson ],
-                [ s_restartSystemContext, defaultResponseJson ],
-                [ s_shutdownSystemContext, defaultResponseJson ],
-                [ s_resetSystemContext, defaultResponseJson ],
-                [ s_installPackageContext, defaultResponseJson ]
+                [ s_systemControlContext, defaultResponseJson ]
             ];
         }
     }
@@ -330,20 +310,8 @@ public class SourceGeneratedTypeSerializerTests
         [s_serviceControlContext, """{"ResultType":"ServiceControlResult","Status":"Warning"}"""],
         [s_serviceControlContext, """{"ResultType":"ServiceControlResult","Message":"Warning"}"""],
 
-        [s_updateSystemContext, """{"ResultType":"SystemControlResult","Status":"Warning"}"""],
-        [s_updateSystemContext, """{"ResultType":"SystemControlResult","Message":"Warning"}"""],
-
-        [s_restartSystemContext, """{"ResultType":"SystemControlResult","Status":"Warning"}"""],
-        [s_restartSystemContext, """{"ResultType":"SystemControlResult","Message":"Warning"}"""],
-
-        [s_shutdownSystemContext, """{"ResultType":"SystemControlResult","Status":"Warning"}"""],
-        [s_shutdownSystemContext, """{"ResultType":"SystemControlResult","Message":"Warning"}"""],
-
-        [s_resetSystemContext, """{"ResultType":"SystemControlResult","Status":"Warning"}"""],
-        [s_resetSystemContext, """{"ResultType":"SystemControlResult","Message":"Warning"}"""],
-
-        [s_installPackageContext, """{"ResultType":"SystemControlResult","Status":"Warning"}"""],
-        [s_installPackageContext, """{"ResultType":"SystemControlResult","Message":"Warning"}"""]
+        [s_systemControlContext, """{"ResultType":"SystemControlResult","Status":"Warning"}"""],
+        [s_systemControlContext, """{"ResultType":"SystemControlResult","Message":"Warning"}"""]
     ];
 
     public static IEnumerable<object[]> AdditionalMemberData =>
@@ -374,20 +342,8 @@ public class SourceGeneratedTypeSerializerTests
         [s_serviceControlContext, """{"ResultType":"ServiceControlResult","Status":"Warning","Message":"Warning","AdditionalMember":"Additional"}"""],
         [s_serviceControlContext, """{"ResultType":"ServiceControlResult","AdditionalMember":"Additional","Status":"Warning","Message":"Warning"}"""],
 
-        [s_updateSystemContext, """{"ResultType":"SystemControlResult","Status":"Warning","Message":"Warning","AdditionalMember":"Additional"}"""],
-        [s_updateSystemContext, """{"ResultType":"SystemControlResult","AdditionalMember":"Additional","Status":"Warning","Message":"Warning"}"""],
-
-        [s_restartSystemContext, """{"ResultType":"SystemControlResult","Status":"Warning","Message":"Warning","AdditionalMember":"Additional"}"""],
-        [s_restartSystemContext, """{"ResultType":"SystemControlResult","AdditionalMember":"Additional","Status":"Warning","Message":"Warning"}"""],
-
-        [s_shutdownSystemContext, """{"ResultType":"SystemControlResult","Status":"Warning","Message":"Warning","AdditionalMember":"Additional"}"""],
-        [s_shutdownSystemContext, """{"ResultType":"SystemControlResult","AdditionalMember":"Additional","Status":"Warning","Message":"Warning"}"""],
-
-        [s_resetSystemContext, """{"ResultType":"SystemControlResult","Status":"Warning","Message":"Warning","AdditionalMember":"Additional"}"""],
-        [s_resetSystemContext, """{"ResultType":"SystemControlResult","AdditionalMember":"Additional","Status":"Warning","Message":"Warning"}"""],
-
-        [s_installPackageContext, """{"ResultType":"SystemControlResult","Status":"Warning","Message":"Warning","AdditionalMember":"Additional"}"""],
-        [s_installPackageContext, """{"ResultType":"SystemControlResult","AdditionalMember":"Additional","Status":"Warning","Message":"Warning"}"""]
+        [s_systemControlContext, """{"ResultType":"SystemControlResult","Status":"Warning","Message":"Warning","AdditionalMember":"Additional"}"""],
+        [s_systemControlContext, """{"ResultType":"SystemControlResult","AdditionalMember":"Additional","Status":"Warning","Message":"Warning"}"""]
     ];
 
     public static IEnumerable<object[]> InvalidNullMemberData
@@ -426,11 +382,7 @@ public class SourceGeneratedTypeSerializerTests
         [s_getServiceStateContext, """{"ResultType":"GetServiceStateResult","Status":"Warning","Message":"Warning","ActiveState":"active"}"""],
 
         [s_serviceControlContext, """{"ResultType":"ServiceControlResult","Status":"Success","Message":"Success"}"""],
-        [s_updateSystemContext, """{"ResultType":"SystemControlResult","Status":"Success","Message":"Success"}"""],
-        [s_restartSystemContext, """{"ResultType":"SystemControlResult","Status":"Success","Message":"Success"}"""],
-        [s_shutdownSystemContext, """{"ResultType":"SystemControlResult","Status":"Success","Message":"Success"}"""],
-        [s_resetSystemContext, """{"ResultType":"SystemControlResult","Status":"Success","Message":"Success"}"""],
-        [s_installPackageContext, """{"ResultType":"SystemControlResult","Status":"Success","Message":"Success"}"""]
+        [s_systemControlContext, """{"ResultType":"SystemControlResult","Status":"Success","Message":"Success"}"""]
     ];
 
     public class Deserialize : SourceGeneratedTypeSerializerTests
