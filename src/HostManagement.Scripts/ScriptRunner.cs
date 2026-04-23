@@ -84,7 +84,7 @@ public sealed class ScriptRunner
     /// <inheritdoc cref="Run(int, ScriptIdentifier, IEnumerable{string})"/>
     public async Task<ScriptResponse> Run(
         ScriptIdentifier scriptIdentifier,
-        params IEnumerable<string>? scriptArguments)
+        params IEnumerable<string> scriptArguments)
         => await Run(DefaultTimeoutInMilliseconds, scriptIdentifier, scriptArguments);
 
     /// <summary>
@@ -95,7 +95,7 @@ public sealed class ScriptRunner
     public async Task<ScriptResponse> Run(
         int timeoutInMilliseconds,
         ScriptIdentifier scriptIdentifier,
-        params IEnumerable<string>? scriptArguments)
+        params IEnumerable<string> scriptArguments)
     {
         return await Run(
             timeoutInMilliseconds,
@@ -113,7 +113,7 @@ public sealed class ScriptRunner
     public async Task<ScriptResponse> Run(
         ScriptIdentifier scriptIdentifier,
         CancellationToken cancellationToken,
-        params IEnumerable<string>? scriptArguments)
+        params IEnumerable<string> scriptArguments)
     {
         return await Run(DefaultTimeoutInMilliseconds, scriptIdentifier, cancellationToken, scriptArguments);
     }
@@ -127,7 +127,7 @@ public sealed class ScriptRunner
         int timeoutInMilliseconds,
         ScriptIdentifier scriptIdentifier,
         CancellationToken cancellationToken,
-        params IEnumerable<string>? scriptArguments)
+        params IEnumerable<string> scriptArguments)
     {
         return await Run(
             timeoutInMilliseconds,
@@ -169,7 +169,7 @@ public sealed class ScriptRunner
         ScriptIdentifier scriptIdentifier,
         IProcessWrapper processWrapper,
         CancellationToken cancellationToken,
-        params IEnumerable<string>? scriptArguments)
+        params IEnumerable<string> scriptArguments)
     {
         if (timeoutInMilliseconds < DefaultTimeoutInMilliseconds)
             timeoutInMilliseconds = DefaultTimeoutInMilliseconds;

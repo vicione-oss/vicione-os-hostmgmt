@@ -1,20 +1,10 @@
-﻿using AwesomeAssertions;
+using AwesomeAssertions;
 using Xunit;
 
 namespace HostManagement.Scripts.Tests;
 
 public class ScriptArgumentFormatterTests
 {
-    [Fact]
-    public void ShouldReturnEmptyString_WhenArgumentsNull()
-    {
-        // Act
-        var result = ScriptArgumentFormatter.GetFormattedArguments(null);
-
-        // Assert
-        result.Should().BeEmpty();
-    }
-
     [Fact]
     public void ShouldReturnEmptyString_WhenNoArgumentsGiven()
     {
