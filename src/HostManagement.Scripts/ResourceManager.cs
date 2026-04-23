@@ -33,6 +33,7 @@ public sealed partial class ResourceManager
     private readonly FrozenDictionary<string, ResourceInformation> _resourceDictionary;
 
     private bool _isDeploymentInProgress;
+    private readonly Lock _deploymentLock = new();
 
     private ResourceManager(
         ILogger logger,
@@ -174,46 +175,49 @@ public sealed partial class ResourceManager
     /// <returns><see langword="true"/> if successful, otherwise <see langword="false"/></returns>
     public bool DeployScripts(bool isRedeployment = false)
     {
-        try
+        lock (_deploymentLock)
         {
-            IsDeploymentInProgress = true;
-
-            if (isRedeployment)
-                CleanUpResourceDeployDirectory();
-
-            var hasDeployedScripts = false;
-
-            foreach (var (_, resourceInfo) in _resourceDictionary)
+            try
             {
-                if (!_fileSystem.File.Exists(resourceInfo.DeployPath))
-                {
-                    DeployScript(resourceInfo);
-                    hasDeployedScripts = true;
-                }
-            }
+                IsDeploymentInProgress = true;
 
-            if (hasDeployedScripts)
+                if (isRedeployment)
+                    CleanUpResourceDeployDirectory();
+
+                var hasDeployedScripts = false;
+
+                foreach (var (_, resourceInfo) in _resourceDictionary)
+                {
+                    if (!_fileSystem.File.Exists(resourceInfo.DeployPath))
+                    {
+                        DeployScript(resourceInfo);
+                        hasDeployedScripts = true;
+                    }
+                }
+
+                if (hasDeployedScripts)
+                {
+                    if (isRedeployment)
+                        ScriptsRedeployed(_logger, _resourceDeployDirectory);
+                    else
+                        ScriptsDeployed(_logger, _resourceDeployDirectory);
+                }
+
+                return true;
+            }
+            catch (Exception ex)
             {
                 if (isRedeployment)
-                    ScriptsRedeployed(_logger, _resourceDeployDirectory);
+                    ScriptRedeployFailed(_logger, ex);
                 else
-                    ScriptsDeployed(_logger, _resourceDeployDirectory);
+                    ScriptDeployFailed(_logger, ex);
+
+                return false;
             }
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            if (isRedeployment)
-                ScriptRedeployFailed(_logger, ex);
-            else
-                ScriptDeployFailed(_logger, ex);
-
-            return false;
-        }
-        finally
-        {
-            IsDeploymentInProgress = false;
+            finally
+            {
+                IsDeploymentInProgress = false;
+            }
         }
     }
 
