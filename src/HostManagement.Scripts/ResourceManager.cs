@@ -226,7 +226,10 @@ public sealed partial class ResourceManager
     /// </summary>
     /// <param name="resourceName">The resource name.</param>
     /// <returns>The resource as an UTF8 string</returns>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if the resource with the given name is unknown, if the resource cannot be found at the expected path or
+    /// if the content of the resource could not be loaded or decoded as UTF8 string.
+    /// </exception>
     internal string GetResource(string resourceName)
     {
         var bytes = GetResourceBytes(resourceName);
@@ -248,27 +251,41 @@ public sealed partial class ResourceManager
     /// </summary>
     /// <param name="resourceName">The resource name.</param>
     /// <returns>The resource as a byte array</returns>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if the resource with the given name is unknown, if the resource cannot be found at the expected path or
+    /// if the content of the resource could not be loaded.
+    /// </exception>
     internal byte[] GetResourceBytes(string resourceName)
     {
-        if (!_resourceDictionary.TryGetValue(resourceName, out var resourceInfo))
-        {
-            throw new InvalidOperationException($"Resource with name '{resourceName}' is unknown.");
-        }
-
-        if (!_fileSystem.File.Exists(resourceInfo.DeployPath))
-        {
-            throw new InvalidOperationException($"Resource with name '{resourceName}' could not be found.");
-        }
+        var resourcePath = GetResourcePath(resourceName);
 
         try
         {
-            return _fileSystem.File.ReadAllBytes(resourceInfo.DeployPath);
+            return _fileSystem.File.ReadAllBytes(resourcePath);
         }
         catch (Exception ex)
         {
             throw new InvalidOperationException($"Could not load resource with name '{resourceName}'.", ex);
         }
+    }
+
+    /// <summary>
+    /// Gets the resource path for the resource with '<paramref name="resourceName"/>'.
+    /// </summary>
+    /// <param name="resourceName">The resource name</param>
+    /// <returns>The resource path as a string.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if the resource name is unknown or if the resource cannot be found at the expected path.
+    /// </exception>
+    internal string GetResourcePath(string resourceName)
+    {
+        if (!_resourceDictionary.TryGetValue(resourceName, out var resourceInfo))
+            throw new InvalidOperationException($"Resource with name '{resourceName}' is unknown.");
+
+        if (!_fileSystem.File.Exists(resourceInfo.DeployPath))
+            throw new InvalidOperationException($"Resource with name '{resourceName}' could not be found.");
+
+        return resourceInfo.DeployPath;
     }
 
     private Dictionary<string, ResourceInformation> AddResourcesToResourceDictionary(

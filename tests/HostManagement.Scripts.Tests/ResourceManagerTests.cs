@@ -295,120 +295,6 @@ public class ResourceManagerTests
         ];
     }
 
-    public class GetResourceBytes : ResourceManagerTests
-    {
-        [Fact]
-        public void ShouldThrow_WhenResourceNameIsUnknown()
-        {
-            // Arrange
-            ResourceManager.ResetInstance();
-
-            var (logger, fileSystem, _, resourceHelper, processWrapper) = CreateSubstitutes();
-
-            ResourceManager.Initialize(
-                logger,
-                fileSystem,
-                resourceHelper,
-                processWrapper,
-                _testResourceDeployDirectory,
-                EdgeSViciOne);
-
-            var unknownResourceName = "unknownResource";
-            var expectedMessage = $"Resource with name '{unknownResourceName}' is unknown.";
-
-            // Act
-            var result = () => ResourceManager.GetInstance().GetResourceBytes(unknownResourceName);
-
-            // Assert
-            result.Should()
-                .Throw<InvalidOperationException>()
-                .WithMessage(expectedMessage);
-        }
-
-        [Fact]
-        public void ShouldThrow_WhenResourceFileIsMissing()
-        {
-            // Arrange
-            ResourceManager.ResetInstance();
-
-            var (logger, fileSystem, _, resourceHelper, processWrapper) = CreateSubstitutes();
-
-            var scriptName = "script";
-            var scriptFile = "script.sh";
-            var resourceLocation = BuildEnvironmentResource(scriptFile, NormalizedEdgeSViciOne);
-
-            SetupFilteredManifestResourceNames(resourceHelper, resourceLocation);
-
-            // No file shall exist, so exception is thrown later
-            fileSystem.File.Exists(Arg.Any<string>()).Returns(false);
-
-            ResourceManager.Initialize(
-                logger,
-                fileSystem,
-                resourceHelper,
-                processWrapper,
-                _testResourceDeployDirectory,
-                EdgeSViciOne);
-
-            // Act
-            var func = () => ResourceManager.GetInstance().GetResourceBytes(scriptName);
-
-            // Assert
-            func.Should()
-                .Throw<InvalidOperationException>()
-                .WithMessage($"Resource with name '{scriptName}' could not be found.");
-        }
-
-        [Fact]
-        public void ShouldThrow_WhenReadingResourceFileFails()
-        {
-            // Arrange
-            ResourceManager.ResetInstance();
-
-            var (logger, fileSystem, directoryInfo, resourceHelper, processWrapper) = CreateSubstitutes();
-
-            var scriptName = "readfail";
-            var scriptFile = "readfail.sh";
-            var scriptContentBytes = Encoding.UTF8.GetBytes("readfail content");
-            var resourceDeployDirectoryStructure = GetDeployDirectoryStructure(_testResourceDeployDirectory);
-            var targetFilePath = Path.Combine(resourceDeployDirectoryStructure, scriptFile);
-            var resourceLocation = BuildEnvironmentResource(scriptFile, NormalizedEdgeSViciOne);
-
-            SetupFilteredManifestResourceNames(resourceHelper, resourceLocation);
-            SetupDirectoryCreation(fileSystem, directoryInfo, resourceDeployDirectoryStructure);
-            SetupSuccessfulSingleScriptDeployment(
-                resourceHelper,
-                fileSystem,
-                resourceLocation,
-                scriptContentBytes,
-                targetFilePath);
-
-            SetupProcessWrapperSuccess(processWrapper);
-
-            ResourceManager.Initialize(
-                logger,
-                fileSystem,
-                resourceHelper,
-                processWrapper,
-                _testResourceDeployDirectory,
-                EdgeSViciOne);
-
-            ResourceManager.GetInstance().DeployScripts();
-
-            // Resource deployed but ReadAllBytes throws
-            fileSystem.File.Exists(Arg.Any<string>()).Returns(true);
-            fileSystem.File.ReadAllBytes(Arg.Any<string>()).Returns(_ => throw new IOException("read failed"));
-
-            // Act
-            var func = () => ResourceManager.GetInstance().GetResourceBytes(scriptName);
-
-            // Assert
-            func.Should()
-                .Throw<InvalidOperationException>()
-                .WithMessage($"Could not load resource with name '{scriptName}'.");
-        }
-    }
-
     public class GetResource : ResourceManagerTests
     {
         [Theory]
@@ -548,6 +434,123 @@ public class ResourceManagerTests
             /// The embedded resource file name and extension (e.g.: 'file.sh' or 'file' if no extension).
             /// </summary>
             public required string FileNameAndExtension { get; init; }
+        }
+    }
+
+    public class GetResourceBytes : ResourceManagerTests
+    {
+        [Fact]
+        public void ShouldThrow_WhenReadingResourceFileFails()
+        {
+            // Arrange
+            ResourceManager.ResetInstance();
+
+            var (logger, fileSystem, directoryInfo, resourceHelper, processWrapper) = CreateSubstitutes();
+
+            var scriptName = "readfail";
+            var scriptFile = "readfail.sh";
+            var scriptContentBytes = Encoding.UTF8.GetBytes("readfail content");
+            var resourceDeployDirectoryStructure = GetDeployDirectoryStructure(_testResourceDeployDirectory);
+            var targetFilePath = Path.Combine(resourceDeployDirectoryStructure, scriptFile);
+            var resourceLocation = BuildEnvironmentResource(scriptFile, NormalizedEdgeSViciOne);
+
+            SetupFilteredManifestResourceNames(resourceHelper, resourceLocation);
+            SetupDirectoryCreation(fileSystem, directoryInfo, resourceDeployDirectoryStructure);
+            SetupSuccessfulSingleScriptDeployment(
+                resourceHelper,
+                fileSystem,
+                resourceLocation,
+                scriptContentBytes,
+                targetFilePath);
+
+            SetupProcessWrapperSuccess(processWrapper);
+
+            ResourceManager.Initialize(
+                logger,
+                fileSystem,
+                resourceHelper,
+                processWrapper,
+                _testResourceDeployDirectory,
+                EdgeSViciOne);
+
+            ResourceManager.GetInstance().DeployScripts();
+
+            // Resource deployed but ReadAllBytes throws
+            fileSystem.File.Exists(Arg.Any<string>()).Returns(true);
+            fileSystem.File.ReadAllBytes(Arg.Any<string>()).Returns(_ => throw new IOException("read failed"));
+
+            // Act
+            var func = () => ResourceManager.GetInstance().GetResourceBytes(scriptName);
+
+            // Assert
+            func.Should()
+                .Throw<InvalidOperationException>()
+                .WithMessage($"Could not load resource with name '{scriptName}'.");
+        }
+    }
+
+    public class GetResourcePath : ResourceManagerTests
+    {
+        [Fact]
+        public void ShouldThrow_WhenResourceNameIsUnknown()
+        {
+            // Arrange
+            ResourceManager.ResetInstance();
+
+            var (logger, fileSystem, _, resourceHelper, processWrapper) = CreateSubstitutes();
+
+            ResourceManager.Initialize(
+                logger,
+                fileSystem,
+                resourceHelper,
+                processWrapper,
+                _testResourceDeployDirectory,
+                EdgeSViciOne);
+
+            var unknownResourceName = "unknownResource";
+            var expectedMessage = $"Resource with name '{unknownResourceName}' is unknown.";
+
+            // Act
+            var result = () => ResourceManager.GetInstance().GetResourcePath(unknownResourceName);
+
+            // Assert
+            result.Should()
+                .Throw<InvalidOperationException>()
+                .WithMessage(expectedMessage);
+        }
+
+        [Fact]
+        public void ShouldThrow_WhenResourceFileIsMissing()
+        {
+            // Arrange
+            ResourceManager.ResetInstance();
+
+            var (logger, fileSystem, _, resourceHelper, processWrapper) = CreateSubstitutes();
+
+            var scriptName = "script";
+            var scriptFile = "script.sh";
+            var resourceLocation = BuildEnvironmentResource(scriptFile, NormalizedEdgeSViciOne);
+
+            SetupFilteredManifestResourceNames(resourceHelper, resourceLocation);
+
+            // No file shall exist, so exception is thrown later
+            fileSystem.File.Exists(Arg.Any<string>()).Returns(false);
+
+            ResourceManager.Initialize(
+                logger,
+                fileSystem,
+                resourceHelper,
+                processWrapper,
+                _testResourceDeployDirectory,
+                EdgeSViciOne);
+
+            // Act
+            var func = () => ResourceManager.GetInstance().GetResourcePath(scriptName);
+
+            // Assert
+            func.Should()
+                .Throw<InvalidOperationException>()
+                .WithMessage($"Resource with name '{scriptName}' could not be found.");
         }
     }
 
