@@ -64,7 +64,7 @@ public sealed partial class ResourceManager
     /// <summary>
     /// Indicates if (re)deployment of resources is in progress.
     /// </summary>
-    public bool IsDeploymentInProgress
+    internal bool IsDeploymentInProgress
     {
         get => Volatile.Read(ref _isDeploymentInProgress);
         private set => Volatile.Write(ref _isDeploymentInProgress, value);
@@ -165,56 +165,6 @@ public sealed partial class ResourceManager
     }
 
     /// <summary>
-    /// Gets the resource with '<paramref name="resourceName"/>' as an UTF8 string.
-    /// </summary>
-    /// <param name="resourceName">The resource name.</param>
-    /// <returns>The resource as an UTF8 string</returns>
-    /// <exception cref="InvalidOperationException"></exception>
-    public string GetResource(string resourceName)
-    {
-        var bytes = GetResourceBytes(resourceName);
-
-        try
-        {
-            return Encoding.UTF8.GetString(bytes);
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException(
-                $"Could not load content of resource '{resourceName}'.",
-                ex);
-        }
-    }
-
-    /// <summary>
-    /// Gets the resource with '<paramref name="resourceName"/>' as a byte array.
-    /// </summary>
-    /// <param name="resourceName">The resource name.</param>
-    /// <returns>The resource as a byte array</returns>
-    /// <exception cref="InvalidOperationException"></exception>
-    public byte[] GetResourceBytes(string resourceName)
-    {
-        if (!_resourceDictionary.TryGetValue(resourceName, out var resourceInfo))
-        {
-            throw new InvalidOperationException($"Resource with name '{resourceName}' is unknown.");
-        }
-
-        if (!_fileSystem.File.Exists(resourceInfo.DeployPath))
-        {
-            throw new InvalidOperationException($"Resource with name '{resourceName}' could not be found.");
-        }
-
-        try
-        {
-            return _fileSystem.File.ReadAllBytes(resourceInfo.DeployPath);
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException($"Could not load resource with name '{resourceName}'.", ex);
-        }
-    }
-
-    /// <summary>
     /// Deploys the application scripts to the resource deploy directory. If a script is already present, it is not
     /// overwritten. This is ok as long as HostManagement is only "updated" by flashing the device with a new image.
     /// </summary>
@@ -264,6 +214,56 @@ public sealed partial class ResourceManager
         finally
         {
             IsDeploymentInProgress = false;
+        }
+    }
+
+    /// <summary>
+    /// Gets the resource with '<paramref name="resourceName"/>' as an UTF8 string.
+    /// </summary>
+    /// <param name="resourceName">The resource name.</param>
+    /// <returns>The resource as an UTF8 string</returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    internal string GetResource(string resourceName)
+    {
+        var bytes = GetResourceBytes(resourceName);
+
+        try
+        {
+            return Encoding.UTF8.GetString(bytes);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(
+                $"Could not load content of resource '{resourceName}'.",
+                ex);
+        }
+    }
+
+    /// <summary>
+    /// Gets the resource with '<paramref name="resourceName"/>' as a byte array.
+    /// </summary>
+    /// <param name="resourceName">The resource name.</param>
+    /// <returns>The resource as a byte array</returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    internal byte[] GetResourceBytes(string resourceName)
+    {
+        if (!_resourceDictionary.TryGetValue(resourceName, out var resourceInfo))
+        {
+            throw new InvalidOperationException($"Resource with name '{resourceName}' is unknown.");
+        }
+
+        if (!_fileSystem.File.Exists(resourceInfo.DeployPath))
+        {
+            throw new InvalidOperationException($"Resource with name '{resourceName}' could not be found.");
+        }
+
+        try
+        {
+            return _fileSystem.File.ReadAllBytes(resourceInfo.DeployPath);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Could not load resource with name '{resourceName}'.", ex);
         }
     }
 
