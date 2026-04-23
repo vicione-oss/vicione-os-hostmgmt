@@ -297,6 +297,58 @@ public class ResourceManagerTests
 
     public class GetResource : ResourceManagerTests
     {
+        [Fact]
+        public void ShouldThrow_WhenResourceContentCanNotBeDecodedAsUTF8()
+        {
+            // Arrange
+            ResourceManager.ResetInstance();
+
+            var (logger, fileSystem, directoryInfo, resourceHelper, processWrapper) = CreateSubstitutes();
+
+            var scriptName = "invalid_encoding";
+            var scriptFile = "invalid_encoding.sh";
+            var contentBytes = Encoding.UTF8.GetBytes(scriptName);
+            var resourceDeployDirectoryStructure = GetDeployDirectoryStructure(_testResourceDeployDirectory);
+            var targetFilePath = Path.Combine(resourceDeployDirectoryStructure, scriptFile);
+            var resourceLocation = BuildEnvironmentResource(scriptFile, NormalizedEdgeSViciOne);
+
+            SetupFilteredManifestResourceNames(resourceHelper, resourceLocation);
+            SetupDirectoryCreation(fileSystem, directoryInfo, resourceDeployDirectoryStructure);
+
+            // GetManifestResourceNames shall return the embedded resource location
+            resourceHelper.GetManifestResourceNames(Arg.Any<Func<string, bool>?>()).Returns([resourceLocation]);
+
+            SetupSuccessfulSingleScriptDeployment(
+                resourceHelper,
+                fileSystem,
+                resourceLocation,
+                contentBytes,
+                targetFilePath);
+
+            fileSystem.File.Exists(targetFilePath).Returns(true);
+
+            // Encoding will fail and throw, when content is null
+            fileSystem.File.ReadAllBytes(targetFilePath).Returns(_ => null!);
+
+            SetupProcessWrapperSuccess(processWrapper);
+
+            ResourceManager.Initialize(
+                logger,
+                fileSystem,
+                resourceHelper,
+                processWrapper,
+                _testResourceDeployDirectory,
+                EdgeSViciOne);
+
+            ResourceManager.GetInstance().DeployScripts();
+
+            // Act + Assert
+            var func = () => ResourceManager.GetInstance().GetResource(scriptName);
+            func.Should()
+                .Throw<InvalidOperationException>()
+                .WithMessage($"Could not load content of resource '{scriptName}'.");
+        }
+
         [Theory]
         [MemberData(nameof(EmbeddedResourceData))]
         public void ShouldGetResourceContent_WhenGetResourceCalled(EmbeddedResourceFile embeddedResource)

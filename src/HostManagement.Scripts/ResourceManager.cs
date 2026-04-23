@@ -236,6 +236,7 @@ public sealed partial class ResourceManager
 
         try
         {
+            // Invalid byte sequences are replaced with '�', no exceptions are thrown because of ill-formed UTF8 data.
             return Encoding.UTF8.GetString(bytes);
         }
         catch (Exception ex)
