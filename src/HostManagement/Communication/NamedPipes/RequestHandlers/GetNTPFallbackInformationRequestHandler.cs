@@ -23,7 +23,7 @@ internal sealed class GetNTPFallbackInformationRequestHandler(ILogger logger)
         => SourceGenerationContext.Default.GetNTPFallbackInformationResult;
 
     /// <summary>
-    /// Handles the get NTPFallback information request.
+    /// Handles the get NTP fallback information request.
     /// </summary>
     /// <inheritdoc/>
     /// <exception cref="InvalidOperationException"/>
