@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed a bug where proxy settings were not cleared during a system reset.
 - Fixed `network status` command missing it's name argument description
+- Fixed script for changing the MAC address when using VLAN
 
 ## [1.3.0] - 2026-03-23
 

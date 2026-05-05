@@ -136,6 +136,10 @@ add_netplan_base_configuration() {
     fi
 
     if [[ -n "$VLAN_ID" ]]; then
+        if [[ -n "$MAC_ADDRESS" ]]; then
+            FILE_CONTENT+="      macaddress: ${MAC_ADDRESS}"$'\n'
+        fi
+        
         FILE_CONTENT+="      dhcp4: false"$'\n'
         FILE_CONTENT+="  vlans:"$'\n'
         FILE_CONTENT+="    vlan${VLAN_ID}:"$'\n'
