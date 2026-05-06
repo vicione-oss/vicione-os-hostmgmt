@@ -284,10 +284,13 @@ Pack binaries:
   variables:
     INPUT_DIRECTORY: "src/HostManagement/bin/Release/net10.0/$OS-$ARCH/publish"
     OUTPUT_DIRECTORY: "artifacts"
+    LICENSE_FILE: "LICENSE.txt"
+    NOTICES_FILE: "THIRD-PARTY-NOTICES"
   script:
     - mv $INPUT_DIRECTORY $OUTPUT_DIRECTORY
     - du -sh ./${OUTPUT_DIRECTORY}/
     - rm -rf ./${OUTPUT_DIRECTORY}/*.xml ./${OUTPUT_DIRECTORY}/*.dbg ./${OUTPUT_DIRECTORY}/*.pdb
+    - cp $LICENSE_FILE $NOTICES_FILE ./${OUTPUT_DIRECTORY}/
     - du -sh ./${OUTPUT_DIRECTORY}/
     - tar cfz artifacts.tar.gz ./${OUTPUT_DIRECTORY}
     - ls -lh artifacts.tar.gz
