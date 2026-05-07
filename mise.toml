@@ -1,2 +1,2 @@
 [tools]
-dotnet = "10.0.202"  # Pin SDK version
+dotnet = "10.0.203"  # Pin SDK version

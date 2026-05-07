@@ -16,8 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - from `get_network_interfaces_common_information.sh`
   - from `get_network_status_information.sh`
   - from `set_network_dns_settings.sh`
-- Updated `.NET Runtime` from `10.0.5` to `10.0.6`
-- Updated `.NET SDK` from `10.0.201` to `10.0.202`
+- Updated `.NET Runtime` from `10.0.5` to `10.0.7`
+- Updated `.NET SDK` from `10.0.201` to `10.0.203`
 - Updated NuGet packages
   - `Microsoft.Extensions.Configuration.EnvironmentVariables` from `10.0.5` to `10.0.6`
   - `Microsoft.Extensions.Logging` from `10.0.5` to `10.0.6`
