@@ -94,17 +94,7 @@ public sealed class OperationResultFactoryTests
         resultObject.Should().NotBeNull();
 
         var typedResultObject = (T)resultObject;
-
-        if (result is InstallSignedDebianPackageResult)
-        {
-            // Workaround because we use SystemControlResult but maintain compatibility until removed
-            typedResultObject.ResultType.Should().Be(nameof(SystemControlResult));
-        }
-        else
-        {
-            typedResultObject.ResultType.Should().Be(typeof(T).Name);
-        }
-
+        typedResultObject.ResultType.Should().Be(typeof(T).Name);
         typedResultObject.Status.Should().Be(OperationStatus.Error);
         typedResultObject.Message.Should().Be(message);
     }
@@ -118,17 +108,7 @@ public sealed class OperationResultFactoryTests
         // Assert
         // Common invariants
         result.Should().NotBeNull();
-
-        if (result is InstallSignedDebianPackageResult)
-        {
-            // Workaround because we use SystemControlResult but maintain compatibility until removed
-            result.ResultType.Should().Be(nameof(SystemControlResult));
-        }
-        else
-        {
-            result.ResultType.Should().Be(typeof(T).Name);
-        }
-
+        result.ResultType.Should().Be(typeof(T).Name);
         result.Status.Should().Be(OperationStatus.Error);
         result.Message.Should().Be(message);
 

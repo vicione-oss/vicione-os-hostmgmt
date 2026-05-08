@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed obsolete `DHCPLease` from `SystemConfiguration` (separate `GetDHCPLeaseInformation` request was added in [1.0.0](#100---2025-07-17))
 - Removed obsolete `RenewDHCPLeaseResult` (new `GetDHCPLeaseInformationResult` was added in [1.0.0](#100---2025-07-17))
 - Removed obsolete `SystemConfigurationSerializer` methods (marked obsolete in [1.0.0](#100---2025-07-17))
+- Removed obsolete result types `InstallSignedDebianPackageResult`, `ResetSystemResult`, `RestartSystemResult`, `ShutdownSystemResult` and `UpdateSystemResult` (new `ControlSystemResult` was added in [1.3.0](#130---2026-03-23))
 
 ### Fixed
 
