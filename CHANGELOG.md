@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `TestableIO.System.IO.Abstractions.TestingHelpers` from `22.1.0` to `22.1.1`
   - `TestableIO.System.IO.Abstractions.Wrappers` from `22.1.0` to `22.1.1`
 - Clarified XML documentation of `Content` property of `NamedPipeMessage` (content can be JSON-serialized or a plain string)
+- Improved XML documentation of `SystemConfigurationSerializer`
 
 ### Removed
 
@@ -36,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed obsolete `FallbackNTPServers` from `SystemConfiguration` (separate `GetNTPFallbackInformation` request was added in [1.0.0](#100---2025-07-17))
 - Removed obsolete `DHCPLease` from `SystemConfiguration` (separate `GetDHCPLeaseInformation` request was added in [1.0.0](#100---2025-07-17))
 - Removed obsolete `RenewDHCPLeaseResult` (new `GetDHCPLeaseInformationResult` was added in [1.0.0](#100---2025-07-17))
+- Removed obsolete `SystemConfigurationSerializer` methods (marked obsolete in [1.0.0](#100---2025-07-17))
 
 ### Fixed
 

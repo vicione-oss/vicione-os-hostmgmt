@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using AwesomeAssertions;
@@ -332,52 +332,6 @@ public class SystemConfigurationSerializerTests
                 .SerializeAsync(stream, s_sampleSystemConfiguration, cancellationToken: CancellationToken.None);
 
             var result = Encoding.UTF8.GetString(stream.ToArray());
-
-            // Assert
-            result.Should().Be(s_sampleNonIndentedSystemConfigurationJson);
-        }
-    }
-
-    public class DeserializeObsolete
-    {
-        [Fact]
-        public void ShouldThrow_WhenJsonContainsLiteralNull()
-        {
-            // Act
-            var literalNullJson = "null";
-
-            var result = async () => await SystemConfigurationSerializer
-                .Deserialize(literalNullJson, new CancellationToken());
-
-            // Assert
-            result.Should()
-                .ThrowAsync<InvalidOperationException>()
-                .WithMessage(
-                    "JSON string could not be deserialized to 'SystemConfiguration'." +
-                    Environment.NewLine +
-                    $"JSON string was: '{literalNullJson}'");
-        }
-
-        [Fact]
-        public async Task ShouldReturnSystemConfiguration_WhenJsonValid()
-        {
-            // Act
-            var result = await SystemConfigurationSerializer
-                .Deserialize(s_sampleNonIndentedSystemConfigurationJson, new CancellationToken());
-
-            // Assert
-            result.Should().BeOfType<SystemConfiguration>();
-        }
-    }
-
-    public class SerializeObsolete
-    {
-        [Fact]
-        public async Task ShouldSerializeSystemConfiguration_WhenCalled()
-        {
-            // Act
-            var result = await SystemConfigurationSerializer
-                .Serialize(s_sampleSystemConfiguration, new CancellationToken());
 
             // Assert
             result.Should().Be(s_sampleNonIndentedSystemConfigurationJson);
