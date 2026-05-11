@@ -39,16 +39,12 @@ main() {
 
         proxy=$(echo "$row" | cut -d'=' -f2 | tr -d '"')
 
-        if [[ $proxy =~ ^(http|https|ftp|sftp|socks|socks5):\/\/(([^:]+):([^@]+)@)?([^:]+):(.+)$ ]]; then
+        if [[ $proxy =~ ^(http|https|ftp|sftp):\/\/(([^:]+):([^@]+)@)?([^:]+):(.+)$ ]]; then
             proxy_type="${BASH_REMATCH[1]}"
             username="${BASH_REMATCH[3]}"
             password="${BASH_REMATCH[4]}"
             url="${BASH_REMATCH[5]}"
             port="${BASH_REMATCH[6]}"
-
-            if [[ "$proxy_type" == "socks5" ]]; then
-                proxy_type="socks"
-            fi
 
             json_output+="\"${proxy_type^^}\": {"
             json_output+="\"Enabled\": ${enabled},"

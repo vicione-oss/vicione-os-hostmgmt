@@ -38,6 +38,10 @@ readonly VALUE_NONE="NONE"
 
 readonly PROXY_MARKER="# Proxy configuration"
 readonly NO_PROXY_MARKER="# No Proxy configuration"
+readonly HTTP_PROXY_TYPE="http"
+readonly HTTPS_PROXY_TYPE="https"
+readonly FTP_PROXY_TYPE="ftp"
+readonly SFTP_PROXY_TYPE="sftp"
 
 #######################################
 # Methods
@@ -160,7 +164,11 @@ clear_proxy_settings() {
     file_content=$(sed -E \
         -e "/^${PROXY_MARKER}$/d" \
         -e "/^${NO_PROXY_MARKER}$/d" \
-        -e '/^[#]*.*_proxy=.*/d' \
+        -e "/^[#]*${HTTP_PROXY_TYPE}_proxy=.*/d" \
+        -e "/^[#]*${HTTPS_PROXY_TYPE}_proxy=.*/d" \
+        -e "/^[#]*${FTP_PROXY_TYPE}_proxy=.*/d" \
+        -e "/^[#]*${SFTP_PROXY_TYPE}_proxy=.*/d" \
+        -e "/^[#]*no_proxy=.*/d" \
         <<< "$file_content")
 
     echo -e "$file_content" > "$CONFIGURATION_PATH"
@@ -238,15 +246,13 @@ main() {
     local proxy_type=""
 
     if [[ "$url" =~ ^http:// ]]; then
-        proxy_type="http"
+        proxy_type=${HTTP_PROXY_TYPE}
     elif [[ "$url" =~ ^https:// ]]; then
-        proxy_type="https"
+        proxy_type=${HTTPS_PROXY_TYPE}
     elif [[ "$url" =~ ^ftp:// ]]; then
-        proxy_type="ftp"
+        proxy_type=${FTP_PROXY_TYPE}
     elif [[ "$url" =~ ^sftp:// ]]; then
-        proxy_type="sftp"
-    elif [[ "$url" =~ ^socks5:// || "$url" =~ ^socks:// ]]; then
-        proxy_type="socks5"
+        proxy_type=${SFTP_PROXY_TYPE}
     else
         err "$ERR_CODE_4" 4
     fi
