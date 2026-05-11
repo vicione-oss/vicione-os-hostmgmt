@@ -2,6 +2,9 @@
 
 Below is a list of all environment variables defined for HostManagement.
 
+> [!IMPORTANT]
+> When adding, removing, or renaming environment variables, the config files in [`conf.d folder`](https://gitlab.com/vicione-oss/vicione/os/deb-packaging/-/blob/master/src/conf.d) in the `Debian packaging` repository may also need to be updated accordingly.
+
 | Variable                                                 | Description                                                                                                                    | Default value                                        | Current value in the Linux image[^1]                            | Required                                     |
 | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- | --------------------------------------------------------------- | -------------------------------------------- |
 | `HOSTMANAGEMENT__BYPASS_VALIDATION_CHECKS`[^2]           | If set, certain validations are skipped (e.g. during the OS startup phase when not all required information is available yet). | `""`                                                 | `true`                                                          | Yes during early OS startup; No in operation |
