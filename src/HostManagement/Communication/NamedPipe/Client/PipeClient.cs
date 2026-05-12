@@ -1,4 +1,4 @@
-﻿using System.IO.Pipes;
+using System.IO.Pipes;
 using System.Net.Sockets;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
@@ -90,24 +90,26 @@ internal sealed partial class PipeClient : IPipeClient
                 $"Cannot send request to pipe '{_pipeName}' because it is not connected.");
         }
 
+        var message = new NamedPipeMessage { Topic = topic, Type = MessageType.Request, Content = content };
+        var expectedResponse = _messageProcessor.AnnounceResponse(message.ConversationId);
+
+        using var cancellationRegistration = cancellationToken.Register(() =>
+        {
+            _messageProcessor.RemoveExpectedResponse(message.ConversationId);
+
+            expectedResponse.TaskCompletionSource.TrySetException(
+                new OperationCanceledException("Request has been canceled.", cancellationToken));
+        });
+
         try
         {
-            var message = new NamedPipeMessage { Topic = topic, Type = MessageType.Request, Content = content };
-            var expectedResponse = _messageProcessor.AnnounceResponse(message.ConversationId);
-
-            await _wrappedPipe.SendMessageAsync(message, cancellationToken);
-
-            cancellationToken.Register(() =>
-            {
-                expectedResponse.TaskCompletionSource.TrySetException(
-                    new OperationCanceledException("Request has been canceled."));
-            },
-            false);
+            await _wrappedPipe.SendMessageAsync(message, cancellationToken).ConfigureAwait(false);
 
             return await expectedResponse.TaskCompletionSource.Task.ConfigureAwait(false);
         }
         catch (Exception ex)
         {
+            _messageProcessor.RemoveExpectedResponse(message.ConversationId);
             SendingToPipeFailed(_logger, _pipeName, ex);
             throw;
         }

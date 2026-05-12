@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Enums;
 using Microsoft.Extensions.Logging;
@@ -16,14 +17,20 @@ internal sealed partial class ClientPipeMessageProcessor(
     ILogger logger)
     : MessageProcessorBase(pipeStreamWrapper)
 {
-    private readonly Dictionary<Guid, ExpectedResponse> _expectedResponses = [];
+    private readonly ConcurrentDictionary<Guid, ExpectedResponse> _expectedResponses = [];
 
     public ExpectedResponse AnnounceResponse(Guid conversationId)
     {
         var response = new ExpectedResponse();
-        _expectedResponses.Add(conversationId, response);
+
+        if (!_expectedResponses.TryAdd(conversationId, response))
+            throw new InvalidOperationException($"Duplicate conversation id '{conversationId}'.");
+
         return response;
     }
+
+    public bool RemoveExpectedResponse(Guid conversationId)
+        => _expectedResponses.TryRemove(conversationId, out _);
 
     /// <summary>
     /// Processes the next message on the input stream.
@@ -38,10 +45,9 @@ internal sealed partial class ClientPipeMessageProcessor(
             case MessageType.Request:
                 throw new InvalidOperationException($"Message type '{message.Type}' may only be send by the server.");
             case MessageType.Response:
-                if (!_expectedResponses.Remove(message.ConversationId, out var expectedResponse))
+                if (!_expectedResponses.TryRemove(message.ConversationId, out var expectedResponse))
                 {
                     UnexpectedResponse(logger, message.ConversationId, message.Topic);
-                    // TODO: throw?
                     return;
                 }
                 expectedResponse.TaskCompletionSource.TrySetResult(message);

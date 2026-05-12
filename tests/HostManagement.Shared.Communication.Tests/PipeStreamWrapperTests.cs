@@ -243,7 +243,7 @@ public class PipeStreamWrapperTests
         }
 
         [Fact]
-        public async Task ShouldLogDebug_WhenBrokenPipeDetectedByExceptionMessage()
+        public async Task ShouldThrowAndLogDebug_WhenBrokenPipeDetectedByExceptionMessage()
         {
             // Arrange
             var loggerSubstitute = CreateLoggerSubstitute();
@@ -259,7 +259,7 @@ public class PipeStreamWrapperTests
             var func = async () => await wrapper.SendMessageAsync(message);
 
             // Assert
-            await func.Should().NotThrowAsync();
+            await func.Should().ThrowAsync<IOException>();
 
 #pragma warning disable CA1873
             loggerSubstitute.Received(1).Log(
@@ -272,7 +272,7 @@ public class PipeStreamWrapperTests
         }
 
         [Fact]
-        public async Task ShouldLogError_WhenGenericIOExceptionWithoutInnerExceptionOccurred()
+        public async Task ShouldThrowAndLogError_WhenGenericIOExceptionWithoutInnerExceptionOccurred()
         {
             // Arrange
             var loggerSubstitute = CreateLoggerSubstitute();
@@ -284,7 +284,7 @@ public class PipeStreamWrapperTests
             var func = async () => await wrapper.SendMessageAsync(message);
 
             // Assert
-            await func.Should().NotThrowAsync();
+            await func.Should().ThrowAsync<IOException>();
 
             loggerSubstitute.Received(1).Log(
                 LogLevel.Error,
@@ -295,7 +295,7 @@ public class PipeStreamWrapperTests
         }
 
         [Fact]
-        public async Task ShouldLogDebug_WhenBrokenPipeDetectedBySocketException()
+        public async Task ShouldThrowAndLogDebug_WhenBrokenPipeDetectedBySocketException()
         {
             // Arrange
             var loggerSubstitute = CreateLoggerSubstitute();
@@ -311,7 +311,7 @@ public class PipeStreamWrapperTests
             var func = async () => await wrapper.SendMessageAsync(message);
 
             // Assert
-            await func.Should().NotThrowAsync();
+            await func.Should().ThrowAsync<IOException>();
 
 #pragma warning disable CA1873
             loggerSubstitute.Received(1).Log(
@@ -324,7 +324,7 @@ public class PipeStreamWrapperTests
         }
 
         [Fact]
-        public async Task ShouldLogError_WhenSocketExceptionHasDifferentCode()
+        public async Task ShouldThrowAndLogError_WhenSocketExceptionHasDifferentCode()
         {
             // Arrange
             var loggerSubstitute = CreateLoggerSubstitute();
@@ -340,7 +340,7 @@ public class PipeStreamWrapperTests
             var func = async () => await wrapper.SendMessageAsync(message);
 
             // Assert
-            await func.Should().NotThrowAsync();
+            await func.Should().ThrowAsync<IOException>();
 
             loggerSubstitute.Received(1).Log(
                 LogLevel.Error,
@@ -351,7 +351,7 @@ public class PipeStreamWrapperTests
         }
 
         [Fact]
-        public async Task ShouldLogError_WhenGenericExceptionOccurred()
+        public async Task ShouldThrowAndLogError_WhenGenericExceptionOccurred()
         {
             // Arrange
             var loggerSubstitute = CreateLoggerSubstitute();
@@ -366,7 +366,7 @@ public class PipeStreamWrapperTests
             var func = async () => await wrapper.SendMessageAsync(message);
 
             // Assert
-            await func.Should().NotThrowAsync();
+            await func.Should().ThrowAsync<InvalidOperationException>();
 
             loggerSubstitute.Received(1).Log(
                 LogLevel.Error,

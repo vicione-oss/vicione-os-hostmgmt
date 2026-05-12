@@ -50,10 +50,6 @@ public sealed partial class PipeStreamWrapper(PipeStream stream, ILogger logger)
     }
 
     /// <inheritdoc/>
-    /// <exception cref="InvalidOperationException">Thrown when the message could not be read from stream.</exception>
-    /// <exception cref="JsonException">Thrown when the JSON deserialization of the message fails.</exception>
-    /// <exception cref="ObjectDisposedException">Thrown when the pipe stream wrapper has been disposed.</exception>
-    /// <exception cref="OperationCanceledException"> Thrown when the pipe has closed.</exception>
     public async Task<NamedPipeMessage> ReadMessageAsync(CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
@@ -103,7 +99,6 @@ public sealed partial class PipeStreamWrapper(PipeStream stream, ILogger logger)
     }
 
     /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">Thrown when the pipe stream wrapper has been disposed.</exception>
     public async Task SendMessageAsync(NamedPipeMessage message, CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
@@ -170,12 +165,12 @@ public sealed partial class PipeStreamWrapper(PipeStream stream, ILogger logger)
                 SendPipeMessageFailed(_logger, ex);
             }
 
-            return;
+            throw;
         }
         catch (Exception ex)
         {
             SendPipeMessageFailed(_logger, ex);
-            return;
+            throw;
         }
         finally
         {
