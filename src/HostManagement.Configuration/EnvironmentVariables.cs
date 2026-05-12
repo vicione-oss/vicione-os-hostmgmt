@@ -87,6 +87,15 @@ public static class EnvironmentVariables
         Create("HOSTMANAGEMENT:RESOURCE_DEPLOY_DIRECTORY", "/var/lib/hostmanagement");
 
     /// <summary>
+    /// The cache lifetime of the 'SystemConfiguration' in seconds.
+    /// </summary>
+    /// <remarks>
+    /// <b>Default:</b> 30 seconds
+    /// </remarks>
+    public static readonly EnvironmentVariable<long> SystemConfigurationCacheLifetimeInSeconds =
+        Create("HOSTMANAGEMENT:SYSTEM_CONFIGURATION_CACHE_LIFETIME_SECONDS", 30L);
+
+    /// <summary>
     /// The directory/path where <see cref="AppPaths.SystemConfigurationFile"/> is located.
     /// </summary>
     /// <remarks>

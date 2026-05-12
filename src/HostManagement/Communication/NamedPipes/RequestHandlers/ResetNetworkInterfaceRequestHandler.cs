@@ -5,13 +5,14 @@ using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Serialization;
 using HostManagement.SystemConfig;
+using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 
 /// <summary>
 /// Represents the <see cref="ResetNetworkInterfaceRequestHandler"/>.
 /// </summary>
-internal sealed class ResetNetworkInterfaceRequestHandler : RequestHandler<SystemControlResult>
+internal sealed class ResetNetworkInterfaceRequestHandler(ILogger logger) : RequestHandler<SystemControlResult>
 {
     /// <summary>
     /// The topic of the <see cref="ResetNetworkInterfaceRequestHandler"/>.
@@ -34,7 +35,8 @@ internal sealed class ResetNetworkInterfaceRequestHandler : RequestHandler<Syste
             var configurationService = new SystemConfigurationService(
                 fileSystem,
                 new SystemConfigurationPersistence(fileSystem),
-                new ScriptHandler());
+                new ScriptHandler(),
+                logger);
 
             var result = await configurationService
                 .ResetNetworkInterface(messageContent, cancellationToken)

@@ -5,13 +5,14 @@ using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Serialization;
 using HostManagement.SystemConfig;
+using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 
 /// <summary>
 /// Represents the <see cref="GetSystemConfigurationRequestHandler"/>.
 /// </summary>
-internal sealed class GetSystemConfigurationRequestHandler : RequestHandler<GetSystemConfigurationResult>
+internal sealed class GetSystemConfigurationRequestHandler(ILogger logger) : RequestHandler<GetSystemConfigurationResult>
 {
     /// <summary>
     /// The topic of the <see cref="GetSystemConfigurationRequestHandler"/>.
@@ -31,7 +32,12 @@ internal sealed class GetSystemConfigurationRequestHandler : RequestHandler<GetS
         try
         {
             var fileSystem = new FileSystem();
-            var configurationService = new SystemConfigurationService(fileSystem, new SystemConfigurationPersistence(fileSystem), new ScriptHandler());
+            var persistence = new SystemConfigurationPersistence(fileSystem);
+            var configurationService = new SystemConfigurationService(
+                fileSystem,
+                persistence,
+                new ScriptHandler(),
+                logger);
 
             var result = await configurationService.GetConfiguration(cancellationToken);
 

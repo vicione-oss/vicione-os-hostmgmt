@@ -7,13 +7,14 @@ using HostManagement.Shared.Communication.Serialization;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Serialization;
 using HostManagement.SystemConfig;
+using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 
 /// <summary>
 /// Represents the <see cref="SetSystemConfigurationRequestHandler"/>
 /// </summary>
-internal sealed class SetSystemConfigurationRequestHandler : RequestHandler<SetSystemConfigurationResult>
+internal sealed class SetSystemConfigurationRequestHandler(ILogger logger) : RequestHandler<SetSystemConfigurationResult>
 {
     /// <summary>
     /// The topic of the <see cref="SetSystemConfigurationRequestHandler"/>.
@@ -34,7 +35,12 @@ internal sealed class SetSystemConfigurationRequestHandler : RequestHandler<SetS
         {
             var configToApply = SystemConfigurationSerializer.Deserialize(messageContent);
             var fileSystem = new FileSystem();
-            var configurationService = new SystemConfigurationService(fileSystem, new SystemConfigurationPersistence(fileSystem), new ScriptHandler());
+            var persistence = new SystemConfigurationPersistence(fileSystem);
+            var configurationService = new SystemConfigurationService(
+                fileSystem,
+                persistence,
+                new ScriptHandler(),
+                logger);
 
             var result = await configurationService
                 .SetConfiguration(configToApply, shouldPersistConfiguration: true, cancellationToken);

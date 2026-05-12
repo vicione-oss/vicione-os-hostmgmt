@@ -45,7 +45,12 @@ internal static partial class ServiceRunner
 
                 PrepareConfigurationStarted(s_logger);
 
-                var configurationService = new SystemConfigurationService(s_fileSystem, new SystemConfigurationPersistence(s_fileSystem), new ScriptHandler());
+                var persistence = new SystemConfigurationPersistence(s_fileSystem);
+                var configurationService = new SystemConfigurationService(
+                    s_fileSystem,
+                    persistence,
+                    new ScriptHandler(),
+                    s_logger);
 
                 var prepareConfigResult = await configurationService.PrepareConfiguration();
 
@@ -136,7 +141,12 @@ internal static partial class ServiceRunner
         else
             CreateSystemConfigurationStarted(s_logger);
 
-        var configurationService = new SystemConfigurationService(s_fileSystem, persistence, new ScriptHandler());
+        var configurationService = new SystemConfigurationService(
+            s_fileSystem,
+            persistence,
+            new ScriptHandler(),
+            s_logger);
+
         var getJsonConfigResult = await configurationService.GetConfigurationFromJson();
 
         if (getJsonConfigResult.Status == OperationStatus.Error)
@@ -155,7 +165,13 @@ internal static partial class ServiceRunner
         SystemConfiguration jsonConfig,
         CancellationToken cancellationToken)
     {
-        var configurationService = new SystemConfigurationService(s_fileSystem, new SystemConfigurationPersistence(s_fileSystem), new ScriptHandler());
+        var persistence = new SystemConfigurationPersistence(s_fileSystem);
+        var configurationService = new SystemConfigurationService(
+            s_fileSystem,
+            persistence,
+            new ScriptHandler(),
+            s_logger);
+
         var setConfigResult = await configurationService
             .SetConfiguration(jsonConfig, shouldPersistConfiguration: false, cancellationToken);
 
@@ -317,9 +333,9 @@ internal static partial class ServiceRunner
 
         static IEnumerable<IRequestHandler> GetSystemConfigurationRequestHandlers()
         {
-            yield return new GetSystemConfigurationRequestHandler();
-            yield return new SetSystemConfigurationRequestHandler();
-            yield return new ResetNetworkInterfaceRequestHandler();
+            yield return new GetSystemConfigurationRequestHandler(s_logger);
+            yield return new SetSystemConfigurationRequestHandler(s_logger);
+            yield return new ResetNetworkInterfaceRequestHandler(s_logger);
         }
 
         static IEnumerable<IRequestHandler> GetSystemRequestHandlers()

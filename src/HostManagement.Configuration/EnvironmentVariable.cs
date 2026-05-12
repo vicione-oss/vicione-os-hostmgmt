@@ -65,6 +65,10 @@ public record EnvironmentVariable<T> : IEnvironmentVariable<T> where T : notnull
             else
                 result = GetEnumValue(configuration, key, defaultValue, isRequired);
         }
+        else if (typeof(T) == typeof(long))
+        {
+            result = GetLongValue(configuration, key, defaultValue, isRequired);
+        }
         else
         {
             throw new NotSupportedException($"Unsupported environment variable type: {typeof(T)}");
@@ -182,6 +186,19 @@ public record EnvironmentVariable<T> : IEnvironmentVariable<T> where T : notnull
         var value = TargetEnvironmentExtensions.FromEnvironmentString(configuration[key]);
 
         IsInvalid = isRequired && value is TargetEnvironment.Unknown;
+
+        SetInvalidVariableStringIfInvalid(key);
+
+        return value;
+    }
+
+    private long GetLongValue(IConfiguration configuration, string key, T defaultValue, bool isRequired)
+    {
+        var defaultLongValue = defaultValue is long i ? i : 0L;
+        var couldBeParsed = long.TryParse(configuration[key], out var result);
+        var value = couldBeParsed ? result : defaultLongValue;
+
+        IsInvalid = isRequired && !couldBeParsed;
 
         SetInvalidVariableStringIfInvalid(key);
 
