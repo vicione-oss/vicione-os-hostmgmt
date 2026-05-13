@@ -152,7 +152,7 @@ These are the instructions for unit testing of the `HostManagement` project.
 
   ```csharp
   logger.Received(1).Log(
-      Arg.Is(LogLevel.Error),
+      LogLevel.Error,
       Arg.Any<EventId>(),
       Arg.Is<object>(state => state.ToString()!.Contains(expectedMessage)),
       Arg.Is<Exception?>(ex => ReferenceEquals(ex, expectedException)),

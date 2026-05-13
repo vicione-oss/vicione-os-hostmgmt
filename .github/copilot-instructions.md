@@ -1,6 +1,6 @@
 # Copilot Custom Instructions
 
-These are the global instructions for the `HostManagement` project.
+These are the global instructions for the `HostManagement` project. Additional instructions are located in the `instructions` sub folder (e.g.: [Unit Testing Instructions]).
 
 ## Project and Application
 
@@ -10,6 +10,16 @@ The project `HostManagement` is an AOT compiled .NET C# application and runs onl
 
 - Code shall adhere to the rules in [`.editorconfig`] if not otherwise stated
 - Class names, method names etc. MUST be written in **English**
+- Code MUST adhere to the following ordering scheme according to [StyleCop Ordering Rules]
+
+  | Identifier | Rule description                                           |
+  |------------|------------------------------------------------------------|
+  | [SA1201]   | Elements must appear in the correct order                  |
+  | [SA1202]   | Elements must be ordered by access                         |
+  | [SA1203]   | Constants must appear before fields                        |
+  | [SA1204]   | Static elements must appear before instance elements       |
+  | [SA1206]   | Declaration keywords must follow order                     |
+  | [SA1214]   | Readonly elements must appear before non-readonly elements |
 
 ## Documentation
 
@@ -61,6 +71,15 @@ The project `HostManagement` is an AOT compiled .NET C# application and runs onl
     ```
 
 - XML comments are OPTIONAL for private types and members (when present, they MUST be accurate and up-to-date)
+- XML comments are NOT REQUIRED for unit tests
 - Non-XML comments (inline code comments) MAY be in **German** to explain complex technical concepts.
 
 [`.editorconfig`]: ../.editorconfig
+[SA1201]: https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/SA1201.md
+[SA1202]: https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/SA1202.md
+[SA1203]: https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/SA1203.md
+[SA1204]: https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/SA1204.md
+[SA1206]: https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/SA1206.md
+[SA1214]: https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/SA1214.md
+[StyleCop Ordering Rules]: https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/OrderingRules.md
+[Unit Testing Instructions]: instructions/testing.instructions.md
