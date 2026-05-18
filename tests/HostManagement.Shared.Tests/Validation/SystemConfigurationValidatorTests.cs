@@ -32,7 +32,6 @@ public class SystemConfigurationValidatorTests
     public async Task ShouldAddValidationError_WhenExceptionOccurs()
     {
         // Arrange
-        var currentConfig = new SystemConfiguration();
         SystemConfiguration? invalidProposedConfig = null;
 
         var expectedValidationEntry = new ValidationEntry(
@@ -42,17 +41,10 @@ public class SystemConfigurationValidatorTests
             ErrorCodes.ValidationFailed);
 
         // Act
-        var validationResultObsolete = await SystemConfigurationValidator
-            .Validate(currentConfig, invalidProposedConfig!);
-
         var validationResult = await new SystemConfigurationValidator()
             .ValidateAsync(invalidProposedConfig!, CancellationToken.None);
 
         // Assert
-        validationResultObsolete.IsValid.Should().BeFalse();
-        validationResultObsolete.Entries.Count.Should().Be(1);
-        validationResultObsolete.Entries.Should().Contain(expectedValidationEntry);
-
         validationResult.IsValid.Should().BeFalse();
         validationResult.Entries.Count.Should().Be(1);
         validationResult.Entries.Should().Contain(expectedValidationEntry);

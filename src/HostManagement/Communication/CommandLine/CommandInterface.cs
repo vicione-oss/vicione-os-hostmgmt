@@ -1,9 +1,8 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Commands.Deployment;
 using HostManagement.Communication.CommandLine.Commands.Network;
 using HostManagement.Communication.CommandLine.Commands.Service;
 using HostManagement.Communication.CommandLine.Commands.System;
-using HostManagement.Communication.CommandLine.Commands.ViciOneSuite;
 
 namespace HostManagement.Communication.CommandLine;
 
@@ -22,7 +21,6 @@ internal sealed class CommandInterface
         {
             new NetworkCommand(),
             new ServiceCommand(),
-            new ViciOneSuiteCommand(),
             new DeploymentCommand(),
             new SystemCommand()
         };

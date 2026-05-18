@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using HostManagement.Communication.NamedPipes.Extensions;
 using HostManagement.Configuration;
 using HostManagement.Shared.Communication;
@@ -12,6 +12,9 @@ namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 /// <param name="targetEnvironment">The target environment.</param>
 internal sealed class RequestHandlerRegistry(TargetEnvironment targetEnvironment)
 {
+    private static readonly List<string> s_validTopics = [.. Topics.GetAllTopics()];
+    private static readonly List<string> s_topicsWithRequiredContent = [.. Topics.GetTopicsWithRequiredContent()];
+
     private readonly Dictionary<string, IRequestHandler> _handlers = [];
     private readonly TargetEnvironment _targetEnvironment = targetEnvironment;
 
@@ -21,33 +24,41 @@ internal sealed class RequestHandlerRegistry(TargetEnvironment targetEnvironment
     /// <param name="message">The named pipe message.</param>
     /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <returns><see cref="NamedPipeMessage"/></returns>
-    public async Task<NamedPipeMessage> HandleRequest(NamedPipeMessage message, CancellationToken cancellationToken)
+    public async Task<NamedPipeMessage> HandleRequestAsync(
+        NamedPipeMessage message,
+        CancellationToken cancellationToken)
     {
-        if (!_handlers.TryGetValue(message.Topic, out var handler))
-            return message.CreateDefaultResponse($"No handler registered for topic '{message.Topic}'.");
+        var topic = message.Topic;
+        var content = message.Content;
+
+        if (topic is null)
+            return message.CreateDefaultResponse("Error processing request. Message topic was null.");
+
+        if (IsTopicInvalid(topic))
+            return message.CreateDefaultResponse($"Error processing request. Topic '{topic}' is invalid.");
+
+        if (!_handlers.TryGetValue(topic, out var handler))
+            return message.CreateDefaultResponse($"No handler registered for topic '{topic}'.");
 
         try
         {
-            string response;
-
-            if (IsHandlerSupported(handler))
+            if (!IsHandlerSupported(handler))
             {
-                response = await handler.Handle(message.Content, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                response = JsonSerializer.Serialize(
-                    handler.CreateErrorInstance($"Handler with topic '{message.Topic}' not supported on this platform."),
-                    handler.JsonTypeInfo);
+                return message.CreateResponse(
+                    JsonSerializer.Serialize(
+                        handler.CreateErrorInstance($"Handler with topic '{topic}' not supported on this platform."),
+                        handler.JsonTypeInfo));
             }
 
-            return message.CreateResponse(response);
-        }
-        catch (ArgumentException ex) when (ex.Message.Contains("messageContent"))
-        {
-            var response = JsonSerializer.Serialize(
-                handler.CreateErrorInstance("Error processing request. Message content was missing or empty."),
-                handler.JsonTypeInfo);
+            if (IsRequiredContentMissing(topic, content))
+            {
+                return message.CreateResponse(
+                    JsonSerializer.Serialize(
+                        handler.CreateErrorInstance($"Handler with topic '{topic}' requires a message content."),
+                        handler.JsonTypeInfo));
+            }
+
+            var response = await handler.HandleAsync(content, cancellationToken).ConfigureAwait(false);
 
             return message.CreateResponse(response);
         }
@@ -67,6 +78,17 @@ internal sealed class RequestHandlerRegistry(TargetEnvironment targetEnvironment
         if (!_handlers.TryAdd(handler.Topic, handler))
             throw new InvalidOperationException($"A handler for topic '{handler.Topic}' is already registered.");
     }
+
+    public void RegisterHandlers(IEnumerable<IRequestHandler> handlers)
+    {
+        foreach (var handler in handlers)
+            RegisterHandler(handler);
+    }
+
+    private static bool IsRequiredContentMissing(string topic, string content)
+        => s_topicsWithRequiredContent.Contains(topic) && string.IsNullOrWhiteSpace(content);
+
+    private static bool IsTopicInvalid(string topic) => !s_validTopics.Contains(topic);
 
     private bool IsHandlerSupported(IRequestHandler handler)
     {
@@ -102,10 +124,6 @@ internal sealed class RequestHandlerRegistry(TargetEnvironment targetEnvironment
                 Topics.StopService => true,
                 Topics.RestartService => true,
 
-                Topics.InstallSignedDebianPackage => true,
-                Topics.GetViciOneSuiteVersions => true,
-                Topics.InstallViciOneSuiteVersion => true,
-
                 Topics.GetSystemConfiguration => true,
                 Topics.SetSystemConfiguration => true,
 
@@ -114,12 +132,14 @@ internal sealed class RequestHandlerRegistry(TargetEnvironment targetEnvironment
                 Topics.GetDHCPLeaseInformation => true,
                 Topics.GetNTPFallbackInformation => true,
 
+                Topics.InstallSignedDebianPackage => true,
                 Topics.ResetSystem => true,
                 Topics.RestartSystem => true,
                 Topics.ShutdownSystem => true,
                 Topics.UpdateSystem => true,
 
                 Topics.RenewDHCPLease => true,
+                Topics.ResetNetworkInterface => true,
 
                 _ => false
             },

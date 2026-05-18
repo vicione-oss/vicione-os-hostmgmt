@@ -1,4 +1,4 @@
-﻿using HostManagement.Scripts;
+using HostManagement.Scripts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.SystemConfig.Contracts;
 
@@ -52,8 +52,11 @@ internal sealed class NetworkDNSConfigurationAdapter(
         // interfaces' yaml file. That is because the DNS script depends on a clean file
         // (meaning no DNS info configured).
         return
-            !EqualityComparer<NetworkDNSSettings>.Default.Equals(currentConfig.NetworkDNSSettings, proposedConfig.NetworkDNSSettings) ||
-            !EqualityComparer<NetworkInterfaceDetail>.Default.SequenceEqual(currentConfig.NetworkInterfacesSettings?.NetworkInterfaces,
+            !EqualityComparer<NetworkDNSSettings>.Default.Equals(
+                currentConfig.NetworkDNSSettings,
+                proposedConfig.NetworkDNSSettings) ||
+            !EqualityComparer<NetworkInterfaceDetail>.Default.SequenceEqual(
+                currentConfig.NetworkInterfacesSettings?.NetworkInterfaces,
                 proposedConfig.NetworkInterfacesSettings?.NetworkInterfaces);
     }
 
@@ -61,47 +64,30 @@ internal sealed class NetworkDNSConfigurationAdapter(
         SystemConfiguration config,
         CancellationToken cancellationToken = default)
     {
-        var hasWarning = false;
         var dnsSettings = config.NetworkDNSSettings;
 
-        var status = await SetMulticastConfiguration(config).ConfigureAwait(false);
+        if (dnsSettings is null)
+            return OperationStatus.Success;
 
-        if (status == OperationStatus.Error)
+        if (await SetMulticastConfiguration(dnsSettings).ConfigureAwait(false) == OperationStatus.Error)
             return OperationStatus.Error;
 
-        if (status == OperationStatus.Warning)
-            hasWarning = true;
-
-        status = await SetStaticHostsConfiguration(dnsSettings?.StaticHostsEnabled, dnsSettings?.StaticHosts)
-            .ConfigureAwait(false);
-
-        if (status == OperationStatus.Error)
+        if (await SetStaticHostsConfiguration(dnsSettings.StaticHostsEnabled, dnsSettings.StaticHosts).ConfigureAwait(false) == OperationStatus.Error)
             return OperationStatus.Error;
 
-        if (status == OperationStatus.Warning)
-            hasWarning = true;
-
-        status = await SetDNSConfiguration(dnsSettings).ConfigureAwait(false);
-
-        if (status == OperationStatus.Error)
+        if (await SetDNSConfiguration(dnsSettings).ConfigureAwait(false) == OperationStatus.Error)
             return OperationStatus.Error;
 
-        if (status == OperationStatus.Warning)
-            hasWarning = true;
-
-        status = await SetHostname(dnsSettings?.Hostname).ConfigureAwait(false);
-
-        if (status == OperationStatus.Error)
+        if (await SetHostname(dnsSettings.Hostname).ConfigureAwait(false) == OperationStatus.Error)
             return OperationStatus.Error;
 
-        return hasWarning ? OperationStatus.Warning : OperationStatus.Success;
+        return OperationStatus.Success;
     }
 
-    private async Task<OperationStatus> SetMulticastConfiguration(SystemConfiguration config)
+    private async Task<OperationStatus> SetMulticastConfiguration(NetworkDNSSettings dnsSettings)
     {
-        if (config.NetworkDNSSettings is not null &&
-            config.NetworkDNSSettings.MulticastDNSEnabled.HasValue &&
-            config.NetworkDNSSettings.MulticastDNSEnabled.Value != _currentConfig.NetworkDNSSettings?.MulticastDNSEnabled)
+        if (dnsSettings.MulticastDNSEnabled.HasValue &&
+            dnsSettings.MulticastDNSEnabled.Value != _currentConfig.NetworkDNSSettings?.MulticastDNSEnabled)
         {
             var (status, rawInterfacesString) = await _scriptHandler
                 .ExecuteGetNetworkInterfacesScript()
@@ -114,7 +100,7 @@ internal sealed class NetworkDNSConfigurationAdapter(
 
             scriptOptions.Add(
                 ScriptOptionNames.NetworkMulticastDNS.MulticastDNSEnabled,
-                config.NetworkDNSSettings.MulticastDNSEnabled.Value);
+                dnsSettings.MulticastDNSEnabled.Value);
 
             scriptOptions.Add(
                 ScriptOptionNames.NetworkMulticastDNS.Interfaces,
@@ -148,16 +134,29 @@ internal sealed class NetworkDNSConfigurationAdapter(
 
             return await _scriptHandler.ExecuteSetStaticHostsScript(scriptOptions).ConfigureAwait(false);
         }
+
         return OperationStatus.Success;
     }
 
-    private async Task<OperationStatus> SetDNSConfiguration(NetworkDNSSettings? dnsSettings)
+    private async Task<OperationStatus> SetDNSConfiguration(NetworkDNSSettings dnsSettings)
     {
         var scriptOptions = new ScriptOptions();
 
         AddNameServersScriptOptions(scriptOptions, dnsSettings);
         AddSuffixScriptOptions(scriptOptions, dnsSettings);
         AddSearchDomainsScriptOptions(scriptOptions, dnsSettings);
+
+        if (!scriptOptions.Options.Any())
+            return OperationStatus.Success;
+
+        var (status, rawInterfacesString) = await _scriptHandler
+            .ExecuteGetNetworkInterfacesScript()
+            .ConfigureAwait(false);
+
+        if (status is OperationStatus.Error)
+            return OperationStatus.Error;
+
+        scriptOptions.Add(ScriptOptionNames.NetworkDNS.Interfaces, rawInterfacesString);
 
         return await _scriptHandler
             .ExecuteSetNetworkDNSSettingsScript(scriptOptions)
@@ -172,33 +171,27 @@ internal sealed class NetworkDNSConfigurationAdapter(
         return await _scriptHandler.ExecuteSetHostnameScript(hostname).ConfigureAwait(false);
     }
 
-    private static void AddNameServersScriptOptions(
-        ScriptOptions scriptOptions,
-        NetworkDNSSettings? dnsSettings)
+    private static void AddNameServersScriptOptions(ScriptOptions scriptOptions, NetworkDNSSettings dnsSettings)
     {
-        if (dnsSettings is not null && dnsSettings.NameServersEnabled.HasValue && dnsSettings.NameServers?.Count > 0)
+        if (dnsSettings.NameServersEnabled.HasValue && dnsSettings.NameServers?.Count > 0)
         {
             scriptOptions.Add(ScriptOptionNames.NetworkDNS.NameServersEnabled, dnsSettings.NameServersEnabled.Value);
             scriptOptions.Add(ScriptOptionNames.NetworkDNS.NameServers, dnsSettings.NameServers.ToArray());
         }
     }
 
-    private static void AddSuffixScriptOptions(
-        ScriptOptions scriptOptions,
-        NetworkDNSSettings? dnsSettings)
+    private static void AddSuffixScriptOptions(ScriptOptions scriptOptions, NetworkDNSSettings dnsSettings)
     {
-        if (dnsSettings is not null && dnsSettings.DNSSuffixEnabled.HasValue && dnsSettings.DNSSuffix is not null)
+        if (dnsSettings.DNSSuffixEnabled.HasValue && dnsSettings.DNSSuffix is not null)
         {
             scriptOptions.Add(ScriptOptionNames.NetworkDNS.DNSSuffixEnabled, dnsSettings.DNSSuffixEnabled.Value);
             scriptOptions.Add(ScriptOptionNames.NetworkDNS.DNSSuffix, dnsSettings.DNSSuffix);
         }
     }
 
-    private static void AddSearchDomainsScriptOptions(
-        ScriptOptions scriptOptions,
-        NetworkDNSSettings? dnsSettings)
+    private static void AddSearchDomainsScriptOptions(ScriptOptions scriptOptions, NetworkDNSSettings dnsSettings)
     {
-        if (dnsSettings is not null && dnsSettings.SearchDomainsEnabled.HasValue && dnsSettings.SearchDomains?.Count > 0)
+        if (dnsSettings.SearchDomainsEnabled.HasValue && dnsSettings.SearchDomains?.Count > 0)
         {
             scriptOptions.Add(ScriptOptionNames.NetworkDNS.SearchDomainsEnabled, dnsSettings.SearchDomainsEnabled.Value);
             scriptOptions.Add(ScriptOptionNames.NetworkDNS.SearchDomains, dnsSettings.SearchDomains.ToArray());

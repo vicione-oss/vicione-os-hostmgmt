@@ -389,6 +389,9 @@ FodyWeavers.xsd
 # Local History for Visual Studio Code
 .history/
 
+# C# Dev Kit language service cache
+*.lscache
+
 # Windows Installer files from build outputs
 *.cab
 *.msi

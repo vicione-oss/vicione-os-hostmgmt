@@ -38,7 +38,7 @@ public class NetworkStatusServiceTests
 
             // Assert
             logger.Received(1).Log(
-                Arg.Is(LogLevel.Error),
+                LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(state => state.ToString()!.Contains(GetNetworkStatusInformationFailed)),
                 Arg.Is<Exception>(ex => ReferenceEquals(ex, expectedException)),
@@ -63,7 +63,7 @@ public class NetworkStatusServiceTests
 
             // Assert
             logger.Received(1).Log(
-                Arg.Is(LogLevel.Warning),
+                LogLevel.Warning,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(state => state.ToString()!.Contains(GetNetworkStatusInformationCanceled)),
                 null,
@@ -94,7 +94,7 @@ public class NetworkStatusServiceTests
 
             // Assert
             logger.Received(1).Log(
-                Arg.Is(LogLevel.Error),
+                LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(state =>
                     state.ToString()!.StartsWith(GetNetworkStatusInformationFailed) &&
@@ -122,6 +122,10 @@ public class NetworkStatusServiceTests
                 .Returns(Task.FromResult(OperationStatus.Success));
 
             scriptHandler
+                .ExecuteGetNetworkInterfacesScript()
+                .Returns(Task.FromResult((OperationStatus.Success, "")));
+
+            scriptHandler
                 .ExecuteGetNetworkStatusInformationScript(Arg.Any<ScriptOptions>())
                 .Returns(Task.FromResult((OperationStatus.Error, NetworkStatusInformation.Empty)));
 
@@ -132,7 +136,7 @@ public class NetworkStatusServiceTests
 
             // Assert
             logger.Received(1).Log(
-                Arg.Is(LogLevel.Error),
+                LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(state =>
                     state.ToString()!.StartsWith(GetNetworkStatusInformationFailed) &&
@@ -163,6 +167,10 @@ public class NetworkStatusServiceTests
             scriptHandler
                 .ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>())
                 .Returns(Task.FromResult(OperationStatus.Success));
+
+            scriptHandler
+                .ExecuteGetNetworkInterfacesScript()
+                .Returns(Task.FromResult((OperationStatus.Success, "")));
 
             scriptHandler
                 .ExecuteGetNetworkStatusInformationScript(Arg.Any<ScriptOptions>())

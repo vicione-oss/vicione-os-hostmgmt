@@ -1,7 +1,8 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO.Abstractions;
 using HostManagement.Communication.NamedPipes;
 using HostManagement.Communication.NamedPipes.Extensions;
+using HostManagement.Communication.NamedPipes.RequestHandlers;
 using HostManagement.Configuration;
 using HostManagement.Scripts;
 using HostManagement.Shared.Communication.Contracts;
@@ -18,7 +19,7 @@ namespace HostManagement;
 /// </summary>
 internal static partial class ServiceRunner
 {
-    private static readonly ILogger s_logger = new ConsoleLogger(EnvironmentVariables.LogLevel);
+    private static readonly ILogger s_logger = new ConsoleLogger(EnvironmentVariables.LogLevel.Value);
     private static readonly FileSystem s_fileSystem = new();
     private static readonly string s_setConfigFlag = Path.Combine(AppPaths.TempPath, "set-config.flag");
 
@@ -36,7 +37,7 @@ internal static partial class ServiceRunner
                 return 0;
             }
 
-            if (EnvironmentVariables.TargetEnvironment is TargetEnvironment.EdgeSViciOne)
+            if (EnvironmentVariables.Environment.Value is TargetEnvironment.EdgeSViciOne)
             {
                 // 'PrepareConfiguration' should only be called on supported target environments, like 'edges-vicione'.
                 // However, if it is called on a not supported environment, like 'debian' or 'unknown',
@@ -44,7 +45,12 @@ internal static partial class ServiceRunner
 
                 PrepareConfigurationStarted(s_logger);
 
-                var configurationService = new SystemConfigurationService(s_fileSystem, new SystemConfigurationPersistence(s_fileSystem), new ScriptHandler());
+                var persistence = new SystemConfigurationPersistence(s_fileSystem);
+                var configurationService = new SystemConfigurationService(
+                    s_fileSystem,
+                    persistence,
+                    new ScriptHandler(),
+                    s_logger);
 
                 var prepareConfigResult = await configurationService.PrepareConfiguration();
 
@@ -135,7 +141,12 @@ internal static partial class ServiceRunner
         else
             CreateSystemConfigurationStarted(s_logger);
 
-        var configurationService = new SystemConfigurationService(s_fileSystem, persistence, new ScriptHandler());
+        var configurationService = new SystemConfigurationService(
+            s_fileSystem,
+            persistence,
+            new ScriptHandler(),
+            s_logger);
+
         var getJsonConfigResult = await configurationService.GetConfigurationFromJson();
 
         if (getJsonConfigResult.Status == OperationStatus.Error)
@@ -154,7 +165,13 @@ internal static partial class ServiceRunner
         SystemConfiguration jsonConfig,
         CancellationToken cancellationToken)
     {
-        var configurationService = new SystemConfigurationService(s_fileSystem, new SystemConfigurationPersistence(s_fileSystem), new ScriptHandler());
+        var persistence = new SystemConfigurationPersistence(s_fileSystem);
+        var configurationService = new SystemConfigurationService(
+            s_fileSystem,
+            persistence,
+            new ScriptHandler(),
+            s_logger);
+
         var setConfigResult = await configurationService
             .SetConfiguration(jsonConfig, shouldPersistConfiguration: false, cancellationToken);
 
@@ -179,7 +196,13 @@ internal static partial class ServiceRunner
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                using var pipeServer = new PipeServer("HostPipe", s_logger);
+                var registry = GetRequestHandlerRegistry();
+
+                using var pipeServer = new PipeServer("HostPipe", s_logger, registry);
+#if DEBUG
+                // Testing purposes
+                registry.RegisterHandler(new EchoRequestHandler(pipeServer, s_logger));
+#endif
 
                 await pipeServer.SetExecutePermission();
                 await pipeServer.SetOwnership();
@@ -209,15 +232,18 @@ internal static partial class ServiceRunner
             return false;
         }
 
-        CurrentTargetEnvironment(s_logger, EnvironmentVariables.TargetEnvironment.ToEnvironmentString());
+        var environmentString = EnvironmentVariables.Environment.Value.ToEnvironmentString();
+        var resourceDeployDirectory = EnvironmentVariables.ResourceDeployDirectory.Value;
+
+        CurrentTargetEnvironment(s_logger, environmentString);
 
         var resourceManagerInstance = ResourceManager.Initialize(
             s_logger,
             s_fileSystem,
-            EnvironmentVariables.ResourceDeployDirectory,
-            EnvironmentVariables.TargetEnvironment.ToEnvironmentString());
+            resourceDeployDirectory,
+            environmentString);
 
-        ScriptRunner.Initialize(EnvironmentVariables.ResourceDeployDirectory);
+        ScriptRunner.Initialize(resourceDeployDirectory);
 
         return resourceManagerInstance.DeployScripts();
     }
@@ -273,6 +299,52 @@ internal static partial class ServiceRunner
 
         ServiceAlreadyRunning(s_logger);
         return true;
+    }
+
+    private static RequestHandlerRegistry GetRequestHandlerRegistry()
+    {
+        var registry = new RequestHandlerRegistry(EnvironmentVariables.Environment.Value);
+        registry.RegisterHandler(new InstallSignedDebianPackageRequestHandler(s_logger));
+        registry.RegisterHandler(new RedeployScriptsRequestHandler());
+        registry.RegisterHandler(new RenewDHCPLeaseRequestHandler(s_logger));
+        registry.RegisterHandlers(GetServiceRequestHandlers());
+        registry.RegisterHandlers(GetStateRequestHandlers());
+        registry.RegisterHandlers(GetSystemConfigurationRequestHandlers());
+        registry.RegisterHandlers(GetSystemRequestHandlers());
+
+        return registry;
+
+
+        static IEnumerable<IRequestHandler> GetServiceRequestHandlers()
+        {
+            yield return new GetServiceStateRequestHandler(s_logger);
+            yield return new StartServiceRequestHandler(s_logger);
+            yield return new StopServiceRequestHandler(s_logger);
+            yield return new RestartServiceRequestHandler(s_logger);
+        }
+
+        static IEnumerable<IRequestHandler> GetStateRequestHandlers()
+        {
+            yield return new GetOriginalPhysicalAddressRequestHandler(s_logger);
+            yield return new GetNetworkStatusInformationRequestHandler(s_logger);
+            yield return new GetDHCPLeaseInformationRequestHandler(s_logger);
+            yield return new GetNTPFallbackInformationRequestHandler(s_logger);
+        }
+
+        static IEnumerable<IRequestHandler> GetSystemConfigurationRequestHandlers()
+        {
+            yield return new GetSystemConfigurationRequestHandler(s_logger);
+            yield return new SetSystemConfigurationRequestHandler(s_logger);
+            yield return new ResetNetworkInterfaceRequestHandler(s_logger);
+        }
+
+        static IEnumerable<IRequestHandler> GetSystemRequestHandlers()
+        {
+            yield return new ResetSystemRequestHandler(s_logger);
+            yield return new RestartSystemRequestHandler(s_logger);
+            yield return new ShutdownSystemRequestHandler(s_logger);
+            yield return new UpdateSystemRequestHandler(s_logger);
+        }
     }
 
     [LoggerMessage(LogLevel.Error, "An error occurred while starting the service. Could not determine if the service is already running. {StandardError}")]

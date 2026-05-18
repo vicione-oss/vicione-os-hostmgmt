@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO.Abstractions;
 using System.Text;
 using AwesomeAssertions;
@@ -186,10 +186,6 @@ public class ScriptRunnerTests
         [InlineData(ScriptIdentifier.NetworkNTPFallbackInformationGet, "get_network_ntp_fallback_information")]
         [InlineData(ScriptIdentifier.NetworkNTPSettingsGet, "get_network_ntp_settings")]
         [InlineData(ScriptIdentifier.NetworkNTPSettingsSet, "set_network_ntp_settings")]
-        [InlineData(ScriptIdentifier.ViciOneSuiteInstalledVersionGet, "get_vicione_suite_installed_version")]
-        [InlineData(ScriptIdentifier.ViciOneSuiteVersionsGet, "get_vicione_suite_versions")]
-        [InlineData(ScriptIdentifier.ViciOneSuiteDebFileGet, "get_vicione_suite_deb_file")]
-        [InlineData(ScriptIdentifier.ViciOneSuiteInstallDebFile, "install_deb_file")]
         [InlineData(ScriptIdentifier.InstallDebianPackage, "install_deb_package")]
         public async Task ShouldGetScriptContent_WhenRunCalled(
             ScriptIdentifier scriptIdentifier,

@@ -1,10 +1,10 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
-using Microsoft.Extensions.Logging;
+using HostManagement.Services;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Serialization;
-using HostManagement.Services;
+using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 
@@ -25,17 +25,17 @@ internal sealed class ShutdownSystemRequestHandler(ILogger logger) : RequestHand
     /// <summary>
     /// Handles the shutdown system request.
     /// </summary>
-    /// <param name="messageContent">The message content.</param>
-    /// <param name="cancellationToken">A token to cancel the request.</param>
-    /// <returns>The response.</returns>
+    /// <inheritdoc/>
     /// <exception cref="InvalidOperationException"/>
-    public override async Task<string> Handle(string messageContent, CancellationToken cancellationToken = default)
+    public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken = default)
     {
         try
         {
             var scriptResult = new Result();
             var scriptHandler = new ScriptHandler(scriptResult);
-            var service = new SystemService(logger, scriptHandler, scriptResult);
+            var signatureValidator = new MinisignSignedDebianPackageSignatureValidator();
+            var service = new SystemService(logger, scriptHandler, scriptResult, signatureValidator);
+
             var result = await service.ShutdownSystem(messageContent);
 
             return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);

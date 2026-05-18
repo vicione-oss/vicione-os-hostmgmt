@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Configuration;
@@ -8,194 +8,162 @@ namespace HostManagement.Configuration;
 /// </summary>
 public static class EnvironmentVariables
 {
+    private static readonly IConfigurationRoot s_configuration =
+        new ConfigurationBuilder().AddEnvironmentVariables().Build();
+
     private static readonly List<string> s_invalidVariables = [];
 
     /// <summary>
-    /// Determines if there are invalid (null, empty, whitespace) environment variables.
-    /// </summary>
-    public static bool HasInvalidVariables => s_invalidVariables.Count > 0;
-
-    /// <summary>
-    /// A collection of all invalid (null, empty, whitespace) environment variables.
-    /// </summary>
-    public static IReadOnlyCollection<string> InvalidVariables => s_invalidVariables.AsReadOnly();
-
-    /// <summary>
-    /// The <see cref="TargetEnvironment"/>.
+    /// The list of Linux services, that can be configured by HostManagement.
     /// </summary>
     /// <remarks>
-    /// <b>Default:</b> <see cref="TargetEnvironment.Unknown"/>
+    /// <b>Default:</b> []
     /// </remarks>
-    public static readonly TargetEnvironment TargetEnvironment =
-        GetTargetEnvironmentEnumValue(EnvironmentVariableNames.TargetEnvironment);
+    public static readonly EnvironmentVariable<IReadOnlyCollection<string>> ConfigurableServices =
+        NormalizeConfigurableServices(
+            Create<IReadOnlyCollection<string>>("HOSTMANAGEMENT:CONFIGURABLE_SERVICES", []));
 
     /// <summary>
-    /// The current <see cref="LogLevel"/>.
+    /// The directory/path where <see cref="AppPaths.DefaultSystemConfigurationFile"/> is located.
+    /// </summary>
+    /// <remarks>
+    /// <b>Default:</b> /etc/hostmanagement
+    /// </remarks>
+    public static readonly EnvironmentVariable<string> DefaultSystemConfigurationDirectory =
+        Create("HOSTMANAGEMENT:DEFAULT_SYSTEM_CONFIGURATION_DIRECTORY", "/etc/hostmanagement");
+
+    /// <summary>
+    /// The configured application <see cref="Microsoft.Extensions.Logging.LogLevel"/>.
     /// </summary>
     /// <remarks>
     /// <b>Default:</b> <see cref="LogLevel.Warning"/>
     /// </remarks>
-    public static readonly LogLevel LogLevel =
-        GetEnumValue(EnvironmentVariableNames.LogLevel, LogLevel.Warning);
-
-    /// <summary>
-    /// The user of the named pipe.
-    /// </summary>
-    /// <remarks>
-    /// <b>Default:</b> vicione-suite
-    /// </remarks>
-    public static readonly string NamedPipeUser =
-        GetValue(EnvironmentVariableNames.PipeUser, "vicione-suite");
+    public static readonly EnvironmentVariable<LogLevel> LogLevel =
+        Create("LOGGING:LOGLEVEL:DEFAULT", Microsoft.Extensions.Logging.LogLevel.Warning);
 
     /// <summary>
     /// The group of the named pipe.
     /// </summary>
     /// <remarks>
-    /// <b>Default:</b> vicione-suite
+    /// <b>Default:</b> vicione-suite <i>(root, if group not exists)</i>
     /// </remarks>
-    public static readonly string NamedPipeGroup =
-        GetValue(EnvironmentVariableNames.PipeGroup, "vicione-suite");
+    public static readonly EnvironmentVariable<string> NamedPipeGroup =
+        Create("HOSTMANAGEMENT:PIPE:GROUP", "vicione-suite");
 
     /// <summary>
-    /// The permission of the named pipe.
+    /// The permission of the named pipe (numeric notation).
     /// </summary>
     /// <remarks>
-    /// <b>Default:</b> User: rw- | Group: rw- | Others: r--
+    /// <b>Default:</b> 664 (User: rw- | Group: rw- | Others: r--)
     /// </remarks>
-    public static readonly string NamedPipePermission =
-        GetValue(EnvironmentVariableNames.PipePermission, "664");
+    public static readonly EnvironmentVariable<string> NamedPipePermission =
+        Create("HOSTMANAGEMENT:PIPE:CHMOD", "664");
 
     /// <summary>
-    /// The path where the 'DefaultSystemConfiguration.json' is located.
+    /// The user/owner of the named pipe.
     /// </summary>
     /// <remarks>
-    /// <b>Default:</b> /tmp
+    /// <b>Default:</b> vicione-suite <i>(root, if user not exists)</i>
     /// </remarks>
-    public static readonly string DefaultSystemConfigurationDirectory =
-        GetValue(EnvironmentVariableNames.DefaultSystemConfigPath, AppPaths.TempPath);
+    public static readonly EnvironmentVariable<string> NamedPipeUser =
+        Create("HOSTMANAGEMENT:PIPE:USER", "vicione-suite");
 
     /// <summary>
-    /// The path where the 'SystemConfiguration.json' is located.
+    /// The list of known public keys, used to verify installation files etc.
     /// </summary>
     /// <remarks>
-    /// <b>Default:</b> /tmp
+    /// <b>Default:</b> [] <i>(must be configured via Debian packaging)</i>
     /// </remarks>
-    public static readonly string SystemConfigurationDirectory =
-        GetValue(EnvironmentVariableNames.SystemConfigPath, AppPaths.TempPath);
+    public static readonly EnvironmentVariable<IReadOnlyCollection<string>> PublicKeys =
+        Create<IReadOnlyCollection<string>>("HOSTMANAGEMENT:PUBLIC_KEYS", [], isIndexed: true);
 
     /// <summary>
-    /// The path where all resources are deployed.
+    /// The directory/path where all resources will be deployed to.
     /// </summary>
     /// <remarks>
-    /// <b>Default:</b> /tmp/HostManagement_Resources
+    /// <b>Default:</b> /var/lib/hostmanagement
     /// </remarks>
-    public static readonly string ResourceDeployDirectory =
-        GetValue(
-            EnvironmentVariableNames.ResourcesPath,
-            Path.Combine(AppPaths.TempPath, AppPaths.ResourcesDirectory));
+    public static readonly EnvironmentVariable<string> ResourceDeployDirectory =
+        Create("HOSTMANAGEMENT:RESOURCE_DEPLOY_DIRECTORY", "/var/lib/hostmanagement");
 
     /// <summary>
-    /// The ViciOne Suite Debian package download path.
+    /// The cache lifetime of the 'SystemConfiguration' in seconds.
     /// </summary>
     /// <remarks>
-    /// <b>Default:</b> /tmp
+    /// <b>Default:</b> 30 seconds
     /// </remarks>
-    public static readonly string SuiteDownloadDirectory =
-        GetValue(EnvironmentVariableNames.SuiteDownloadPath, AppPaths.TempPath);
+    public static readonly EnvironmentVariable<long> SystemConfigurationCacheLifetimeInSeconds =
+        Create("HOSTMANAGEMENT:SYSTEM_CONFIGURATION_CACHE_LIFETIME_SECONDS", 30L);
 
     /// <summary>
-    /// The ViciOne Suite repository endpoint (URL).
+    /// The directory/path where <see cref="AppPaths.SystemConfigurationFile"/> is located.
     /// </summary>
-    public static readonly string SuiteRepositoryEndpoint =
-        GetValue(EnvironmentVariableNames.SuiteRepoEndpoint, string.Empty, true);
+    /// <remarks>
+    /// <b>Default:</b> /mnt/persistent/hostmanagement
+    /// </remarks>
+    public static readonly EnvironmentVariable<string> SystemConfigurationDirectory =
+        Create("HOSTMANAGEMENT:SYSTEM_CONFIGURATION_DIRECTORY", "/mnt/persistent/hostmanagement");
 
     /// <summary>
-    /// The ViciOne Suite repository username.
+    /// The target environment/platform, e.g. 'edges-vicione' (EdgeS) or 'debian' (generic Debian).
     /// </summary>
-    public static readonly string SuiteRepositoryUsername =
-        GetValue(EnvironmentVariableNames.SuiteRepoUsername, string.Empty, true);
+    /// <remarks>
+    /// <b>Default:</b> <see cref="TargetEnvironment.Unknown"/>
+    /// </remarks>
+    public static readonly EnvironmentVariable<TargetEnvironment> Environment =
+        CreateRequired("HOSTMANAGEMENT:TARGET_ENVIRONMENT", TargetEnvironment.Unknown);
 
     /// <summary>
-    /// The ViciOne Suite repository password.
+    /// Determines whether there are invalid environment variables.
     /// </summary>
-    public static readonly string SuiteRepositoryPassword =
-        GetValue(EnvironmentVariableNames.SuiteRepoPassword, string.Empty, true);
+    public static bool HasInvalidVariables => s_invalidVariables.Count > 0;
 
     /// <summary>
-    /// The list of configurable system wide Linux services.
+    /// A collection of all invalid environment variables.
     /// </summary>
-    public static readonly IReadOnlyCollection<string> ConfigurableServices =
-        GetUniqueConfigurableServicesWithEnsuredSystemdUnitType(
-            GetListValue(EnvironmentVariableNames.ConfigurableServices, string.Empty, true));
+    public static IReadOnlyCollection<string> InvalidVariables => s_invalidVariables.AsReadOnly();
 
-    /// <summary>
-    /// The list of known public keys.
-    /// </summary>
-    public static readonly List<string> PublicKeys =
-        GetArrayValues(EnvironmentVariableNames.PublicKeys, string.Empty);
+    private static EnvironmentVariable<T> Create<T>(string key, T defaultValue, bool isIndexed = false)
+        where T : notnull
+        => SetAndValidate(
+            new EnvironmentVariable<T>(s_configuration, key, defaultValue, isIndexed: isIndexed));
 
-    private static List<string> GetArrayValues(string key, string defaultValue, bool acceptEmptyValue = false)
+    private static EnvironmentVariable<T> CreateRequired<T>(string key, T defaultValue, bool isIndexed = false)
+        where T : notnull
+        => SetAndValidate(
+            new EnvironmentVariable<T>(s_configuration, key, defaultValue, isRequired: true, isIndexed: isIndexed));
+
+    private static EnvironmentVariable<T> SetAndValidate<T>(EnvironmentVariable<T> variable) where T : notnull
     {
-        var values = AppConfiguration.Configuration
-            .AsEnumerable()
-            .Where(kvp => kvp.Key.StartsWith(key + ":"))
-            .Select(kvp => kvp.Value ?? defaultValue)
-            .ToList();
+        if (variable.IsInvalid)
+            s_invalidVariables.Add(variable.InvalidVariableString);
 
-        foreach (var value in values)
+        return variable;
+    }
+
+    private static EnvironmentVariable<IReadOnlyCollection<string>> NormalizeConfigurableServices(
+        EnvironmentVariable<IReadOnlyCollection<string>> configurableServices)
+    {
+        // Normalizes values only. Does not perform validation.
+        return configurableServices with
         {
-            if (!acceptEmptyValue && string.IsNullOrWhiteSpace(value))
-                s_invalidVariables.Add(key.Replace(":", "__"));
-        }
-
-        return values;
+            Value = NormalizeConfigurableServiceNames(configurableServices.Value)
+        };
     }
 
-    private static string GetValue(string key, string defaultValue, bool acceptEmptyValue = false)
+    private static IReadOnlyCollection<string> NormalizeConfigurableServiceNames(IReadOnlyCollection<string> names)
     {
-        var value = AppConfiguration.Configuration[key] ?? defaultValue;
+        var uniqueServiceNames = new HashSet<string>(StringComparer.Ordinal);
 
-        if (!acceptEmptyValue && string.IsNullOrWhiteSpace(value))
-            s_invalidVariables.Add(key.Replace(":", "__"));
-
-        return value;
-    }
-
-    private static TEnum GetEnumValue<TEnum>(string key, TEnum defaultEnumValue) where TEnum : struct
-        => Enum.TryParse(AppConfiguration.Configuration[key], true, out TEnum result)
-            ? result
-            : defaultEnumValue;
-
-    private static TargetEnvironment GetTargetEnvironmentEnumValue(string key)
-    {
-        var value = TargetEnvironmentExtensions.FromEnvironmentString(AppConfiguration.Configuration[key]);
-
-        if (value is TargetEnvironment.Unknown)
-            s_invalidVariables.Add(key.Replace(":", "__"));
-
-        return value;
-    }
-
-    private static List<string> GetListValue(string key, string defaultValue, bool acceptEmptyValue = false)
-        => GetValue(key, defaultValue, acceptEmptyValue)
-            .Split(',', StringSplitOptions.RemoveEmptyEntries)
-            .Select(s => s.Trim())
-            .ToList();
-
-    private static List<string> GetUniqueConfigurableServicesWithEnsuredSystemdUnitType(
-        List<string> configurableServices)
-    {
-        var uniqueServicesList = new HashSet<string>();
-
-        foreach (var name in configurableServices)
+        foreach (var name in names)
         {
-            var finalName = SystemdUnits.KnownUnitTypes.Any(name.EndsWith)
+            var finalName = SystemdUnits.HasKnownUnitTypeSuffix(name)
                 ? name
                 : name + ".service";
 
-            uniqueServicesList.Add(finalName);
+            uniqueServiceNames.Add(finalName);
         }
 
-        return [.. uniqueServicesList];
+        return [.. uniqueServiceNames];
     }
 }

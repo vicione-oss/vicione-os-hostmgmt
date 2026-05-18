@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace HostManagement.Shared.Communication.Contracts;
 
@@ -18,15 +18,7 @@ namespace HostManagement.Shared.Communication.Contracts;
 [JsonSerializable(typeof(GetDHCPLeaseInformationResult))]
 [JsonSerializable(typeof(GetNTPFallbackInformationResult))]
 [JsonSerializable(typeof(GetServiceStateResult))]
-[JsonSerializable(typeof(GetViciOneSuiteVersionsResult))]
-[JsonSerializable(typeof(InstallViciOneSuiteVersionResult))]
-[JsonSerializable(typeof(InstallSignedDebianPackageResult))]
 [JsonSerializable(typeof(RedeployScriptsResult))]
-[JsonSerializable(typeof(RenewDHCPLeaseResult))]
 [JsonSerializable(typeof(ServiceControlResult))]
-[JsonSerializable(typeof(ResetSystemResult))]
-[JsonSerializable(typeof(RestartSystemResult))]
-[JsonSerializable(typeof(ShutdownSystemResult))]
-[JsonSerializable(typeof(UpdateSystemResult))]
 [JsonSerializable(typeof(SystemControlResult))]
 public partial class SourceGenerationContext : JsonSerializerContext;

@@ -30,5 +30,5 @@ internal interface IPipeClient : IDisposable
     /// <param name="content">The JSON serialized message content.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns><see cref="NamedPipeMessage"/></returns>
-    Task<NamedPipeMessage?> SendRequest(string topic, string content = "", CancellationToken cancellationToken = default);
+    Task<NamedPipeMessage> SendRequest(string topic, string content = "", CancellationToken cancellationToken = default);
 }

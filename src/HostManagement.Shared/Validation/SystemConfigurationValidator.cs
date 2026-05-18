@@ -67,23 +67,4 @@ public sealed class SystemConfigurationValidator : IValidator<SystemConfiguratio
             return result;
         }
     }
-
-    /// <summary>
-    /// Validates the <paramref name="proposed"/> <see cref="SystemConfiguration"/> taking into
-    /// account the <paramref name="current"/> <see cref="SystemConfiguration"/>.
-    /// </summary>
-    /// <param name="current">The current <see cref="SystemConfiguration"/>.</param>
-    /// <param name="proposed">The proposed <see cref="SystemConfiguration"/>.</param>
-    /// <returns><see cref="ValidationResult"/></returns>
-    [Obsolete("Use instance method ValidateAsync instead. This method will be removed in a future version.", false)]
-    public static async Task<ValidationResult> Validate(
-        SystemConfiguration current,
-        SystemConfiguration proposed)
-    {
-        _ = current;
-
-        return await new SystemConfigurationValidator()
-            .ValidateAsync(proposed)
-            .ConfigureAwait(false);
-    }
 }

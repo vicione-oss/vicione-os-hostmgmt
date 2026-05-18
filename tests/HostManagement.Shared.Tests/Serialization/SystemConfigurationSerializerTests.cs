@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using AwesomeAssertions;
@@ -31,37 +31,6 @@ public class SystemConfigurationSerializerTests
                     {
                         Gateway = s_ipAddress,
                         DHCPEnabled = true,
-                        DHCPLease = new()
-                        {
-                            LeaseObtained = new DateTimeOffset(2025, 06, 23, 12, 34, 56, TimeSpan.FromHours(2)),
-                            LeaseExpires = new DateTimeOffset(2025, 06, 30, 12, 34, 56, TimeSpan.FromHours(2)),
-                            Gateway = s_ipAddress,
-                            NetworkDNSSettings = new()
-                            {
-                                Hostname = "hostname",
-                                MulticastDNSEnabled = true,
-                                StaticHostsEnabled = true,
-                                StaticHosts =
-                                [
-                                    new()
-                                    {
-                                        Hostname = "statichost",
-                                        IPAddress = s_ipAddress
-                                    },
-                                ],
-                                NameServersEnabled = true,
-                                NameServers = [s_ipAddress],
-                                DNSSuffixEnabled = true,
-                                DNSSuffix = "dnsSuffix",
-                                SearchDomainsEnabled = true,
-                                SearchDomains = ["searchDomain"]
-                            },
-                            IPv4Detail = new()
-                            {
-                                IPAddress = s_ipAddress,
-                                Netmask = s_ipAddress
-                            }
-                        },
                         IPv4Details =
                         [
                             new()
@@ -143,7 +112,6 @@ public class SystemConfigurationSerializerTests
         },
         NetworkNTPSettings = new()
         {
-            FallbackNTPServers = ["fallbackNTPServer"],
             NTPServersEnabled = true,
             NTPServers = ["NTPServer"],
         },
@@ -177,36 +145,6 @@ public class SystemConfigurationSerializerTests
                 "IPv4": {
                   "Gateway": "120.86.52.18",
                   "DHCPEnabled": true,
-                  "DHCPLease": {
-                    "LeaseObtained": "2025-06-23T12:34:56+02:00",
-                    "LeaseExpires": "2025-06-30T12:34:56+02:00",
-                    "Gateway": "120.86.52.18",
-                    "NetworkDNSSettings": {
-                      "Hostname": "hostname",
-                      "MulticastDNSEnabled": true,
-                      "StaticHostsEnabled": true,
-                      "StaticHosts": [
-                        {
-                          "IPAddress": "120.86.52.18",
-                          "Hostname": "statichost"
-                        }
-                      ],
-                      "NameServersEnabled": true,
-                      "NameServers": [
-                        "120.86.52.18"
-                      ],
-                      "DNSSuffixEnabled": true,
-                      "DNSSuffix": "dnsSuffix",
-                      "SearchDomainsEnabled": true,
-                      "SearchDomains": [
-                        "searchDomain"
-                      ]
-                    },
-                    "IPv4Detail": {
-                      "IPAddress": "120.86.52.18",
-                      "Netmask": "120.86.52.18"
-                    }
-                  },
                   "IPv4Details": [
                     {
                       "IPAddress": "120.86.52.18",
@@ -282,9 +220,6 @@ public class SystemConfigurationSerializerTests
             ]
           },
           "NetworkNTPSettings": {
-            "FallbackNTPServers": [
-              "fallbackNTPServer"
-            ],
             "NTPServersEnabled": true,
             "NTPServers": [
               "NTPServer"
@@ -397,52 +332,6 @@ public class SystemConfigurationSerializerTests
                 .SerializeAsync(stream, s_sampleSystemConfiguration, cancellationToken: CancellationToken.None);
 
             var result = Encoding.UTF8.GetString(stream.ToArray());
-
-            // Assert
-            result.Should().Be(s_sampleNonIndentedSystemConfigurationJson);
-        }
-    }
-
-    public class DeserializeObsolete
-    {
-        [Fact]
-        public void ShouldThrow_WhenJsonContainsLiteralNull()
-        {
-            // Act
-            var literalNullJson = "null";
-
-            var result = async () => await SystemConfigurationSerializer
-                .Deserialize(literalNullJson, new CancellationToken());
-
-            // Assert
-            result.Should()
-                .ThrowAsync<InvalidOperationException>()
-                .WithMessage(
-                    "JSON string could not be deserialized to 'SystemConfiguration'." +
-                    Environment.NewLine +
-                    $"JSON string was: '{literalNullJson}'");
-        }
-
-        [Fact]
-        public async Task ShouldReturnSystemConfiguration_WhenJsonValid()
-        {
-            // Act
-            var result = await SystemConfigurationSerializer
-                .Deserialize(s_sampleNonIndentedSystemConfigurationJson, new CancellationToken());
-
-            // Assert
-            result.Should().BeOfType<SystemConfiguration>();
-        }
-    }
-
-    public class SerializeObsolete
-    {
-        [Fact]
-        public async Task ShouldSerializeSystemConfiguration_WhenCalled()
-        {
-            // Act
-            var result = await SystemConfigurationSerializer
-                .Serialize(s_sampleSystemConfiguration, new CancellationToken());
 
             // Assert
             result.Should().Be(s_sampleNonIndentedSystemConfigurationJson);

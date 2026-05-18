@@ -19,7 +19,7 @@ namespace HostManagement.SystemConfig {
     // -Klasse über ein Tool wie ResGen oder Visual Studio automatisch generiert.
     // Um einen Member hinzuzufügen oder zu entfernen, bearbeiten Sie die .ResX-Datei und führen dann ResGen
     // mit der /str-Option erneut aus, oder Sie erstellen Ihr VS-Projekt neu.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class SystemConfigResources {
@@ -79,6 +79,33 @@ namespace HostManagement.SystemConfig {
         }
         
         /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die System configuration has been cached. ähnelt.
+        /// </summary>
+        internal static string ConfigCached {
+            get {
+                return ResourceManager.GetString("ConfigCached", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die System configuration cache has been invalidated. ähnelt.
+        /// </summary>
+        internal static string ConfigCacheInvalidated {
+            get {
+                return ResourceManager.GetString("ConfigCacheInvalidated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Failed to invalidate system configuration cache. ähnelt.
+        /// </summary>
+        internal static string ConfigCacheInvalidationFailed {
+            get {
+                return ResourceManager.GetString("ConfigCacheInvalidationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die System configuration was null. ähnelt.
         /// </summary>
         internal static string ConfigWasNull {
@@ -111,6 +138,15 @@ namespace HostManagement.SystemConfig {
         internal static string GetConfigFailed {
             get {
                 return ResourceManager.GetString("GetConfigFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Get system configuration from cache succeeded. ähnelt.
+        /// </summary>
+        internal static string GetConfigFromCacheSucceeded {
+            get {
+                return ResourceManager.GetString("GetConfigFromCacheSucceeded", resourceCulture);
             }
         }
         
@@ -219,6 +255,42 @@ namespace HostManagement.SystemConfig {
         internal static string PrepareConfigSucceeded {
             get {
                 return ResourceManager.GetString("PrepareConfigSucceeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Reset network interface &apos;{0}&apos; failed. ähnelt.
+        /// </summary>
+        internal static string ResetNetworkInterfaceFailed {
+            get {
+                return ResourceManager.GetString("ResetNetworkInterfaceFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Network interface &apos;{0}&apos; not found in &apos;{1}&apos;. ähnelt.
+        /// </summary>
+        internal static string ResetNetworkInterfaceNotFoundInConfig {
+            get {
+                return ResourceManager.GetString("ResetNetworkInterfaceNotFoundInConfig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Network interface &apos;{0}&apos; not found in current configuration. ähnelt.
+        /// </summary>
+        internal static string ResetNetworkInterfaceNotFoundInCurrent {
+            get {
+                return ResourceManager.GetString("ResetNetworkInterfaceNotFoundInCurrent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Network interface &apos;{0}&apos; has been reset to default configuration. ähnelt.
+        /// </summary>
+        internal static string ResetNetworkInterfaceSucceeded {
+            get {
+                return ResourceManager.GetString("ResetNetworkInterfaceSucceeded", resourceCulture);
             }
         }
         

@@ -1,4 +1,4 @@
-﻿using System.IO.Pipes;
+using System.IO.Pipes;
 using HostManagement.Communication.NamedPipes.RequestHandlers;
 using HostManagement.Configuration;
 using HostManagement.Shared.Communication;
@@ -14,9 +14,10 @@ internal sealed partial class PipeServer : IPipeServer
     private const int MaxNumberOfServerInstances = 1;
 
     private readonly string _pipeName;
+    private readonly string _pipePath;
     private readonly ILogger _logger;
+    private readonly RequestHandlerRegistry _requestHandlerRegistry;
     private readonly PipeOptions? _options;
-    private readonly RequestHandlerRegistry _handlerRegistry = new(EnvironmentVariables.TargetEnvironment);
     private readonly NamedPipeServerStream _rawPipeStream;
     private readonly PipeStreamWrapper _wrappedPipe;
     private readonly PipeMessageProcessor _messageProcessor;
@@ -26,28 +27,31 @@ internal sealed partial class PipeServer : IPipeServer
     /// </summary>
     /// <param name="pipeName">The name of the pipe.</param>
     /// <param name="logger">An <see cref="ILogger"/> implementation.</param>
+    /// <param name="requestHandlerRegistry">The <see cref="RequestHandlerRegistry"/>.</param>
     /// <param name="options">Extra options for the pipe.</param>
-    public PipeServer(string pipeName, ILogger logger, PipeOptions? options = null)
+    public PipeServer(
+        string pipeName,
+        ILogger logger,
+        RequestHandlerRegistry requestHandlerRegistry,
+        PipeOptions? options = null)
     {
         _pipeName = pipeName;
+        _pipePath = Path.Combine(AppPaths.TempPath, $"CoreFxPipe_{pipeName}");
         _logger = logger;
+        _requestHandlerRegistry = requestHandlerRegistry ?? throw new ArgumentNullException(nameof(requestHandlerRegistry));
         _options = options;
-
-        InitHandlerRegistry();
 
         _rawPipeStream = CreatePipe();
         _wrappedPipe = new PipeStreamWrapper(_rawPipeStream, _logger);
-        _messageProcessor = new PipeMessageProcessor(_wrappedPipe, _handlerRegistry);
+        _messageProcessor = new PipeMessageProcessor(_wrappedPipe, _requestHandlerRegistry);
     }
 
-    public string PipeName => _pipeName;
-
-    public ILogger Logger => _logger;
+    public string PipePath => _pipePath;
 
     public PipeState State => _messageProcessor?.State ?? PipeState.NotOpened;
 
     public Task PublishEvent(string topic, string content, CancellationToken cancellationToken = default)
-        => _wrappedPipe.SendMessage(
+        => _wrappedPipe.SendMessageAsync(
             new NamedPipeMessage
             {
                 Topic = topic,
@@ -85,23 +89,6 @@ internal sealed partial class PipeServer : IPipeServer
         PipeHasBeenDisposed(_logger, _pipeName);
     }
 
-    private void InitHandlerRegistry()
-    {
-#if DEBUG
-        // Testing purposes
-        _handlerRegistry.RegisterHandler(new EchoRequestHandler(this, _logger));
-#endif
-
-        RegisterRedeployScriptsRequestHandler();
-        RegisterServiceRequestHandlers();
-        RegisterViciOneRequestHandlers();
-        RegisterInstallDebianPackageRequestHandler();
-        RegisterSystemConfigurationRequestHandler();
-        RegisterStateRequestHandlers();
-        RegisterSystemRequestHandlers();
-        RegisterRenewDHCPLeaseRequestHandler();
-    }
-
     private NamedPipeServerStream CreatePipe()
     {
         var pipeOptionsToPass = _options == null
@@ -116,51 +103,6 @@ internal sealed partial class PipeServer : IPipeServer
             MaxNumberOfServerInstances,
             PipeTransmissionMode.Byte,
             pipeOptionsToPass);
-    }
-
-    private void RegisterInstallDebianPackageRequestHandler()
-        => _handlerRegistry.RegisterHandler(new InstallSignedDebianPackageRequestHandler(_logger));
-
-    private void RegisterRedeployScriptsRequestHandler()
-        => _handlerRegistry.RegisterHandler(new RedeployScriptsRequestHandler());
-
-    private void RegisterRenewDHCPLeaseRequestHandler()
-        => _handlerRegistry.RegisterHandler(new RenewDHCPLeaseRequestHandler(_logger));
-
-    private void RegisterServiceRequestHandlers()
-    {
-        _handlerRegistry.RegisterHandler(new GetServiceStateRequestHandler(_logger));
-        _handlerRegistry.RegisterHandler(new StartServiceRequestHandler(_logger));
-        _handlerRegistry.RegisterHandler(new StopServiceRequestHandler(_logger));
-        _handlerRegistry.RegisterHandler(new RestartServiceRequestHandler(_logger));
-    }
-
-    private void RegisterStateRequestHandlers()
-    {
-        _handlerRegistry.RegisterHandler(new GetOriginalPhysicalAddressRequestHandler(_logger));
-        _handlerRegistry.RegisterHandler(new GetNetworkStatusInformationRequestHandler(_logger));
-        _handlerRegistry.RegisterHandler(new GetDHCPLeaseInformationRequestHandler(_logger));
-        _handlerRegistry.RegisterHandler(new GetNTPFallbackInformationRequestHandler(_logger));
-    }
-
-    private void RegisterSystemConfigurationRequestHandler()
-    {
-        _handlerRegistry.RegisterHandler(new GetSystemConfigurationRequestHandler());
-        _handlerRegistry.RegisterHandler(new SetSystemConfigurationRequestHandler());
-    }
-
-    private void RegisterSystemRequestHandlers()
-    {
-        _handlerRegistry.RegisterHandler(new ResetSystemRequestHandler(_logger));
-        _handlerRegistry.RegisterHandler(new RestartSystemRequestHandler(_logger));
-        _handlerRegistry.RegisterHandler(new ShutdownSystemRequestHandler(_logger));
-        _handlerRegistry.RegisterHandler(new UpdateSystemRequestHandler(_logger));
-    }
-
-    private void RegisterViciOneRequestHandlers()
-    {
-        _handlerRegistry.RegisterHandler(new GetViciOneSuiteVersionsRequestHandler(_logger));
-        _handlerRegistry.RegisterHandler(new InstallViciOneSuiteVersionRequestHandler(_logger));
     }
 
     [LoggerMessage(LogLevel.Information, "Connected to client.")]

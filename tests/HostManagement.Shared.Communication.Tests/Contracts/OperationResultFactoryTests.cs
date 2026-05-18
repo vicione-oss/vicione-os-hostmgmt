@@ -1,10 +1,10 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Text.Json;
 using AwesomeAssertions;
-using Xunit;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Contracts.NetworkStatus;
+using Xunit;
 
 namespace HostManagement.Shared.Communication.Tests.Contracts;
 
@@ -94,22 +94,7 @@ public sealed class OperationResultFactoryTests
         resultObject.Should().NotBeNull();
 
         var typedResultObject = (T)resultObject;
-
-        if (result is InstallSignedDebianPackageResult)
-        {
-            // Workaround because we use SystemControlResult but maintain compatibility until removed
-            typedResultObject.ResultType.Should().Be(nameof(SystemControlResult));
-        }
-        else if (result is RenewDHCPLeaseResult)
-        {
-            // Workaround because we use GetDHCPLeaseInformationResult but maintain compatibility until removed
-            typedResultObject.ResultType.Should().Be(nameof(GetDHCPLeaseInformationResult));
-        }
-        else
-        {
-            typedResultObject.ResultType.Should().Be(typeof(T).Name);
-        }
-
+        typedResultObject.ResultType.Should().Be(typeof(T).Name);
         typedResultObject.Status.Should().Be(OperationStatus.Error);
         typedResultObject.Message.Should().Be(message);
     }
@@ -123,22 +108,7 @@ public sealed class OperationResultFactoryTests
         // Assert
         // Common invariants
         result.Should().NotBeNull();
-
-        if (result is InstallSignedDebianPackageResult)
-        {
-            // Workaround because we use SystemControlResult but maintain compatibility until removed
-            result.ResultType.Should().Be(nameof(SystemControlResult));
-        }
-        else if (result is RenewDHCPLeaseResult)
-        {
-            // Workaround because we use GetDHCPLeaseInformationResult but maintain compatibility until removed
-            result.ResultType.Should().Be(nameof(GetDHCPLeaseInformationResult));
-        }
-        else
-        {
-            result.ResultType.Should().Be(typeof(T).Name);
-        }
-
+        result.ResultType.Should().Be(typeof(T).Name);
         result.Status.Should().Be(OperationStatus.Error);
         result.Message.Should().Be(message);
 
@@ -168,11 +138,6 @@ public sealed class OperationResultFactoryTests
 
             case GetSystemConfigurationResult config:
                 config.Configuration.Should().BeNull();
-                break;
-
-            case GetViciOneSuiteVersionsResult suite:
-                suite.SuiteVersions.Should().NotBeNull();
-                suite.SuiteVersions.Should().BeEmpty();
                 break;
         }
     }

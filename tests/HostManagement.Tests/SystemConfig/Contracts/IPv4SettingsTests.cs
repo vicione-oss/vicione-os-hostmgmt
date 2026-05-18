@@ -78,39 +78,6 @@ public sealed class IPv4SettingsTests
         }
 
         [Fact]
-        public void ShouldReturnFalse_WhenDifferentDHCPLease()
-        {
-            var settings1 = CreateSampleSettings();
-            var settings2 = CreateSampleSettings();
-            settings2.DHCPLease = new DHCPLease
-            {
-                LeaseObtained = DateTimeOffset.UtcNow.AddHours(-2),
-                LeaseExpires = DateTimeOffset.UtcNow.AddHours(10)
-            };
-
-            var result = settings1.Equals(settings2);
-
-            result.Should().BeFalse();
-        }
-
-        [Fact]
-        public void ShouldReturnFalse_WhenNullVsNonNullDHCPLease()
-        {
-            var settings1 = new IPv4Settings { DHCPLease = null };
-            var settings2 = new IPv4Settings
-            {
-                DHCPLease = new DHCPLease
-                {
-                    LeaseObtained = DateTimeOffset.UtcNow
-                }
-            };
-
-            var result = settings1.Equals(settings2);
-
-            result.Should().BeFalse();
-        }
-
-        [Fact]
         public void ShouldReturnFalse_WhenDifferentIPv4Details()
         {
             var settings1 = CreateSampleSettings();
@@ -264,7 +231,6 @@ public sealed class IPv4SettingsTests
         {
             Gateway = IPAddress.Parse("192.168.1.1"),
             DHCPEnabled = false,
-            DHCPLease = null,
             IPv4Details =
             [
                 new IPv4Detail

@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Commands.Network.DNS;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
@@ -65,7 +65,7 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
             if (networkInterface.IPv4.DHCPEnabled)
             {
                 dhcpLease = await NamedPipeRequestHelper
-                    .GetDHCPLeaseInformation(networkInterface.CommonInformation.Name);
+                    .GetDHCPLeaseInformation(networkInterface.CommonInformation.Name, cancellationToken);
             }
 
             AppendOutputForVLAN(listOutput, 2, networkInterface.IPv4.VLANEnabled, networkInterface.IPv4.VLANID);
@@ -83,10 +83,10 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
         int indentationLevel,
         NetworkInterfaceCommonInformation commonInformation)
     {
-        var originalPhysicalAddress = await NamedPipeRequestHelper.GetOriginalPhysicalAddress(commonInformation.Name);
-        originalPhysicalAddress ??= CommandLineStrings_NetworkInterfaces.Unknown;
-
         var physicalAddress = commonInformation.PhysicalAddress;
+        var originalPhysicalAddress =
+            await NamedPipeRequestHelper.GetOriginalPhysicalAddress(commonInformation.Name, CancellationToken.None)
+            ?? CommandLineStrings_NetworkInterfaces.Unknown;
 
         var multiKeyValueOutput = output
             .AddMultiKeyValueOutput(indentationLevel)

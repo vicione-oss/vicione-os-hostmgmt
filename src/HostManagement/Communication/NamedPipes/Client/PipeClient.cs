@@ -1,9 +1,9 @@
 ﻿using System.IO.Pipes;
-using Microsoft.Extensions.Logging;
+using System.Net.Sockets;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
-using System.Net.Sockets;
+using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipes.Client;
 
@@ -78,7 +78,7 @@ internal sealed partial class PipeClient : IPipeClient
         }
     }
 
-    public async Task<NamedPipeMessage?> SendRequest(
+    public async Task<NamedPipeMessage> SendRequest(
         string topic,
         string content = "",
         CancellationToken cancellationToken = default)
@@ -86,7 +86,8 @@ internal sealed partial class PipeClient : IPipeClient
         if (State != PipeState.Connected &&
             !await TryConnect(cancellationToken))
         {
-            return null;
+            throw new InvalidOperationException(
+                $"Cannot send request to pipe '{_pipeName}' because it is not connected.");
         }
 
         try
@@ -94,7 +95,7 @@ internal sealed partial class PipeClient : IPipeClient
             var message = new NamedPipeMessage { Topic = topic, Type = MessageType.Request, Content = content };
             var expectedResponse = _messageProcessor.AnnounceResponse(message.ConversationId);
 
-            await _wrappedPipe.SendMessage(message, cancellationToken);
+            await _wrappedPipe.SendMessageAsync(message, cancellationToken);
 
             cancellationToken.Register(() =>
             {
@@ -108,8 +109,7 @@ internal sealed partial class PipeClient : IPipeClient
         catch (Exception ex)
         {
             SendingToPipeFailed(_logger, _pipeName, ex);
-
-            return null;
+            throw;
         }
     }
 

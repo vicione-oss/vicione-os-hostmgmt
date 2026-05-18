@@ -1,12 +1,16 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.IO.Abstractions;
 using System.Text;
 using HostManagement.Configuration;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Contracts;
+using HostManagement.Shared.Contracts.Network;
+using HostManagement.Shared.Extensions;
 using HostManagement.Shared.Validation;
 using HostManagement.SystemConfig.InternalValidation;
+using InternalNetwork = HostManagement.SystemConfig.Contracts;
+using Microsoft.Extensions.Logging;
 
 namespace HostManagement.SystemConfig;
 
@@ -16,8 +20,15 @@ namespace HostManagement.SystemConfig;
 /// <param name="fileSystem">The file system.</param>
 /// <param name="persistence">The persistence to load and save configurations.</param>
 /// <param name="scriptHandler">A script handler to execute scripts.</param>
-internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersistence persistence, IScriptHandler scriptHandler)
+/// <param name="logger">An <see cref="ILogger"/> implementation.</param>
+internal sealed partial class SystemConfigurationService(
+    IFileSystem fileSystem,
+    IPersistence persistence,
+    IScriptHandler scriptHandler,
+    ILogger logger)
 {
+    private readonly ILogger _logger = logger;
+
     /// <summary>
     /// Gets the system configuration from the system.
     /// </summary>
@@ -30,56 +41,28 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
     /// </remarks>
     public async Task<GetSystemConfigurationResult> GetConfiguration(CancellationToken cancellationToken = default)
     {
-        try
+        var cachedConfig = SystemConfigurationCache.Instance.GetCachedConfig();
+
+        if (cachedConfig is not null)
         {
-            var configurationResult = new Result();
-            scriptHandler.UseResult(configurationResult);
-            Contracts.SystemConfiguration currentConfig = new();
-
-            // Don't bypass check for changes / Don't bypass apply of config
-            // -> Setting is not relevant, since we only load the configuration
-            var adapter = new SystemConfigurationAdapter(
-                currentConfig,
-                scriptHandler,
-                bypassHasChanges: false,
-                bypassApplyConfig: false);
-
-            var operationStatus = await adapter
-                .GetConfiguration(currentConfig, cancellationToken)
-                .ConfigureAwait(false);
-
-            if (operationStatus == OperationStatus.Error)
-            {
-                var message =
-                    SystemConfigResources.GetConfigFromScriptsFailed +
-                    Environment.NewLine +
-                    configurationResult.Messages;
-
-                return GetSystemConfigurationResult.CreateErrorResult(message);
-            }
-            else if (operationStatus == OperationStatus.Warning)
-            {
-                var message =
-                    SystemConfigResources.GetConfigFromScriptsCompletedWithWarnings +
-                    Environment.NewLine +
-                    configurationResult.Messages;
-
-                return GetSystemConfigurationResult.CreateWarningResult(message, currentConfig.ToSharedContracts());
-            }
-
             return GetSystemConfigurationResult.CreateSuccessResult(
-                SystemConfigResources.GetConfigFromScriptsSucceeded,
-                currentConfig.ToSharedContracts());
+                SystemConfigResources.GetConfigFromCacheSucceeded,
+                cachedConfig);
         }
-        catch (Exception ex)
-        {
-            var message =
-                SystemConfigResources.GetConfigFromScriptsFailed +
-                Environment.NewLine +
-                ex.Message;
 
-            return GetSystemConfigurationResult.CreateErrorResult(message);
+        var getConfigResult = await GetConfigurationFromScripts(cancellationToken).ConfigureAwait(false);
+
+        if (getConfigResult.Status != OperationStatus.Error &&
+            getConfigResult.Configuration is not null)
+        {
+            SystemConfigurationCache.Instance.SetCachedConfig(
+                getConfigResult.Configuration,
+                cacheLog: message => SystemConfigCached(_logger, message),
+                invalidateCacheLog: message => SystemConfigCacheInvalidated(_logger, message),
+                invalidateCacheFailedLog: message => SystemConfigCacheInvalidationFailed(_logger, message));
         }
+
+        return getConfigResult;
     }
 
     /// <summary>
@@ -250,6 +233,131 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
             .ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Resets the specified network interface to its default configuration.
+    /// </summary>
+    /// <param name="interfaceName">The interface name.</param>
+    /// <param name="cancellationToken">A token to cancel the request.</param>
+    /// <returns><see cref="SystemControlResult"/></returns>
+    public async Task<SystemControlResult> ResetNetworkInterface(
+        string interfaceName,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(interfaceName, nameof(interfaceName));
+
+            var currentConfigResult = await GetConfiguration(cancellationToken).ConfigureAwait(false);
+
+            if (currentConfigResult.Status == OperationStatus.Error)
+            {
+                return SystemControlResult.CreateErrorResult(
+                    GetResetFailedMessage() +
+                    Environment.NewLine +
+                    currentConfigResult.Message);
+            }
+
+            if (currentConfigResult.Configuration is null)
+            {
+                return SystemControlResult.CreateErrorResult(
+                    GetResetFailedMessage() +
+                    Environment.NewLine +
+                    SystemConfigResources.ConfigWasNull);
+            }
+
+            if (!persistence.PreparationConfigurationExists())
+            {
+                var message = string.Format(
+                    CultureInfo.InvariantCulture,
+                    CompositeFormat.Parse(SystemConfigResources.NoConfigFound),
+                    AppPaths.DefaultSystemConfigurationFile);
+
+                return SystemControlResult.CreateErrorResult(
+                    GetResetFailedMessage() +
+                    Environment.NewLine +
+                    message);
+            }
+
+            var defaultConfig = await persistence
+                .LoadPreparationConfiguration(cancellationToken)
+                .ConfigureAwait(false);
+
+            var defaultInterface = defaultConfig
+                .NetworkInterfacesSettings?
+                .NetworkInterfaces?
+                .FirstOrDefault(@interface => string.Equals(
+                    @interface.CommonInformation?.Name,
+                    interfaceName,
+                    StringComparison.Ordinal));
+
+            if (defaultInterface is null)
+            {
+                var message = string.Format(
+                    CultureInfo.InvariantCulture,
+                    CompositeFormat.Parse(SystemConfigResources.ResetNetworkInterfaceNotFoundInConfig),
+                    interfaceName,
+                    AppPaths.DefaultSystemConfigurationFile);
+
+                return SystemControlResult.CreateErrorResult(message);
+            }
+
+            var currentInterface = currentConfigResult.Configuration.GetNetworkInterface(interfaceName);
+
+            if (currentInterface is null)
+            {
+                var message = string.Format(
+                    CultureInfo.InvariantCulture,
+                    CompositeFormat.Parse(SystemConfigResources.ResetNetworkInterfaceNotFoundInCurrent),
+                    interfaceName);
+
+                return SystemControlResult.CreateErrorResult(message);
+            }
+
+            ApplyDefaultNetworkInterfaceSettings(currentInterface, defaultInterface);
+
+            var setConfigResult = await SetConfiguration(
+                currentConfigResult.Configuration,
+                shouldPersistConfiguration: true,
+                cancellationToken)
+                .ConfigureAwait(false);
+
+            if (setConfigResult.Status == OperationStatus.Error)
+            {
+                return SystemControlResult.CreateErrorResult(
+                    GetResetFailedMessage() +
+                    Environment.NewLine +
+                    setConfigResult.Message);
+            }
+
+            var resultMessage = setConfigResult.Status == OperationStatus.Warning
+                ? setConfigResult.Message
+                : string.Format(
+                    CultureInfo.InvariantCulture,
+                    CompositeFormat.Parse(SystemConfigResources.ResetNetworkInterfaceSucceeded),
+                    interfaceName);
+
+            return new SystemControlResult
+            {
+                Status = setConfigResult.Status,
+                Message = resultMessage
+            };
+        }
+        catch (Exception ex)
+        {
+            return SystemControlResult.CreateErrorResult(
+                GetResetFailedMessage() +
+                Environment.NewLine +
+                ex.Message);
+        }
+
+
+        string GetResetFailedMessage()
+            => string.Format(
+                CultureInfo.InvariantCulture,
+                CompositeFormat.Parse(SystemConfigResources.ResetNetworkInterfaceFailed),
+                interfaceName);
+    }
+
     private async Task<SetSystemConfigurationResult> PrepareConfigurationInternal(
         JsonConfigurationType jsonConfigType,
         CancellationToken cancellationToken = default)
@@ -404,6 +512,10 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
                     : Environment.NewLine + configurationResult.Messages;
             }
 
+            SystemConfigurationCache.Instance.Invalidate(
+                invalidateCacheLog: message => SystemConfigCacheInvalidated(_logger, message),
+                invalidateCacheFailedLog: message => SystemConfigCacheInvalidationFailed(_logger, message));
+
             if (shouldPersistConfiguration)
             {
                 var persistResult = await PersistConfiguration(proposedConfig, cancellationToken).ConfigureAwait(false);
@@ -443,7 +555,7 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
             SystemConfigResources.SetConfigSucceeded);
     }
 
-    private async Task<(OperationStatus Status, string Message, Contracts.SystemConfiguration? SystemConfiguration)>
+    private async Task<(OperationStatus Status, string Message, InternalNetwork.SystemConfiguration? SystemConfiguration)>
         GetConfigurationFromJsonInternal(
             JsonConfigurationType jsonConfiguration,
             CancellationToken cancellationToken)
@@ -485,6 +597,105 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
 
             return (OperationStatus.Error, message, default);
         }
+    }
+
+    private async Task<GetSystemConfigurationResult> GetConfigurationFromScripts(
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var configurationResult = new Result();
+            scriptHandler.UseResult(configurationResult);
+            Contracts.SystemConfiguration currentConfig = new();
+
+            // Don't bypass check for changes / Don't bypass apply of config
+            // -> Setting is not relevant, since we only load the configuration
+            var adapter = new SystemConfigurationAdapter(
+                currentConfig,
+                scriptHandler,
+                bypassHasChanges: false,
+                bypassApplyConfig: false);
+
+            var operationStatus = await adapter
+                .GetConfiguration(currentConfig, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (operationStatus == OperationStatus.Error)
+            {
+                var message =
+                    SystemConfigResources.GetConfigFromScriptsFailed +
+                    Environment.NewLine +
+                    configurationResult.Messages;
+
+                return GetSystemConfigurationResult.CreateErrorResult(message);
+            }
+            else if (operationStatus == OperationStatus.Warning)
+            {
+                var message =
+                    SystemConfigResources.GetConfigFromScriptsCompletedWithWarnings +
+                    Environment.NewLine +
+                    configurationResult.Messages;
+
+                return GetSystemConfigurationResult.CreateWarningResult(message, currentConfig.ToSharedContracts());
+            }
+
+            return GetSystemConfigurationResult.CreateSuccessResult(
+                SystemConfigResources.GetConfigFromScriptsSucceeded,
+                currentConfig.ToSharedContracts());
+        }
+        catch (Exception ex)
+        {
+            var message =
+                SystemConfigResources.GetConfigFromScriptsFailed +
+                Environment.NewLine +
+                ex.Message;
+
+            return GetSystemConfigurationResult.CreateErrorResult(message);
+        }
+    }
+
+    private static void ApplyDefaultNetworkInterfaceSettings(
+        NetworkInterfaceDetail currentInterface,
+        InternalNetwork.NetworkInterfaceDetail defaultInterface)
+    {
+        var defaultCommon = defaultInterface.CommonInformation;
+
+        if (defaultCommon is not null)
+        {
+            if (defaultCommon.Enabled.HasValue)
+                currentInterface.CommonInformation.Enabled = defaultCommon.Enabled.Value;
+
+            if (defaultCommon.PhysicalAddress is not null)
+                currentInterface.CommonInformation.PhysicalAddress = defaultCommon.PhysicalAddress;
+        }
+
+        var defaultIpv4 = defaultInterface.IPv4;
+
+        if (defaultIpv4 is null)
+            return;
+
+        if (defaultIpv4.DHCPEnabled.HasValue)
+            currentInterface.IPv4.DHCPEnabled = defaultIpv4.DHCPEnabled.Value;
+
+        if (defaultIpv4.Gateway is not null)
+            currentInterface.IPv4.Gateway = defaultIpv4.Gateway;
+
+        if (defaultIpv4.IPv4Details is not null)
+        {
+            currentInterface.IPv4.IPv4Details.Clear();
+            currentInterface.IPv4.IPv4Details.AddRange(
+                defaultIpv4.IPv4Details.Select(static detail => new IPv4Detail
+                {
+                    IPAddress = detail.IPAddress,
+                    Netmask = detail.Netmask,
+                }));
+        }
+
+        if (defaultIpv4.VLANEnabled.HasValue)
+            currentInterface.IPv4.VLANEnabled = defaultIpv4.VLANEnabled.Value;
+
+        if (defaultIpv4.VLANID.HasValue)
+            currentInterface.IPv4.VLANID = defaultIpv4.VLANID.Value;
     }
 
     private async Task<Result> PersistConfiguration(
@@ -544,4 +755,13 @@ internal sealed class SystemConfigurationService(IFileSystem fileSystem, IPersis
 
         return SetSystemConfigurationResult.CreateErrorResult(errorMessage);
     }
+
+    [LoggerMessage(LogLevel.Information, "{Message}")]
+    private static partial void SystemConfigCached(ILogger logger, string? message);
+
+    [LoggerMessage(LogLevel.Information, "{Message}")]
+    private static partial void SystemConfigCacheInvalidated(ILogger logger, string? message);
+
+    [LoggerMessage(LogLevel.Error, "{Message}")]
+    private static partial void SystemConfigCacheInvalidationFailed(ILogger logger, string? message);
 }

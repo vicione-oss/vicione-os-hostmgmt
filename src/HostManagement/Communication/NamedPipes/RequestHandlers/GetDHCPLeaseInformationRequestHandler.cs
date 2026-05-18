@@ -1,10 +1,10 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
-using Microsoft.Extensions.Logging;
 using HostManagement.Services;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Serialization;
+using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 
@@ -25,16 +25,12 @@ internal sealed class GetDHCPLeaseInformationRequestHandler(ILogger logger)
     /// <summary>
     /// Handles the get DHCP lease information request.
     /// </summary>
-    /// <param name="messageContent">The message content.</param>
-    /// <param name="cancellationToken">A token to cancel the request.</param>
-    /// <returns>The response.</returns>
+    /// <inheritdoc/>
     /// <exception cref="InvalidOperationException"/>
-    public override async Task<string> Handle(string messageContent, CancellationToken cancellationToken)
+    public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(messageContent, nameof(messageContent));
-
             var service = new DHCPLeaseService(logger);
             var result = await service.GetDHCPLeaseInformation(messageContent, cancellationToken);
 

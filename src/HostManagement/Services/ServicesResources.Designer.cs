@@ -151,6 +151,15 @@ namespace HostManagement.Services {
         }
         
         /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Getting active state of systemd unit &apos;{0}&apos; was canceled. ähnelt.
+        /// </summary>
+        internal static string GetSystemdUnitActiveStateCanceled {
+            get {
+                return ResourceManager.GetString("GetSystemdUnitActiveStateCanceled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Getting active state of systemd unit &apos;{0}&apos; failed. ähnelt.
         /// </summary>
         internal static string GetSystemdUnitActiveStateFailed {

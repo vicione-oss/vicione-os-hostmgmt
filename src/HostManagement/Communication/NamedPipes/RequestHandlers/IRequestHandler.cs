@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization.Metadata;
+using System.Text.Json.Serialization.Metadata;
 using HostManagement.Shared.Communication.Contracts;
 
 namespace HostManagement.Communication.NamedPipes.RequestHandlers;
@@ -47,8 +47,8 @@ internal interface IRequestHandler
     /// <summary>
     /// The method handling a message.
     /// </summary>
-    /// <param name="messageContent">The JSON serialized message content.</param>
+    /// <param name="messageContent">The message content (can be JSON serialized).</param>
     /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <returns>The result to be sent as a response to the caller.</returns>
-    Task<string> Handle(string messageContent, CancellationToken cancellationToken);
+    Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken);
 }

@@ -1,4 +1,4 @@
-﻿using HostManagement.Shared.Contracts.System;
+using HostManagement.Shared.Contracts.System;
 
 namespace HostManagement.Shared.Communication;
 
@@ -18,6 +18,18 @@ public static partial class Topics
     /// </summary>
     [RequiresContent]
     public const string SetSystemConfiguration = "SetSystemConfiguration";
+    #endregion
+
+    #region Topics to get or set a specific configuration section.
+    /// <summary>
+    /// The topic to reset a network interface to its default configuration.
+    /// </summary>
+    /// <remarks>
+    /// The name of the network interface must be specified as the message content.
+    /// The default configuration is taken from 'DefaultSystemConfiguration.json'.
+    /// </remarks>
+    [RequiresContent]
+    public const string ResetNetworkInterface = "ResetNetworkInterface";
     #endregion
 
     #region Topics to retrieve a state. This is not part of the configuration.
@@ -64,19 +76,6 @@ public static partial class Topics
     #endregion
 
     #region Topics to request an action. This is not part of the configuration. The action may result in a new state and/or return data.
-    /// <summary>
-    /// The topic to get all supported ViciOne Suite versions.
-    /// </summary>
-    [Obsolete("This will be removed in a future version.", false)]
-    public const string GetViciOneSuiteVersions = "GetViciOneSuiteVersions";
-
-    /// <summary>
-    /// The topic to install a specified ViciOne Suite version.
-    /// </summary>
-    [RequiresContent]
-    [Obsolete("Use InstallSignedDebianPackage instead. This will be removed in a future version.", false)]
-    public const string InstallViciOneSuiteVersion = "InstallViciOneSuiteVersion";
-
     /// <summary>
     /// The topic to install a signed Debian package.
     /// </summary>
@@ -157,6 +156,10 @@ public static partial class Topics
     /// <summary>
     /// The "echo" topic.
     /// </summary>
+    /// <remarks>
+    /// "ping", "trigger" or non-empty string must be specified as the message content.
+    /// </remarks>
+    [RequiresContent]
     public const string Echo = "echo";
     #endregion
 }

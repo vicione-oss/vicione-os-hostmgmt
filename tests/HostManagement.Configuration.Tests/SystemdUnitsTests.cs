@@ -25,7 +25,7 @@ public class SystemdUnitsTests
             };
 
             // Act
-            var actualUnitTypes = SystemdUnits.KnownUnitTypes;
+            var actualUnitTypes = SystemdUnits.s_knownUnitTypes;
 
             // Assert
             actualUnitTypes.Should().BeEquivalentTo(expectedUnitTypes);

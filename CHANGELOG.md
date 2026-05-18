@@ -3,7 +3,50 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - [Unreleased]
+## [Unreleased]
+
+### Added
+
+- Added functionality to reset network interfaces to factory default settings
+- Added possibility to create a template of `SystemConfiguration.json` and validate it
+- Added caching for system configuration
+  - Configurable automatic invalidation via `HOSTMANAGEMENT__SYSTEM_CONFIGURATION_CACHE_LIFETIME_SECONDS` (default 30 seconds)
+  - Added invalidation after setting the config (or revert config)
+
+### Changed
+
+- Moved call to `get_network_interfaces.sh` from scripts to C#
+  - from `get_network_interfaces_common_information.sh`
+  - from `get_network_status_information.sh`
+  - from `set_network_dns_settings.sh`
+- Updated `.NET Runtime` from `10.0.5` to `10.0.7`
+- Updated `.NET SDK` from `10.0.201` to `10.0.203`
+- Updated NuGet packages
+  - `Microsoft.Extensions.Configuration.EnvironmentVariables` from `10.0.5` to `10.0.6`
+  - `Microsoft.Extensions.Logging` from `10.0.5` to `10.0.6`
+  - `Microsoft.Extensions.Logging.Abstractions` from `10.0.5` to `10.0.6`
+  - `Microsoft.Testing.Extensions.CodeCoverage` from `18.5.2` to `18.6.2`
+  - `System.CommandLine` from `2.0.5` to `2.0.6`
+  - `TestableIO.System.IO.Abstractions` from `22.1.0` to `22.1.1`
+  - `TestableIO.System.IO.Abstractions.TestingHelpers` from `22.1.0` to `22.1.1`
+  - `TestableIO.System.IO.Abstractions.Wrappers` from `22.1.0` to `22.1.1`
+- Clarified XML documentation of `Content` property of `NamedPipeMessage` (content can be JSON-serialized or a plain string)
+- Improved XML documentation of `SystemConfigurationSerializer`
+
+### Removed
+
+- Validation: Removed obsolete method `Validate` in `SystemConfigurationValidator`
+- Shared: Removed installation of ViciOne Suite via update server (was replaced with generic functionality in [1.2.0](#120---2025-12-02))
+- Removed obsolete `FallbackNTPServers` from `SystemConfiguration` (separate `GetNTPFallbackInformation` request was added in [1.0.0](#100---2025-07-17))
+- Removed obsolete `DHCPLease` from `SystemConfiguration` (separate `GetDHCPLeaseInformation` request was added in [1.0.0](#100---2025-07-17))
+- Removed obsolete `RenewDHCPLeaseResult` (new `GetDHCPLeaseInformationResult` was added in [1.0.0](#100---2025-07-17))
+- Removed obsolete `SystemConfigurationSerializer` methods (marked obsolete in [1.0.0](#100---2025-07-17))
+- Removed obsolete result types `InstallSignedDebianPackageResult`, `ResetSystemResult`, `RestartSystemResult`, `ShutdownSystemResult` and `UpdateSystemResult` (new `ControlSystemResult` was added in [1.3.0](#130---2026-03-23))
+
+### Fixed
+
+- Fixed a bug where proxy settings were not cleared during a system reset.
+- Fixed `network status` command missing it's name argument description
 
 ## [1.3.0] - 2026-03-23
 
@@ -47,12 +90,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `TestableIO.System.IO.Abstractions.Wrappers` from `22.0.16` to `22.1.0`
 - Increased timeout for the Debian package install script (ExecuteInstallDebianPackageScript) to 180 seconds to prevent errors when installing larger packages.
 
-### Fixed
-
-- Fixed cli command `NoProxyListClearCommand` not disabling the feature on clear
-- Fixed `RenewDHCPLease` request not able to support new result type `GetDHCPLeaseInformationResult` (old but obsolete `RenewDHCPLeaseResult` still works)
-- Fixed format of warning message when getting network status information returns warning
-
 ### Removed
 
 - Removed NuGet packages
@@ -60,6 +97,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Microsoft.NET.Test.Sdk`
   - `xunit`;
   - `xunit.runner.visualstudio`
+
+### Fixed
+
+- Fixed cli command `NoProxyListClearCommand` not disabling the feature on clear
+- Fixed `RenewDHCPLease` request not able to support new result type `GetDHCPLeaseInformationResult` (old but obsolete `RenewDHCPLeaseResult` still works)
+- Fixed format of warning message when getting network status information returns warning
 
 ## 1.2.0 - 2025-12-02
 
@@ -93,14 +136,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced NuGet package `FluentAssertions` with `AwesomeAssertions`
 - Shared: Marked installation of ViciOne Suite via update server as **obsolete** (will be replaced with generic functionality to install signed Debian packages)
 
-### Fixed
-
-- Fixed that consumers were not able to use `Shared.Communication` NuGet package due to reference to source generator (introduced in [1.1.0])
-- Prevent deadlocks when reading output of scripts
-
 ### Removed
 
 - Removed default update directory for swu-update (env var `HOSTMANAGEMENT__UPDATE_DIRECTORY` must be set via environment e.g. on EdgeS to `/mnt/update`)
+
+### Fixed
+
+- Fixed that consumers were not able to use `Shared.Communication` NuGet package due to reference to source generator (introduced in [1.1.0](#110---2025-10-15))
+- Prevent deadlocks when reading output of scripts
 
 ## 1.1.0 - 2025-10-15
 
@@ -143,6 +186,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Shared: Marked `DHCPLease` as **obsolete** (will be replaced with `GetDHCPLeaseInformationResult` request and removed from config)
 - Increased timeout to download ViciOne Suite from 5 minutes to 60 minutes
 
+### Removed
+
+- Removed `IStringWrapper`
+
 ### Fixed
 
 - Fixed wrong log message when `NetworkStatusInformation` requested via CLI was null
@@ -152,10 +199,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed possibility to have multiple colons in the proxy server string by adding additional validation
 - CLI: Fixed `list-interfaces` names-only output (unnecessary colon was shown)
 - CLI: Fixed indentation level of global DNS output in `list-interfaces` command
-
-### Removed
-
-- Removed `IStringWrapper`
 
 ## 1.0.0 - 2025-07-17
 

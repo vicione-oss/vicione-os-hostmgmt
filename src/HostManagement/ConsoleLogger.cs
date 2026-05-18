@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace HostManagement;
 
@@ -7,11 +7,7 @@ namespace HostManagement;
 /// </summary>
 /// <param name="minimumLevel">The minimum log level to write.</param>
 /// <param name="useShortLogLevels">Whether to use short log level names.</param>
-/// <param name="addNewLine">Whether to add an extra newline after each entry.</param>
-internal sealed class ConsoleLogger(
-    LogLevel minimumLevel,
-    bool useShortLogLevels = true,
-    bool addNewLine = false) : ILogger
+internal sealed class ConsoleLogger(LogLevel minimumLevel, bool useShortLogLevels = true) : ILogger
 {
     /// <inheritdoc/>
     public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
@@ -75,9 +71,6 @@ internal sealed class ConsoleLogger(
             Console.Write(indicator);
             Console.ResetColor();
             Console.WriteLine(text);
-
-            if (addNewLine)
-                Console.WriteLine();
         }
     }
 }

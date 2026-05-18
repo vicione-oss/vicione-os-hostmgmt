@@ -1,7 +1,7 @@
-﻿using System.Text.Json.Serialization.Metadata;
-using Microsoft.Extensions.Logging;
+using System.Text.Json.Serialization.Metadata;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
+using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 
@@ -37,13 +37,9 @@ internal sealed partial class EchoRequestHandler(PipeServer server, ILogger logg
     /// <summary>
     /// Handles the echo request.
     /// </summary>
-    /// <param name="messageContent">The message content.</param>
-    /// <param name="cancellationToken">A token to cancel the request.</param>
-    /// <returns>The response.</returns>
-    public Task<string> Handle(string messageContent, CancellationToken cancellationToken)
+    /// <inheritdoc/>
+    public Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(messageContent, nameof(messageContent));
-
         HandlingEchoRequest(logger, messageContent);
 
         switch (messageContent)

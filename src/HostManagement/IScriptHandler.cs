@@ -61,9 +61,11 @@ internal interface IScriptHandler
     /// <summary>
     /// Executes the script to get the common information of all network interfaces.
     /// </summary>
+    /// <param name="scriptOptions">The script options to execute the script.</param>
     /// <returns><see cref="OperationStatus"/> and a list of
     /// <see cref="NetworkInterfaceCommonInformation"/> of all network interfaces.</returns>
-    Task<(OperationStatus, List<NetworkInterfaceCommonInformation>)> ExecuteGetNetworkInterfacesCommonInformationScript();
+    Task<(OperationStatus, List<NetworkInterfaceCommonInformation>)> ExecuteGetNetworkInterfacesCommonInformationScript(
+        ScriptOptions scriptOptions);
 
     /// <summary>
     /// Executes the script to get the network status information.

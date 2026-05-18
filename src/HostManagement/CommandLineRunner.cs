@@ -1,7 +1,6 @@
-﻿using System.CommandLine;
-using Microsoft.Extensions.Logging;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine;
-using HostManagement.Configuration;
+using HostManagement.Communication.CommandLine.Output;
 
 namespace HostManagement;
 
@@ -11,9 +10,6 @@ namespace HostManagement;
 /// </summary>
 internal static partial class CommandLineRunner
 {
-    private static readonly ILogger s_logger =
-        new ConsoleLogger(EnvironmentVariables.LogLevel, useShortLogLevels: false);
-
     /// <summary>
     /// Starts the application with a command line interface.
     /// </summary>
@@ -26,6 +22,7 @@ internal static partial class CommandLineRunner
             if (args.Length == 0)
                 args = ["--help"];
 
+            #region Command arguments available outside of 'System.CommandLine'
 #if DEBUG
             if (args[0].Equals("--extract-help"))
             {
@@ -33,6 +30,31 @@ internal static partial class CommandLineRunner
                 return 0;
             }
 #endif
+            if (args[0].Equals("--create-configuration-template"))
+            {
+                SystemConfigurationTemplate.CreateAndOutput();
+                return 0;
+            }
+
+            if (args[0].Equals("--validate-configuration-template"))
+            {
+                if (args.Length == 1)
+                {
+                    SimpleOutput.WriteLineError("Expected flag '--path'.");
+                    return 1;
+                }
+
+                if (args.Length == 2)
+                {
+                    SimpleOutput.WriteLineError("Expected value for flag '--path'.");
+                    return 1;
+                }
+
+                await SystemConfigurationTemplate.Validate(args[2]);
+                return 0;
+            }
+            #endregion
+
             // Per default, if a command is cancelled, it has a termination timeout of 2 seconds.
             // For now we don't want to force termination, if cancellation takes some time.
             var invocationConfig = new InvocationConfiguration() { ProcessTerminationTimeout = null };
@@ -44,11 +66,11 @@ internal static partial class CommandLineRunner
         }
         catch (Exception ex)
         {
-            LogCommandLineError(s_logger, ex.ToString());
+            SimpleOutput.WriteLineError(
+                "An error occurred while running the command line interface. {0}",
+                ex.ToString());
+
             return 1;
         }
     }
-
-    [LoggerMessage(LogLevel.Error, "An error occurred while running the command line interface. {InnerMessage}")]
-    private static partial void LogCommandLineError(ILogger logger, string? innerMessage);
 }

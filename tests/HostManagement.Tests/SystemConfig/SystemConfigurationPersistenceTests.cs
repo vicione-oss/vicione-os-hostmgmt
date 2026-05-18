@@ -1,4 +1,4 @@
-﻿using System.IO.Abstractions.TestingHelpers;
+using System.IO.Abstractions.TestingHelpers;
 using System.Net;
 using System.Text.Json;
 using AwesomeAssertions;
@@ -19,8 +19,231 @@ public class SystemConfigurationPersistenceTests
 
     public sealed class LoadPreparationConfiguration : SystemConfigurationPersistenceTests
     {
+        private static readonly string s_jsonConfigV1_1_1 =
+            """
+            {
+              "Version": 1,
+              "NetworkInterfacesSettings": {
+                "NetworkInterfaces": [
+                  {
+                    "CommonInformation": {
+                      "Enabled": true,
+                      "Name": "lan1",
+                      "PhysicalAddress": "00:02:01:ac:52:33"
+                    },
+                    "IPv4": {
+                      "Gateway": "192.168.1.1",
+                      "DHCPEnabled": false,
+                      "IPv4Details": [
+                        {
+                          "IPAddress": "192.168.60.3",
+                          "Netmask": "255.255.0.0"
+                        }
+                      ],
+                      "VLANEnabled": false,
+                      "VLANID": 0
+                    }
+                  },
+                  {
+                    "CommonInformation": {
+                      "Enabled": true,
+                      "Name": "lan2",
+                      "PhysicalAddress": "00:02:01:ac:52:34"
+                    },
+                    "IPv4": {
+                      "DHCPEnabled": false,
+                      "IPv4Details": [
+                        {
+                          "IPAddress": "192.168.0.100",
+                          "Netmask": "255.255.255.0"
+                        }
+                      ],
+                      "VLANEnabled": false,
+                      "VLANID": 0
+                    }
+                  }
+                ]
+              },
+              "NetworkDNSSettings": {
+                "Hostname": "AE1400-Host-Management",
+                "MulticastDNSEnabled": false,
+                "StaticHostsEnabled": false,
+                "StaticHosts": [],
+                "NameServersEnabled": true,
+                "NameServers": [
+                  "192.168.10.10"
+                ],
+                "DNSSuffixEnabled": false,
+                "DNSSuffix": "",
+                "SearchDomainsEnabled": false,
+                "SearchDomains": []
+              },
+              "NetworkProxySettings": {
+                "FTP": {
+                  "Enabled": false
+                },
+                "HTTP": {
+                  "Enabled": false
+                },
+                "HTTPS": {
+                  "Enabled": false
+                },
+                "SFTP": {
+                  "Enabled": false
+                },
+                "SOCKS": {
+                  "Enabled": false
+                },
+                "DoNotProxyListEnabled": false,
+                "DoNotProxyList": []
+              },
+              "NetworkNTPSettings": {
+                "NTPServersEnabled": false,
+                "NTPServers": []
+              },
+              "Services": [
+                {
+                  "Name": "ssh.service",
+                  "State": "Enabled"
+                },
+                {
+                  "Name": "remoteconnect.service",
+                  "State": "Disabled"
+                },
+                {
+                  "Name": "vicione-suite.service",
+                  "State": "Enabled"
+                }
+              ]
+            }
+            """
+            .UseEnvironmentNewLine();
+
+        private static readonly SystemConfiguration s_configV1_1_1 = new()
+        {
+            Version = 1,
+            NetworkInterfacesSettings = new()
+            {
+                NetworkInterfaces =
+                [
+                    new()
+                    {
+                        CommonInformation = new()
+                        {
+                            Enabled = true,
+                            Name = "lan1",
+                            PhysicalAddress = "00:02:01:ac:52:33"
+                        },
+                        IPv4 = new()
+                        {
+                            Gateway = IPAddress.Parse("192.168.1.1"),
+                            DHCPEnabled = false,
+                            IPv4Details =
+                            [
+                                new()
+                                {
+                                    IPAddress = IPAddress.Parse("192.168.60.3"),
+                                    Netmask = IPAddress.Parse("255.255.0.0")
+                                }
+                            ],
+                            VLANEnabled = false,
+                            VLANID = 0
+                        }
+                    },
+                    new()
+                    {
+                        CommonInformation = new()
+                        {
+                            Enabled = true,
+                            Name = "lan2",
+                            PhysicalAddress = "00:02:01:ac:52:34"
+                        },
+                        IPv4 = new()
+                        {
+                            DHCPEnabled = false,
+                            IPv4Details =
+                            [
+                                new()
+                                {
+                                    IPAddress = IPAddress.Parse("192.168.0.100"),
+                                    Netmask = IPAddress.Parse("255.255.255.0")
+                                }
+                            ],
+                            VLANEnabled = false,
+                            VLANID = 0
+                        }
+                    }
+                ]
+            },
+            NetworkDNSSettings = new()
+            {
+                Hostname = "AE1400-Host-Management",
+                MulticastDNSEnabled = false,
+                StaticHostsEnabled = false,
+                StaticHosts = [],
+                NameServersEnabled = true,
+                NameServers = [IPAddress.Parse("192.168.10.10")],
+                DNSSuffixEnabled = false,
+                DNSSuffix = "",
+                SearchDomainsEnabled = false,
+                SearchDomains = []
+            },
+            NetworkProxySettings = new()
+            {
+                FTP = new()
+                {
+                    Enabled = false
+                },
+                HTTP = new()
+                {
+                    Enabled = false
+                },
+                HTTPS = new()
+                {
+                    Enabled = false
+                },
+                SFTP = new()
+                {
+                    Enabled = false
+                },
+                SOCKS = new()
+                {
+                    Enabled = false
+                },
+                DoNotProxyListEnabled = false,
+                DoNotProxyList = []
+            },
+            NetworkNTPSettings = new()
+            {
+                NTPServersEnabled = false,
+                NTPServers = []
+            },
+            Services =
+            [
+                new()
+                {
+                    Name = "ssh.service",
+                    State = ServiceState.Enabled
+                },
+                new()
+                {
+                    Name = "remoteconnect.service",
+                    State = ServiceState.Disabled
+                },
+                new()
+                {
+                    Name = "vicione-suite.service",
+                    State = ServiceState.Enabled
+                }
+            ]
+        };
+
+        // Config of v1.3.0 is identical to v1.1.1
+        private static readonly string s_jsonConfigV1_3_0 = s_jsonConfigV1_1_1;
+        private static readonly SystemConfiguration s_configV1_3_0 = s_configV1_1_1;
+
         [Fact]
-        public async Task Cannot_load_empty_file_because_of_missing_version()
+        public async Task ShouldThrow_WhenLoadingEmptyFile()
         {
             _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new(string.Empty));
 
@@ -29,7 +252,7 @@ public class SystemConfigurationPersistenceTests
         }
 
         [Fact]
-        public async Task Cannot_load_empty_json_file_because_of_missing_version()
+        public async Task ShouldThrow_WhenLoadingEmptyJsonFileWithoutVersion()
         {
             _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new("{}"));
 
@@ -38,21 +261,21 @@ public class SystemConfigurationPersistenceTests
         }
 
         [Fact]
-        public async Task Can_load_minimal_json_file()
+        public async Task ShouldLoadMinimalJsonFile_WhenVersionPresent()
         {
-            _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new("""{"Version":1}"""));
+            _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new("""{"Version":2}"""));
 
             await _persistence.Invoking(x => x.LoadPreparationConfiguration(CancellationToken.None))
                 .Should().NotThrowAsync();
         }
 
         [Fact]
-        public async Task Can_load_partially_defined_usual_first_time_configuration()
+        public async Task ShouldLoadPartiallyDefinedDefaultSystemConfiguration()
         {
             var config =
                 """
                 {
-                    "Version": 1,
+                    "Version": 2,
                     "NetworkInterfacesSettings": {
                         "NetworkInterfaces": [
                             {
@@ -95,230 +318,19 @@ public class SystemConfigurationPersistenceTests
         }
 
         [Fact]
-        public async Task Can_load_configuration_of_v_1_1_1()
+        public async Task ShouldLoadSystemConfiguration_WhenVersionIsV1_1_1()
         {
-            var config =
-                """
-                {
-                  "Version": 1,
-                  "NetworkInterfacesSettings": {
-                    "NetworkInterfaces": [
-                      {
-                        "CommonInformation": {
-                          "Enabled": true,
-                          "Name": "lan1",
-                          "PhysicalAddress": "00:02:01:ac:52:33"
-                        },
-                        "IPv4": {
-                          "Gateway": "192.168.1.1",
-                          "DHCPEnabled": false,
-                          "IPv4Details": [
-                            {
-                              "IPAddress": "192.168.60.3",
-                              "Netmask": "255.255.0.0"
-                            }
-                          ],
-                          "VLANEnabled": false,
-                          "VLANID": 0
-                        }
-                      },
-                      {
-                        "CommonInformation": {
-                          "Enabled": true,
-                          "Name": "lan2",
-                          "PhysicalAddress": "00:02:01:ac:52:34"
-                        },
-                        "IPv4": {
-                          "DHCPEnabled": false,
-                          "IPv4Details": [
-                            {
-                              "IPAddress": "192.168.0.100",
-                              "Netmask": "255.255.255.0"
-                            }
-                          ],
-                          "VLANEnabled": false,
-                          "VLANID": 0
-                        }
-                      }
-                    ]
-                  },
-                  "NetworkDNSSettings": {
-                    "Hostname": "AE1400-Host-Management",
-                    "MulticastDNSEnabled": false,
-                    "StaticHostsEnabled": false,
-                    "StaticHosts": [],
-                    "NameServersEnabled": true,
-                    "NameServers": [
-                      "192.168.10.10"
-                    ],
-                    "DNSSuffixEnabled": false,
-                    "DNSSuffix": "",
-                    "SearchDomainsEnabled": false,
-                    "SearchDomains": []
-                  },
-                  "NetworkProxySettings": {
-                    "FTP": {
-                      "Enabled": false
-                    },
-                    "HTTP": {
-                      "Enabled": false
-                    },
-                    "HTTPS": {
-                      "Enabled": false
-                    },
-                    "SFTP": {
-                      "Enabled": false
-                    },
-                    "SOCKS": {
-                      "Enabled": false
-                    },
-                    "DoNotProxyListEnabled": false,
-                    "DoNotProxyList": []
-                  },
-                  "NetworkNTPSettings": {
-                    "NTPServersEnabled": false,
-                    "NTPServers": []
-                  },
-                  "Services": [
-                    {
-                      "Name": "ssh.service",
-                      "State": "Enabled"
-                    },
-                    {
-                      "Name": "remoteconnect.service",
-                      "State": "Disabled"
-                    },
-                    {
-                      "Name": "vicione-suite.service",
-                      "State": "Enabled"
-                    }
-                  ]
-                }
-                """
-                .UseEnvironmentNewLine();
-
-            _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new(config));
-
+            _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new(s_jsonConfigV1_1_1));
             var result = await _persistence.LoadPreparationConfiguration(CancellationToken.None);
+            result.Should().BeEquivalentTo(s_configV1_1_1);
+        }
 
-            result.Should().BeEquivalentTo(new SystemConfiguration()
-            {
-                Version = 1,
-                NetworkInterfacesSettings = new()
-                {
-                    NetworkInterfaces =
-                    [
-                        new()
-                        {
-                            CommonInformation = new()
-                            {
-                                Enabled = true,
-                                Name = "lan1",
-                                PhysicalAddress = "00:02:01:ac:52:33",
-                            },
-                            IPv4 = new()
-                            {
-                                Gateway = IPAddress.Parse("192.168.1.1"),
-                                DHCPEnabled = false,
-                                IPv4Details =
-                                [
-                                    new()
-                                    {
-                                        IPAddress = IPAddress.Parse("192.168.60.3"),
-                                        Netmask = IPAddress.Parse("255.255.0.0"),
-                                    }
-                                ],
-                                VLANEnabled = false,
-                                VLANID = 0,
-                            },
-                        },
-                        new()
-                        {
-                            CommonInformation = new()
-                            {
-                                Enabled = true,
-                                Name = "lan2",
-                                PhysicalAddress = "00:02:01:ac:52:34",
-                            },
-                            IPv4 = new()
-                            {
-                                DHCPEnabled = false,
-                                IPv4Details =
-                                [
-                                    new()
-                                    {
-                                        IPAddress = IPAddress.Parse("192.168.0.100"),
-                                        Netmask = IPAddress.Parse("255.255.255.0"),
-                                    },
-                                ],
-                                VLANEnabled = false,
-                                VLANID = 0,
-                            },
-                        },
-                    ],
-                },
-                NetworkDNSSettings = new()
-                {
-                    Hostname = "AE1400-Host-Management",
-                    MulticastDNSEnabled = false,
-                    StaticHostsEnabled = false,
-                    StaticHosts = [],
-                    NameServersEnabled = true,
-                    NameServers = [IPAddress.Parse("192.168.10.10")],
-                    DNSSuffixEnabled = false,
-                    DNSSuffix = "",
-                    SearchDomainsEnabled = false,
-                    SearchDomains = [],
-                },
-                NetworkProxySettings = new()
-                {
-                    FTP = new()
-                    {
-                        Enabled = false,
-                    },
-                    HTTP = new()
-                    {
-                        Enabled = false,
-                    },
-                    HTTPS = new()
-                    {
-                        Enabled = false,
-                    },
-                    SFTP = new()
-                    {
-                        Enabled = false,
-                    },
-                    SOCKS = new()
-                    {
-                        Enabled = false,
-                    },
-                    DoNotProxyListEnabled = false,
-                    DoNotProxyList = [],
-                },
-                NetworkNTPSettings = new()
-                {
-                    NTPServersEnabled = false,
-                    NTPServers = [],
-                },
-                Services =
-                [
-                    new()
-                    {
-                        Name = "ssh.service",
-                        State = ServiceState.Enabled,
-                    },
-                    new()
-                    {
-                        Name = "remoteconnect.service",
-                        State = ServiceState.Disabled,
-                    },
-                    new()
-                    {
-                        Name = "vicione-suite.service",
-                        State = ServiceState.Enabled,
-                    },
-                ],
-            });
+        [Fact]
+        public async Task ShouldLoadSystemConfiguration_WhenVersionIsV1_3_0()
+        {
+            _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new(s_jsonConfigV1_3_0));
+            var result = await _persistence.LoadPreparationConfiguration(CancellationToken.None);
+            result.Should().BeEquivalentTo(s_configV1_3_0);
         }
     }
 
@@ -369,12 +381,12 @@ public class SystemConfigurationPersistenceTests
     public sealed class SaveUserConfiguration : SystemConfigurationPersistenceTests
     {
         [Fact]
-        public async Task Does_not_store_optional_information_of_default_configuration()
+        public async Task ShouldNotStoreOptionalInformation_WhenNewConfigurationIsSaved()
         {
             var expectedJson =
                 """
                 {
-                  "Version": 1
+                  "Version": 2
                 }
                 """
                 .UseEnvironmentNewLine();
@@ -388,12 +400,43 @@ public class SystemConfigurationPersistenceTests
         }
 
         [Fact]
-        public async Task Does_not_store_optional_information_of_fully_populated_configuration()
+        public async Task ShouldNotStoreOptionalInformation_WhenFullyPopulatedConfigurationIsSaved()
         {
             var ipAddress = IPAddress.Parse("120.86.52.18");
 
             SystemConfiguration systemConfiguration = new()
             {
+                Version = 2,
+                NetworkInterfacesSettings = new()
+                {
+                    NetworkInterfaces =
+                    [
+                        new()
+                        {
+                            CommonInformation = new()
+                            {
+                                Enabled = true,
+                                Name = "lan1",
+                                PhysicalAddress = "01:23:45:67:89:AB",
+                            },
+                            IPv4 = new()
+                            {
+                                DHCPEnabled = true,
+                                Gateway = ipAddress,
+                                IPv4Details =
+                                [
+                                    new()
+                                    {
+                                        IPAddress = ipAddress,
+                                        Netmask = ipAddress,
+                                    }
+                                ],
+                                VLANEnabled = true,
+                                VLANID = 1,
+                            },
+                        },
+                    ],
+                },
                 NetworkDNSSettings = new()
                 {
                     DNSSuffix = "dnsSuffix",
@@ -413,73 +456,6 @@ public class SystemConfigurationPersistenceTests
                         },
                     ],
                     StaticHostsEnabled = true,
-                },
-                NetworkInterfacesSettings = new()
-                {
-                    NetworkInterfaces =
-                    [
-                        new()
-                        {
-                            CommonInformation = new()
-                            {
-                                Enabled = true,
-                                Name = "lan1",
-                                PhysicalAddress = "01:23:45:67:89:AB",
-                            },
-                            IPv4 = new()
-                            {
-                                DHCPEnabled = true,
-                                DHCPLease = new()
-                                {
-                                    Gateway = ipAddress,
-                                    IPv4Detail = new()
-                                    {
-                                        IPAddress = ipAddress,
-                                        Netmask = ipAddress,
-                                    },
-                                    LeaseExpires = DateTimeOffset.UtcNow,
-                                    LeaseObtained = DateTimeOffset.UtcNow,
-                                    NetworkDNSSettings = new()
-                                    {
-                                        DNSSuffix = "dnsSuffix",
-                                        DNSSuffixEnabled = true,
-                                        Hostname = "hostname",
-                                        MulticastDNSEnabled = true,
-                                        NameServers = [ipAddress],
-                                        NameServersEnabled = true,
-                                        SearchDomains = ["searchDomain"],
-                                        SearchDomainsEnabled = true,
-                                        StaticHosts =
-                                        [
-                                            new()
-                                            {
-                                                Hostname = "statichost",
-                                                IPAddress = ipAddress,
-                                            },
-                                        ],
-                                        StaticHostsEnabled = true,
-                                    },
-                                },
-                                Gateway = ipAddress,
-                                IPv4Details =
-                                [
-                                    new()
-                                    {
-                                        IPAddress = ipAddress,
-                                        Netmask = ipAddress,
-                                    }
-                                ],
-                                VLANEnabled = true,
-                                VLANID = 1,
-                            },
-                        },
-                    ],
-                },
-                NetworkNTPSettings = new()
-                {
-                    FallbackNTPServers = ["fallbackNTPServer"],
-                    NTPServersEnabled = true,
-                    NTPServers = ["NTPServer"],
                 },
                 NetworkProxySettings = new()
                 {
@@ -526,6 +502,11 @@ public class SystemConfigurationPersistenceTests
                         Username = "socksUser",
                     },
                 },
+                NetworkNTPSettings = new()
+                {
+                    NTPServersEnabled = true,
+                    NTPServers = ["NTPServer"],
+                },
                 Services =
                 [
                     new()
@@ -533,14 +514,13 @@ public class SystemConfigurationPersistenceTests
                         Name = "TestService",
                         State = ServiceState.Enabled,
                     },
-                ],
-                Version = 1,
+                ]
             };
 
             var expectedJson =
             """
             {
-              "Version": 1,
+              "Version": 2,
               "NetworkInterfacesSettings": {
                 "NetworkInterfaces": [
                   {

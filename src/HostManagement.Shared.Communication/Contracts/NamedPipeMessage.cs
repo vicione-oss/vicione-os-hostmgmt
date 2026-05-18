@@ -1,4 +1,4 @@
-﻿using HostManagement.Shared.Communication.Enums;
+using HostManagement.Shared.Communication.Enums;
 
 namespace HostManagement.Shared.Communication.Contracts;
 
@@ -8,7 +8,7 @@ namespace HostManagement.Shared.Communication.Contracts;
 public class NamedPipeMessage
 {
     /// <summary>
-    /// Json-serialized message content or empty.
+    /// Message content (can be JSON serialized) or empty.
     /// </summary>
     public string Content { get; set; } = string.Empty;
 

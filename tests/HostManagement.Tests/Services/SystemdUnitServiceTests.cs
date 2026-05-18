@@ -1,11 +1,11 @@
-﻿using Microsoft.Extensions.Logging;
 using AwesomeAssertions;
+using HostManagement.Services;
+using HostManagement.Shared.Communication.Enums;
+using HostManagement.Shared.Enums;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
-using HostManagement.Shared.Communication.Enums;
-using HostManagement.Shared.Enums;
-using HostManagement.Services;
 
 namespace HostManagement.Tests.Services;
 
@@ -31,6 +31,9 @@ public class SystemdUnitServiceTests
 
     public class GetSystemdUnitActiveState
     {
+        private const string GetSystemdUnitActiveStateCanceled =
+            $"Getting active state of systemd unit '{ValidUnitName}' was canceled.";
+
         [Fact]
         public async Task ShouldAddError_WhenExceptionOccurs()
         {
@@ -49,11 +52,11 @@ public class SystemdUnitServiceTests
             var sut = new SystemdUnitService(logger, scriptHandler, new Result(), s_configurableServices);
 
             // Act
-            var result = await sut.GetSystemdUnitActiveState(ValidUnitName);
+            var result = await sut.GetSystemdUnitActiveState(ValidUnitName, CancellationToken.None);
 
             // Assert
             logger.Received(1).Log(
-                Arg.Is(LogLevel.Error),
+                LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o => o.ToString()!.Contains(expectedMessage)),
                 Arg.Is<Exception>(expectedException),
@@ -79,11 +82,39 @@ public class SystemdUnitServiceTests
             var sut = new SystemdUnitService(logger, scriptHandler, new Result(), s_configurableServices);
 
             // Act
-            var result = await sut.GetSystemdUnitActiveState(ValidUnitName);
+            var result = await sut.GetSystemdUnitActiveState(ValidUnitName, CancellationToken.None);
 
             // Assert
             result.Status.Should().Be(OperationStatus.Error);
             result.Message.Should().Contain(expectedMessage);
+        }
+
+        [Fact]
+        public async Task ShouldLogAddReturnWarningResult_WhenCanceled()
+        {
+            // Arrange
+            var logger = Substitute.For<ILogger>();
+            logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+
+            var scriptHandler = Substitute.For<IScriptHandler>();
+
+            var sut = new SystemdUnitService(logger, scriptHandler, new Result(), s_configurableServices);
+
+            // Act
+            using var cts = new CancellationTokenSource();
+            await cts.CancelAsync();
+            var result = await sut.GetSystemdUnitActiveState(ValidUnitName, cts.Token);
+
+            // Assert
+            logger.Received(1).Log(
+                LogLevel.Warning,
+                Arg.Any<EventId>(),
+                Arg.Is<object>(state => state.ToString()!.Contains(GetSystemdUnitActiveStateCanceled)),
+                null,
+                Arg.Any<Func<object, Exception?, string>>());
+
+            result.Status.Should().Be(OperationStatus.Warning);
+            result.Message.Should().Contain(GetSystemdUnitActiveStateCanceled);
         }
 
         [Fact]
@@ -100,7 +131,7 @@ public class SystemdUnitServiceTests
             var sut = new SystemdUnitService(logger, scriptHandler, new Result(), s_configurableServices);
 
             // Act
-            var result = await sut.GetSystemdUnitActiveState(ValidUnitName);
+            var result = await sut.GetSystemdUnitActiveState(ValidUnitName, CancellationToken.None);
 
             // Assert
             result.Status.Should().Be(OperationStatus.Success);
@@ -145,7 +176,7 @@ public class SystemdUnitServiceTests
 
             // Assert
             logger.Received(1).Log(
-                Arg.Is(LogLevel.Error),
+                LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o => o.ToString()!.Contains(expectedMessage)),
                 Arg.Is<Exception>(expectedException),

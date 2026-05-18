@@ -9,4 +9,5 @@ namespace HostManagement.SystemConfig.Contracts;
     UseStringEnumConverter = true,
     Converters = [typeof(DateTimeOffsetConverter), typeof(IPAddressConverter),])]
 [JsonSerializable(typeof(SystemConfiguration))]
+[JsonSerializable(typeof(DHCPLease))]
 internal partial class SystemConfigurationJsonSerializerContext : JsonSerializerContext;

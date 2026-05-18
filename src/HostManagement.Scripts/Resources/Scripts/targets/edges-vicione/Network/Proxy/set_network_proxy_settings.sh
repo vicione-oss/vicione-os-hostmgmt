@@ -36,14 +36,20 @@ readonly VALUE_TRUE="true"
 readonly VALUE_FALSE="false"
 readonly VALUE_NONE="NONE"
 
+readonly PROXY_MARKER="# Proxy configuration"
+readonly NO_PROXY_MARKER="# No Proxy configuration"
+
 #######################################
 # Methods
 #######################################
 
 usage() {
-    echo "Usage: ${0}"
+    local script_name="${0##*/}"
+
+    echo "Usage: ${script_name}"
     echo "  --url <url> --port <port> [--username <username>] [--password <password>] --enabled <${VALUE_TRUE}|${VALUE_FALSE}> |"
-    echo "  --no-proxy-list <${VALUE_NONE}|entry1,entry2,...> --no-proxy-list-enabled <${VALUE_TRUE}|${VALUE_FALSE}>"
+    echo "  --no-proxy-list <${VALUE_NONE}|entry1,entry2,...> --no-proxy-list-enabled <${VALUE_TRUE}|${VALUE_FALSE}> |"
+    echo "  --clear"
     echo
     echo "Options:"
     echo "  --url                   - The URL of the proxy server."
@@ -51,19 +57,23 @@ usage() {
     echo "  --username              - The username for authentication with the proxy server. (optional)"
     echo "  --password              - The password for authentication with the proxy server. (optional)"
     echo "  --enabled               - Enables or disables the given proxy server."
+    echo "  --clear                 - Removes all proxy entries and related markers managed by this script."
     echo
     echo "  --no-proxy-list         - The no proxy list (comma-separated) for domains to bypass the proxy."
     echo "  --no-proxy-list-enabled - Enables or disables the no_proxy list (true/false)."
     echo
     echo "Examples:"
-    echo "$0"
+    echo "${script_name}"
     echo "  --url https://myproxy.de --port 1234 --username MyUser --password MyPassword --enabled true"
     echo
-    echo "$0"
+    echo "${script_name}"
     echo "  --no-proxy-list localhost,127.0.0.1 --no-proxy-list-enabled true"
     echo
-    echo "$0"
+    echo "${script_name}"
     echo "  --no-proxy-list ${VALUE_NONE} --no-proxy-list-enabled false"
+    echo
+    echo "${script_name}"
+    echo "  --clear"
     exit 0
 }
 
@@ -72,7 +82,8 @@ assert_flag_has_argument() {
     local flag_argument="$2"
     local flag_name="$3"
 
-    if [[ "$argument_count" -eq 0 || "$flag_argument" == --* ]]; then
+    if [[ "$argument_count" -lt 2 || "$flag_argument" == --* ]]; then
+        # shellcheck disable=SC2059
         err "$(printf "$ERR_CODE_6" "$flag_name")" 6
     fi
 }
@@ -82,7 +93,6 @@ update_environment_file() {
     local proxy_url=$2
     local proxy_enabled=$3
     local enabled_marker=""
-    local comment="# Proxy configuration"
 
     file_content=$(< "$CONFIGURATION_PATH")
 
@@ -90,7 +100,7 @@ update_environment_file() {
         enabled_marker="#"
     fi
 
-    if grep -q "$comment" <<< "$file_content"; then
+    if grep -q "$PROXY_MARKER" <<< "$file_content"; then
         if grep -q "^[#]*${proxy_type}_proxy=" <<< "$file_content"; then
             file_content=$(
                 # shellcheck disable=SC2001
@@ -98,10 +108,10 @@ update_environment_file() {
         else
             file_content=$(
                 # shellcheck disable=SC2001
-                sed "s|${comment}|${comment}\n${enabled_marker}${proxy_type}_proxy=\"${proxy_url}\"|" <<< "$file_content")
+                sed "s|${PROXY_MARKER}|${PROXY_MARKER}\n${enabled_marker}${proxy_type}_proxy=\"${proxy_url}\"|" <<< "$file_content")
         fi
     else
-        file_content="${file_content}\n${comment}\n${enabled_marker}${proxy_type}_proxy=\"${proxy_url}\""
+        file_content="${file_content}\n${PROXY_MARKER}\n${enabled_marker}${proxy_type}_proxy=\"${proxy_url}\""
     fi
 
     echo -e "$file_content" > "$CONFIGURATION_PATH"
@@ -111,7 +121,6 @@ update_no_proxy() {
     local no_proxy_list=$1
     local no_proxy_list_enabled=$2
     local enabled_marker=""
-    local comment="# No Proxy configuration"
 
     file_content=$(< "$CONFIGURATION_PATH")
 
@@ -127,7 +136,7 @@ update_no_proxy() {
         fi
     else
         # Check if the no_proxy entry already exists and update it
-        if grep -q "$comment" <<< "$file_content"; then
+        if grep -q "$NO_PROXY_MARKER" <<< "$file_content"; then
             if grep -q "^[#]*no_proxy=" <<< "$file_content"; then
                 file_content=$(
                     # shellcheck disable=SC2001
@@ -135,12 +144,24 @@ update_no_proxy() {
             else
                 file_content=$(
                     # shellcheck disable=SC2001
-                    sed "s|${comment}|${comment}\n${enabled_marker}no_proxy=\"${no_proxy_list}\"|" <<< "$file_content")
+                    sed "s|${NO_PROXY_MARKER}|${NO_PROXY_MARKER}\n${enabled_marker}no_proxy=\"${no_proxy_list}\"|" <<< "$file_content")
             fi
         else
-            file_content="${file_content}\n${comment}\n${enabled_marker}no_proxy=\"${no_proxy_list}\""
+            file_content="${file_content}\n${NO_PROXY_MARKER}\n${enabled_marker}no_proxy=\"${no_proxy_list}\""
         fi
     fi
+
+    echo -e "$file_content" > "$CONFIGURATION_PATH"
+}
+
+clear_proxy_settings() {
+    file_content=$(< "$CONFIGURATION_PATH")
+
+    file_content=$(sed -E \
+        -e "/^${PROXY_MARKER}$/d" \
+        -e "/^${NO_PROXY_MARKER}$/d" \
+        -e '/^[#]*.*_proxy=.*/d' \
+        <<< "$file_content")
 
     echo -e "$file_content" > "$CONFIGURATION_PATH"
 }
@@ -163,23 +184,42 @@ main() {
     local no_proxy_list_enabled="$VALUE_TRUE"
 
     while [[ "$#" -gt 0 ]]; do
-        flag_name="${1:-}"
-        shift
-        flag_value="${1:-}"
+        local flag_name="${1:-}"
 
-        case $flag_name in
-            --url)                   url="$flag_value";;
-            --port)                  port="$flag_value";;
-            --username)              username="$flag_value";;
-            --password)              password="$flag_value";;
-            --enabled)               enabled="$flag_value";;
-            --no-proxy-list)         no_proxy_list="$flag_value";;
-            --no-proxy-list-enabled) no_proxy_list_enabled="$flag_value";;
-            *)                       err "$(printf "$ERR_CODE_3" "$flag_name")" 3;;
+        case "$flag_name" in
+            --clear)
+                clear_proxy_settings
+                exit 0
+                ;;
+
+            --url|\
+            --port|\
+            --username|\
+            --password|\
+            --enabled|\
+            --no-proxy-list|\
+            --no-proxy-list-enabled)
+                local flag_value="${2:-}"
+                assert_flag_has_argument "$#" "$flag_value" "$flag_name"
+
+                case "$flag_name" in
+                    --url)                   url="$flag_value" ;;
+                    --port)                  port="$flag_value" ;;
+                    --username)              username="$flag_value" ;;
+                    --password)              password="$flag_value" ;;
+                    --enabled)               enabled="$flag_value" ;;
+                    --no-proxy-list)         no_proxy_list="$flag_value" ;;
+                    --no-proxy-list-enabled) no_proxy_list_enabled="$flag_value" ;;
+                esac
+
+                shift 2
+                ;;
+
+            *)
+                # shellcheck disable=SC2059
+                err "$(printf "$ERR_CODE_3" "$flag_name")" 3
+                ;;
         esac
-
-        assert_flag_has_argument "$#" "$flag_value" "$flag_name"
-        shift
     done
 
     if [[ -n "$no_proxy_list" ]]; then

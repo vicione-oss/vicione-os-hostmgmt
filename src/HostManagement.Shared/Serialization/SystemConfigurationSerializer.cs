@@ -1,4 +1,3 @@
-﻿using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using HostManagement.Shared.Contracts;
@@ -6,15 +5,14 @@ using HostManagement.Shared.Contracts;
 namespace HostManagement.Shared.Serialization;
 
 /// <summary>
-/// Provides functionality to serialize a <see cref="SystemConfiguration"/> object to JSON and to
-/// deserialize JSON into a <see cref="SystemConfiguration"/> object (see <see cref="SourceGenerationContext"/>).
+/// Provides functionality to serialize a <see cref="SystemConfiguration"/> object to JSON and to deserialize JSON into
+/// a <see cref="SystemConfiguration"/> object (see <see cref="SourceGenerationContext"/>).
 /// </summary>
 public static class SystemConfigurationSerializer
 {
     /// <summary>
-    /// Parses the text representing a single JSON value into a <see cref="SystemConfiguration"/>.
-    /// It uses the specified SourceGenerationContext for the <see cref="SystemConfiguration"/>
-    /// or the default context if null.
+    /// Parses the text representing a single JSON value into a <see cref="SystemConfiguration"/>. It uses the
+    /// specified <see cref="JsonTypeInfo"/> for the <see cref="SystemConfiguration"/> or the default context if null.
     /// </summary>
     /// <param name="json">JSON text to parse.</param>
     /// <param name="jsonTypeInfo">Metadata about the <see cref="SystemConfiguration"/> to convert.</param>
@@ -36,14 +34,14 @@ public static class SystemConfigurationSerializer
     }
 
     /// <summary>
-    /// Reads the UTF-8 encoded text representing a single JSON value into a <see cref="SystemConfiguration"/>.
-    /// The Stream will be read to completion. It uses the specified SourceGenerationContext for
-    /// the <see cref="SystemConfiguration"/> or the default context if null.
+    /// Reads the UTF-8 encoded text representing a single JSON value into a <see cref="SystemConfiguration"/>. The
+    /// Stream will be read to completion. It uses the specified <see cref="JsonTypeInfo"/> for the
+    /// <see cref="SystemConfiguration"/> or the default context if null.
     /// </summary>
     /// <param name="utf8Json">The UTF-8 <see cref="Stream"/> to read from.</param>
     /// <param name="jsonTypeInfo">Metadata about the <see cref="SystemConfiguration"/> to convert.</param>
     /// <param name="cancellationToken">A token to cancel the request.</param>
-    /// <returns><see cref="SystemConfiguration"/></returns>
+    /// <returns>A <see cref="SystemConfiguration"/> representation of the JSON value.</returns>
     /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="JsonException"></exception>
@@ -64,9 +62,8 @@ public static class SystemConfigurationSerializer
     }
 
     /// <summary>
-    /// Converts the provided <see cref="SystemConfiguration"/> value into a <see cref="string"/>.
-    /// It uses the specified SourceGenerationContext for the <see cref="SystemConfiguration"/>
-    /// or the default context if null.
+    /// Converts the provided <see cref="SystemConfiguration"/> value into a <see cref="string"/>. It uses the
+    /// specified <see cref="JsonTypeInfo"/> for the <see cref="SystemConfiguration"/> or the default context if null.
     /// </summary>
     /// <param name="configuration">The <see cref="SystemConfiguration"/> to convert.</param>
     /// <param name="jsonTypeInfo">Metadata about the <see cref="SystemConfiguration"/> to convert.</param>
@@ -81,9 +78,9 @@ public static class SystemConfigurationSerializer
     }
 
     /// <summary>
-    /// Converts the provided <see cref="SystemConfiguration"/> value to UTF-8 encoded JSON text
-    /// and writes it to the <paramref name="utf8Json"/> stream. It uses the specified 
-    /// SourceGenerationContext for the <see cref="SystemConfiguration"/> or the default context if null.
+    /// Converts the provided <see cref="SystemConfiguration"/> value to UTF-8 encoded JSON text and writes it to the
+    /// <paramref name="utf8Json"/> stream. It uses the specified <see cref="JsonTypeInfo"/> for the
+    /// <see cref="SystemConfiguration"/> or the default context if null.
     /// </summary>
     /// <param name="utf8Json">The UTF-8 <see cref="Stream"/> to write to.</param>
     /// <param name="configuration">The <see cref="SystemConfiguration"/> to convert.</param>
@@ -104,66 +101,5 @@ public static class SystemConfigurationSerializer
         await JsonSerializer
             .SerializeAsync(utf8Json, configuration, jsonTypeInfo, cancellationToken)
             .ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Parses the text representing a single JSON value into a <see cref="SystemConfiguration"/>.
-    /// </summary>
-    /// <param name="json">JSON text to parse.</param>
-    /// <param name="cancellationToken">A token to cancel the request.</param>
-    /// <returns>A <see cref="SystemConfiguration"/> representation of the JSON value.</returns>
-    /// <exception cref="ArgumentNullException"></exception>
-    /// <exception cref="InvalidOperationException"></exception>
-    /// <exception cref="JsonException"></exception>
-    /// <exception cref="NotSupportedException"></exception>
-    /// <exception cref="OperationCanceledException"></exception>
-    [Obsolete("Use Deserialize(string json) instead. This will be removed in a future version.", false)]
-    public static async Task<SystemConfiguration> Deserialize(
-        string json,
-        CancellationToken cancellationToken)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(json);
-
-        using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
-        {
-            stream.Position = 0;
-
-            var result = await JsonSerializer
-                .DeserializeAsync(stream, SourceGenerationContext.Default.SystemConfiguration, cancellationToken)
-                .ConfigureAwait(false)
-                    ?? throw new InvalidOperationException(
-                        $"JSON string could not be deserialized to '{nameof(SystemConfiguration)}'." +
-                        Environment.NewLine +
-                        $"JSON string was: '{json}'");
-
-            return result;
-        }
-    }
-
-    /// <summary>
-    /// Converts the provided <see cref="SystemConfiguration"/> value into a <see cref="string"/>.
-    /// </summary>
-    /// <param name="configuration">The <see cref="SystemConfiguration"/> to convert.</param>
-    /// <param name="cancellationToken">A token to cancel the request.</param>
-    /// <returns>A string representation of the <see cref="SystemConfiguration"/> value.</returns>
-    /// <exception cref="ArgumentNullException"></exception>
-    /// <exception cref="NotSupportedException"></exception>
-    /// <exception cref="OperationCanceledException"></exception>
-    [Obsolete("Use Serialize(SystemConfiguration configuration) instead. This will be removed in a future version.", false)]
-    public static async Task<string> Serialize(
-        SystemConfiguration configuration,
-        CancellationToken cancellationToken)
-    {
-        using var memoryStream = new MemoryStream();
-
-        await JsonSerializer
-            .SerializeAsync(
-                memoryStream,
-                configuration,
-                SourceGenerationContext.Default.SystemConfiguration,
-                cancellationToken)
-            .ConfigureAwait(false);
-
-        return Encoding.UTF8.GetString(memoryStream.ToArray());
     }
 }

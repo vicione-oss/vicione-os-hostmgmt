@@ -1,12 +1,12 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
-using Microsoft.Extensions.Logging;
 using HostManagement.Configuration;
+using HostManagement.Services;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Serialization;
 using HostManagement.Shared.Contracts.System;
-using HostManagement.Services;
+using Microsoft.Extensions.Logging;
 using SharedJsonContext = HostManagement.Shared.Contracts.SourceGenerationContext;
 
 namespace HostManagement.Communication.NamedPipes.RequestHandlers;
@@ -28,16 +28,12 @@ internal sealed class InstallSignedDebianPackageRequestHandler(ILogger logger) :
     /// <summary>
     /// Handles the install signed Debian package request.
     /// </summary>
-    /// <param name="messageContent">The message content.</param>
-    /// <param name="cancellationToken">A token to cancel the request.</param>
-    /// <returns>The response.</returns>
+    /// <inheritdoc/>
     /// <exception cref="InvalidOperationException"/>
-    public override async Task<string> Handle(string messageContent, CancellationToken cancellationToken)
+    public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(messageContent, nameof(messageContent));
-
             var signedDebianPackage = JsonSerializer
                 .Deserialize(messageContent, SharedJsonContext.Default.SignedDebianPackage)
                 ?? throw new InvalidOperationException(
@@ -47,10 +43,13 @@ internal sealed class InstallSignedDebianPackageRequestHandler(ILogger logger) :
 
             var scriptResult = new Result();
             var scriptHandler = new ScriptHandler(scriptResult);
-            var service = new SystemService(logger, scriptHandler, scriptResult);
+
+            var signatureValidator = new MinisignSignedDebianPackageSignatureValidator();
+            var service = new SystemService(logger, scriptHandler, scriptResult, signatureValidator);
+
             var result = await service.InstallSignedDebianPackage(
                 signedDebianPackage,
-                EnvironmentVariables.PublicKeys,
+                EnvironmentVariables.PublicKeys.Value,
                 cancellationToken);
 
             return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);

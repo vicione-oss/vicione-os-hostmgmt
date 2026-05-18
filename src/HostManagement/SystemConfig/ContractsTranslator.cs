@@ -38,6 +38,16 @@ internal static class ContractsTranslator
         return systemConfiguration;
     }
 
+    internal static SharedNetwork.DHCPLease ToSharedContracts(this DHCPLease intern)
+        => new()
+        {
+            LeaseObtained = intern.LeaseObtained,
+            LeaseExpires = intern.LeaseExpires,
+            Gateway = intern.Gateway,
+            NetworkDNSSettings = intern.NetworkDNSSettings?.ToSharedContracts(),
+            IPv4Detail = intern.IPv4Detail?.ToSharedContracts(),
+        };
+
     private static SharedService.ServiceDetail ToSharedContracts(this ServiceDetail intern)
         => new()
         {
@@ -73,7 +83,6 @@ internal static class ContractsTranslator
         {
             Gateway = intern.Gateway,
             DHCPEnabled = intern.DHCPEnabled ?? false,
-            DHCPLease = intern.DHCPLease?.ToSharedContracts(),
             VLANEnabled = intern.VLANEnabled ?? false,
             VLANID = intern.VLANID ?? 0,
         };
@@ -84,16 +93,6 @@ internal static class ContractsTranslator
         {
             IPAddress = intern.IPAddress,
             Netmask = intern.Netmask,
-        };
-
-    internal static SharedNetwork.DHCPLease ToSharedContracts(this DHCPLease intern)
-        => new()
-        {
-            LeaseObtained = intern.LeaseObtained,
-            LeaseExpires = intern.LeaseExpires,
-            Gateway = intern.Gateway,
-            NetworkDNSSettings = intern.NetworkDNSSettings?.ToSharedContracts(),
-            IPv4Detail = intern.IPv4Detail?.ToSharedContracts(),
         };
 
     private static SharedNetwork.NetworkDNSSettings ToSharedContracts(this NetworkDNSSettings intern)
@@ -148,9 +147,7 @@ internal static class ContractsTranslator
         };
 
     private static SharedNetwork.NetworkNTPSettings ToSharedContracts(this NetworkNTPSettings intern)
-        => new(
-            intern.FallbackNTPServers?.ToList(),
-            intern.NTPServers?.ToList())
+        => new(intern.NTPServers?.ToList())
         {
             NTPServersEnabled = intern.NTPServersEnabled ?? false,
         };
@@ -192,20 +189,9 @@ internal static class ContractsTranslator
         {
             Gateway = shared.Gateway,
             DHCPEnabled = shared.DHCPEnabled,
-            DHCPLease = shared.DHCPLease?.ToInternalContracts(),
             VLANEnabled = shared.VLANEnabled,
             VLANID = shared.VLANID,
             IPv4Details = [.. shared.IPv4Details.Select(d => d.ToInternalContracts())],
-        };
-
-    private static DHCPLease ToInternalContracts(this SharedNetwork.DHCPLease shared)
-        => new()
-        {
-            LeaseObtained = shared.LeaseObtained,
-            LeaseExpires = shared.LeaseExpires,
-            Gateway = shared.Gateway,
-            NetworkDNSSettings = shared.NetworkDNSSettings?.ToInternalContracts(),
-            IPv4Detail = shared.IPv4Detail?.ToInternalContracts(),
         };
 
     private static NetworkDNSSettings ToInternalContracts(this SharedNetwork.NetworkDNSSettings shared)
@@ -265,8 +251,7 @@ internal static class ContractsTranslator
         => new()
         {
             NTPServersEnabled = shared.NTPServersEnabled,
-            NTPServers = [.. shared.NTPServers],
-            FallbackNTPServers = shared.FallbackNTPServers?.ToList(),
+            NTPServers = [.. shared.NTPServers]
         };
 
     private static ServiceDetail ToInternalContracts(this SharedService.ServiceDetail shared)
