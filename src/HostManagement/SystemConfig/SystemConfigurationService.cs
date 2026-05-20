@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.IO.Abstractions;
 using System.Text;
 using HostManagement.Configuration;
 using HostManagement.Shared.Communication.Contracts;
@@ -9,24 +8,24 @@ using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Extensions;
 using HostManagement.Shared.Validation;
 using HostManagement.SystemConfig.InternalValidation;
-using InternalNetwork = HostManagement.SystemConfig.Contracts;
 using Microsoft.Extensions.Logging;
+using InternalContracts = HostManagement.SystemConfig.Contracts;
 
 namespace HostManagement.SystemConfig;
 
 /// <summary>
 /// Represents the system configuration service used to load or apply a system configuration.
 /// </summary>
-/// <param name="fileSystem">The file system.</param>
 /// <param name="persistence">The persistence to load and save configurations.</param>
 /// <param name="scriptHandler">A script handler to execute scripts.</param>
 /// <param name="logger">An <see cref="ILogger"/> implementation.</param>
 internal sealed partial class SystemConfigurationService(
-    IFileSystem fileSystem,
     IPersistence persistence,
     IScriptHandler scriptHandler,
     ILogger logger)
 {
+    private readonly IPersistence _persistence = persistence;
+    private readonly IScriptHandler _scriptHandler = scriptHandler;
     private readonly ILogger _logger = logger;
 
     /// <summary>
@@ -66,39 +65,32 @@ internal sealed partial class SystemConfigurationService(
     }
 
     /// <summary>
-    /// Gets the system configuration from 'SystemConfiguration.json' or
-    /// 'DefaultSystemConfiguration.json' if not present or returns no configuration (null).
+    /// Gets the system configuration from '<c>SystemConfiguration.json</c>', or
+    /// '<c>DefaultSystemConfiguration.json</c>' if not present, or returns no configuration (null).
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <remarks>
-    /// <see cref="GetSystemConfigurationResult.Configuration"/> contains:
-    /// <br/>- <see cref="SystemConfiguration"/> if <see cref="OperationStatus.Success"/> or
-    /// <see cref="OperationStatus.Warning"/>
-    /// <br/>- <see langword="null"/> if <see cref="OperationStatus.Error"/>
+    /// This is usually only done, if the '<c>set-config.flag</c>' file was created during device start-up.
+    /// See <see cref="ServiceRunner.PrepareConfiguration"/>.
     /// </remarks>
-    public async Task<GetSystemConfigurationResult> GetConfigurationFromJson(
-        CancellationToken cancellationToken = default)
+    /// <returns><see cref="GetSystemConfigurationResult"/></returns>
+    public async Task<GetSystemConfigurationResult> GetConfigurationFromJson(CancellationToken cancellationToken)
     {
-        var type = JsonConfigurationType.None;
-        if (persistence.UserConfigurationExists())
-        {
-            type = JsonConfigurationType.System;
-        }
-        else if (persistence.PreparationConfigurationExists())
-        {
-            type = JsonConfigurationType.Default;
-        }
-        if (type == JsonConfigurationType.None)
+        var jsonConfigType = GetAvailableJsonConfigurationType();
+
+        if (jsonConfigType == JsonConfigurationType.None)
         {
             var noConfigMessage = string.Format(
                 CultureInfo.InvariantCulture,
                 CompositeFormat.Parse(SystemConfigResources.NoConfigFound),
-                $"{persistence.GetUserConfigurationPath()} / {persistence.GetPreparationConfigurationPath()}");
+                $"'{_persistence.GetUserConfigurationPath()}' or '{_persistence.GetPreparationConfigurationPath()}'");
 
             return GetSystemConfigurationResult.CreateErrorResult(noConfigMessage);
         }
-        var (status, message, configuration) = await GetConfigurationFromJsonInternal(type, cancellationToken)
+
+        var (status, message, configuration) = await GetConfigurationFromJsonInternal(jsonConfigType, cancellationToken)
             .ConfigureAwait(false);
+
         return new()
         {
             Status = status,
@@ -108,52 +100,26 @@ internal sealed partial class SystemConfigurationService(
     }
 
     /// <summary>
-    /// Prepares the system by writing changes of the 'SystemConfiguration.json' or
-    /// 'DefaultSystemConfiguration.json' to the system without applying them yet.
+    /// Prepares the system by writing changes of the '<c>SystemConfiguration.json</c>' or
+    /// '<c>DefaultSystemConfiguration.json</c>' to the system without applying them yet.
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <returns><see cref="SetSystemConfigurationResult"/></returns>
-    public async Task<SetSystemConfigurationResult> PrepareConfiguration(
-        CancellationToken cancellationToken = default)
+    public async Task<SetSystemConfigurationResult> PrepareConfiguration(CancellationToken cancellationToken)
     {
-        if (!persistence.UserConfigurationExists() &&
-            !persistence.PreparationConfigurationExists())
-        {
-            var format = CompositeFormat.Parse(SystemConfigResources.NoConfigFound);
+        var jsonConfigType = GetAvailableJsonConfigurationType();
 
-            return SetSystemConfigurationResult.CreateSuccessResult(
-                string.Format(CultureInfo.InvariantCulture, format, AppPaths.SystemConfigurationFile) +
-                Environment.NewLine +
-                string.Format(CultureInfo.InvariantCulture, format, AppPaths.DefaultSystemConfigurationFile) +
-                Environment.NewLine +
-                SystemConfigResources.PrepareConfigSkipped);
+        if (jsonConfigType == JsonConfigurationType.None)
+        {
+            var noConfigMessage = string.Format(
+                CultureInfo.InvariantCulture,
+                CompositeFormat.Parse(SystemConfigResources.NoConfigFound),
+                $"'{_persistence.GetUserConfigurationPath()}' or '{_persistence.GetPreparationConfigurationPath()}'");
+
+            return SetSystemConfigurationResult.CreateWarningResult(noConfigMessage);
         }
 
-        // Prepare from SystemConfiguration.json
-        var systemConfigResult = await
-            PrepareConfigurationInternal(JsonConfigurationType.System, cancellationToken)
-            .ConfigureAwait(false);
-
-        if (systemConfigResult.Status == OperationStatus.Success)
-            return systemConfigResult;
-
-        // Prepare from DefaultSystemConfiguration.json
-        var defaultConfigResult = await
-            PrepareConfigurationInternal(JsonConfigurationType.Default, cancellationToken)
-            .ConfigureAwait(false);
-
-        var combinedMessage = string.Join(
-            Environment.NewLine,
-            systemConfigResult.Message,
-            defaultConfigResult.Message);
-
-        if (defaultConfigResult.Status == OperationStatus.Success)
-            return SetSystemConfigurationResult.CreateSuccessResult(combinedMessage);
-
-        return SetSystemConfigurationResult.CreateErrorResult(
-            combinedMessage +
-            Environment.NewLine +
-            SystemConfigResources.PrepareConfigNotPossible);
+        return await PrepareConfigurationInternal(jsonConfigType, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -265,12 +231,12 @@ internal sealed partial class SystemConfigurationService(
                     SystemConfigResources.ConfigWasNull);
             }
 
-            if (!persistence.PreparationConfigurationExists())
+            if (!_persistence.PreparationConfigurationExists())
             {
                 var message = string.Format(
                     CultureInfo.InvariantCulture,
                     CompositeFormat.Parse(SystemConfigResources.NoConfigFound),
-                    AppPaths.DefaultSystemConfigurationFile);
+                    $"'{AppPaths.DefaultSystemConfigurationFile}'");
 
                 return SystemControlResult.CreateErrorResult(
                     GetResetFailedMessage() +
@@ -278,7 +244,7 @@ internal sealed partial class SystemConfigurationService(
                     message);
             }
 
-            var defaultConfig = await persistence
+            var defaultConfig = await _persistence
                 .LoadPreparationConfiguration(cancellationToken)
                 .ConfigureAwait(false);
 
@@ -358,31 +324,27 @@ internal sealed partial class SystemConfigurationService(
                 interfaceName);
     }
 
+    private JsonConfigurationType GetAvailableJsonConfigurationType()
+    {
+        if (_persistence.UserConfigurationExists())
+            return JsonConfigurationType.System;
+
+        if (_persistence.PreparationConfigurationExists())
+            return JsonConfigurationType.Default;
+
+        return JsonConfigurationType.None;
+    }
+
     private async Task<SetSystemConfigurationResult> PrepareConfigurationInternal(
         JsonConfigurationType jsonConfigType,
         CancellationToken cancellationToken = default)
     {
-        var configFilePath = jsonConfigType switch
-        {
-            JsonConfigurationType.Default => persistence.GetPreparationConfigurationPath(),
-            JsonConfigurationType.System => persistence.GetUserConfigurationPath(),
-            _ => throw new ArgumentOutOfRangeException(nameof(jsonConfigType), jsonConfigType, null)
-        };
-
-        if (!fileSystem.File.Exists(configFilePath))
-        {
-            var noConfigMessage = string.Format(
-                CultureInfo.InvariantCulture,
-                CompositeFormat.Parse(SystemConfigResources.NoConfigFound),
-                configFilePath);
-
-            return SetSystemConfigurationResult.CreateWarningResult(noConfigMessage);
-        }
+        var jsonConfigPath = GetJsonConfigurationPath(jsonConfigType);
 
         var prepareConfigFailedBaseMessage = string.Format(
             CultureInfo.InvariantCulture,
             CompositeFormat.Parse(SystemConfigResources.PrepareConfigFailed),
-            configFilePath);
+            jsonConfigPath);
 
         var (status, message, configFromJson) = await
             GetConfigurationFromJsonInternal(jsonConfigType, cancellationToken)
@@ -404,7 +366,7 @@ internal sealed partial class SystemConfigurationService(
                 string.Format(
                     CultureInfo.InvariantCulture,
                     CompositeFormat.Parse(SystemConfigResources.AffectedConfigWasJsonConfig),
-                    configFilePath) +
+                    jsonConfigPath) +
                 Environment.NewLine +
                 prepareConfigFailedBaseMessage;
 
@@ -413,7 +375,7 @@ internal sealed partial class SystemConfigurationService(
 
         string? warningMessage = default;
         var configurationResult = new Result();
-        scriptHandler.UseResult(configurationResult);
+        _scriptHandler.UseResult(configurationResult);
 
         try
         {
@@ -423,7 +385,7 @@ internal sealed partial class SystemConfigurationService(
             // scripts at boot time (required information may not be available yet)
             var adapter = new SystemConfigurationAdapter(
                 configFromJson,
-                scriptHandler,
+                _scriptHandler,
                 bypassHasChanges: true,
                 bypassApplyConfig: true);
 
@@ -458,7 +420,7 @@ internal sealed partial class SystemConfigurationService(
                 string.Format(
                     CultureInfo.InvariantCulture,
                     CompositeFormat.Parse(SystemConfigResources.PrepareConfigCompletedWithWarnings),
-                    configFilePath);
+                    jsonConfigPath);
 
             return SetSystemConfigurationResult.CreateWarningResult(message);
         }
@@ -466,7 +428,7 @@ internal sealed partial class SystemConfigurationService(
         var successMessage = string.Format(
             CultureInfo.InvariantCulture,
             CompositeFormat.Parse(SystemConfigResources.PrepareConfigSucceeded),
-            configFilePath);
+            jsonConfigPath);
 
         return SetSystemConfigurationResult.CreateSuccessResult(successMessage);
     }
@@ -479,7 +441,7 @@ internal sealed partial class SystemConfigurationService(
         CancellationToken cancellationToken = default)
     {
         var configurationResult = new Result();
-        scriptHandler.UseResult(configurationResult);
+        _scriptHandler.UseResult(configurationResult);
 
         try
         {
@@ -487,7 +449,7 @@ internal sealed partial class SystemConfigurationService(
             // -> All relevant adapters are executed (prepare and apply phase)
             var adapter = new SystemConfigurationAdapter(
                 currentConfig.ToInternalContracts(),
-                scriptHandler,
+                _scriptHandler,
                 bypassHasChanges: false,
                 bypassApplyConfig: false);
 
@@ -555,35 +517,37 @@ internal sealed partial class SystemConfigurationService(
             SystemConfigResources.SetConfigSucceeded);
     }
 
-    private async Task<(OperationStatus Status, string Message, InternalNetwork.SystemConfiguration? SystemConfiguration)>
+    private async Task<(OperationStatus Status, string Message, InternalContracts.SystemConfiguration? SystemConfiguration)>
         GetConfigurationFromJsonInternal(
-            JsonConfigurationType jsonConfiguration,
+            JsonConfigurationType jsonConfigType,
             CancellationToken cancellationToken)
     {
-        var path = jsonConfiguration switch
-        {
-            JsonConfigurationType.Default => persistence.GetPreparationConfigurationPath(),
-            JsonConfigurationType.System => persistence.GetUserConfigurationPath(),
-            _ => throw new ArgumentOutOfRangeException(nameof(jsonConfiguration), jsonConfiguration, null)
-        };
+        var jsonConfigPath = string.Empty;
 
         try
         {
-            var task = jsonConfiguration switch
-            {
-                JsonConfigurationType.Default => persistence.LoadPreparationConfiguration(cancellationToken),
-                JsonConfigurationType.System => persistence.LoadUserConfiguration(cancellationToken),
-                _ => throw new ArgumentOutOfRangeException(nameof(jsonConfiguration), jsonConfiguration, null)
-            };
-            var loadedJsonConfig = await task.ConfigureAwait(false);
+            jsonConfigPath = GetJsonConfigurationPath(jsonConfigType);
+
+            var loadedJsonConfig = await LoadJsonConfiguration(jsonConfigType, cancellationToken)
+                .ConfigureAwait(false);
 
             var message =
                 string.Format(
                     CultureInfo.InvariantCulture,
                     CompositeFormat.Parse(SystemConfigResources.GetConfigFromJsonSucceeded),
-                    path);
+                    jsonConfigPath);
 
             return (OperationStatus.Success, message, loadedJsonConfig);
+        }
+        catch (OperationCanceledException)
+        {
+            var message =
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    CompositeFormat.Parse(SystemConfigResources.GetConfigFromJsonCanceled),
+                    jsonConfigPath);
+
+            return (OperationStatus.Warning, message, null);
         }
         catch (Exception ex)
         {
@@ -591,12 +555,34 @@ internal sealed partial class SystemConfigurationService(
                 string.Format(
                     CultureInfo.InvariantCulture,
                     CompositeFormat.Parse(SystemConfigResources.GetConfigFromJsonFailed),
-                    path) +
+                    jsonConfigPath) +
                 Environment.NewLine +
                 ex.Message;
 
-            return (OperationStatus.Error, message, default);
+            return (OperationStatus.Error, message, null);
         }
+    }
+
+    private string GetJsonConfigurationPath(JsonConfigurationType jsonConfigType)
+    {
+        return jsonConfigType switch
+        {
+            JsonConfigurationType.Default => _persistence.GetPreparationConfigurationPath(),
+            JsonConfigurationType.System => _persistence.GetUserConfigurationPath(),
+            _ => throw new ArgumentOutOfRangeException(nameof(jsonConfigType), jsonConfigType, null)
+        };
+    }
+
+    private Task<InternalContracts.SystemConfiguration> LoadJsonConfiguration(
+        JsonConfigurationType jsonConfigType,
+        CancellationToken cancellationToken)
+    {
+        return jsonConfigType switch
+        {
+            JsonConfigurationType.Default => _persistence.LoadPreparationConfiguration(cancellationToken),
+            JsonConfigurationType.System => _persistence.LoadUserConfiguration(cancellationToken),
+            _ => throw new ArgumentOutOfRangeException(nameof(jsonConfigType), jsonConfigType, null)
+        };
     }
 
     private async Task<GetSystemConfigurationResult> GetConfigurationFromScripts(
@@ -605,14 +591,14 @@ internal sealed partial class SystemConfigurationService(
         try
         {
             var configurationResult = new Result();
-            scriptHandler.UseResult(configurationResult);
+            _scriptHandler.UseResult(configurationResult);
             Contracts.SystemConfiguration currentConfig = new();
 
             // Don't bypass check for changes / Don't bypass apply of config
             // -> Setting is not relevant, since we only load the configuration
             var adapter = new SystemConfigurationAdapter(
                 currentConfig,
-                scriptHandler,
+                _scriptHandler,
                 bypassHasChanges: false,
                 bypassApplyConfig: false);
 
@@ -656,7 +642,7 @@ internal sealed partial class SystemConfigurationService(
 
     private static void ApplyDefaultNetworkInterfaceSettings(
         NetworkInterfaceDetail currentInterface,
-        InternalNetwork.NetworkInterfaceDetail defaultInterface)
+        InternalContracts.NetworkInterfaceDetail defaultInterface)
     {
         var defaultCommon = defaultInterface.CommonInformation;
 
@@ -706,7 +692,7 @@ internal sealed partial class SystemConfigurationService(
 
         try
         {
-            await persistence
+            await _persistence
                 .SaveUserConfiguration(configuration.ToInternalContracts(), cancellationToken)
                 .ConfigureAwait(false);
 
@@ -739,7 +725,7 @@ internal sealed partial class SystemConfigurationService(
         // -> All adapters are executed (prepare and apply phase)
         var adapter = new SystemConfigurationAdapter(
             config,
-            scriptHandler,
+            _scriptHandler,
             bypassHasChanges: true,
             bypassApplyConfig: false);
 

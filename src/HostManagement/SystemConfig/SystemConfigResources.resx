@@ -147,6 +147,9 @@
   <data name="GetConfigFromCacheSucceeded" xml:space="preserve">
     <value>Get system configuration from cache succeeded.</value>
   </data>
+  <data name="GetConfigFromJsonCanceled" xml:space="preserve">
+    <value>Get system configuration from '{0}' canceled.</value>
+  </data>
   <data name="GetConfigFromJsonFailed" xml:space="preserve">
     <value>Get system configuration from '{0}' failed.</value>
   </data>
@@ -166,19 +169,13 @@
     <value>Get system configuration succeeded.</value>
   </data>
   <data name="NoConfigFound" xml:space="preserve">
-    <value>No '{0}' found.</value>
+    <value>No {0} found.</value>
   </data>
   <data name="PrepareConfigCompletedWithWarnings" xml:space="preserve">
     <value>Prepare system configuration from '{0}' completed with warnings.</value>
   </data>
   <data name="PrepareConfigFailed" xml:space="preserve">
     <value>Prepare system configuration from '{0}' failed.</value>
-  </data>
-  <data name="PrepareConfigNotPossible" xml:space="preserve">
-    <value>Prepare system configuration not possible.</value>
-  </data>
-  <data name="PrepareConfigSkipped" xml:space="preserve">
-    <value>Prepare system configuration skipped.</value>
   </data>
   <data name="PrepareConfigSucceeded" xml:space="preserve">
     <value>Prepare system configuration from '{0}' succeeded.</value>

@@ -23,7 +23,6 @@ internal static partial class ServiceRunner
     private static readonly FileSystem s_fileSystem = new();
     private static readonly SystemConfigurationPersistence s_systemConfigurationPersistence = new(s_fileSystem);
     private static readonly SystemConfigurationService s_configurationService = new(
-        s_fileSystem,
         s_systemConfigurationPersistence,
         new ScriptHandler(),
         s_logger);
@@ -31,8 +30,13 @@ internal static partial class ServiceRunner
     private static readonly string s_setConfigFlag = Path.Combine(AppPaths.TempPath, "set-config.flag");
 
     /// <summary>
-    /// Starts the "prepare configuration" mode of the application, that should run at first boot.
+    /// Starts the "prepare configuration" mode of the application, that runs at device startup.
     /// </summary>
+    /// <remarks>
+    /// Prepares the system by writing changes of the '<c>SystemConfiguration.json</c>' or
+    /// '<c>DefaultSystemConfiguration.json</c>' to the system without applying them yet and
+    /// creates a '<c>set-config.flag</c>' file if successful.
+    /// </remarks>
     /// <returns>Always returns 0 (graceful exit on error)</returns>
     internal static async Task<int> PrepareConfiguration()
     {
@@ -52,7 +56,7 @@ internal static partial class ServiceRunner
 
                 PrepareConfigurationStarted(s_logger);
 
-                var prepareConfigResult = await s_configurationService.PrepareConfiguration();
+                var prepareConfigResult = await s_configurationService.PrepareConfiguration(CancellationToken.None);
 
                 if (prepareConfigResult.Status == OperationStatus.Error)
                 {
@@ -85,6 +89,10 @@ internal static partial class ServiceRunner
     /// <summary>
     /// Starts the application as a service, that runs in the background.
     /// </summary>
+    /// <remarks>
+    /// If '<c>set-config.flag</c>' is present, either '<c>SystemConfiguration.json</c>' or
+    /// '<c>DefaultSystemConfiguration.json</c>' is applied. The flag file is deleted.
+    /// </remarks>
     /// <returns>0 if service ended normally, otherwise 1</returns>
     internal static async Task<int> StartService()
     {
@@ -102,7 +110,7 @@ internal static partial class ServiceRunner
             {
                 s_fileSystem.File.Delete(s_setConfigFlag);
 
-                var getJsonConfig = await GetJsonConfigurationOnStartUp()
+                var getJsonConfig = await GetJsonConfigurationOnDeviceStartup()
                     .ContinueWith(task =>
                     {
                         if (task.Result.Status == OperationStatus.Error)
@@ -114,13 +122,12 @@ internal static partial class ServiceRunner
 
                 if (getJsonConfig is SystemConfiguration jsonConfig)
                 {
-                    if (!await SetJsonConfigurationOnStartUp(jsonConfig, lifetime.Token))
+                    if (!await SetJsonConfigurationOnDeviceStartup(jsonConfig, lifetime.Token))
                         return 1;
                 }
             }
 
             await StartNamedPipeServer(lifetime.Token);
-
             return 0;
         }
         catch (Exception ex)
@@ -130,7 +137,7 @@ internal static partial class ServiceRunner
         }
     }
 
-    private static async Task<GetSystemConfigurationResult> GetJsonConfigurationOnStartUp()
+    private static async Task<GetSystemConfigurationResult> GetJsonConfigurationOnDeviceStartup()
     {
         if (s_systemConfigurationPersistence.UserConfigurationExists())
             FoundExistingSystemConfiguration(s_logger, s_systemConfigurationPersistence.GetUserConfigurationPath());
@@ -139,7 +146,7 @@ internal static partial class ServiceRunner
         else
             CreateSystemConfigurationStarted(s_logger);
 
-        var getJsonConfigResult = await s_configurationService.GetConfigurationFromJson();
+        var getJsonConfigResult = await s_configurationService.GetConfigurationFromJson(CancellationToken.None);
 
         if (getJsonConfigResult.Status == OperationStatus.Error)
             ResultReturnedError(s_logger, getJsonConfigResult.Message);
@@ -153,7 +160,7 @@ internal static partial class ServiceRunner
         return getJsonConfigResult;
     }
 
-    private static async Task<bool> SetJsonConfigurationOnStartUp(
+    private static async Task<bool> SetJsonConfigurationOnDeviceStartup(
         SystemConfiguration jsonConfig,
         CancellationToken cancellationToken)
     {

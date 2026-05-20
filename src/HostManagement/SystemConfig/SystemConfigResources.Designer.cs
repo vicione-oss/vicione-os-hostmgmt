@@ -151,6 +151,15 @@ namespace HostManagement.SystemConfig {
         }
         
         /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Get system configuration from &apos;{0}&apos; canceled. ähnelt.
+        /// </summary>
+        internal static string GetConfigFromJsonCanceled {
+            get {
+                return ResourceManager.GetString("GetConfigFromJsonCanceled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Get system configuration from &apos;{0}&apos; failed. ähnelt.
         /// </summary>
         internal static string GetConfigFromJsonFailed {
@@ -205,7 +214,7 @@ namespace HostManagement.SystemConfig {
         }
         
         /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die No &apos;{0}&apos; found. ähnelt.
+        ///   Sucht eine lokalisierte Zeichenfolge, die No {0} found. ähnelt.
         /// </summary>
         internal static string NoConfigFound {
             get {
@@ -228,24 +237,6 @@ namespace HostManagement.SystemConfig {
         internal static string PrepareConfigFailed {
             get {
                 return ResourceManager.GetString("PrepareConfigFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die Prepare system configuration not possible. ähnelt.
-        /// </summary>
-        internal static string PrepareConfigNotPossible {
-            get {
-                return ResourceManager.GetString("PrepareConfigNotPossible", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die Prepare system configuration skipped. ähnelt.
-        /// </summary>
-        internal static string PrepareConfigSkipped {
-            get {
-                return ResourceManager.GetString("PrepareConfigSkipped", resourceCulture);
             }
         }
         

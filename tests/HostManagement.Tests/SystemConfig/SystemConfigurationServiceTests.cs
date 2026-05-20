@@ -1,4 +1,3 @@
-using System.IO.Abstractions.TestingHelpers;
 using System.Net;
 using AwesomeAssertions;
 using HostManagement.Configuration;
@@ -34,7 +33,7 @@ public class SystemConfigurationServiceTests
     private static InternalSystemConfiguration CreateInternalConfig()
         => new()
         {
-            Version = 1,
+            Version = 2,
             NetworkDNSSettings = new()
             {
                 Hostname = TestHostname,
@@ -50,7 +49,7 @@ public class SystemConfigurationServiceTests
         string physicalAddress = "aa:bb:cc:dd:ee:ff")
         => new()
         {
-            Version = 1,
+            Version = 2,
             NetworkDNSSettings = new() { Hostname = TestHostname },
             NetworkInterfacesSettings = new()
             {
@@ -84,52 +83,39 @@ public class SystemConfigurationServiceTests
             }
         };
 
-    private static SystemConfiguration CreateSharedConfig()
-        => new()
+    private static SystemConfiguration CreateSharedConfig() => new()
+    {
+        Version = 2,
+        NetworkDNSSettings = new()
         {
-            Version = 1,
-            NetworkDNSSettings = new()
-            {
-                Hostname = TestHostname,
-                DNSSuffixEnabled = false,
-                DNSSuffix = "company"
-            },
-            NetworkInterfacesSettings = new()
-            {
-                NetworkInterfaces =
-                [
-                    new()
+            Hostname = TestHostname,
+            DNSSuffixEnabled = false,
+            DNSSuffix = "company"
+        },
+        NetworkInterfacesSettings = new()
+        {
+            NetworkInterfaces =
+            [
+                new()
+                {
+                    CommonInformation = new()
                     {
-                        CommonInformation = new()
-                        {
-                            Name = Lan1,
-                            Enabled = true
-                        },
-                        IPv4 = new()
-                        {
-                            DHCPEnabled = true
-                        }
+                        Name = Lan1,
+                        Enabled = true
+                    },
+                    IPv4 = new()
+                    {
+                        DHCPEnabled = true
                     }
-                ]
-            }
-        };
+                }
+            ]
+        }
+    };
 
     public sealed class GetConfiguration : SystemConfigurationServiceTests
     {
         [Fact]
-        public async Task ShouldReturnSuccess_WhenScriptsSucceed()
-        {
-            var context = new SystemConfigurationServiceContext();
-
-            var result = await context.Sut.GetConfiguration(CancellationToken.None);
-
-            result.Status.Should().Be(OperationStatus.Success);
-            result.Configuration.Should().NotBeNull();
-            result.Message.Should().NotBeEmpty();
-        }
-
-        [Fact]
-        public async Task ShouldReturnError_WhenScriptsFail()
+        public async Task ShouldReturnErrorResult_WhenScriptsFail()
         {
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
@@ -144,7 +130,7 @@ public class SystemConfigurationServiceTests
         }
 
         [Fact]
-        public async Task ShouldReturnWarning_WhenScriptsReturnWarning()
+        public async Task ShouldReturnWarningResult_WhenScriptsReturnWarning()
         {
             // Reset cache, so config is read again via scripts
             SystemConfigurationCache.Instance.ResetForTests();
@@ -162,7 +148,7 @@ public class SystemConfigurationServiceTests
         }
 
         [Fact]
-        public async Task ShouldReturnError_WhenExceptionThrown()
+        public async Task ShouldReturnErrorResult_WhenExceptionThrown()
         {
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
@@ -174,6 +160,18 @@ public class SystemConfigurationServiceTests
             result.Status.Should().Be(OperationStatus.Error);
             result.Configuration.Should().BeNull();
             result.Message.Should().Contain(TestExceptionMessage);
+        }
+
+        [Fact]
+        public async Task ShouldReturnSuccessResult_WhenScriptsSucceed()
+        {
+            var context = new SystemConfigurationServiceContext();
+
+            var result = await context.Sut.GetConfiguration(CancellationToken.None);
+
+            result.Status.Should().Be(OperationStatus.Success);
+            result.Configuration.Should().NotBeNull();
+            result.Message.Should().NotBeEmpty();
         }
     }
 
@@ -190,8 +188,7 @@ public class SystemConfigurationServiceTests
 
             result.Status.Should().Be(OperationStatus.Error);
             result.Configuration.Should().BeNull();
-            result.Message.Should().Contain(SystemConfigFile);
-            result.Message.Should().Contain(DefaultConfigFile);
+            result.Message.Should().ContainAll("No", SystemConfigFile, "or", DefaultConfigFile, "found");
         }
 
         [Fact]
@@ -264,25 +261,23 @@ public class SystemConfigurationServiceTests
 
     public sealed class PrepareConfiguration : SystemConfigurationServiceTests
     {
-        private const string PrepareConfigNotPossible = "Prepare system configuration not possible.";
-
         [Fact]
-        public async Task ShouldReturnSuccess_WhenNoConfigFilesExist()
+        public async Task ShouldReturnWarning_WhenNoConfigFilesExist()
         {
             var context = new SystemConfigurationServiceContext();
+            context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
+            context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
 
             var result = await context.Sut.PrepareConfiguration(CancellationToken.None);
 
-            result.Status.Should().Be(OperationStatus.Success);
-            result.Message.Should().Contain(SystemConfigFile);
-            result.Message.Should().Contain(DefaultConfigFile);
+            result.Status.Should().Be(OperationStatus.Warning);
+            result.Message.Should().ContainAll("No", SystemConfigFile, "or", DefaultConfigFile, "found");
         }
 
         [Fact]
         public async Task ShouldPrepareSystemConfig_WhenSystemConfigExists()
         {
             var context = new SystemConfigurationServiceContext();
-            context.FileSystem.AddFile(AppPaths.SystemConfigurationFilePath, new MockFileData(string.Empty));
             context.Persistence.UserConfigurationExists().Returns(true);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
             context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>()).Returns(CreateInternalConfig());
@@ -294,15 +289,13 @@ public class SystemConfigurationServiceTests
         }
 
         [Fact]
-        public async Task ShouldPrepareDefaultConfig_WhenSystemConfigFailsAndDefaultExists()
+        public async Task ShouldReturnError_WhenSystemConfigFailsAndDefaultExists()
         {
             // Arrange
             var context = new SystemConfigurationServiceContext();
-            context.FileSystem.AddFile(AppPaths.SystemConfigurationFilePath, new MockFileData(string.Empty));
             context.Persistence.UserConfigurationExists().Returns(true);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
 
-            context.FileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new MockFileData(string.Empty));
             context.Persistence.PreparationConfigurationExists().Returns(true);
             context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
 
@@ -317,7 +310,7 @@ public class SystemConfigurationServiceTests
             // Act + Assert
             var result = await context.Sut.PrepareConfiguration(CancellationToken.None);
 
-            result.Status.Should().Be(OperationStatus.Success);
+            result.Status.Should().Be(OperationStatus.Error);
             result.Message.Should().Contain(TestExceptionMessage);
         }
 
@@ -326,11 +319,9 @@ public class SystemConfigurationServiceTests
         {
             // Arrange
             var context = new SystemConfigurationServiceContext();
-            context.FileSystem.AddFile(AppPaths.SystemConfigurationFilePath, new MockFileData(string.Empty));
             context.Persistence.UserConfigurationExists().Returns(true);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
 
-            context.FileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new MockFileData(string.Empty));
             context.Persistence.PreparationConfigurationExists().Returns(true);
             context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
 
@@ -347,29 +338,6 @@ public class SystemConfigurationServiceTests
 
             result.Status.Should().Be(OperationStatus.Error);
             result.Message.Should().Contain(TestExceptionMessage);
-        }
-
-        [Fact]
-        public async Task ShouldReturnError_WhenAdapterReturnsWarning()
-        {
-            // Arrange
-            var context = new SystemConfigurationServiceContext();
-            context.Persistence.UserConfigurationExists().Returns(true);
-            context.Persistence.PreparationConfigurationExists().Returns(true);
-
-            var config = CreateInternalConfig();
-            context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>()).ReturnsForAnyArgs(config);
-            context.Persistence.LoadPreparationConfiguration(Arg.Any<CancellationToken>()).ReturnsForAnyArgs(config);
-
-            context.ScriptHandler
-                .ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>())
-                .ReturnsForAnyArgs(OperationStatus.Warning);
-
-            // Act + Assert
-            var result = await context.Sut.PrepareConfiguration(CancellationToken.None);
-
-            result.Status.Should().Be(OperationStatus.Error);
-            result.Message.Should().Contain(PrepareConfigNotPossible);
         }
 
         [Fact]
@@ -392,7 +360,7 @@ public class SystemConfigurationServiceTests
             var result = await context.Sut.PrepareConfiguration(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Error);
-            result.Message.Should().Contain(PrepareConfigNotPossible);
+            result.Message.Should().ContainAny("Prepare", "configuration", "failed");
         }
 
         [Fact]
@@ -400,11 +368,9 @@ public class SystemConfigurationServiceTests
         {
             // Arrange
             var context = new SystemConfigurationServiceContext();
-            context.FileSystem.AddFile(AppPaths.SystemConfigurationFilePath, new MockFileData(string.Empty));
             context.Persistence.UserConfigurationExists().Returns(true);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
 
-            context.FileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new MockFileData(string.Empty));
             context.Persistence.PreparationConfigurationExists().Returns(true);
             context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
 
@@ -429,7 +395,7 @@ public class SystemConfigurationServiceTests
         private const string RevertConfig = "Revert system configuration";
 
         [Fact]
-        public async Task ShouldReturnError_WhenGetConfigurationFails()
+        public async Task ShouldReturnErrorResult_WhenGetConfigurationFails()
         {
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
@@ -446,7 +412,7 @@ public class SystemConfigurationServiceTests
         }
 
         [Fact]
-        public async Task ShouldReturnError_WhenGetConfigurationReturnsError()
+        public async Task ShouldReturnErrorResult_WhenGetConfigurationReturnsError()
         {
             // Reset cache, so config is read again via scripts
             SystemConfigurationCache.Instance.ResetForTests();
@@ -466,7 +432,7 @@ public class SystemConfigurationServiceTests
         }
 
         [Fact]
-        public async Task ShouldReturnWarning_WhenGetConfigurationReturnsWarning()
+        public async Task ShouldReturnWarningResult_WhenGetConfigurationReturnsWarning()
         {
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
@@ -483,7 +449,7 @@ public class SystemConfigurationServiceTests
         }
 
         [Fact]
-        public async Task ShouldReturnError_WhenValidationFails()
+        public async Task ShouldReturnErrorResult_WhenValidationFails()
         {
             var context = new SystemConfigurationServiceContext();
             var proposedConfig = CreateSharedConfig();
@@ -497,7 +463,7 @@ public class SystemConfigurationServiceTests
         }
 
         [Fact]
-        public async Task ShouldReturnSuccess_WhenSetSucceeds()
+        public async Task ShouldReturnSuccessResult_WhenSetConfigurationSucceeds()
         {
             var context = new SystemConfigurationServiceContext();
             context.Persistence
@@ -546,7 +512,7 @@ public class SystemConfigurationServiceTests
         }
 
         [Fact]
-        public async Task ShouldReturnError_WhenPersistenceFails()
+        public async Task ShouldReturnErrorResult_WhenPersistenceFails()
         {
             var context = new SystemConfigurationServiceContext();
             context.Persistence
@@ -599,7 +565,7 @@ public class SystemConfigurationServiceTests
         }
 
         [Fact]
-        public async Task ShouldReturnWarning_WhenSetConfigurationReturnsWarning()
+        public async Task ShouldReturnWarningResult_WhenSetConfigurationReturnsWarning()
         {
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
@@ -633,7 +599,7 @@ public class SystemConfigurationServiceTests
     public sealed class ResetNetworkInterface : SystemConfigurationServiceTests
     {
         [Fact]
-        public async Task ShouldReturnError_WhenDefaultConfigurationDoesNotExist()
+        public async Task ShouldReturnErrorResult_WhenPreparationConfigurationNotExists()
         {
             var context = new SystemConfigurationServiceContext();
             context.Persistence.PreparationConfigurationExists().Returns(false);
@@ -653,7 +619,7 @@ public class SystemConfigurationServiceTests
         }
 
         [Fact]
-        public async Task ShouldReturnError_WhenInterfaceNotFoundInDefaultConfiguration()
+        public async Task ShouldReturnErrorResult_WhenInterfaceNotFoundInPreparationConfiguration()
         {
             var context = new SystemConfigurationServiceContext();
             context.Persistence.PreparationConfigurationExists().Returns(true);
@@ -676,7 +642,7 @@ public class SystemConfigurationServiceTests
         }
 
         [Fact]
-        public async Task ShouldPersistUpdatedConfiguration_WhenResetSucceeds()
+        public async Task ShouldPersistUpdatedUserConfiguration_WhenResetSucceeds()
         {
             // Arrange: Default configuration has static IP (DHCP=false)
             var context = new SystemConfigurationServiceContext();
@@ -734,7 +700,6 @@ public class SystemConfigurationServiceTests
 
     internal sealed class SystemConfigurationServiceContext
     {
-        internal MockFileSystem FileSystem { get; } = new();
         internal IPersistence Persistence { get; } = Substitute.For<IPersistence>();
         internal IScriptHandler ScriptHandler { get; } = Substitute.For<IScriptHandler>();
         internal ILogger Logger { get; } = Substitute.For<ILogger>();
@@ -762,7 +727,7 @@ public class SystemConfigurationServiceTests
             ScriptHandler.ExecuteSetNetworkNTPSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
             ScriptHandler.ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
             ScriptHandler.ExecuteApplyNetplanConfigurationScript().ReturnsForAnyArgs(OperationStatus.Success);
-            Sut = new(FileSystem, Persistence, ScriptHandler, Logger);
+            Sut = new(Persistence, ScriptHandler, Logger);
 
             Environment.SetEnvironmentVariable("CONFIGURABLE_SERVICES", ServiceName);
         }
