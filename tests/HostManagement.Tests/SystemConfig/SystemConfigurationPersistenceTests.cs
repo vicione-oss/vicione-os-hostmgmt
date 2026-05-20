@@ -359,14 +359,14 @@ public class SystemConfigurationPersistenceTests
     {
         [Fact]
         public void ShouldReturnFalse_WhenFileDoesNotExist()
-            => _persistence.PreparationConfigurationExists().Should().BeFalse();
+            => _persistence.ExistsPreparationConfiguration().Should().BeFalse();
 
         [Fact]
         public void ShouldReturnTrue_WhenFileExists()
         {
             _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new(string.Empty));
 
-            _persistence.PreparationConfigurationExists().Should().BeTrue();
+            _persistence.ExistsPreparationConfiguration().Should().BeTrue();
         }
     }
 
@@ -374,14 +374,14 @@ public class SystemConfigurationPersistenceTests
     {
         [Fact]
         public void ShouldReturnFalse_WhenFileDoesNotExist()
-            => _persistence.UserConfigurationExists().Should().BeFalse();
+            => _persistence.ExistsUserConfiguration().Should().BeFalse();
 
         [Fact]
         public void ShouldReturnTrue_WhenFileExists()
         {
             _fileSystem.AddFile(AppPaths.SystemConfigurationFilePath, new(string.Empty));
 
-            _persistence.UserConfigurationExists().Should().BeTrue();
+            _persistence.ExistsUserConfiguration().Should().BeTrue();
         }
     }
 

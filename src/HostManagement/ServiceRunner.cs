@@ -141,9 +141,9 @@ internal static partial class ServiceRunner
 
     private static async Task<GetSystemConfigurationResult> GetJsonConfigurationOnDeviceStartup()
     {
-        if (s_systemConfigurationPersistence.UserConfigurationExists())
+        if (s_systemConfigurationPersistence.ExistsUserConfiguration())
             FoundExistingSystemConfiguration(s_logger, s_systemConfigurationPersistence.GetUserConfigurationPath());
-        else if (s_systemConfigurationPersistence.PreparationConfigurationExists())
+        else if (s_systemConfigurationPersistence.ExistsPreparationConfiguration())
             FoundExistingSystemConfiguration(s_logger, s_systemConfigurationPersistence.GetPreparationConfigurationPath());
         else
             CreateSystemConfigurationStarted(s_logger);

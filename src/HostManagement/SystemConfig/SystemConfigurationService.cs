@@ -231,7 +231,7 @@ internal sealed partial class SystemConfigurationService(
                     SystemConfigResources.ConfigWasNull);
             }
 
-            if (!_persistence.PreparationConfigurationExists())
+            if (!_persistence.ExistsPreparationConfiguration())
             {
                 var message = string.Format(
                     CultureInfo.InvariantCulture,
@@ -326,10 +326,10 @@ internal sealed partial class SystemConfigurationService(
 
     private JsonConfigurationType GetAvailableJsonConfigurationType()
     {
-        if (_persistence.UserConfigurationExists())
+        if (_persistence.ExistsUserConfiguration())
             return JsonConfigurationType.System;
 
-        if (_persistence.PreparationConfigurationExists())
+        if (_persistence.ExistsPreparationConfiguration())
             return JsonConfigurationType.Default;
 
         return JsonConfigurationType.None;

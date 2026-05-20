@@ -195,7 +195,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldLoadSystemConfiguration_WhenSystemConfigExists()
         {
             var context = new SystemConfigurationServiceContext();
-            context.Persistence.UserConfigurationExists().Returns(true);
+            context.Persistence.ExistsUserConfiguration().Returns(true);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
             context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>()).Returns(CreateInternalConfig());
 
@@ -211,7 +211,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldLoadDefaultConfiguration_WhenOnlyDefaultConfigExists()
         {
             var context = new SystemConfigurationServiceContext();
-            context.Persistence.PreparationConfigurationExists().Returns(true);
+            context.Persistence.ExistsPreparationConfiguration().Returns(true);
             context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
             context.Persistence.LoadPreparationConfiguration(Arg.Any<CancellationToken>()).Returns(CreateInternalConfig());
 
@@ -227,8 +227,8 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnError_WhenPersistenceThrowsException()
         {
             var context = new SystemConfigurationServiceContext();
-            context.Persistence.PreparationConfigurationExists().Returns(true);
-            context.Persistence.UserConfigurationExists().Returns(true);
+            context.Persistence.ExistsPreparationConfiguration().Returns(true);
+            context.Persistence.ExistsUserConfiguration().Returns(true);
             context.Persistence
                 .LoadUserConfiguration(Arg.Any<CancellationToken>())
                 .ThrowsAsyncForAnyArgs(new InvalidOperationException(TestExceptionMessage));
@@ -244,8 +244,8 @@ public class SystemConfigurationServiceTests
         public async Task ShouldPassCancellationToken()
         {
             var context = new SystemConfigurationServiceContext();
-            context.Persistence.PreparationConfigurationExists().Returns(true);
-            context.Persistence.UserConfigurationExists().Returns(true);
+            context.Persistence.ExistsPreparationConfiguration().Returns(true);
+            context.Persistence.ExistsUserConfiguration().Returns(true);
             context.Persistence
                 .LoadUserConfiguration(Arg.Any<CancellationToken>())
                 .ReturnsForAnyArgs(CreateInternalConfig());
@@ -278,7 +278,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldPrepareSystemConfig_WhenSystemConfigExists()
         {
             var context = new SystemConfigurationServiceContext();
-            context.Persistence.UserConfigurationExists().Returns(true);
+            context.Persistence.ExistsUserConfiguration().Returns(true);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
             context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>()).Returns(CreateInternalConfig());
 
@@ -293,10 +293,10 @@ public class SystemConfigurationServiceTests
         {
             // Arrange
             var context = new SystemConfigurationServiceContext();
-            context.Persistence.UserConfigurationExists().Returns(true);
+            context.Persistence.ExistsUserConfiguration().Returns(true);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
 
-            context.Persistence.PreparationConfigurationExists().Returns(true);
+            context.Persistence.ExistsPreparationConfiguration().Returns(true);
             context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
 
             context.Persistence
@@ -319,10 +319,10 @@ public class SystemConfigurationServiceTests
         {
             // Arrange
             var context = new SystemConfigurationServiceContext();
-            context.Persistence.UserConfigurationExists().Returns(true);
+            context.Persistence.ExistsUserConfiguration().Returns(true);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
 
-            context.Persistence.PreparationConfigurationExists().Returns(true);
+            context.Persistence.ExistsPreparationConfiguration().Returns(true);
             context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
 
             context.Persistence
@@ -345,8 +345,8 @@ public class SystemConfigurationServiceTests
         {
             // Arrange
             var context = new SystemConfigurationServiceContext();
-            context.Persistence.UserConfigurationExists().Returns(true);
-            context.Persistence.PreparationConfigurationExists().Returns(true);
+            context.Persistence.ExistsUserConfiguration().Returns(true);
+            context.Persistence.ExistsPreparationConfiguration().Returns(true);
 
             var config = CreateInternalConfig();
             context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>()).ReturnsForAnyArgs(config);
@@ -368,10 +368,10 @@ public class SystemConfigurationServiceTests
         {
             // Arrange
             var context = new SystemConfigurationServiceContext();
-            context.Persistence.UserConfigurationExists().Returns(true);
+            context.Persistence.ExistsUserConfiguration().Returns(true);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
 
-            context.Persistence.PreparationConfigurationExists().Returns(true);
+            context.Persistence.ExistsPreparationConfiguration().Returns(true);
             context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
 
             var config = CreateInternalConfig();
@@ -602,7 +602,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnErrorResult_WhenPreparationConfigurationNotExists()
         {
             var context = new SystemConfigurationServiceContext();
-            context.Persistence.PreparationConfigurationExists().Returns(false);
+            context.Persistence.ExistsPreparationConfiguration().Returns(false);
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
                 .ReturnsForAnyArgs(
@@ -622,7 +622,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnErrorResult_WhenInterfaceNotFoundInPreparationConfiguration()
         {
             var context = new SystemConfigurationServiceContext();
-            context.Persistence.PreparationConfigurationExists().Returns(true);
+            context.Persistence.ExistsPreparationConfiguration().Returns(true);
             context.Persistence
                 .LoadPreparationConfiguration(Arg.Any<CancellationToken>())
                 .Returns(CreateInternalDefaultConfigWithInterface(interfaceName: "lan2"));
@@ -646,7 +646,7 @@ public class SystemConfigurationServiceTests
         {
             // Arrange: Default configuration has static IP (DHCP=false)
             var context = new SystemConfigurationServiceContext();
-            context.Persistence.PreparationConfigurationExists().Returns(true);
+            context.Persistence.ExistsPreparationConfiguration().Returns(true);
             context.Persistence
                 .LoadPreparationConfiguration(Arg.Any<CancellationToken>())
                 .Returns(CreateInternalDefaultConfigWithInterface(dhcpEnabled: false));

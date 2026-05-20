@@ -6,9 +6,7 @@ using HostManagement.SystemConfig.Migrations;
 
 namespace HostManagement.SystemConfig;
 
-/// <summary>
-/// Provides persistence for the system configuration, e.g. loading from or saving to a JSON file.
-/// </summary>
+/// <inheritdoc cref="IPersistence"/>
 /// <param name="fileSystem">A reference to the file system.</param>
 /// <param name="migrationService">The system configuration migration service.</param>
 /// <param name="contractDeserializers">The available system configuration contract deserializers.</param>
@@ -33,13 +31,65 @@ internal sealed class SystemConfigurationPersistence(
                 new V1ToV2SystemConfigurationMigration()
             ]);
 
-    /// <inheritdoc/>
+    public bool ExistsPreparationConfiguration()
+        => _fileSystem.File.Exists(AppPaths.DefaultSystemConfigurationFilePath);
+
+    public bool ExistsUserConfiguration()
+        => _fileSystem.File.Exists(AppPaths.SystemConfigurationFilePath);
+
+    public string GetPreparationConfigurationPath()
+        => AppPaths.DefaultSystemConfigurationFilePath;
+
+    public string GetUserConfigurationPath()
+        => AppPaths.SystemConfigurationFilePath;
+
     public Task<SystemConfiguration> LoadPreparationConfiguration(CancellationToken cancellationToken)
         => LoadSystemConfiguration(AppPaths.DefaultSystemConfigurationFilePath, cancellationToken);
 
-    /// <inheritdoc/>
     public Task<SystemConfiguration> LoadUserConfiguration(CancellationToken cancellationToken)
         => LoadSystemConfiguration(AppPaths.SystemConfigurationFilePath, cancellationToken);
+
+    public async Task SaveUserConfiguration(SystemConfiguration systemConfiguration, CancellationToken cancellationToken)
+    {
+        var filePath = AppPaths.SystemConfigurationFilePath;
+        var directoryPath = _fileSystem.Path.GetDirectoryName(filePath)
+            ?? throw new InvalidOperationException($"Could not get directory name for '{filePath}'.");
+
+        _fileSystem.Directory.CreateDirectory(directoryPath);
+
+        await using var stream = _fileSystem.FileStream.New(filePath, new FileStreamOptions()
+        {
+            Access = FileAccess.Write,
+            Mode = FileMode.Create,
+            Options = FileOptions.Asynchronous,
+            Share = FileShare.Read,
+        });
+
+        await JsonSerializer
+            .SerializeAsync(
+                stream,
+                systemConfiguration,
+                SystemConfigurationPersistenceContext.Default.SystemConfiguration,
+                cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    private static int ReadVersion(JsonElement configuration)
+    {
+        if (configuration.ValueKind is not JsonValueKind.Object)
+            throw new JsonException("System configuration JSON root element must be an object.");
+
+        if (!configuration.TryGetProperty(nameof(SystemConfiguration.Version), out var versionElement))
+            throw new JsonException("System configuration JSON is missing required 'Version' property.");
+
+        if (versionElement.ValueKind is not JsonValueKind.Number ||
+            !versionElement.TryGetInt32(out var version))
+        {
+            throw new JsonException("System configuration JSON property 'Version' must be an integer.");
+        }
+
+        return version;
+    }
 
     private async Task<SystemConfiguration> LoadSystemConfiguration(
         string configurationFilePath,
@@ -68,64 +118,5 @@ internal sealed class SystemConfigurationPersistence(
         var sourceConfiguration = deserializer.Deserialize(document.RootElement);
 
         return _migrationService.Migrate(sourceConfiguration);
-    }
-
-    private static int ReadVersion(JsonElement configuration)
-    {
-        if (configuration.ValueKind is not JsonValueKind.Object)
-            throw new JsonException("System configuration JSON root element must be an object.");
-
-        if (!configuration.TryGetProperty(nameof(SystemConfiguration.Version), out var versionElement))
-            throw new JsonException("System configuration JSON is missing required 'Version' property.");
-
-        if (versionElement.ValueKind is not JsonValueKind.Number ||
-            !versionElement.TryGetInt32(out var version))
-        {
-            throw new JsonException("System configuration JSON property 'Version' must be an integer.");
-        }
-
-        return version;
-    }
-
-    /// <inheritdoc/>
-    public bool PreparationConfigurationExists()
-        => _fileSystem.File.Exists(AppPaths.DefaultSystemConfigurationFilePath);
-
-    /// <inheritdoc/>
-    public bool UserConfigurationExists()
-        => _fileSystem.File.Exists(AppPaths.SystemConfigurationFilePath);
-
-    /// <inheritdoc/>
-    public string GetPreparationConfigurationPath()
-        => AppPaths.DefaultSystemConfigurationFilePath;
-
-    /// <inheritdoc/>
-    public string GetUserConfigurationPath()
-        => AppPaths.SystemConfigurationFilePath;
-
-    /// <inheritdoc/>
-    public async Task SaveUserConfiguration(SystemConfiguration systemConfiguration, CancellationToken cancellationToken)
-    {
-        var filePath = AppPaths.SystemConfigurationFilePath;
-        var directoryPath = _fileSystem.Path.GetDirectoryName(filePath)
-            ?? throw new InvalidOperationException($"Could not get directory name for '{filePath}'.");
-
-        _fileSystem.Directory.CreateDirectory(directoryPath);
-
-        await using var stream = _fileSystem.FileStream.New(filePath, new FileStreamOptions()
-        {
-            Access = FileAccess.Write,
-            Mode = FileMode.Create,
-            Options = FileOptions.Asynchronous,
-            Share = FileShare.Read,
-        });
-
-        await JsonSerializer
-            .SerializeAsync(
-                stream,
-                systemConfiguration,
-                SystemConfigurationPersistenceContext.Default.SystemConfiguration,
-                cancellationToken)
-            .ConfigureAwait(false);
     }
 }
