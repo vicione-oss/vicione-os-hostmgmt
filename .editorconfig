@@ -796,6 +796,19 @@ dotnet_remove_unnecessary_suppression_exclusions = none # Enables the rule for a
 # Overrides   #
 ###############
 
+[*.cs]
+csharp_style_expression_bodied_constructors = when_on_single_line # Prefer expression bodies for constructors
+csharp_style_expression_bodied_methods = when_on_single_line # Prefer expression bodies for methods
+
+# Source generators target netstandard2.0 and intentionally avoid some newer C# syntax for compatibility
+[src/*.SourceGeneration{/,/**/}*.cs]
+dotnet_diagnostic.IDE0290.severity = none # Use primary constructor
+dotnet_diagnostic.IDE0028.severity = none # Use collection initializers
+dotnet_diagnostic.IDE0301.severity = none # Use collection expression for empty
+dotnet_diagnostic.IDE0303.severity = none # Use collection expression for Create
+dotnet_diagnostic.IDE0305.severity = none # Use collection expression for fluent
+dotnet_diagnostic.RS2008.severity = none # Enable analyzer release tracking
+
 [tests/**{Facts,Tests}*.cs]
 dotnet_diagnostic.CA1034.severity = none # Nested types should not be visible
 dotnet_diagnostic.CA1052.severity = none # Static holder types should be sealed
@@ -805,7 +818,3 @@ dotnet_diagnostic.CA1707.severity = none # Identifiers should not contain unders
 dotnet_diagnostic.CA1861.severity = none # Avoid constant arrays as arguments
 dotnet_diagnostic.CA2326.severity = none # Do not use TypeNameHandling values other than None
 dotnet_diagnostic.CA2327.severity = none # Do not use insecure JsonSerializerSettings
-
-[*.cs]
-csharp_style_expression_bodied_constructors = when_on_single_line # Prefer expression bodies for constructors
-csharp_style_expression_bodied_methods = when_on_single_line # Prefer expression bodies for methods
