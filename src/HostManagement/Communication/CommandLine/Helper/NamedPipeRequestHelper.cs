@@ -21,10 +21,10 @@ namespace HostManagement.Communication.CommandLine.Helper;
 internal static class NamedPipeRequestHelper
 {
     /*
-     * The only usage of the logger is the 'PipeClient'. Other console output is done via 'SimpleOutput' class.
+     * The only usage of the logger is the 'PipeClient'. Other console output uses 'SimpleOutput' class directly.
      * We have to use 'LogLevel' directly because 'EnvironmentVariables.LogLevel' can't be used in a non-daemon context.
     */
-    private static readonly ILogger s_logger = new ConsoleLogger(LogLevel.Warning, useShortLogLevels: false);
+    private static readonly ILogger s_logger = new CommandLineLogger(LogLevel.Warning);
 
     /// <summary>
     /// Sends a named pipe request to get the <see cref="SystemConfiguration"/> from the system.

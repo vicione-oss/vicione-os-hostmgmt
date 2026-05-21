@@ -1,6 +1,6 @@
-﻿using AwesomeAssertions;
-using Xunit;
+using AwesomeAssertions;
 using HostManagement.Communication.CommandLine.Output;
+using Xunit;
 
 namespace HostManagement.Tests.Communication.CommandLine.Output;
 
@@ -67,6 +67,88 @@ public class SimpleOutputTests
 
                 // Act
                 SimpleOutput.WriteLine(format, arg1, arg2);
+            }
+            finally
+            {
+                Console.SetOut(originalConsoleOut);
+            }
+
+            // Assert
+            stringWriter.ToString().Should().Be(expectedOutput);
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    [InlineData(null)]
+    public void ShouldWriteLineDebug_WhenCalledWithValue(bool? useColoredOutput)
+    {
+        // Arrange
+        CliOutputValue debugInput = "Test debug";
+
+        var expectedOutput =
+            $"""
+            DEBUG: {debugInput}{Environment.NewLine}
+
+            """
+            .UseEnvironmentNewLine();
+
+        using (var stringWriter = new StringWriter())
+        {
+            var originalConsoleOut = Console.Out;
+
+            try
+            {
+                Console.SetOut(stringWriter);
+
+                // Act
+                if (useColoredOutput is bool useColor)
+                    SimpleOutput.WriteLineDebug(useColor, debugInput);
+                else
+                    SimpleOutput.WriteLineDebug(debugInput);
+            }
+            finally
+            {
+                Console.SetOut(originalConsoleOut);
+            }
+
+            // Assert
+            stringWriter.ToString().Should().Be(expectedOutput);
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    [InlineData(null)]
+    public void ShouldWriteLineDebug_WhenCalledWithFormatAndArgs(bool? useColoredOutput)
+    {
+        // Arrange
+        var format = "Specified network interface '{0}' was not found.";
+        var arg = "lan1";
+        var formattedMessage = string.Format(format, arg);
+
+        var expectedOutput =
+            $"""
+            DEBUG: {formattedMessage}{Environment.NewLine}
+
+            """
+            .UseEnvironmentNewLine();
+
+        using (var stringWriter = new StringWriter())
+        {
+            var originalConsoleOut = Console.Out;
+
+            try
+            {
+                Console.SetOut(stringWriter);
+
+                // Act
+                if (useColoredOutput is bool useColor)
+                    SimpleOutput.WriteLineDebug(useColor, format, arg);
+                else
+                    SimpleOutput.WriteLineDebug(format, arg);
             }
             finally
             {
