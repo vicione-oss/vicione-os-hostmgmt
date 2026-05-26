@@ -3,7 +3,11 @@ using Microsoft.Extensions.Logging;
 namespace HostManagement;
 
 /// <summary>
-/// Provides console logging for the application.
+/// Provides logging for the application.
+/// <list type="bullet">
+/// <item>If the application is started as a service, logs are send to the journal.</item>
+/// <item>If the application is started via console, logs are printed to it directly.</item>
+/// </list>
 /// </summary>
 /// <param name="minimumLevel">The minimum log level to write.</param>
 /// <param name="useShortLogLevels">Whether to use short log level names.</param>
@@ -62,9 +66,10 @@ internal sealed class ConsoleLogger(LogLevel minimumLevel, bool useShortLogLevel
 
             Console.ForegroundColor = logLevel switch
             {
+                LogLevel.Debug => ConsoleColor.Cyan,
+                LogLevel.Information => ConsoleColor.Blue,
                 LogLevel.Warning => ConsoleColor.Yellow,
                 LogLevel.Error => ConsoleColor.Red,
-                LogLevel.Critical => ConsoleColor.DarkMagenta,
                 _ => Console.ForegroundColor
             };
 

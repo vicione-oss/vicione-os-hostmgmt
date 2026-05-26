@@ -1,4 +1,4 @@
-﻿namespace HostManagement.Communication.CommandLine.Output;
+namespace HostManagement.Communication.CommandLine.Output;
 
 /// <summary>
 /// Represents a <see cref="SimpleOutput"/>.
@@ -21,6 +21,64 @@ internal sealed class SimpleOutput : CliOutputBase
         Console.WriteLine(GetNonEmptyValue(value));
         Console.WriteLine();
     }
+
+    /// <summary>
+    /// Writes a value, followed by the current line terminator, to the standard output stream.
+    /// <para>
+    /// The output is colored.<br/>
+    /// The output is formatted as debug message, e.g DEBUG: MESSAGE.
+    /// </para>
+    /// </summary>
+    /// <param name="value">The value.</param>
+    internal static void WriteLineDebug(CliOutputValue value)
+        => WriteLineDebug(true, value);
+
+    /// <summary>
+    /// Writes a value, followed by the current line terminator, to the standard output stream.
+    /// <para>
+    /// The output is formatted as debug message, e.g DEBUG: MESSAGE.
+    /// </para>
+    /// </summary>
+    /// <param name="useColoredOutput">Determines whether the output should be colored.</param>
+    /// <param name="value">The value.</param>
+    internal static void WriteLineDebug(bool useColoredOutput, CliOutputValue value)
+    {
+        var nonEmptyValue = GetNonEmptyValue(value);
+        var message = GetDebugMessage(nonEmptyValue);
+
+        if (useColoredOutput)
+            DoColoredDebugOutput(message + Environment.NewLine);
+        else
+            Console.WriteLine(message);
+
+        Console.WriteLine();
+    }
+
+    /// <summary>
+    /// Writes a formatted string using the specified arguments, followed by the current
+    /// line terminator, to the standard output stream.
+    /// <para>
+    /// The output is colored.<br/>
+    /// The output is formatted as debug message, e.g DEBUG: MESSAGE.
+    /// </para>
+    /// </summary>
+    /// <param name="format">The format string.</param>
+    /// <param name="args">The arguments to replace the placeholders in the format string.</param>
+    internal static void WriteLineDebug(string format, params CliOutputValue[]? args)
+        => WriteLineDebug(true, format, args);
+
+    /// <summary>
+    /// Writes a formatted string using the specified arguments, followed by the current
+    /// line terminator, to the standard output stream.
+    /// <para>
+    /// The output is formatted as debug message, e.g DEBUG: MESSAGE.
+    /// </para>
+    /// </summary>
+    /// <param name="useColoredOutput">Determines whether the output should be colored.</param>
+    /// <param name="format">The format string.</param>
+    /// <param name="args">The arguments to replace the placeholders in the format string.</param>
+    internal static void WriteLineDebug(bool useColoredOutput, string format, params CliOutputValue[]? args)
+        => WriteLineDebug(useColoredOutput, GetCliOutputValue(format, args));
 
     /// <summary>
     /// Writes a formatted string using the specified arguments, followed by the current

@@ -1,10 +1,13 @@
-﻿namespace HostManagement.Communication.CommandLine.Output;
+namespace HostManagement.Communication.CommandLine.Output;
 
 /// <summary>
 /// Represents the abstract base class for a CLI output.
 /// </summary>
 internal abstract partial class CliOutputBase
 {
+    private protected static string GetDebugMessage(string debugText)
+        => CommandLineStrings_Output.DEBUG + LogMessageDelimiter + WhiteSpace + debugText;
+
     private protected static string GetErrorMessage(string errorText)
         => CommandLineStrings_Output.ERROR + LogMessageDelimiter + WhiteSpace + errorText;
 
@@ -20,6 +23,9 @@ internal abstract partial class CliOutputBase
 
         return string.Concat(indentation) + value;
     }
+
+    private protected static void DoColoredDebugOutput(string debugMessage)
+        => DoColoredMessageOutput(ConsoleColor.Cyan, CommandLineStrings_Output.DEBUG, debugMessage);
 
     private protected static void DoColoredErrorOutput(string errorMessage)
         => DoColoredMessageOutput(ConsoleColor.Red, CommandLineStrings_Output.ERROR, errorMessage);
