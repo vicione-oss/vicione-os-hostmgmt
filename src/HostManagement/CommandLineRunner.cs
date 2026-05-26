@@ -23,13 +23,11 @@ internal static partial class CommandLineRunner
                 args = ["--help"];
 
             #region Command arguments available outside of 'System.CommandLine'
-#if DEBUG
             if (args[0].Equals("--extract-help"))
             {
                 CliHelpExtractor.ExtractHelp(CommandInterface.CreateRootCommand());
                 return 0;
             }
-#endif
             if (args[0].Equals("--create-configuration-template"))
             {
                 SystemConfigurationTemplate.CreateAndOutput();
