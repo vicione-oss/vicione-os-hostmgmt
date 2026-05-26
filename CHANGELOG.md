@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added caching for system configuration
   - Configurable automatic invalidation via `HOSTMANAGEMENT__SYSTEM_CONFIGURATION_CACHE_LIFETIME_SECONDS` (default 30 seconds)
   - Added invalidation after setting the config (or revert config)
+- Added asynchronous self-update installation path for `HostManagement` Debian packages. (Kept synchronous installation with error propagation for non-HostManagement Debian packages.)
 
 ### Changed
 

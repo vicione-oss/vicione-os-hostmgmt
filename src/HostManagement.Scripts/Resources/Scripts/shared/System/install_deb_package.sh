@@ -50,12 +50,40 @@ assert_flag_has_argument() {
 }
 
 install_deb_package() {
-    apt-get install -y -qq --reinstall --allow-downgrades "$1" > /dev/null
+    local install_script package_to_be_installed
 
-    status_code=$?
+    package_to_be_installed="$(dpkg-deb -f "$1" Package)"
+    install_script="$(mktemp /tmp/installpkg.XXXXXX.sh)"
 
-    if [[ $status_code -ne 0 ]]; then
-        err "$(printf "$ERR_CODE_5" "$status_code")" 5
+    cat > "$install_script" <<EOF
+#!/usr/bin/env bash
+
+set -eEuo pipefail
+
+__trap() {
+    if [[ "$package_to_be_installed" =~ "hostmanagement" ]]; then
+        # don't rely on the maintainer scripts
+        systemctl restart hostmanagement || true
+    fi
+    rm -rf -- "$install_script"
+}
+
+trap '__trap' EXIT
+
+if [[ "$package_to_be_installed" =~ "hostmanagement" ]]; then
+    systemctl stop hostmanagement || true
+fi
+
+apt-get install -y -qq --reinstall --allow-downgrades "$1" > /dev/null
+EOF
+
+    chmod 700 "$install_script"
+
+    if [[ "$package_to_be_installed" =~ "hostmanagement" ]]; then
+        # Self-update: run asynchronously because the caller process will be terminated.
+        systemd-run --on-active=2 --quiet --collect --unit=hms-self-upgrade "$install_script"
+    else
+        systemd-run --wait --quiet --collect --unit=hms-package-install "$install_script" || err "$(printf "$ERR_CODE_5" "$?")" 5
     fi
 }
 
@@ -65,7 +93,7 @@ install_deb_package() {
 
 main() {
     if [[ "$EUID" -ne 0 ]]; then
-        err "$(printf "$ERR_CODE_1" "$1")" 1
+        err "$ERR_CODE_1" 1
     fi
 
     if [[ $# -eq 0 || "$1" == "--help" || "$1" == "-h" ]]; then
