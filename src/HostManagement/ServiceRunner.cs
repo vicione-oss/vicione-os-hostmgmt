@@ -5,7 +5,6 @@ using HostManagement.Communication.NamedPipes.Extensions;
 using HostManagement.Communication.NamedPipes.RequestHandlers;
 using HostManagement.Configuration;
 using HostManagement.Scripts;
-using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Contracts;
 using HostManagement.SystemConfig;
@@ -54,27 +53,17 @@ internal static partial class ServiceRunner
                 // However, if it is called on a not supported environment, like 'debian' or 'unknown',
                 // prepare configuration will not be executed.
 
-                PrepareConfigurationStarted(s_logger);
-
-                var prepareConfigResult = await s_configurationService
+                var status = await s_configurationService
                     .PrepareConfigurationOnDeviceStartup(CancellationToken.None)
                     .ConfigureAwait(false);
 
-                if (prepareConfigResult.Status == OperationStatus.Error)
+                if (status == OperationStatus.Error)
                 {
-                    ResultReturnedError(s_logger, prepareConfigResult.Message);
-
                     // gracefully exit application
                     return 0;
                 }
 
                 await CreateSetConfigFlag();
-
-                if (prepareConfigResult.Status == OperationStatus.Warning)
-                    ResultReturnedWarning(s_logger, prepareConfigResult.Message);
-
-                if (prepareConfigResult.Status == OperationStatus.Success)
-                    ResultReturnedSuccess(s_logger, prepareConfigResult.Message);
             }
 
             return 0;
@@ -112,17 +101,13 @@ internal static partial class ServiceRunner
             {
                 s_fileSystem.File.Delete(s_setConfigFlag);
 
-                var getJsonConfig = await GetJsonConfigurationOnDeviceStartup()
-                    .ContinueWith(task =>
-                    {
-                        if (task.Result.Status == OperationStatus.Error)
-                            lifetime.Cancel();
+                var configResult = await s_configurationService.GetConfigurationOnDeviceStartup(lifetime.Token)
+                    .ConfigureAwait(false);
 
-                        return task.Result.Configuration;
-                    },
-                    TaskScheduler.Current);
+                if (configResult.Status == OperationStatus.Error)
+                    lifetime.Cancel();
 
-                if (getJsonConfig is SystemConfiguration jsonConfig)
+                if (configResult.Configuration is SystemConfiguration jsonConfig)
                 {
                     if (!await SetJsonConfigurationOnDeviceStartup(jsonConfig, lifetime.Token))
                         return 1;
@@ -137,29 +122,6 @@ internal static partial class ServiceRunner
             ServiceErrorOccurredWhileRunning(s_logger, ex);
             return 1;
         }
-    }
-
-    private static async Task<GetSystemConfigurationResult> GetJsonConfigurationOnDeviceStartup()
-    {
-        if (s_systemConfigurationPersistence.ExistsUserConfiguration())
-            FoundExistingSystemConfiguration(s_logger, s_systemConfigurationPersistence.GetUserConfigurationPath());
-        else if (s_systemConfigurationPersistence.ExistsPreparationConfiguration())
-            FoundExistingSystemConfiguration(s_logger, s_systemConfigurationPersistence.GetPreparationConfigurationPath());
-        else
-            CreateSystemConfigurationStarted(s_logger);
-
-        var getJsonConfigResult = await s_configurationService.GetConfigurationOnDeviceStartup(CancellationToken.None);
-
-        if (getJsonConfigResult.Status == OperationStatus.Error)
-            ResultReturnedError(s_logger, getJsonConfigResult.Message);
-
-        if (getJsonConfigResult.Status == OperationStatus.Warning)
-            ResultReturnedWarning(s_logger, getJsonConfigResult.Message);
-
-        if (getJsonConfigResult.Status == OperationStatus.Success)
-            ResultReturnedSuccess(s_logger, getJsonConfigResult.Message);
-
-        return getJsonConfigResult;
     }
 
     private static async Task<bool> SetJsonConfigurationOnDeviceStartup(
@@ -344,20 +306,11 @@ internal static partial class ServiceRunner
     [LoggerMessage(LogLevel.Error, "An error occurred while starting the service. Could not determine if the service is already running. {StandardError}")]
     private static partial void CouldNotDetermineServiceAlreadyRunning(ILogger logger, string? standardError);
 
-    [LoggerMessage(LogLevel.Information, "Creating system configuration started.")]
-    private static partial void CreateSystemConfigurationStarted(ILogger logger);
-
     [LoggerMessage(LogLevel.Information, "Current target environment: '{TargetEnvironment}'")]
     private static partial void CurrentTargetEnvironment(ILogger logger, string targetEnvironment);
 
     [LoggerMessage(LogLevel.Error, "The following environment variables were not specified or are invalid: {EnvironmentVariables}")]
     private static partial void EnvironmentVariablesInvalid(ILogger logger, string? environmentVariables);
-
-    [LoggerMessage(LogLevel.Information, "Found existing system configuration '{SystemConfigurationFilePath}'.")]
-    private static partial void FoundExistingSystemConfiguration(ILogger logger, string? systemConfigurationFilePath);
-
-    [LoggerMessage(LogLevel.Information, "Preparing configuration at boot time started.")]
-    private static partial void PrepareConfigurationStarted(ILogger logger);
 
     [LoggerMessage(LogLevel.Error, "{Message}")]
     private static partial void ResultReturnedError(ILogger logger, string? message);

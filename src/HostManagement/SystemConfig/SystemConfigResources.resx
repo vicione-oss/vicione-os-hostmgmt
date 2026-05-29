@@ -117,12 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="AffectedConfigWasCurrentConfig" xml:space="preserve">
-    <value>Affected system configuration was: Current config</value>
-  </data>
-  <data name="AffectedConfigWasJsonConfig" xml:space="preserve">
-    <value>Affected system configuration was: '{0}'</value>
-  </data>
   <data name="ConfigCached" xml:space="preserve">
     <value>System configuration has been cached.</value>
   </data>
@@ -138,23 +132,8 @@
   <data name="CouldNotPersistConfig" xml:space="preserve">
     <value>Could not persist system configuration to '{0}'.</value>
   </data>
-  <data name="GetConfigCompletedWithWarnings" xml:space="preserve">
-    <value>Get system configuration completed with warnings.</value>
-  </data>
-  <data name="GetConfigFailed" xml:space="preserve">
-    <value>Get system configuration failed.</value>
-  </data>
   <data name="GetConfigFromCacheSucceeded" xml:space="preserve">
     <value>Get system configuration from cache succeeded.</value>
-  </data>
-  <data name="GetConfigFromJsonCanceled" xml:space="preserve">
-    <value>Get system configuration from '{0}' canceled.</value>
-  </data>
-  <data name="GetConfigFromJsonFailed" xml:space="preserve">
-    <value>Get system configuration from '{0}' failed.</value>
-  </data>
-  <data name="GetConfigFromJsonSucceeded" xml:space="preserve">
-    <value>Get system configuration from '{0}' succeeded.</value>
   </data>
   <data name="GetConfigFromScriptsCompletedWithWarnings" xml:space="preserve">
     <value>Get system configuration from scripts completed with warnings.</value>
@@ -165,20 +144,8 @@
   <data name="GetConfigFromScriptsSucceeded" xml:space="preserve">
     <value>Get system configuration from scripts succeeded.</value>
   </data>
-  <data name="GetConfigSucceeded" xml:space="preserve">
-    <value>Get system configuration succeeded.</value>
-  </data>
   <data name="NoConfigFound" xml:space="preserve">
     <value>No {0} found.</value>
-  </data>
-  <data name="PrepareConfigCompletedWithWarnings" xml:space="preserve">
-    <value>Prepare system configuration from '{0}' completed with warnings.</value>
-  </data>
-  <data name="PrepareConfigFailed" xml:space="preserve">
-    <value>Prepare system configuration from '{0}' failed.</value>
-  </data>
-  <data name="PrepareConfigSucceeded" xml:space="preserve">
-    <value>Prepare system configuration from '{0}' succeeded.</value>
   </data>
   <data name="ResetNetworkInterfaceFailed" xml:space="preserve">
     <value>Reset network interface '{0}' failed.</value>
