@@ -4,8 +4,8 @@ namespace HostManagement.SystemConfig.Migrations;
 /// Represents a single migration step between two system configuration contract versions.
 /// </summary>
 /// <remarks>
-/// Implementations are used to build a migration chain from an older persisted contract version
-/// to the current contract version.
+/// Implementations are used by <see cref="SystemConfigurationMigrationService"/> to build
+/// a migration chain from an older persisted contract version to the current contract version.
 /// </remarks>
 internal interface ISystemConfigurationMigration
 {
