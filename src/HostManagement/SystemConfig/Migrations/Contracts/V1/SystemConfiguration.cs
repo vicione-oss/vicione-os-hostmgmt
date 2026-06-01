@@ -18,7 +18,7 @@ namespace HostManagement.SystemConfig.Migrations.Contracts.V1;
 /// <item><description>Require mapping via <see cref="SystemConfig.ContractsTranslator"/> before being exposed to the public API</description></item>
 /// </list>
 /// </remarks>
-internal class SystemConfiguration
+internal class SystemConfiguration : ISystemConfigurationContract
 {
     [JsonRequired]
     public int Version { get; init; } = 1;
