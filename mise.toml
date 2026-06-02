@@ -1,2 +1,24 @@
 [tools]
-dotnet = "10.0.300"  # Pin SDK version
+dotnet = "10.0.300" # Pin SDK version
+
+[settings]
+windows_default_inline_shell_args = "pwsh -NoProfile -Command"
+
+[tasks.extract-help]
+description = "Extracts HostManagement CLI help to a Markdown file"
+
+run = [
+  'mkdir -p "$EXPORT_PATH"',
+  'dotnet run --configuration Release --no-launch-profile --no-build --no-restore --project "$PROJECT_FILE" --property WarningLevel=0 -- --extract-help > "$EXPORT_PATH/$FILENAME"'
+]
+
+run_windows = [
+  '$null = New-Item -ItemType Directory -Force -Path "$env:EXPORT_PATH"',
+  'dotnet run --configuration Release --no-launch-profile --no-build --no-restore --project "$env:PROJECT_FILE" --property WarningLevel=0 -- --extract-help > "$env:EXPORT_PATH/$env:FILENAME"'
+]
+
+env = {
+  PROJECT_FILE = "src/HostManagement/HostManagement.csproj",
+  EXPORT_PATH = "local/cli_help",
+  FILENAME = "cli_help_export.md"
+}
