@@ -12,19 +12,9 @@ public enum ScriptIdentifier
     SetExecutePermission,
 
     /// <summary>
-    /// Script to check if a user exists.
+    /// Script to set the ownership of a named pipe.
     /// </summary>
-    CheckUserExists,
-
-    /// <summary>
-    /// Script to check if a group exists.
-    /// </summary>
-    CheckGroupExists,
-
-    /// <summary>
-    /// Script to set the ownership of a file.
-    /// </summary>
-    SetOwnership,
+    SetPipeOwnership,
 
     /// <summary>
     /// Script to get the system architecture.

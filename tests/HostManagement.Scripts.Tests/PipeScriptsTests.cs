@@ -66,7 +66,7 @@ public class PipeScriptsTests
         }
     }
 
-    public sealed class SetOwnershipScript : PipeScriptsTests
+    public sealed class SetPipeOwnershipScript : PipeScriptsTests
     {
         [Fact(Skip = "Pipe scripts require Linux.", SkipType = typeof(PipeScriptsTests), SkipUnless = nameof(IsLinux))]
         public async Task ShouldPassDefaultOwnershipAndFile_WhenNotConfigured()
@@ -169,30 +169,22 @@ public class PipeScriptsTests
         string file)
         => RunSetExecutePermission(context, DefaultPermission, file);
 
-    private static async Task<ScriptResponse> RunSetOwnership(
+    private static Task<ScriptResponse> RunSetOwnership(
         ScriptTestContext context,
         string user,
         string group,
         string file)
     {
-        var userResponse = await context.RunScript("check_user_exists", "--user", user);
+        context.Environment["HOSTMANAGEMENT__PIPE__USER"] = user;
+        context.Environment["HOSTMANAGEMENT__PIPE__GROUP"] = group;
 
-        if (userResponse.HasErrors)
-            user = "root";
-
-        var groupResponse = await context.RunScript("check_group_exists", "--group", group);
-
-        if (groupResponse.HasErrors)
-            group = "root";
-
-        return await context.RunScript(
-            "set_ownership", "--user", user, "--group", group, "--file", file);
+        return context.RunScript("set_pipe_ownership", "--file", file);
     }
 
     private static Task<ScriptResponse> RunSetOwnershipWithDefaults(
         ScriptTestContext context,
         string file)
-        => RunSetOwnership(context, DefaultUser, DefaultGroup, file);
+        => context.RunScript("set_pipe_ownership", "--file", file);
 
     private sealed class ScriptTestContext : IDisposable
     {

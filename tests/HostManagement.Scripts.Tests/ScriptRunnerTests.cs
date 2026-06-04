@@ -157,9 +157,7 @@ public class ScriptRunnerTests
 
         [Theory]
         [InlineData(ScriptIdentifier.SetExecutePermission, "set_execute_permission")]
-        [InlineData(ScriptIdentifier.CheckUserExists, "check_user_exists")]
-        [InlineData(ScriptIdentifier.CheckGroupExists, "check_group_exists")]
-        [InlineData(ScriptIdentifier.SetOwnership, "set_ownership")]
+        [InlineData(ScriptIdentifier.SetPipeOwnership, "set_pipe_ownership")]
         [InlineData(ScriptIdentifier.CommonSystemArchitectureGet, "get_system_architecture")]
         [InlineData(ScriptIdentifier.ResetSystem, "reset_system")]
         [InlineData(ScriptIdentifier.ShutdownSystem, "shutdown_system")]

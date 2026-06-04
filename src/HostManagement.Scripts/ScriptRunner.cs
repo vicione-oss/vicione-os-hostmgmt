@@ -250,9 +250,7 @@ public sealed class ScriptRunner
         {
             // System
             ScriptIdentifier.SetExecutePermission => "set_execute_permission",
-            ScriptIdentifier.CheckUserExists => "check_user_exists",
-            ScriptIdentifier.CheckGroupExists => "check_group_exists",
-            ScriptIdentifier.SetOwnership => "set_ownership",
+            ScriptIdentifier.SetPipeOwnership => "set_pipe_ownership",
 
             ScriptIdentifier.CommonSystemArchitectureGet => "get_system_architecture",
 

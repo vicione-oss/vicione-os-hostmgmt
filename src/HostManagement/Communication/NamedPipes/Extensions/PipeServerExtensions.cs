@@ -39,49 +39,14 @@ internal static class PipeServerExtensions
     /// <exception cref="IOException"></exception>
     internal static async Task SetOwnership(this PipeServer pipeServer)
     {
-        var user = EnvironmentVariables.NamedPipeUser.Value;
-        var group = EnvironmentVariables.NamedPipeGroup.Value;
-
-        if (!await ExistsUser(user))
-            user = "root";
-
-        if (!await ExistsGroup(group))
-            group = "root";
-
         var scriptOptions = new ScriptOptions();
-        scriptOptions.Add(ScriptOptionNames.SetOwnership.User, user);
-        scriptOptions.Add(ScriptOptionNames.SetOwnership.Group, group);
-        scriptOptions.Add(ScriptOptionNames.SetOwnership.File, pipeServer.PipePath);
+        scriptOptions.Add(ScriptOptionNames.SetPipeOwnership.File, pipeServer.PipePath);
 
         var scriptResponse = await ScriptRunner
             .GetInstance()
-            .Run(ScriptIdentifier.SetOwnership, scriptOptions.Options);
+            .Run(ScriptIdentifier.SetPipeOwnership, scriptOptions.Options);
 
         if (scriptResponse.HasErrors)
             throw new IOException(scriptResponse.StandardError);
-    }
-
-    private static async Task<bool> ExistsUser(string user)
-    {
-        var scriptOptions = new ScriptOptions();
-        scriptOptions.Add(ScriptOptionNames.CheckUserExists.User, user);
-
-        var scriptResponse = await ScriptRunner
-            .GetInstance()
-            .Run(ScriptIdentifier.CheckUserExists, scriptOptions.Options);
-
-        return !scriptResponse.HasErrors;
-    }
-
-    private static async Task<bool> ExistsGroup(string group)
-    {
-        var scriptOptions = new ScriptOptions();
-        scriptOptions.Add(ScriptOptionNames.CheckGroupExists.Group, group);
-
-        var scriptResponse = await ScriptRunner
-            .GetInstance()
-            .Run(ScriptIdentifier.CheckGroupExists, scriptOptions.Options);
-
-        return !scriptResponse.HasErrors;
     }
 }
