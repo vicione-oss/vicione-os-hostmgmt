@@ -1,4 +1,3 @@
-using HostManagement.Configuration;
 using HostManagement.Scripts;
 using HostManagement.Scripts.Enums;
 
@@ -17,11 +16,6 @@ internal static class PipeServerExtensions
     internal static async Task SetExecutePermission(this PipeServer pipeServer)
     {
         var scriptOptions = new ScriptOptions();
-
-        scriptOptions.Add(
-            ScriptOptionNames.SetExecutePermission.Permission,
-            EnvironmentVariables.NamedPipePermission.Value);
-
         scriptOptions.Add(ScriptOptionNames.SetExecutePermission.File, pipeServer.PipePath);
 
         var scriptResponse = await ScriptRunner

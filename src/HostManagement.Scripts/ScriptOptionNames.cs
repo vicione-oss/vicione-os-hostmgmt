@@ -268,11 +268,6 @@ public static class ScriptOptionNames
     public static class SetExecutePermission
     {
         /// <summary>
-        /// The script argument for the permission (chmod).
-        /// </summary>
-        public const string Permission = "--permission";
-
-        /// <summary>
         /// The script argument for the file.
         /// </summary>
         public const string File = FileFlag;

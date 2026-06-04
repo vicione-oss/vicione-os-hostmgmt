@@ -42,15 +42,6 @@ public static class EnvironmentVariables
         Create("LOGGING:LOGLEVEL:DEFAULT", Microsoft.Extensions.Logging.LogLevel.Warning);
 
     /// <summary>
-    /// The permission of the named pipe (numeric notation).
-    /// </summary>
-    /// <remarks>
-    /// <b>Default:</b> 664 (User: rw- | Group: rw- | Others: r--)
-    /// </remarks>
-    public static readonly EnvironmentVariable<string> NamedPipePermission =
-        Create("HOSTMANAGEMENT:PIPE:CHMOD", "664");
-
-    /// <summary>
     /// The list of known public keys, used to verify installation files etc.
     /// </summary>
     /// <remarks>

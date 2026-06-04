@@ -162,12 +162,16 @@ public class PipeScriptsTests
         ScriptTestContext context,
         string permission,
         string file)
-        => context.RunScript("set_execute_permission", "--permission", permission, "--file", file);
+    {
+        context.Environment["HOSTMANAGEMENT__PIPE__CHMOD"] = permission;
+
+        return context.RunScript("set_execute_permission", "--file", file);
+    }
 
     private static Task<ScriptResponse> RunSetExecutePermissionWithDefault(
         ScriptTestContext context,
         string file)
-        => RunSetExecutePermission(context, DefaultPermission, file);
+        => context.RunScript("set_execute_permission", "--file", file);
 
     private static Task<ScriptResponse> RunSetOwnership(
         ScriptTestContext context,
