@@ -318,9 +318,9 @@ internal static partial class ServiceRunner
 
         static IEnumerable<IRequestHandler> GetSystemConfigurationRequestHandlers()
         {
-            yield return new GetSystemConfigurationRequestHandler(s_logger);
-            yield return new SetSystemConfigurationRequestHandler(s_logger);
-            yield return new ResetNetworkInterfaceRequestHandler(s_logger);
+            yield return new GetSystemConfigurationRequestHandler(s_configurationService);
+            yield return new SetSystemConfigurationRequestHandler(s_configurationService);
+            yield return new ResetNetworkInterfaceRequestHandler(s_configurationService);
         }
 
         static IEnumerable<IRequestHandler> GetSystemRequestHandlers()
