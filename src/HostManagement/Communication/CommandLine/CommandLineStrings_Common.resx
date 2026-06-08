@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -124,7 +124,7 @@
     <value>clear</value>
   </data>
   <data name="CliHelpExtractorHostManagementDescription" xml:space="preserve">
-    <value># Host Management CLI Documentation - v{0}
+    <value># Host Management CLI Documentation - %HM_VERSION%
 
 `HostManagement` provides a standardized interface to read and change system settings on Debian version 12 and later.
 

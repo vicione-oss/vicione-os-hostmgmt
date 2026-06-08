@@ -234,6 +234,59 @@ include:
       rules:
         - *rule_tag_manual
 
+#################### Publish Documentation
+
+.install_cli_docs_tools: &install_cli_docs_tools
+  - apt update && apt install -y grep gawk
+
+.generate_cli_docs: &generate_cli_docs
+  - if [ -z ${Version} ]; then echo "Version not defined. Exiting job." && exit 1; fi
+  - echo "Generate CLI documentation for version $Version"
+  - PATH_EXPORT=$(grep -m 1 "EXPORT_PATH\ =\ " mise.toml | awk -F= '{print $2}' | tr -d '," ')
+  - FILE_EXPORT=$(grep -m 1 "FILENAME\ =\ " mise.toml | awk -F= '{print $2}' | tr -d '," ')
+  - PATH_OUT="cli_docs"
+  - FILE_OUT="cli_help_export_${Version}.md"
+  - which mise
+  - mise run extract-help
+  - mkdir -p "${PATH_OUT}"
+  - sed "s/%HM_VERSION%/$Version/g" "${PATH_EXPORT}/${FILE_EXPORT}" > "${PATH_OUT}/${FILE_OUT}"
+
+Prerelease CLI Docs:
+  stage: publish
+  image: ${VICIONE_IMAGE}
+  before_script:
+    - *activate_mise
+    - *install_cli_docs_tools
+  script: 
+    - *generate_cli_docs
+  rules:
+    - *rule_mr_manual
+    - *rule_web_manual
+  needs:
+    - "dotnet Build"
+    - "Version"
+  artifacts:
+    paths:
+      - "cli_docs/"
+
+Release CLI Docs:
+  stage: publish
+  image: ${VICIONE_IMAGE}
+  before_script:
+    - *activate_mise
+    - *install_cli_docs_tools
+  script:
+    - *generate_cli_docs
+  rules:
+    - *rule_tag
+    - *rule_default_branch
+  needs:
+    - "dotnet Build"
+    - "Version"
+  artifacts:
+    paths:
+      - "cli_docs/"
+
 #################### Lint stage
 
 Markdown:
