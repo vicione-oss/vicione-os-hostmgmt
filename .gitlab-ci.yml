@@ -262,6 +262,7 @@ Prerelease CLI Docs:
   rules:
     - *rule_mr_manual
     - *rule_web_manual
+    - *rule_default_branch_manual
   needs:
     - "dotnet Build"
     - "Version"
@@ -279,7 +280,6 @@ Release CLI Docs:
     - *generate_cli_docs
   rules:
     - *rule_tag
-    - *rule_default_branch
   needs:
     - "dotnet Build"
     - "Version"
