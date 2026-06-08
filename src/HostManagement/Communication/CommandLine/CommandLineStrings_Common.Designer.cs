@@ -19,7 +19,7 @@ namespace HostManagement.Communication.CommandLine {
     // -Klasse über ein Tool wie ResGen oder Visual Studio automatisch generiert.
     // Um einen Member hinzuzufügen oder zu entfernen, bearbeiten Sie die .ResX-Datei und führen dann ResGen
     // mit der /str-Option erneut aus, oder Sie erstellen Ihr VS-Projekt neu.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CommandLineStrings_Common {
@@ -79,7 +79,7 @@ namespace HostManagement.Communication.CommandLine {
         }
         
         /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die # Host Management CLI Documentation - v{0}
+        ///   Sucht eine lokalisierte Zeichenfolge, die # Host Management CLI Documentation - %HM_VERSION%
         ///
         ///`HostManagement` provides a standardized interface to read and change system settings on Debian version 12 and later.
         ///
@@ -93,7 +93,7 @@ namespace HostManagement.Communication.CommandLine {
         ///## Usage
         ///
         ///1. Execute `HostManagement` in daemon mode, for example as a Linux service (`HostManagement --daemon`).
-        ///1. Execute `HostManagement` CLI application that communicates  [Rest der Zeichenfolge wurde abgeschnitten]&quot;; ähnelt.
+        ///1. Execute `HostManagement` CLI application that commu [Rest der Zeichenfolge wurde abgeschnitten]&quot;; ähnelt.
         /// </summary>
         internal static string CliHelpExtractorHostManagementDescription {
             get {
