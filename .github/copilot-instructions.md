@@ -1,6 +1,8 @@
 # Copilot Custom Instructions
 
-These are the global instructions for the `HostManagement` project. Additional instructions are located in the `instructions` sub folder (e.g.: [Unit Testing Instructions]).
+These are the global instructions for the `HostManagement` project.
+
+Additional instructions are located in the `.github\instructions` folder. Use [Unit Testing Instructions] when applicable and look for potential user defined instructions (`user-defined.instructions.md`).
 
 ## Project and Application
 
@@ -20,6 +22,8 @@ The project `HostManagement` is an AOT compiled .NET C# application and runs onl
   | [SA1204]   | Static elements must appear before instance elements       |
   | [SA1206]   | Declaration keywords must follow order                     |
   | [SA1214]   | Readonly elements must appear before non-readonly elements |
+
+- When multiple StyleCop ordering rules apply, use StyleCop's precedence order. In particular, access modifier ordering (`SA1202`) takes precedence over static/instance ordering (`SA1204`) and constant/field ordering (`SA1203`). For example, a `public` instance member may appear before a `private static` member of the same element kind.
 
 ## Documentation
 
