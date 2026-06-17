@@ -21,6 +21,13 @@ internal static partial class ServiceRunner
 {
     private static readonly ILogger s_logger = new ConsoleLogger(EnvironmentVariables.LogLevel.Value);
     private static readonly FileSystem s_fileSystem = new();
+    private static readonly SystemConfigurationPersistence s_systemConfigurationPersistence = new(s_fileSystem);
+    private static readonly SystemConfigurationService s_configurationService = new(
+        s_fileSystem,
+        s_systemConfigurationPersistence,
+        new ScriptHandler(),
+        s_logger);
+
     private static readonly string s_setConfigFlag = Path.Combine(AppPaths.TempPath, "set-config.flag");
 
     /// <summary>
@@ -45,14 +52,7 @@ internal static partial class ServiceRunner
 
                 PrepareConfigurationStarted(s_logger);
 
-                var persistence = new SystemConfigurationPersistence(s_fileSystem);
-                var configurationService = new SystemConfigurationService(
-                    s_fileSystem,
-                    persistence,
-                    new ScriptHandler(),
-                    s_logger);
-
-                var prepareConfigResult = await configurationService.PrepareConfiguration();
+                var prepareConfigResult = await s_configurationService.PrepareConfiguration();
 
                 if (prepareConfigResult.Status == OperationStatus.Error)
                 {
@@ -132,22 +132,14 @@ internal static partial class ServiceRunner
 
     private static async Task<GetSystemConfigurationResult> GetJsonConfigurationOnStartUp()
     {
-        var persistence = new SystemConfigurationPersistence(s_fileSystem);
-
-        if (persistence.UserConfigurationExists())
-            FoundExistingSystemConfiguration(s_logger, persistence.GetUserConfigurationPath());
-        else if (persistence.PreparationConfigurationExists())
-            FoundExistingSystemConfiguration(s_logger, persistence.GetPreparationConfigurationPath());
+        if (s_systemConfigurationPersistence.UserConfigurationExists())
+            FoundExistingSystemConfiguration(s_logger, s_systemConfigurationPersistence.GetUserConfigurationPath());
+        else if (s_systemConfigurationPersistence.PreparationConfigurationExists())
+            FoundExistingSystemConfiguration(s_logger, s_systemConfigurationPersistence.GetPreparationConfigurationPath());
         else
             CreateSystemConfigurationStarted(s_logger);
 
-        var configurationService = new SystemConfigurationService(
-            s_fileSystem,
-            persistence,
-            new ScriptHandler(),
-            s_logger);
-
-        var getJsonConfigResult = await configurationService.GetConfigurationFromJson();
+        var getJsonConfigResult = await s_configurationService.GetConfigurationFromJson();
 
         if (getJsonConfigResult.Status == OperationStatus.Error)
             ResultReturnedError(s_logger, getJsonConfigResult.Message);
@@ -165,14 +157,7 @@ internal static partial class ServiceRunner
         SystemConfiguration jsonConfig,
         CancellationToken cancellationToken)
     {
-        var persistence = new SystemConfigurationPersistence(s_fileSystem);
-        var configurationService = new SystemConfigurationService(
-            s_fileSystem,
-            persistence,
-            new ScriptHandler(),
-            s_logger);
-
-        var setConfigResult = await configurationService
+        var setConfigResult = await s_configurationService
             .SetConfiguration(jsonConfig, shouldPersistConfiguration: false, cancellationToken);
 
         if (setConfigResult.Status == OperationStatus.Error)
@@ -333,9 +318,9 @@ internal static partial class ServiceRunner
 
         static IEnumerable<IRequestHandler> GetSystemConfigurationRequestHandlers()
         {
-            yield return new GetSystemConfigurationRequestHandler(s_logger);
-            yield return new SetSystemConfigurationRequestHandler(s_logger);
-            yield return new ResetNetworkInterfaceRequestHandler(s_logger);
+            yield return new GetSystemConfigurationRequestHandler(s_configurationService);
+            yield return new SetSystemConfigurationRequestHandler(s_configurationService);
+            yield return new ResetNetworkInterfaceRequestHandler(s_configurationService);
         }
 
         static IEnumerable<IRequestHandler> GetSystemRequestHandlers()

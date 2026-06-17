@@ -1,18 +1,18 @@
-using System.IO.Abstractions;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Serialization;
 using HostManagement.SystemConfig;
-using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 
 /// <summary>
 /// Represents the <see cref="ResetNetworkInterfaceRequestHandler"/>.
 /// </summary>
-internal sealed class ResetNetworkInterfaceRequestHandler(ILogger logger) : RequestHandler<SystemControlResult>
+/// <param name="configurationService">The system configuration service.</param>
+internal sealed class ResetNetworkInterfaceRequestHandler(SystemConfigurationService configurationService)
+    : RequestHandler<SystemControlResult>
 {
     /// <summary>
     /// The topic of the <see cref="ResetNetworkInterfaceRequestHandler"/>.
@@ -31,13 +31,6 @@ internal sealed class ResetNetworkInterfaceRequestHandler(ILogger logger) : Requ
     {
         try
         {
-            var fileSystem = new FileSystem();
-            var configurationService = new SystemConfigurationService(
-                fileSystem,
-                new SystemConfigurationPersistence(fileSystem),
-                new ScriptHandler(),
-                logger);
-
             var result = await configurationService
                 .ResetNetworkInterface(messageContent, cancellationToken)
                 .ConfigureAwait(false);

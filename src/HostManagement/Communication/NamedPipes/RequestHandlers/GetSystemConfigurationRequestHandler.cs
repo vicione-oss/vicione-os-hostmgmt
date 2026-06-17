@@ -1,18 +1,18 @@
-using System.IO.Abstractions;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Serialization;
 using HostManagement.SystemConfig;
-using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 
 /// <summary>
 /// Represents the <see cref="GetSystemConfigurationRequestHandler"/>.
 /// </summary>
-internal sealed class GetSystemConfigurationRequestHandler(ILogger logger) : RequestHandler<GetSystemConfigurationResult>
+/// <param name="configurationService">The system configuration service.</param>
+internal sealed class GetSystemConfigurationRequestHandler(SystemConfigurationService configurationService)
+    : RequestHandler<GetSystemConfigurationResult>
 {
     /// <summary>
     /// The topic of the <see cref="GetSystemConfigurationRequestHandler"/>.
@@ -31,15 +31,7 @@ internal sealed class GetSystemConfigurationRequestHandler(ILogger logger) : Req
     {
         try
         {
-            var fileSystem = new FileSystem();
-            var persistence = new SystemConfigurationPersistence(fileSystem);
-            var configurationService = new SystemConfigurationService(
-                fileSystem,
-                persistence,
-                new ScriptHandler(),
-                logger);
-
-            var result = await configurationService.GetConfiguration(cancellationToken);
+            var result = await configurationService.GetConfiguration(cancellationToken).ConfigureAwait(false);
 
             return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
         }
