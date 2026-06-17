@@ -14,8 +14,7 @@ public class SystemConfigurationPersistenceTests
     private readonly MockFileSystem _fileSystem = new();
     private readonly SystemConfigurationPersistence _persistence;
 
-    public SystemConfigurationPersistenceTests()
-        => _persistence = new(_fileSystem);
+    public SystemConfigurationPersistenceTests() => _persistence = new(_fileSystem);
 
     public sealed class LoadPreparationConfiguration : SystemConfigurationPersistenceTests
     {
@@ -121,7 +120,7 @@ public class SystemConfigurationPersistenceTests
 
         private static readonly SystemConfiguration s_configV1_1_1 = new()
         {
-            Version = 1,
+            Version = 2, // After migration this should be the current version (currently 2)
             NetworkInterfacesSettings = new()
             {
                 NetworkInterfaces =
@@ -258,6 +257,28 @@ public class SystemConfigurationPersistenceTests
 
             await _persistence.Invoking(x => x.LoadPreparationConfiguration(CancellationToken.None))
                 .Should().ThrowAsync<JsonException>().WithMessage("*missing*required*'Version'*");
+        }
+
+        [Fact]
+        public async Task ShouldThrow_WhenVersionIsUnsupported()
+        {
+            _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new("""{"Version":0}"""));
+
+            await _persistence.Invoking(x => x.LoadPreparationConfiguration(CancellationToken.None))
+                .Should()
+                .ThrowAsync<NotSupportedException>()
+                .WithMessage("*version '0' is not supported*");
+        }
+
+        [Fact]
+        public async Task ShouldThrow_WhenVersionIsNotANumber()
+        {
+            _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new("""{"Version":"2"}"""));
+
+            await _persistence.Invoking(x => x.LoadPreparationConfiguration(CancellationToken.None))
+                .Should()
+                .ThrowAsync<JsonException>()
+                .WithMessage("*'Version' must be an integer*");
         }
 
         [Fact]

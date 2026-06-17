@@ -1,7 +1,8 @@
-﻿using System.IO.Abstractions;
+using System.IO.Abstractions;
 using System.Text.Json;
 using HostManagement.Configuration;
 using HostManagement.SystemConfig.Contracts;
+using HostManagement.SystemConfig.Migrations;
 
 namespace HostManagement.SystemConfig;
 
@@ -9,9 +10,28 @@ namespace HostManagement.SystemConfig;
 /// Provides persistence for the system configuration, e.g. loading from or saving to a JSON file.
 /// </summary>
 /// <param name="fileSystem">A reference to the file system.</param>
-internal sealed class SystemConfigurationPersistence(IFileSystem fileSystem) : IPersistence
+/// <param name="migrationService">The system configuration migration service.</param>
+/// <param name="contractDeserializers">The available system configuration contract deserializers.</param>
+internal sealed class SystemConfigurationPersistence(
+    IFileSystem fileSystem,
+    ISystemConfigurationMigrationService? migrationService = null,
+    IEnumerable<ISystemConfigurationContractDeserializer>? contractDeserializers = null)
+        : IPersistence
 {
     private readonly IFileSystem _fileSystem = fileSystem;
+
+    private readonly SystemConfigurationContractDeserializerRegistry _contractDeserializers = new(
+        contractDeserializers ??
+        [
+            new V1SystemConfigurationContractDeserializer(),
+            new CurrentSystemConfigurationContractDeserializer()
+        ]);
+
+    private readonly ISystemConfigurationMigrationService _migrationService = migrationService
+        ?? new SystemConfigurationMigrationService(
+            [
+                new V1ToV2SystemConfigurationMigration()
+            ]);
 
     /// <inheritdoc/>
     public Task<SystemConfiguration> LoadPreparationConfiguration(CancellationToken cancellationToken)
@@ -33,13 +53,38 @@ internal sealed class SystemConfigurationPersistence(IFileSystem fileSystem) : I
             Share = FileShare.Read,
         });
 
-        return await JsonSerializer
-            .DeserializeAsync(
-                stream,
-                SystemConfigurationPersistenceContext.Default.SystemConfiguration,
-                cancellationToken)
-            .ConfigureAwait(false)
-            ?? throw new InvalidOperationException($"UTF-8 JSON stream could not be deserialized to '{nameof(SystemConfiguration)}'.");
+        using var document = await JsonDocument
+            .ParseAsync(stream, cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+
+        var sourceVersion = ReadVersion(document.RootElement);
+
+        if (!_contractDeserializers.TryGetDeserializer(sourceVersion, out var deserializer))
+        {
+            throw new NotSupportedException(
+                $"System configuration contract version '{sourceVersion}' is not supported.");
+        }
+
+        var sourceConfiguration = deserializer.Deserialize(document.RootElement);
+
+        return _migrationService.Migrate(sourceConfiguration);
+    }
+
+    private static int ReadVersion(JsonElement configuration)
+    {
+        if (configuration.ValueKind is not JsonValueKind.Object)
+            throw new JsonException("System configuration JSON root element must be an object.");
+
+        if (!configuration.TryGetProperty(nameof(SystemConfiguration.Version), out var versionElement))
+            throw new JsonException("System configuration JSON is missing required 'Version' property.");
+
+        if (versionElement.ValueKind is not JsonValueKind.Number ||
+            !versionElement.TryGetInt32(out var version))
+        {
+            throw new JsonException("System configuration JSON property 'Version' must be an integer.");
+        }
+
+        return version;
     }
 
     /// <inheritdoc/>

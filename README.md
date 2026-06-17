@@ -214,6 +214,7 @@ flowchart TD
   │   ├── Services                         <-- Services for DHCP, network status information, NTP, physical addresses, system and systemd units
   │   ├── SystemConfig                     <-- Classes to modify the system configuration
   │   │   ├── Contracts                    <-- Internally used contracts (DTOs) for reading and applying of a configuration
+  │   │   ├── Migrations                   <-- Contract migration logic and archived older contract versions
   │   │   ├── Network                      <-- Network configuration adapter
   │   │   └── Service                      <-- Service configuration adapter
   │   ├── ViciOneSuite                     <-- ViciOne Suite-specific functions (version, installation)
@@ -278,6 +279,13 @@ flowchart TD
 This is the main project of the tool and contains the **core logic** for **system configuration**.
 
 It includes the definitions of the commands for the **command line** and the logic for communication via **named pipes**.
+
+#### System configuration contract migrations
+
+Persisted `SystemConfiguration` JSON files contain a `Version` property.\
+When HostManagement loads a configuration, older supported contract versions are migrated to the current internal contract version before deserialization.
+
+Details about the migration design, versioning rules and how to add new migrations are documented in [System Configuration Migrations].
 
 ### HostManagement.Common
 
@@ -409,6 +417,7 @@ The full license text is available in [`LICENSE.txt`](./LICENSE.txt).
 [`.gitignore`]: .gitignore
 [InstallNetSdk]: https://learn.microsoft.com/en-us/dotnet/core/install/linux-debian#install-the-sdk
 [ScriptResponse]: docs/ScriptResponse.md
+[System Configuration Migrations]: docs/SystemConfigurationMigrations.md
 [`testing.instructions.md`]: .github/instructions/testing.instructions.md
 [Visual Studio 2026]: https://visualstudio.microsoft.com/vs/
 [Visual Studio Code]: https://code.visualstudio.com/Download

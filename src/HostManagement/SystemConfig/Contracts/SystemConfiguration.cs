@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using HostManagement.SystemConfig.Migrations;
 
 namespace HostManagement.SystemConfig.Contracts;
 
@@ -18,10 +19,15 @@ namespace HostManagement.SystemConfig.Contracts;
 /// <item><description>Require mapping via <see cref="SystemConfig.ContractsTranslator"/> before being exposed to the public API</description></item>
 /// </list>
 /// </remarks>
-internal class SystemConfiguration
+internal class SystemConfiguration : ISystemConfigurationContract
 {
+    /// <summary>
+    /// The current version of the system configuration contract.
+    /// </summary>
+    internal const int CurrentVersion = 2;
+
     [JsonRequired]
-    public int Version { get; init; } = 2;
+    public int Version { get; init; } = CurrentVersion;
     public NetworkInterfacesSettings? NetworkInterfacesSettings { get; set; }
     public NetworkDNSSettings? NetworkDNSSettings { get; set; }
     public NetworkProxySettings? NetworkProxySettings { get; set; }
