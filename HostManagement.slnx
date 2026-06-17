@@ -23,6 +23,7 @@
     <Project Path="src/HostManagement.Scripts/HostManagement.Scripts.csproj" />
     <Project Path="src/HostManagement.Shared.Communication.SourceGeneration/HostManagement.Shared.Communication.SourceGeneration.csproj" />
     <Project Path="src/HostManagement.Shared.Communication/HostManagement.Shared.Communication.csproj" />
+    <Project Path="src/HostManagement.Shared.SourceGeneration/HostManagement.Shared.SourceGeneration.csproj" />
     <Project Path="src/HostManagement.Shared/HostManagement.Shared.csproj" />
     <Project Path="src/HostManagement/HostManagement.csproj" />
   </Folder>
