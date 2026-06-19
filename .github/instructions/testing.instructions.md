@@ -216,3 +216,7 @@ These are the instructions for unit testing of the `HostManagement` project.
 
 - Use meaningful variable names
 - Use comments, if needed (e.g. for complex test logic)
+
+## Documentation
+
+- XML comments are NOT REQUIRED for unit tests
