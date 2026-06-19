@@ -82,7 +82,9 @@ public sealed class OperationResultFactoryTests
         // Arrange
         var result = T.CreateErrorResult(message);
 
-        var jsonTypeInfo = SourceGenerationContext.Default.GetTypeInfo(typeof(T));
+        var jsonTypeInfo = SourceGenerationContext.Default.GetTypeInfo(typeof(T))
+            ?? CapabilitySourceGenerationContext.Default.GetTypeInfo(typeof(T));
+
         jsonTypeInfo.Should().NotBeNull();
 
         // Act

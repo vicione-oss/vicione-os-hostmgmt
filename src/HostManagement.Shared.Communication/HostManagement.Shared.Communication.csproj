@@ -6,6 +6,35 @@
     <IsPackable>true</IsPackable>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <CapabilitySerializationProjectName>HostManagement.Shared.Communication.CapabilitySerialization</CapabilitySerializationProjectName>
+    <CapabilitySerializationProjectDirectory>..\$(CapabilitySerializationProjectName)</CapabilitySerializationProjectDirectory>
+    <CapabilitySerializationProject>$(CapabilitySerializationProjectDirectory)\$(CapabilitySerializationProjectName).csproj</CapabilitySerializationProject>
+    <CapabilitySerializationOutputDirectory>$(CapabilitySerializationProjectDirectory)\bin\$(Configuration)\$(TargetFramework)</CapabilitySerializationOutputDirectory>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);AddCapabilitySerializationBuildOutput</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+
+  <Target Name="BuildCapabilitySerializationForPack" Condition="'$(NoBuild)' != 'true'">
+    <MSBuild
+      Projects="$(CapabilitySerializationProject)"
+      Targets="Build"
+      Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework);BuildProjectReferences=false" />
+  </Target>
+
+  <Target Name="AddCapabilitySerializationBuildOutput" DependsOnTargets="BuildCapabilitySerializationForPack">
+    <ItemGroup>
+      <BuildOutputInPackage Include="$(CapabilitySerializationOutputDirectory)\$(CapabilitySerializationProjectName).dll" />
+
+      <BuildOutputInPackage
+        Include="$(CapabilitySerializationOutputDirectory)\$(CapabilitySerializationProjectName).xml"
+        Condition="Exists('$(CapabilitySerializationOutputDirectory)\$(CapabilitySerializationProjectName).xml')" />
+
+      <BuildOutputInPackage
+        Include="$(CapabilitySerializationOutputDirectory)\$(CapabilitySerializationProjectName).pdb"
+        Condition="Exists('$(CapabilitySerializationOutputDirectory)\$(CapabilitySerializationProjectName).pdb')" />
+    </ItemGroup>
+  </Target>
+
   <ItemGroup>
     <ProjectReference
       Include="..\HostManagement.Shared.Communication.SourceGeneration\HostManagement.Shared.Communication.SourceGeneration.csproj"

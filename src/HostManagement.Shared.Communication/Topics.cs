@@ -32,7 +32,12 @@ public static partial class Topics
     public const string ResetNetworkInterface = "ResetNetworkInterface";
     #endregion
 
-    #region Topics to retrieve a state. This is not part of the configuration.
+    #region Topics to retrieve a state or information. This is not part of the configuration.
+    /// <summary>
+    /// The topic to get the set of supported capabilities.
+    /// </summary>
+    public const string GetSupportedCapabilities = "GetSupportedCapabilities";
+
     /// <summary>
     /// The topic to get the original physical address (initial factory setting).
     /// </summary>
