@@ -151,6 +151,24 @@ namespace HostManagement.Services {
         }
         
         /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Getting supported capabilities was canceled. ähnelt.
+        /// </summary>
+        internal static string GetSupportedCapabilitiesCanceled {
+            get {
+                return ResourceManager.GetString("GetSupportedCapabilitiesCanceled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Getting supported capabilities failed. ähnelt.
+        /// </summary>
+        internal static string GetSupportedCapabilitiesFailed {
+            get {
+                return ResourceManager.GetString("GetSupportedCapabilitiesFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Getting active state of systemd unit &apos;{0}&apos; was canceled. ähnelt.
         /// </summary>
         internal static string GetSystemdUnitActiveStateCanceled {

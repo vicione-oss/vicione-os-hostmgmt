@@ -5,6 +5,7 @@ using HostManagement.Communication.NamedPipes.Extensions;
 using HostManagement.Communication.NamedPipes.RequestHandlers;
 using HostManagement.Configuration;
 using HostManagement.Scripts;
+using HostManagement.Services;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Contracts;
 using HostManagement.SystemConfig;
@@ -20,10 +21,6 @@ internal static partial class ServiceRunner
 {
     private static readonly ILogger s_logger = new ConsoleLogger(EnvironmentVariables.LogLevel.Value);
     private static readonly FileSystem s_fileSystem = new();
-    private static readonly SystemConfigurationService s_configurationService = new(
-        new SystemConfigurationPersistence(s_fileSystem),
-        new ScriptHandler(),
-        s_logger);
 
     private static readonly string s_setConfigFlag = Path.Combine(AppPaths.TempPath, "set-config.flag");
 
@@ -40,7 +37,9 @@ internal static partial class ServiceRunner
     {
         try
         {
-            if (!TryInitializeService())
+            using var initializationContext = await TryInitializeService(CancellationToken.None).ConfigureAwait(false);
+
+            if (initializationContext is null)
                 return 0;
 
             if (EnvironmentVariables.Environment.Value is not TargetEnvironment.EdgeSViciOne)
@@ -50,7 +49,7 @@ internal static partial class ServiceRunner
             // However, if it is called on a not supported environment, like 'debian' or 'unknown',
             // prepare configuration will not be executed.
 
-            var status = await s_configurationService
+            var status = await initializationContext.ConfigurationService
                 .PrepareConfigurationOnDeviceStartup(CancellationToken.None)
                 .ConfigureAwait(false);
 
@@ -83,20 +82,22 @@ internal static partial class ServiceRunner
             if (await IsServiceAlreadyRunning(lifetime.Token).ConfigureAwait(false))
                 return 1;
 
-            if (!TryInitializeService())
+            using var initializationContext = await TryInitializeService(lifetime.Token).ConfigureAwait(false);
+
+            if (initializationContext is null)
                 return 1;
 
             if (s_fileSystem.File.Exists(s_setConfigFlag))
             {
                 DeleteSetConfigFlag();
 
-                var configResult = await s_configurationService
+                var configResult = await initializationContext.ConfigurationService
                     .GetConfigurationOnDeviceStartup(lifetime.Token)
                     .ConfigureAwait(false);
 
                 if (configResult.Configuration is SystemConfiguration jsonConfig)
                 {
-                    var status = await s_configurationService
+                    var status = await initializationContext.ConfigurationService
                         .SetConfigurationOnDeviceStartup(jsonConfig, lifetime.Token)
                         .ConfigureAwait(false);
 
@@ -105,7 +106,7 @@ internal static partial class ServiceRunner
                 }
             }
 
-            await StartNamedPipeServer(lifetime.Token).ConfigureAwait(false);
+            await StartNamedPipeServer(initializationContext, lifetime.Token).ConfigureAwait(false);
             return 0;
         }
         catch (Exception ex)
@@ -115,13 +116,15 @@ internal static partial class ServiceRunner
         }
     }
 
-    private static async Task StartNamedPipeServer(CancellationToken cancellationToken)
+    private static async Task StartNamedPipeServer(
+        InitializationContext initializationContext,
+        CancellationToken cancellationToken)
     {
         try
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                var registry = GetRequestHandlerRegistry();
+                var registry = GetRequestHandlerRegistry(initializationContext);
 
                 using var pipeServer = new PipeServer("HostPipe", s_logger, registry);
 #if DEBUG
@@ -153,12 +156,12 @@ internal static partial class ServiceRunner
         DeletedSetConfigFlag(s_logger, s_setConfigFlag);
     }
 
-    private static bool TryInitializeService()
+    private static async Task<InitializationContext?> TryInitializeService(CancellationToken cancellationToken)
     {
         if (EnvironmentVariables.HasInvalidVariables)
         {
             EnvironmentVariablesInvalid(s_logger, EnvironmentVariables.FormattedInvalidVariables);
-            return false;
+            return null;
         }
 
         var environmentString = EnvironmentVariables.Environment.Value.ToEnvironmentString();
@@ -169,7 +172,29 @@ internal static partial class ServiceRunner
         var resourceManager = ResourceManager.Initialize(s_logger, s_fileSystem, deployDirectory, environmentString);
         _ = ScriptRunner.Initialize(deployDirectory);
 
-        return resourceManager.DeployScripts();
+        if (!resourceManager.DeployScripts())
+            return null;
+
+#pragma warning disable CA2000 // Ownership is transferred to InitializationContext on successful initialization.
+        var capabilitiesService = new SupportedCapabilitiesService(s_fileSystem, s_logger);
+#pragma warning restore CA2000
+
+        try
+        {
+            _ = await capabilitiesService.InitializeSupportedCapabilities(cancellationToken).ConfigureAwait(false);
+
+            var configurationService = new SystemConfigurationService(
+                new SystemConfigurationPersistence(s_fileSystem),
+                new ScriptHandler(),
+                s_logger);
+
+            return new InitializationContext(capabilitiesService, configurationService);
+        }
+        catch
+        {
+            capabilitiesService.Dispose();
+            throw;
+        }
     }
 
     private static async Task<bool> IsServiceAlreadyRunning(CancellationToken cancellationToken)
@@ -229,16 +254,17 @@ internal static partial class ServiceRunner
         return true;
     }
 
-    private static RequestHandlerRegistry GetRequestHandlerRegistry()
+    private static RequestHandlerRegistry GetRequestHandlerRegistry(InitializationContext initializationContext)
     {
         List<IRequestHandler> handlers =
         [
+            new GetSupportedCapabilitiesRequestHandler(initializationContext.CapabilitiesService),
             new InstallSignedDebianPackageRequestHandler(s_logger),
             new RedeployScriptsRequestHandler(),
             new RenewDHCPLeaseRequestHandler(s_logger),
             .. GetServiceRequestHandlers(),
             .. GetStateRequestHandlers(),
-            .. GetSystemConfigurationRequestHandlers(),
+            .. GetSystemConfigurationRequestHandlers(initializationContext.ConfigurationService),
             .. GetSystemRequestHandlers()
         ];
 
@@ -261,11 +287,12 @@ internal static partial class ServiceRunner
             yield return new GetNTPFallbackInformationRequestHandler(s_logger);
         }
 
-        static IEnumerable<IRequestHandler> GetSystemConfigurationRequestHandlers()
+        static IEnumerable<IRequestHandler> GetSystemConfigurationRequestHandlers(
+            SystemConfigurationService configurationService)
         {
-            yield return new GetSystemConfigurationRequestHandler(s_configurationService);
-            yield return new SetSystemConfigurationRequestHandler(s_configurationService);
-            yield return new ResetNetworkInterfaceRequestHandler(s_configurationService);
+            yield return new GetSystemConfigurationRequestHandler(configurationService);
+            yield return new SetSystemConfigurationRequestHandler(configurationService);
+            yield return new ResetNetworkInterfaceRequestHandler(configurationService);
         }
 
         static IEnumerable<IRequestHandler> GetSystemRequestHandlers()
@@ -275,6 +302,18 @@ internal static partial class ServiceRunner
             yield return new ShutdownSystemRequestHandler(s_logger);
             yield return new UpdateSystemRequestHandler(s_logger);
         }
+    }
+
+    private sealed class InitializationContext(
+        SupportedCapabilitiesService capabilitiesService,
+        SystemConfigurationService configurationService)
+            : IDisposable
+    {
+        public SupportedCapabilitiesService CapabilitiesService { get; } = capabilitiesService;
+
+        public SystemConfigurationService ConfigurationService { get; } = configurationService;
+
+        public void Dispose() => CapabilitiesService.Dispose();
     }
 
     [LoggerMessage(LogLevel.Error, "An error occurred while starting the service. Could not determine if the service is already running. {StandardError}")]
