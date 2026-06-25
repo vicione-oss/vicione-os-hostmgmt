@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using HostManagement.Configuration;
 using HostManagement.Services;
@@ -30,25 +29,17 @@ internal sealed class StartServiceRequestHandler(ILogger logger) : RequestHandle
     /// <exception cref="InvalidOperationException"/>
     public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var scriptResult = new Result();
-            var scriptHandler = new ScriptHandler(scriptResult);
+        var scriptResult = new Result();
+        var scriptHandler = new ScriptHandler(scriptResult);
 
-            var service = new SystemdUnitService(
-                logger,
-                scriptHandler,
-                scriptResult,
-                EnvironmentVariables.ConfigurableServices.Value);
+        var service = new SystemdUnitService(
+            logger,
+            scriptHandler,
+            scriptResult,
+            EnvironmentVariables.ConfigurableServices.Value);
 
-            var result = await service.StartSystemdUnit(messageContent);
+        var result = await service.StartSystemdUnit(messageContent);
 
-            return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
-        }
-        catch (JsonException)
-        {
-            throw new InvalidOperationException(
-                $"{nameof(ServiceControlResult)} could not be serialized into a string.");
-        }
+        return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
     }
 }

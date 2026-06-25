@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using HostManagement.Services;
 using HostManagement.Shared.Communication;
@@ -30,19 +29,11 @@ internal sealed class GetNetworkStatusInformationRequestHandler(ILogger logger)
     /// <exception cref="InvalidOperationException"/>
     public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
     {
-        try
-        {
-            var scriptResult = new Result();
-            var scriptHandler = new ScriptHandler(scriptResult);
-            var service = new NetworkStatusService(logger, scriptHandler, scriptResult);
-            var result = await service.GetNetworkStatusInformation(messageContent, cancellationToken);
+        var scriptResult = new Result();
+        var scriptHandler = new ScriptHandler(scriptResult);
+        var service = new NetworkStatusService(logger, scriptHandler, scriptResult);
+        var result = await service.GetNetworkStatusInformation(messageContent, cancellationToken);
 
-            return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
-        }
-        catch (JsonException)
-        {
-            throw new InvalidOperationException(
-                $"{nameof(GetNetworkStatusInformationResult)} could not be serialized into a string.");
-        }
+        return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
     }
 }

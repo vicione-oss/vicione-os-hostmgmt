@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using HostManagement.Scripts;
 using HostManagement.Shared.Communication;
@@ -62,16 +61,8 @@ internal sealed class RedeployScriptsRequestHandler : RequestHandler<RedeployScr
             };
         }
 
-        try
-        {
-            var serializeResult = SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
+        var serializeResult = SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
 
-            return Task.FromResult(serializeResult);
-        }
-        catch (JsonException)
-        {
-            throw new InvalidOperationException(
-                $"{nameof(RedeployScriptsResult)} could not be serialized into a string.");
-        }
+        return Task.FromResult(serializeResult);
     }
 }

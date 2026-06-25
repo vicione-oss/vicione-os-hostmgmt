@@ -1,9 +1,7 @@
-using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Serialization;
-using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Serialization;
 using HostManagement.SystemConfig;
 
@@ -31,22 +29,12 @@ internal sealed class SetSystemConfigurationRequestHandler(SystemConfigurationSe
     /// <exception cref="InvalidOperationException"/>
     public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
     {
-        try
-        {
-            var configToApply = SystemConfigurationSerializer.Deserialize(messageContent);
+        var configToApply = SystemConfigurationSerializer.Deserialize(messageContent);
 
-            var result = await configurationService
-                .SetConfiguration(configToApply, shouldPersistConfiguration: true, cancellationToken)
-                .ConfigureAwait(false);
+        var result = await configurationService
+            .SetConfiguration(configToApply, shouldPersistConfiguration: true, cancellationToken)
+            .ConfigureAwait(false);
 
-            return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
-        }
-        catch (JsonException)
-        {
-            throw new InvalidOperationException(
-                $"Message content could not be deserialized to {nameof(SystemConfiguration)}" +
-                Environment.NewLine +
-                messageContent);
-        }
+        return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
     }
 }
