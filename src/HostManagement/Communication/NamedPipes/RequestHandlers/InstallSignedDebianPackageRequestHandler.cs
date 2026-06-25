@@ -45,10 +45,12 @@ internal sealed class InstallSignedDebianPackageRequestHandler(ILogger logger) :
         var signatureValidator = new MinisignSignedDebianPackageSignatureValidator();
         var service = new SystemService(logger, scriptHandler, scriptResult, signatureValidator);
 
-        var result = await service.InstallSignedDebianPackage(
-            signedDebianPackage,
-            EnvironmentVariables.PublicKeys.Value,
-            cancellationToken);
+        var result = await service
+            .InstallSignedDebianPackage(
+                signedDebianPackage,
+                EnvironmentVariables.PublicKeys.Value,
+                cancellationToken)
+            .ConfigureAwait(false);
 
         return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
     }

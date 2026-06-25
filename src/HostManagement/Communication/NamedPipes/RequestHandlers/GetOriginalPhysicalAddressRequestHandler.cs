@@ -26,7 +26,7 @@ internal sealed class GetOriginalPhysicalAddressRequestHandler(ILogger logger)
     public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
     {
         var service = new PhysicalAddressService(logger);
-        var result = await service.GetOriginalPhysicalAddress(messageContent, cancellationToken);
+        var result = await service.GetOriginalPhysicalAddress(messageContent, cancellationToken).ConfigureAwait(false);
 
         return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
     }

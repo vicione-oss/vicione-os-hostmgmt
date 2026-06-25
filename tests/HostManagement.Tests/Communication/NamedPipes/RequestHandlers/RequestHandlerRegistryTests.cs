@@ -231,6 +231,38 @@ public sealed class RequestHandlerRegistryTests
         }
 
         [Fact]
+        public async Task ShouldReturnDefaultResponse_WhenCanceled()
+        {
+            // Arrange
+            var logger = GetLoggerSubstitute();
+            var supportedTopic = Topics.GetNetworkStatusInformation;
+            var handler = new FakeHandler(supportedTopic, handleResult: "handled");
+
+            var request = new NamedPipeMessage
+            {
+                Topic = supportedTopic,
+                Type = MessageType.Request,
+                Content = "lan1"
+            };
+
+            var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne, [handler], logger);
+            var expectedMessage =
+                $"Handle request for topic '{request.Topic}' canceled (Conversation ID: {request.ConversationId}).";
+
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            // Act
+            var response = await registry.HandleRequestAsync(request, cts.Token);
+
+            // Assert
+            AssertLogReceived(logger, LogLevel.Warning, expectedMessage);
+
+            response.Should().NotBeNull();
+            response.Content.Should().Contain(expectedMessage.Replace("'", "\\u0027"));
+        }
+
+        [Fact]
         public async Task ShouldDispatchToHandler_WhenHandlerSupported()
         {
             // Arrange
@@ -281,6 +313,8 @@ public sealed class RequestHandlerRegistryTests
 
         public override Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             WasHandleCalled = true;
 
             if (_handleException is not null)

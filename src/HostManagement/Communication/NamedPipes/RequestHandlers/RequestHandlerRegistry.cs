@@ -114,6 +114,14 @@ internal sealed partial class RequestHandlerRegistry
 
             return message.CreateResponse(response);
         }
+        catch (OperationCanceledException)
+        {
+            var warningMessage =
+                $"Handle request for topic '{topic}' canceled (Conversation ID: {message.ConversationId}).";
+
+            HandleRequestForTopicCanceled(_logger, warningMessage);
+            return message.CreateDefaultResponse(warningMessage);
+        }
         catch (Exception ex)
         {
             var errorMessage = GetRequestFailedBaseMessage(message) + ex.Message;
@@ -198,6 +206,9 @@ internal sealed partial class RequestHandlerRegistry
             _ => false
         };
     }
+
+    [LoggerMessage(LogLevel.Warning, "{WarningMessage}")]
+    private static partial void HandleRequestForTopicCanceled(ILogger logger, string warningMessage);
 
     [LoggerMessage(LogLevel.Error, "{ErrorMessage}")]
     private static partial void HandleRequestFailedWithMessage(ILogger logger, string errorMessage);

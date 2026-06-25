@@ -37,7 +37,7 @@ internal sealed class GetServiceStateRequestHandler(ILogger logger) : RequestHan
             scriptResult,
             EnvironmentVariables.ConfigurableServices.Value);
 
-        var result = await service.GetSystemdUnitActiveState(messageContent, cancellationToken);
+        var result = await service.GetSystemdUnitActiveState(messageContent, cancellationToken).ConfigureAwait(false);
 
         return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
     }

@@ -33,7 +33,7 @@ internal sealed class ShutdownSystemRequestHandler(ILogger logger) : RequestHand
         var signatureValidator = new MinisignSignedDebianPackageSignatureValidator();
         var service = new SystemService(logger, scriptHandler, scriptResult, signatureValidator);
 
-        var result = await service.ShutdownSystem(messageContent);
+        var result = await service.ShutdownSystem(messageContent).ConfigureAwait(false);
 
         return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
     }

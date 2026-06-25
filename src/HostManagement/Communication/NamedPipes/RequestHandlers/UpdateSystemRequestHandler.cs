@@ -33,7 +33,7 @@ internal sealed class UpdateSystemRequestHandler(ILogger logger) : RequestHandle
         var signatureValidator = new MinisignSignedDebianPackageSignatureValidator();
         var service = new SystemService(logger, scriptHandler, scriptResult, signatureValidator);
 
-        var result = await service.UpdateSystem(messageContent);
+        var result = await service.UpdateSystem(messageContent).ConfigureAwait(false);
 
         return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
     }

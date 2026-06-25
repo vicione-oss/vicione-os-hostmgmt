@@ -38,7 +38,7 @@ internal sealed class RestartServiceRequestHandler(ILogger logger) : RequestHand
             scriptResult,
             EnvironmentVariables.ConfigurableServices.Value);
 
-        var result = await service.RestartSystemdUnit(messageContent);
+        var result = await service.RestartSystemdUnit(messageContent).ConfigureAwait(false);
 
         return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
     }

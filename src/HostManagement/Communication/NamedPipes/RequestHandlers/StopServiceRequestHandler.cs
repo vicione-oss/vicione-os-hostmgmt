@@ -38,7 +38,7 @@ internal sealed class StopServiceRequestHandler(ILogger logger) : RequestHandler
             scriptResult,
             EnvironmentVariables.ConfigurableServices.Value);
 
-        var result = await service.StopSystemdUnit(messageContent);
+        var result = await service.StopSystemdUnit(messageContent).ConfigureAwait(false);
 
         return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
     }

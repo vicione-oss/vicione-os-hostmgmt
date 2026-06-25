@@ -29,7 +29,7 @@ internal sealed class GetDHCPLeaseInformationRequestHandler(ILogger logger)
     public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
     {
         var service = new DHCPLeaseService(logger);
-        var result = await service.GetDHCPLeaseInformation(messageContent, cancellationToken);
+        var result = await service.GetDHCPLeaseInformation(messageContent, cancellationToken).ConfigureAwait(false);
 
         return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
     }

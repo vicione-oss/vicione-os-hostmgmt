@@ -38,7 +38,7 @@ internal sealed class StartServiceRequestHandler(ILogger logger) : RequestHandle
             scriptResult,
             EnvironmentVariables.ConfigurableServices.Value);
 
-        var result = await service.StartSystemdUnit(messageContent);
+        var result = await service.StartSystemdUnit(messageContent).ConfigureAwait(false);
 
         return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
     }

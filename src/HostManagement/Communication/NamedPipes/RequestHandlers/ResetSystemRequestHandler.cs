@@ -33,7 +33,7 @@ internal sealed class ResetSystemRequestHandler(ILogger logger) : RequestHandler
         var signatureValidator = new MinisignSignedDebianPackageSignatureValidator();
         var service = new SystemService(logger, scriptHandler, scriptResult, signatureValidator);
 
-        var result = await service.ResetSystem();
+        var result = await service.ResetSystem().ConfigureAwait(false);
 
         return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
     }
