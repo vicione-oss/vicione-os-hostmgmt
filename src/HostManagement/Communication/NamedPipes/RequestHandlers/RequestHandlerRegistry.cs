@@ -1,22 +1,55 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using HostManagement.Communication.NamedPipes.Extensions;
 using HostManagement.Configuration;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
+using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 
 /// <summary>
 /// Represents an <see cref="RequestHandlerRegistry"/>.
 /// </summary>
-/// <param name="targetEnvironment">The target environment.</param>
-internal sealed class RequestHandlerRegistry(TargetEnvironment targetEnvironment)
+internal sealed partial class RequestHandlerRegistry
 {
     private static readonly List<string> s_validTopics = [.. Topics.GetAllTopics()];
     private static readonly List<string> s_topicsWithRequiredContent = [.. Topics.GetTopicsWithRequiredContent()];
 
-    private readonly Dictionary<string, IRequestHandler> _handlers = [];
-    private readonly TargetEnvironment _targetEnvironment = targetEnvironment;
+    private readonly ConcurrentDictionary<string, IRequestHandler> _handlers = [];
+    private readonly TargetEnvironment _targetEnvironment;
+    private readonly ILogger _logger;
+
+    /// <summary>
+    /// Initializes a new <see cref="RequestHandlerRegistry"/>.
+    /// </summary>
+    /// <param name="targetEnvironment">The target environment.</param>
+    /// <param name="handlers">The request handlers to register.</param>
+    /// <param name="logger">An <see cref="ILogger"/> implementation.</param>
+    public RequestHandlerRegistry(
+        TargetEnvironment targetEnvironment,
+        IEnumerable<IRequestHandler> handlers,
+        ILogger logger)
+    {
+        ArgumentNullException.ThrowIfNull(handlers);
+        ArgumentNullException.ThrowIfNull(logger);
+
+        _targetEnvironment = targetEnvironment;
+        _logger = logger;
+
+        foreach (var handler in handlers)
+        {
+            if (!_handlers.TryAdd(handler.Topic, handler))
+                RequestHandlerForTopicAlreadyRegistered(_logger, handler.Topic);
+            else
+                RequestHandlerForTopicRegistered(_logger, handler.Topic);
+        }
+    }
+
+    /// <summary>
+    /// The registered request handlers.
+    /// </summary>
+    public ICollection<IRequestHandler> Handlers => _handlers.Values;
 
     /// <summary>
     /// Handles a named pipe message request.
@@ -32,30 +65,49 @@ internal sealed class RequestHandlerRegistry(TargetEnvironment targetEnvironment
         var content = message.Content;
 
         if (topic is null)
-            return message.CreateDefaultResponse("Error processing request. Message topic was null.");
+        {
+            var errorMessage = GetRequestFailedBaseMessage(message) + "Topic is null.";
+
+            HandleRequestFailedWithMessage(_logger, errorMessage);
+            return message.CreateDefaultResponse(errorMessage);
+        }
 
         if (IsTopicInvalid(topic))
-            return message.CreateDefaultResponse($"Error processing request. Topic '{topic}' is invalid.");
+        {
+            var errorMessage = GetRequestFailedBaseMessage(message) + "Topic is invalid.";
+
+            HandleRequestFailedWithMessage(_logger, errorMessage);
+            return message.CreateDefaultResponse(errorMessage);
+        }
 
         if (!_handlers.TryGetValue(topic, out var handler))
-            return message.CreateDefaultResponse($"No handler registered for topic '{topic}'.");
+        {
+            var errorMessage = GetRequestFailedBaseMessage(message) + "No handler registered.";
+
+            HandleRequestFailedWithMessage(_logger, errorMessage);
+            return message.CreateDefaultResponse(errorMessage);
+        }
 
         try
         {
             if (!IsHandlerSupported(handler))
             {
+                var errorMessage = GetRequestFailedBaseMessage(message) + "Handler not supported on this platform.";
+
+                HandleRequestFailedWithMessage(_logger, errorMessage);
+
                 return message.CreateResponse(
-                    JsonSerializer.Serialize(
-                        handler.CreateErrorInstance($"Handler with topic '{topic}' not supported on this platform."),
-                        handler.JsonTypeInfo));
+                    JsonSerializer.Serialize(handler.CreateErrorInstance(errorMessage), handler.JsonTypeInfo));
             }
 
             if (IsRequiredContentMissing(topic, content))
             {
+                var errorMessage = GetRequestFailedBaseMessage(message) + "Handler requires a message content.";
+
+                HandleRequestFailedWithMessage(_logger, errorMessage);
+
                 return message.CreateResponse(
-                    JsonSerializer.Serialize(
-                        handler.CreateErrorInstance($"Handler with topic '{topic}' requires a message content."),
-                        handler.JsonTypeInfo));
+                    JsonSerializer.Serialize(handler.CreateErrorInstance(errorMessage), handler.JsonTypeInfo));
             }
 
             var response = await handler.HandleAsync(content, cancellationToken).ConfigureAwait(false);
@@ -64,25 +116,24 @@ internal sealed class RequestHandlerRegistry(TargetEnvironment targetEnvironment
         }
         catch (Exception ex)
         {
-            return message.CreateDefaultResponse($"Error processing request: {ex.Message}");
+            var errorMessage = GetRequestFailedBaseMessage(message) + ex.Message;
+
+            HandleRequestFailedWithException(_logger, errorMessage, ex);
+            return message.CreateDefaultResponse(errorMessage);
         }
+
+        static string GetRequestFailedBaseMessage(NamedPipeMessage message)
+            => $"Handle request for topic '{message.Topic}' failed (Conversation ID: {message.ConversationId}). ";
     }
 
     /// <summary>
     /// Registers an <see cref="IRequestHandler"/>.
     /// </summary>
     /// <param name="handler">The handler.</param>
-    /// <exception cref="InvalidOperationException"></exception>
     public void RegisterHandler(IRequestHandler handler)
     {
         if (!_handlers.TryAdd(handler.Topic, handler))
-            throw new InvalidOperationException($"A handler for topic '{handler.Topic}' is already registered.");
-    }
-
-    public void RegisterHandlers(IEnumerable<IRequestHandler> handlers)
-    {
-        foreach (var handler in handlers)
-            RegisterHandler(handler);
+            RequestHandlerForTopicAlreadyRegistered(_logger, handler.Topic);
     }
 
     private static bool IsRequiredContentMissing(string topic, string content)
@@ -147,4 +198,16 @@ internal sealed class RequestHandlerRegistry(TargetEnvironment targetEnvironment
             _ => false
         };
     }
+
+    [LoggerMessage(LogLevel.Error, "{ErrorMessage}")]
+    private static partial void HandleRequestFailedWithMessage(ILogger logger, string errorMessage);
+
+    [LoggerMessage(LogLevel.Error, "{ErrorMessage}")]
+    private static partial void HandleRequestFailedWithException(ILogger logger, string errorMessage, Exception exception);
+
+    [LoggerMessage(LogLevel.Error, "Request handler for topic '{Topic}' is already registered.")]
+    private static partial void RequestHandlerForTopicAlreadyRegistered(ILogger logger, string topic);
+
+    [LoggerMessage(LogLevel.Debug, "Request handler for topic '{Topic}' has been registered.")]
+    private static partial void RequestHandlerForTopicRegistered(ILogger logger, string topic);
 }

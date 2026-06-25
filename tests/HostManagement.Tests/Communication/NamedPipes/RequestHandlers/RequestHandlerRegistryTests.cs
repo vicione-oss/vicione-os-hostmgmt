@@ -6,36 +6,46 @@ using HostManagement.Configuration;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
+using Microsoft.Extensions.Logging;
+using NSubstitute;
 using Xunit;
 
 namespace HostManagement.Tests.Communication.NamedPipes.RequestHandlers;
 
 public sealed class RequestHandlerRegistryTests
 {
-    private const string ErrorMessage = "Unit-Test-Error";
+    private const string ExceptionMessage = "Unit-Test-Error";
     private static readonly JsonTypeInfo<GetNetworkStatusInformationResult> s_networkStatusJsonTypeInfo =
         SourceGenerationContext.Default.GetNetworkStatusInformationResult;
 
     public class RegisterHandler
     {
         [Fact]
-        public void ShouldThrow_WhenRegisteringDuplicateTopic()
+        public void ShouldLogErrorAndNotAddDuplicateHandler_WhenRegisteringDuplicateTopic()
         {
             // Arrange
+            var logger = GetLoggerSubstitute();
             var duplicateTopic = Topics.GetNTPFallbackInformation;
             var handler1 = new FakeHandler(duplicateTopic, handleResult: "h1");
             var handler2 = new FakeHandler(duplicateTopic, handleResult: "h2");
 
-            var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne);
-            registry.RegisterHandler(handler1);
+            var expectedLogMessage = $"Request handler for topic '{duplicateTopic}' is already registered.";
 
             // Act
-            var act = () => registry.RegisterHandler(handler2);
+            var registry = new RequestHandlerRegistry(
+                TargetEnvironment.EdgeSViciOne,
+                [handler1, handler2],
+                logger);
 
             // Assert
-            act.Should()
-                .Throw<InvalidOperationException>()
-                .WithMessage($"A handler for topic '{duplicateTopic}' is already registered.");
+            logger.Received(1).Log(
+                LogLevel.Error,
+                Arg.Any<EventId>(),
+                Arg.Is<object>(o => o.ToString()!.Contains(expectedLogMessage)),
+                null,
+                Arg.Any<Func<object, Exception?, string>>());
+
+            registry.Handlers.Should().OnlyHaveUniqueItems();
         }
     }
     public class HandleRequest
@@ -44,6 +54,8 @@ public sealed class RequestHandlerRegistryTests
         public async Task ShouldReturnDefaultResponse_WhenTopicNull()
         {
             // Arrange
+            var logger = GetLoggerSubstitute();
+
             var request = new NamedPipeMessage
             {
                 Topic = null!,
@@ -51,20 +63,24 @@ public sealed class RequestHandlerRegistryTests
                 Content = "lan1"
             };
 
-            var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne);
+            var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne, [], logger);
+            var expectedMessage = GetRequestFailedBaseMessage(request) + "Topic is null.";
 
             // Act
             var response = await registry.HandleRequestAsync(request, CancellationToken.None);
 
             // Assert
+            AssertLogReceived(logger, LogLevel.Error, expectedMessage);
+
             response.Should().NotBeNull();
-            response.Content.Should().Contain("Error processing request. Message topic was null.");
+            response.Content.Should().Contain(expectedMessage.Replace("'", "\\u0027"));
         }
 
         [Fact]
         public async Task ShouldReturnDefaultResponse_WhenTopicInvalid()
         {
             // Arrange
+            var logger = GetLoggerSubstitute();
             var invalidTopic = "invalidTopic";
 
             var request = new NamedPipeMessage
@@ -74,20 +90,24 @@ public sealed class RequestHandlerRegistryTests
                 Content = "lan1"
             };
 
-            var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne);
+            var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne, [], logger);
+            var expectedMessage = GetRequestFailedBaseMessage(request) + "Topic is invalid.";
 
             // Act
             var response = await registry.HandleRequestAsync(request, CancellationToken.None);
 
             // Assert
+            AssertLogReceived(logger, LogLevel.Error, expectedMessage);
+
             response.Should().NotBeNull();
-            response.Content.Should().Contain($"Error processing request. Topic \\u0027{invalidTopic}\\u0027 is invalid.");
+            response.Content.Should().Contain(expectedMessage.Replace("'", "\\u0027"));
         }
 
         [Fact]
         public async Task ShouldReturnDefaultResponse_WhenNoHandlerRegistered()
         {
             // Arrange
+            var logger = GetLoggerSubstitute();
             var validButUnknownTopic = Topics.GetNetworkStatusInformation;
 
             var request = new NamedPipeMessage
@@ -97,20 +117,24 @@ public sealed class RequestHandlerRegistryTests
                 Content = "lan1"
             };
 
-            var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne);
+            var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne, [], logger);
+            var expectedMessage = GetRequestFailedBaseMessage(request) + "No handler registered.";
 
             // Act
             var response = await registry.HandleRequestAsync(request, CancellationToken.None);
 
             // Assert
+            AssertLogReceived(logger, LogLevel.Error, expectedMessage);
+
             response.Should().NotBeNull();
-            response.Content.Should().Contain($"No handler registered for topic \\u0027{validButUnknownTopic}\\u0027.");
+            response.Content.Should().Contain(expectedMessage.Replace("'", "\\u0027"));
         }
 
         [Fact]
         public async Task ShouldReturnDefaultResponse_WhenHandlerThrows()
         {
             // Arrange
+            var logger = GetLoggerSubstitute();
             var validTopic = Topics.GetNetworkStatusInformation;
             var handler = new FakeHandler(validTopic, handleThrows: true);
 
@@ -121,15 +145,17 @@ public sealed class RequestHandlerRegistryTests
                 Content = "lan1"
             };
 
-            var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne);
-            registry.RegisterHandler(handler);
+            var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne, [handler], logger);
+            var expectedMessage = GetRequestFailedBaseMessage(request) + ExceptionMessage;
 
             // Act
             var response = await registry.HandleRequestAsync(request, CancellationToken.None);
 
             // Assert
+            AssertLogReceived<InvalidOperationException>(logger, LogLevel.Error, expectedMessage);
+
             response.Should().NotBeNull();
-            response.Content.Should().Contain("Error processing request:");
+            response.Content.Should().Contain(expectedMessage.Replace("'", "\\u0027"));
             handler.WasHandleCalled.Should().BeTrue();
         }
 
@@ -137,6 +163,7 @@ public sealed class RequestHandlerRegistryTests
         public async Task ShouldReturnSerializedError_WhenHandlerNotSupportedOnEnvironment()
         {
             // Arrange
+            var logger = GetLoggerSubstitute();
             var unsupportedTopic = Topics.GetNetworkStatusInformation; // Environment Debian does not support this topic
             var handler = new FakeHandler(unsupportedTopic, handleResult: "handled");
 
@@ -147,13 +174,15 @@ public sealed class RequestHandlerRegistryTests
                 Content = "lan1"
             };
 
-            var registry = new RequestHandlerRegistry(TargetEnvironment.Debian);
-            registry.RegisterHandler(handler);
+            var registry = new RequestHandlerRegistry(TargetEnvironment.Debian, [handler], logger);
+            var expectedMessage = GetRequestFailedBaseMessage(request) + "Handler not supported on this platform.";
 
             // Act
             var response = await registry.HandleRequestAsync(request, CancellationToken.None);
 
             // Assert
+            AssertLogReceived(logger, LogLevel.Error, expectedMessage);
+
             response.Should().NotBeNull();
             handler.WasHandleCalled.Should().BeFalse();
 
@@ -161,7 +190,7 @@ public sealed class RequestHandlerRegistryTests
 
             result.Should().NotBeNull();
             result.Status.Should().Be(OperationStatus.Error);
-            result.Message.Should().Contain($"Handler with topic '{unsupportedTopic}' not supported on this platform.");
+            result.Message.Should().Contain(expectedMessage);
         }
 
         [Theory]
@@ -171,6 +200,7 @@ public sealed class RequestHandlerRegistryTests
         public async Task ShouldReturnSerializedError_WhenRequiredContentMissing(string? content)
         {
             // Arrange
+            var logger = GetLoggerSubstitute();
             var topic = Topics.GetNetworkStatusInformation;
             var handler = new FakeHandler(topic, handleResult: "handled");
 
@@ -181,13 +211,15 @@ public sealed class RequestHandlerRegistryTests
                 Content = content!
             };
 
-            var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne);
-            registry.RegisterHandler(handler);
+            var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne, [handler], logger);
+            var expectedMessage = GetRequestFailedBaseMessage(request) + "Handler requires a message content.";
 
             // Act
             var response = await registry.HandleRequestAsync(request, CancellationToken.None);
 
             // Assert
+            AssertLogReceived(logger, LogLevel.Error, expectedMessage);
+
             response.Should().NotBeNull();
             handler.WasHandleCalled.Should().BeFalse();
 
@@ -195,13 +227,14 @@ public sealed class RequestHandlerRegistryTests
 
             result.Should().NotBeNull();
             result.Status.Should().Be(OperationStatus.Error);
-            result.Message.Should().Contain($"Handler with topic '{topic}' requires a message content.");
+            result.Message.Should().Contain(expectedMessage);
         }
 
         [Fact]
         public async Task ShouldDispatchToHandler_WhenHandlerSupported()
         {
             // Arrange
+            var logger = GetLoggerSubstitute();
             var supportedTopic = Topics.GetNetworkStatusInformation;
             var handler = new FakeHandler(supportedTopic, handleResult: "handled");
 
@@ -212,8 +245,7 @@ public sealed class RequestHandlerRegistryTests
                 Content = "lan1"
             };
 
-            var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne);
-            registry.RegisterHandler(handler);
+            var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne, [handler], logger);
 
             // Act
             var response = await registry.HandleRequestAsync(request, CancellationToken.None);
@@ -223,6 +255,9 @@ public sealed class RequestHandlerRegistryTests
             response.Content.Should().Be("handled");
             handler.WasHandleCalled.Should().BeTrue();
         }
+
+        private static string GetRequestFailedBaseMessage(NamedPipeMessage message)
+            => $"Handle request for topic '{message.Topic}' failed (Conversation ID: {message.ConversationId}). ";
     }
 
     private sealed class FakeHandler(
@@ -252,9 +287,43 @@ public sealed class RequestHandlerRegistryTests
                 throw _handleException;
 
             if (_handleThrows)
-                throw new InvalidOperationException(ErrorMessage);
+                throw new InvalidOperationException(ExceptionMessage);
 
             return Task.FromResult(HandleResult);
         }
     }
+
+    private static ILogger GetLoggerSubstitute()
+    {
+        var logger = Substitute.For<ILogger>();
+        logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+        return logger;
+    }
+
+#pragma warning disable CA1873 // Avoid potentially expensive logging
+    private static void AssertLogReceived(
+        ILogger logger,
+        LogLevel logLevel,
+        string expectedMessage,
+        int expectedCount = 1)
+    {
+        logger.Received(expectedCount).Log(
+            logLevel,
+            Arg.Any<EventId>(),
+            Arg.Is<object>(o => o.ToString()!.Contains(expectedMessage)),
+            null,
+            Arg.Any<Func<object, Exception?, string>>());
+    }
+
+    private static void AssertLogReceived<TException>(ILogger logger, LogLevel logLevel, string expectedMessage)
+        where TException : Exception
+    {
+        logger.Received(1).Log(
+            logLevel,
+            Arg.Any<EventId>(),
+            Arg.Is<object>(o => o.ToString()!.Contains(expectedMessage)),
+            Arg.Any<TException>(),
+            Arg.Any<Func<object, Exception?, string>>());
+    }
+#pragma warning restore CA1873
 }
