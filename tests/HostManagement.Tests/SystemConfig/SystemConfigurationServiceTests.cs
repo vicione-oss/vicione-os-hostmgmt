@@ -175,7 +175,7 @@ public class SystemConfigurationServiceTests
         }
     }
 
-    public sealed class GetConfigurationFromJson : SystemConfigurationServiceTests
+    public sealed class GetConfigurationOnDeviceStartup : SystemConfigurationServiceTests
     {
         [Fact]
         public async Task ShouldReturnError_WhenNoJsonFileExists()
@@ -184,7 +184,7 @@ public class SystemConfigurationServiceTests
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
             context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
 
-            var result = await context.Sut.GetConfigurationFromJson(CancellationToken.None);
+            var result = await context.Sut.GetConfigurationOnDeviceStartup(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Error);
             result.Configuration.Should().BeNull();
@@ -199,7 +199,7 @@ public class SystemConfigurationServiceTests
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
             context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>()).Returns(CreateInternalConfig());
 
-            var result = await context.Sut.GetConfigurationFromJson(CancellationToken.None);
+            var result = await context.Sut.GetConfigurationOnDeviceStartup(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Success);
             result.Configuration.Should().NotBeNull();
@@ -215,7 +215,7 @@ public class SystemConfigurationServiceTests
             context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
             context.Persistence.LoadPreparationConfiguration(Arg.Any<CancellationToken>()).Returns(CreateInternalConfig());
 
-            var result = await context.Sut.GetConfigurationFromJson(CancellationToken.None);
+            var result = await context.Sut.GetConfigurationOnDeviceStartup(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Success);
             result.Configuration.Should().NotBeNull();
@@ -233,7 +233,7 @@ public class SystemConfigurationServiceTests
                 .LoadUserConfiguration(Arg.Any<CancellationToken>())
                 .ThrowsAsyncForAnyArgs(new InvalidOperationException(TestExceptionMessage));
 
-            var result = await context.Sut.GetConfigurationFromJson(CancellationToken.None);
+            var result = await context.Sut.GetConfigurationOnDeviceStartup(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Error);
             result.Configuration.Should().BeNull();
@@ -252,14 +252,14 @@ public class SystemConfigurationServiceTests
 
             using var cts = new CancellationTokenSource();
 
-            await context.Sut.GetConfigurationFromJson(cts.Token);
+            await context.Sut.GetConfigurationOnDeviceStartup(cts.Token);
 
             _ = context.Persistence.Received(0).LoadPreparationConfiguration(cts.Token);
             _ = context.Persistence.Received(1).LoadUserConfiguration(cts.Token);
         }
     }
 
-    public sealed class PrepareConfiguration : SystemConfigurationServiceTests
+    public sealed class PrepareConfigurationOnDeviceStartup : SystemConfigurationServiceTests
     {
         [Fact]
         public async Task ShouldReturnWarning_WhenNoConfigFilesExist()
@@ -268,7 +268,7 @@ public class SystemConfigurationServiceTests
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
             context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
 
-            var result = await context.Sut.PrepareConfiguration(CancellationToken.None);
+            var result = await context.Sut.PrepareConfigurationOnDeviceStartup(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Warning);
             result.Message.Should().ContainAll("No", SystemConfigFile, "or", DefaultConfigFile, "found");
@@ -282,7 +282,7 @@ public class SystemConfigurationServiceTests
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
             context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>()).Returns(CreateInternalConfig());
 
-            var result = await context.Sut.PrepareConfiguration(CancellationToken.None);
+            var result = await context.Sut.PrepareConfigurationOnDeviceStartup(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Success);
             context.ScriptHandler.Received().UseResult(Arg.Any<Result>());
@@ -308,7 +308,7 @@ public class SystemConfigurationServiceTests
                 .Returns(CreateInternalConfig());
 
             // Act + Assert
-            var result = await context.Sut.PrepareConfiguration(CancellationToken.None);
+            var result = await context.Sut.PrepareConfigurationOnDeviceStartup(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Error);
             result.Message.Should().Contain(TestExceptionMessage);
@@ -334,7 +334,7 @@ public class SystemConfigurationServiceTests
                 .ThrowsAsyncForAnyArgs(new InvalidOperationException(TestExceptionMessage));
 
             // Act + Assert
-            var result = await context.Sut.PrepareConfiguration(CancellationToken.None);
+            var result = await context.Sut.PrepareConfigurationOnDeviceStartup(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Error);
             result.Message.Should().Contain(TestExceptionMessage);
@@ -357,7 +357,7 @@ public class SystemConfigurationServiceTests
                 .ReturnsForAnyArgs(OperationStatus.Error);
 
             // Act + Assert
-            var result = await context.Sut.PrepareConfiguration(CancellationToken.None);
+            var result = await context.Sut.PrepareConfigurationOnDeviceStartup(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Error);
             result.Message.Should().ContainAny("Prepare", "configuration", "failed");
@@ -383,7 +383,7 @@ public class SystemConfigurationServiceTests
                 .ThrowsAsyncForAnyArgs(new InvalidOperationException(TestExceptionMessage));
 
             // Act + Assert
-            var result = await context.Sut.PrepareConfiguration(CancellationToken.None);
+            var result = await context.Sut.PrepareConfigurationOnDeviceStartup(CancellationToken.None);
 
             result.Status.Should().Be(OperationStatus.Error);
             result.Message.Should().Contain(TestExceptionMessage);

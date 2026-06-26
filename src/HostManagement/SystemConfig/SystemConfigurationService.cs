@@ -74,7 +74,7 @@ internal sealed partial class SystemConfigurationService(
     /// See <see cref="ServiceRunner.PrepareConfiguration"/>.
     /// </remarks>
     /// <returns><see cref="GetSystemConfigurationResult"/></returns>
-    public async Task<GetSystemConfigurationResult> GetConfigurationFromJson(CancellationToken cancellationToken)
+    public async Task<GetSystemConfigurationResult> GetConfigurationOnDeviceStartup(CancellationToken cancellationToken)
     {
         var jsonConfigType = GetAvailableJsonConfigurationType();
 
@@ -88,7 +88,7 @@ internal sealed partial class SystemConfigurationService(
             return GetSystemConfigurationResult.CreateErrorResult(noConfigMessage);
         }
 
-        var (status, message, configuration) = await GetConfigurationFromJsonInternal(jsonConfigType, cancellationToken)
+        var (status, message, configuration) = await GetConfigurationFromJson(jsonConfigType, cancellationToken)
             .ConfigureAwait(false);
 
         return new()
@@ -105,7 +105,7 @@ internal sealed partial class SystemConfigurationService(
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <returns><see cref="SetSystemConfigurationResult"/></returns>
-    public async Task<SetSystemConfigurationResult> PrepareConfiguration(CancellationToken cancellationToken)
+    public async Task<SetSystemConfigurationResult> PrepareConfigurationOnDeviceStartup(CancellationToken cancellationToken)
     {
         var jsonConfigType = GetAvailableJsonConfigurationType();
 
@@ -119,7 +119,7 @@ internal sealed partial class SystemConfigurationService(
             return SetSystemConfigurationResult.CreateWarningResult(noConfigMessage);
         }
 
-        return await PrepareConfigurationInternal(jsonConfigType, cancellationToken).ConfigureAwait(false);
+        return await PrepareConfigurationFromJson(jsonConfigType, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -335,7 +335,7 @@ internal sealed partial class SystemConfigurationService(
         return JsonConfigurationType.None;
     }
 
-    private async Task<SetSystemConfigurationResult> PrepareConfigurationInternal(
+    private async Task<SetSystemConfigurationResult> PrepareConfigurationFromJson(
         JsonConfigurationType jsonConfigType,
         CancellationToken cancellationToken = default)
     {
@@ -347,7 +347,7 @@ internal sealed partial class SystemConfigurationService(
             jsonConfigPath);
 
         var (status, message, configFromJson) = await
-            GetConfigurationFromJsonInternal(jsonConfigType, cancellationToken)
+            GetConfigurationFromJson(jsonConfigType, cancellationToken)
             .ConfigureAwait(false);
 
         if (status == OperationStatus.Error)
@@ -518,7 +518,7 @@ internal sealed partial class SystemConfigurationService(
     }
 
     private async Task<(OperationStatus Status, string Message, InternalContracts.SystemConfiguration? SystemConfiguration)>
-        GetConfigurationFromJsonInternal(
+        GetConfigurationFromJson(
             JsonConfigurationType jsonConfigType,
             CancellationToken cancellationToken)
     {

@@ -56,7 +56,9 @@ internal static partial class ServiceRunner
 
                 PrepareConfigurationStarted(s_logger);
 
-                var prepareConfigResult = await s_configurationService.PrepareConfiguration(CancellationToken.None);
+                var prepareConfigResult = await s_configurationService
+                    .PrepareConfigurationOnDeviceStartup(CancellationToken.None)
+                    .ConfigureAwait(false);
 
                 if (prepareConfigResult.Status == OperationStatus.Error)
                 {
@@ -146,7 +148,7 @@ internal static partial class ServiceRunner
         else
             CreateSystemConfigurationStarted(s_logger);
 
-        var getJsonConfigResult = await s_configurationService.GetConfigurationFromJson(CancellationToken.None);
+        var getJsonConfigResult = await s_configurationService.GetConfigurationOnDeviceStartup(CancellationToken.None);
 
         if (getJsonConfigResult.Status == OperationStatus.Error)
             ResultReturnedError(s_logger, getJsonConfigResult.Message);
