@@ -31,11 +31,26 @@ internal sealed class SystemConfigurationPersistence(
                 new V1ToV2SystemConfigurationMigration()
             ]);
 
+    public void DeleteDefectiveMarkedUserConfiguration()
+        => _fileSystem.File.Delete(AppPaths.DefectiveSystemConfigurationFilePath);
+
+    public bool ExistsDefectivePreparationConfiguration()
+        => _fileSystem.File.Exists(AppPaths.DefectiveDefaultSystemConfigurationFilePath);
+
+    public bool ExistsDefectiveUserConfiguration()
+        => _fileSystem.File.Exists(AppPaths.DefectiveSystemConfigurationFilePath);
+
     public bool ExistsPreparationConfiguration()
         => _fileSystem.File.Exists(AppPaths.DefaultSystemConfigurationFilePath);
 
     public bool ExistsUserConfiguration()
         => _fileSystem.File.Exists(AppPaths.SystemConfigurationFilePath);
+
+    public string GetDefectivePreparationConfigurationPath()
+        => AppPaths.DefectiveDefaultSystemConfigurationFilePath;
+
+    public string GetDefectiveUserConfigurationPath()
+        => AppPaths.DefectiveSystemConfigurationFilePath;
 
     public string GetPreparationConfigurationPath()
         => AppPaths.DefaultSystemConfigurationFilePath;
@@ -48,6 +63,22 @@ internal sealed class SystemConfigurationPersistence(
 
     public Task<SystemConfiguration> LoadUserConfiguration(CancellationToken cancellationToken)
         => LoadSystemConfiguration(AppPaths.SystemConfigurationFilePath, cancellationToken);
+
+    public void MarkPreparationConfigurationDefective()
+    {
+        _fileSystem.File.Move(
+            AppPaths.DefaultSystemConfigurationFilePath,
+            AppPaths.DefectiveDefaultSystemConfigurationFilePath,
+            overwrite: true);
+    }
+
+    public void MarkUserConfigurationDefective()
+    {
+        _fileSystem.File.Move(
+            AppPaths.SystemConfigurationFilePath,
+            AppPaths.DefectiveSystemConfigurationFilePath,
+            overwrite: true);
+    }
 
     public async Task SaveUserConfiguration(SystemConfiguration systemConfiguration, CancellationToken cancellationToken)
     {
@@ -95,28 +126,39 @@ internal sealed class SystemConfigurationPersistence(
         string configurationFilePath,
         CancellationToken cancellationToken = default)
     {
-        await using var stream = _fileSystem.FileStream.New(configurationFilePath, new FileStreamOptions()
+        try
         {
-            Access = FileAccess.Read,
-            Mode = FileMode.Open,
-            Options = FileOptions.Asynchronous | FileOptions.SequentialScan,
-            Share = FileShare.Read,
-        });
+            await using var stream = _fileSystem.FileStream.New(configurationFilePath, new FileStreamOptions()
+            {
+                Access = FileAccess.Read,
+                Mode = FileMode.Open,
+                Options = FileOptions.Asynchronous | FileOptions.SequentialScan,
+                Share = FileShare.Read,
+            });
 
-        using var document = await JsonDocument
-            .ParseAsync(stream, cancellationToken: cancellationToken)
-            .ConfigureAwait(false);
+            using var document = await JsonDocument
+                .ParseAsync(stream, cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
 
-        var sourceVersion = ReadVersion(document.RootElement);
+            var sourceVersion = ReadVersion(document.RootElement);
 
-        if (!_contractDeserializers.TryGetDeserializer(sourceVersion, out var deserializer))
-        {
-            throw new NotSupportedException(
-                $"System configuration contract version '{sourceVersion}' is not supported.");
+            if (!_contractDeserializers.TryGetDeserializer(sourceVersion, out var deserializer))
+            {
+                throw new NotSupportedException(
+                    $"System configuration contract version '{sourceVersion}' is not supported.");
+            }
+
+            var sourceConfiguration = deserializer.Deserialize(document.RootElement);
+
+            return _migrationService.Migrate(sourceConfiguration);
         }
+        catch (JsonException ex)
+        {
+            // Invalid JSON syntax or defective file
 
-        var sourceConfiguration = deserializer.Deserialize(document.RootElement);
-
-        return _migrationService.Migrate(sourceConfiguration);
+            throw new InvalidSystemConfigurationException(
+                $"UTF-8 JSON stream could not be deserialized to '{nameof(SystemConfiguration)}'.",
+                ex);
+        }
     }
 }

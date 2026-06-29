@@ -193,11 +193,92 @@ public class SystemConfigurationServiceTests
             // Assert
             AssertFoundNoUserConfigLogReceived(context);
             AssertFoundNoPreparationConfigLogReceived(context);
+            AssertGetJsonConfigNotPossibleLogReceived(context);
 
+            result.Status.Should().Be(OperationStatus.Warning);
+            result.Configuration.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task ShouldMarkUserConfigurationDefective_WhenLoadingUserConfigurationFails()
+        {
+            // Arrange
+            var context = new SystemConfigurationServiceContext();
+            context.Persistence.ExistsUserConfiguration().Returns(true);
+            context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
+            context.Persistence
+                .LoadUserConfiguration(Arg.Any<CancellationToken>())
+                .ThrowsAsyncForAnyArgs(new InvalidSystemConfigurationException(TestExceptionMessage));
+
+            // Act
+            var result = await context.Sut.GetConfigurationOnDeviceStartup(CancellationToken.None);
+
+            // Assert
+            context.Persistence.Received(1).MarkUserConfigurationDefective();
+
+            AssertFoundExistingUserConfigLogReceived(context);
+            AssertGetUserConfigFailedLogReceived(context);
+            AssertMarkedUserConfigDefectiveLogReceived(context);
+
+            result.Status.Should().Be(OperationStatus.Warning);
+            result.Configuration.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task ShouldMarkPreparationConfigurationDefective_WhenLoadingPreparationConfigurationFails()
+        {
+            // Arrange
+            var context = new SystemConfigurationServiceContext();
+            context.Persistence.ExistsUserConfiguration().Returns(false);
+            context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
+            context.Persistence.ExistsDefectiveUserConfiguration().Returns(false);
+
+            context.Persistence.ExistsPreparationConfiguration().Returns(true);
+            context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
+            context.Persistence
+                .LoadPreparationConfiguration(Arg.Any<CancellationToken>())
+                .ThrowsAsyncForAnyArgs(new InvalidSystemConfigurationException(TestExceptionMessage));
+
+            // Act
+            var result = await context.Sut.GetConfigurationOnDeviceStartup(CancellationToken.None);
+
+            // Assert
+            AssertFoundNoUserConfigLogReceived(context);
+            AssertFoundExistingPreparationConfigLogReceived(context);
+            AssertGetPreparationConfigFailedLogReceived(context);
+            AssertMarkedPreparationConfigDefectiveLogReceived(context);
+
+            context.Persistence.Received(1).MarkPreparationConfigurationDefective();
+
+            result.Status.Should().Be(OperationStatus.Warning);
+            result.Configuration.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task ShouldReturnWarning_WhenPreparationConfigurationAndDefectiveUserConfigurationExists()
+        {
+            // Arrange
+            var context = new SystemConfigurationServiceContext();
+            context.Persistence.ExistsUserConfiguration().Returns(false);
+            context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
+            context.Persistence.ExistsDefectiveUserConfiguration().Returns(true);
+            context.Persistence.GetDefectiveUserConfigurationPath().Returns(AppPaths.DefectiveSystemConfigurationFilePath);
+
+            context.Persistence.ExistsPreparationConfiguration().Returns(true);
+            context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
+            context.Persistence.ExistsDefectivePreparationConfiguration().Returns(false);
+
+            // Act
+            var result = await context.Sut.GetConfigurationOnDeviceStartup(CancellationToken.None);
+
+            // Assert
             AssertLogReceived(
                 context.Logger,
                 LogLevel.Warning,
-                "Get system configuration from JSON not possible.");
+                $"Found only defective system configuration '{AppPaths.DefectiveSystemConfigurationFilePath}'.");
+
+            AssertFoundExistingPreparationConfigLogReceived(context);
+            AssertGetJsonConfigNotPossibleLogReceived(context);
 
             result.Status.Should().Be(OperationStatus.Warning);
             result.Configuration.Should().BeNull();
@@ -239,7 +320,7 @@ public class SystemConfigurationServiceTests
             context.Persistence.ExistsUserConfiguration().Returns(true);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
             context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>())
-                .ThrowsAsyncForAnyArgs(new InvalidOperationException(TestExceptionMessage));
+                .ThrowsAsyncForAnyArgs(new InvalidSystemConfigurationException(TestExceptionMessage));
 
             // Act
             var result = await context.Sut.GetConfigurationOnDeviceStartup(CancellationToken.None);
@@ -331,6 +412,62 @@ public class SystemConfigurationServiceTests
         }
 
         [Fact]
+        public async Task ShouldMarkUserConfigurationDefective_WhenLoadingUserConfigurationFails()
+        {
+            // Arrange
+            var context = new SystemConfigurationServiceContext();
+            context.Persistence.ExistsUserConfiguration().Returns(true);
+            context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
+            context.Persistence
+                .LoadUserConfiguration(Arg.Any<CancellationToken>())
+                .ThrowsAsyncForAnyArgs(new InvalidSystemConfigurationException(TestExceptionMessage));
+
+            // Act
+            var status = await context.Sut.PrepareConfigurationOnDeviceStartup(CancellationToken.None);
+
+            // Assert
+            context.Persistence.Received(1).MarkUserConfigurationDefective();
+
+            AssertFoundExistingUserConfigLogReceived(context);
+            AssertGetUserConfigFailedLogReceived(context);
+            AssertMarkedUserConfigDefectiveLogReceived(context);
+            AssertPrepareUserConfigFailedLogReceived(context);
+
+            status.Should().Be(OperationStatus.Warning);
+        }
+
+        [Fact]
+        public async Task ShouldMarkPreparationConfigurationDefective_WhenLoadingPreparationConfigurationFails()
+        {
+            // Arrange
+            var context = new SystemConfigurationServiceContext();
+            context.Persistence.ExistsUserConfiguration().Returns(false);
+            context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
+            context.Persistence.ExistsDefectiveUserConfiguration().Returns(false);
+
+            context.Persistence.ExistsPreparationConfiguration().Returns(true);
+            context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
+            context.Persistence
+                .LoadPreparationConfiguration(Arg.Any<CancellationToken>())
+                .ThrowsAsyncForAnyArgs(new InvalidSystemConfigurationException(TestExceptionMessage));
+
+            // Act
+            var result = await context.Sut.GetConfigurationOnDeviceStartup(CancellationToken.None);
+
+            // Assert
+            AssertFoundNoUserConfigLogReceived(context);
+            AssertFoundExistingPreparationConfigLogReceived(context);
+            AssertGetPreparationConfigFailedLogReceived(context);
+            AssertMarkedPreparationConfigDefectiveLogReceived(context);
+
+            context.Persistence.Received(1).MarkPreparationConfigurationDefective();
+
+            result.Status.Should().Be(OperationStatus.Warning);
+            result.Configuration.Should().BeNull();
+        }
+
+
+        [Fact]
         public async Task ShouldReturnWarning_WhenGetConfigurationFromJsonReturnsWarning()
         {
             // Arrange
@@ -338,7 +475,7 @@ public class SystemConfigurationServiceTests
             context.Persistence.ExistsUserConfiguration().Returns(true);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
             context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>())
-                .ThrowsAsync(new InvalidOperationException(TestExceptionMessage));
+                .ThrowsAsync(new InvalidSystemConfigurationException(TestExceptionMessage));
 
             context.Persistence.ExistsPreparationConfiguration().Returns(true);
             context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
@@ -890,8 +1027,20 @@ public class SystemConfigurationServiceTests
         }
     }
 
+    private static void AssertGetJsonConfigNotPossibleLogReceived(SystemConfigurationServiceContext context)
+        => AssertLogReceived(
+            context.Logger,
+            LogLevel.Warning,
+            "Get system configuration from JSON not possible.");
+
+    private static void AssertGetPreparationConfigFailedLogReceived(SystemConfigurationServiceContext context)
+        => AssertLogReceived<InvalidSystemConfigurationException>(
+            context.Logger,
+            LogLevel.Warning,
+            $"Get system configuration '{AppPaths.DefaultSystemConfigurationFilePath}' failed.");
+
     private static void AssertGetUserConfigFailedLogReceived(SystemConfigurationServiceContext context)
-        => AssertLogReceived<InvalidOperationException>(
+        => AssertLogReceived<InvalidSystemConfigurationException>(
             context.Logger,
             LogLevel.Warning,
             $"Get system configuration '{AppPaths.SystemConfigurationFilePath}' failed.");
@@ -931,6 +1080,18 @@ public class SystemConfigurationServiceTests
             context.Logger,
             LogLevel.Warning,
             $"Found no system configuration '{AppPaths.SystemConfigurationFilePath}'.");
+
+    private static void AssertMarkedPreparationConfigDefectiveLogReceived(SystemConfigurationServiceContext context)
+        => AssertLogReceived(
+            context.Logger,
+            LogLevel.Warning,
+            $"Marked system configuration '{AppPaths.DefaultSystemConfigurationFilePath}' defective.");
+
+    private static void AssertMarkedUserConfigDefectiveLogReceived(SystemConfigurationServiceContext context)
+        => AssertLogReceived(
+            context.Logger,
+            LogLevel.Warning,
+            $"Marked system configuration '{AppPaths.SystemConfigurationFilePath}' defective.");
 
     private static void AssertPrepareConfigAtBootTimeLogReceived(SystemConfigurationServiceContext context)
         => AssertLogReceived(

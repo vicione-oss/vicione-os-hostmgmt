@@ -8,6 +8,27 @@ namespace HostManagement.SystemConfig;
 internal interface IPersistence
 {
     /// <summary>
+    /// Deletes the previously marked defective user-defined configuration.
+    /// </summary>
+    void DeleteDefectiveMarkedUserConfiguration();
+
+    /// <summary>
+    /// Checks whether a defective preparation configuration exists.
+    /// </summary>
+    /// <returns>
+    /// <see langword="true"/> if a defective preparation configuration exists, otherwise <see langword="false"/>.
+    /// </returns>
+    bool ExistsDefectivePreparationConfiguration();
+
+    /// <summary>
+    /// Checks whether a defective user-defined configuration exists.
+    /// </summary>
+    /// <returns>
+    /// <see langword="true"/> if a defective user-defined configuration exists, otherwise <see langword="false"/>.
+    /// </returns>
+    bool ExistsDefectiveUserConfiguration();
+
+    /// <summary>
     /// Checks whether the preparation configuration exists.
     /// </summary>
     /// <returns>
@@ -22,6 +43,18 @@ internal interface IPersistence
     /// <see langword="true"/> if the user-defined configuration exists, otherwise <see langword="false"/>.
     /// </returns>
     bool ExistsUserConfiguration();
+
+    /// <summary>
+    /// Gets the file path of the defective preparation configuration.
+    /// </summary>
+    /// <returns>The file path of the defective preparation configuration.</returns>
+    string GetDefectivePreparationConfigurationPath();
+
+    /// <summary>
+    /// Gets the file path of the defective user-defined configuration.
+    /// </summary>
+    /// <returns>The file path of the defective user-defined configuration.</returns>
+    string GetDefectiveUserConfigurationPath();
 
     /// <summary>
     /// Gets the file path of the preparation configuration.
@@ -48,6 +81,16 @@ internal interface IPersistence
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The user-defined configuration.</returns>
     Task<SystemConfiguration> LoadUserConfiguration(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Marks the preparation configuration as defective.
+    /// </summary>
+    void MarkPreparationConfigurationDefective();
+
+    /// <summary>
+    /// Marks the user-defined configuration as defective.
+    /// </summary>
+    void MarkUserConfigurationDefective();
 
     /// <summary>
     /// Saves the user-defined configuration.

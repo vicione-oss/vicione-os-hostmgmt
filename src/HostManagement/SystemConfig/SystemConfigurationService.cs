@@ -345,17 +345,32 @@ internal sealed partial class SystemConfigurationService(
         }
         else
         {
-            FoundNoSystemConfiguration(_logger, _persistence.GetUserConfigurationPath());
+            if (_persistence.ExistsDefectiveUserConfiguration())
+                FoundOnlyDefectiveSystemConfiguration(_logger, _persistence.GetDefectiveUserConfigurationPath());
+            else
+                FoundNoSystemConfiguration(_logger, _persistence.GetUserConfigurationPath());
         }
 
         if (_persistence.ExistsPreparationConfiguration())
         {
             FoundExistingSystemConfiguration(_logger, _persistence.GetPreparationConfigurationPath());
+
+            if (_persistence.ExistsDefectiveUserConfiguration())
+            {
+                // Only use 'DefaultSystemConfiguration.json' if
+                // no 'SystemConfiguration.json' and 'SystemConfiguration.json.defective' exist.
+                // Otherwise a previously applied config would be overwritten with defaults!
+                return JsonConfigurationType.None;
+            }
+
             return JsonConfigurationType.Default;
         }
         else
         {
-            FoundNoSystemConfiguration(_logger, _persistence.GetPreparationConfigurationPath());
+            if (_persistence.ExistsDefectivePreparationConfiguration())
+                FoundOnlyDefectiveSystemConfiguration(_logger, _persistence.GetDefectivePreparationConfigurationPath());
+            else
+                FoundNoSystemConfiguration(_logger, _persistence.GetPreparationConfigurationPath());
         }
 
         return JsonConfigurationType.None;
@@ -446,6 +461,12 @@ internal sealed partial class SystemConfigurationService(
         catch (OperationCanceledException)
         {
             GetSystemConfigurationFromJsonCanceled(_logger, jsonConfigPath);
+            return (OperationStatus.Warning, null);
+        }
+        catch (InvalidSystemConfigurationException ex)
+        {
+            GetSystemConfigurationFromJsonFailed(_logger, jsonConfigPath, ex);
+            HandleDefectiveJsonConfiguration(jsonConfigType, jsonConfigPath);
             return (OperationStatus.Warning, null);
         }
         catch (Exception ex)
@@ -552,6 +573,23 @@ internal sealed partial class SystemConfigurationService(
             JsonConfigurationType.System => _persistence.LoadUserConfiguration(cancellationToken),
             _ => throw new ArgumentOutOfRangeException(nameof(jsonConfigType), jsonConfigType, null)
         };
+    }
+
+    private void HandleDefectiveJsonConfiguration(JsonConfigurationType jsonConfigType, string jsonConfigPath)
+    {
+        if (jsonConfigType == JsonConfigurationType.System)
+        {
+            _persistence.MarkUserConfigurationDefective();
+            MarkedSystemConfigurationDefective(_logger, jsonConfigPath);
+            return;
+        }
+
+        if (jsonConfigType == JsonConfigurationType.Default)
+        {
+            _persistence.MarkPreparationConfigurationDefective();
+            MarkedSystemConfigurationDefective(_logger, jsonConfigPath);
+            return;
+        }
     }
 
     private async Task<GetSystemConfigurationResult> GetConfigurationFromScripts(
@@ -665,6 +703,9 @@ internal sealed partial class SystemConfigurationService(
                 .SaveUserConfiguration(configuration.ToInternalContracts(), cancellationToken)
                 .ConfigureAwait(false);
 
+            if (_persistence.ExistsDefectiveUserConfiguration())
+                _persistence.DeleteDefectiveMarkedUserConfiguration();
+
             return result;
         }
         catch (Exception ex)
@@ -718,6 +759,9 @@ internal sealed partial class SystemConfigurationService(
     [LoggerMessage(LogLevel.Warning, "Found no system configuration '{Path}'.")]
     private static partial void FoundNoSystemConfiguration(ILogger logger, string? path);
 
+    [LoggerMessage(LogLevel.Warning, "Found only defective system configuration '{Path}'.")]
+    private static partial void FoundOnlyDefectiveSystemConfiguration(ILogger logger, string? path);
+
     [LoggerMessage(LogLevel.Warning, "Get system configuration '{Path}' canceled.")]
     private static partial void GetSystemConfigurationFromJsonCanceled(ILogger logger, string? path);
 
@@ -729,6 +773,9 @@ internal sealed partial class SystemConfigurationService(
 
     [LoggerMessage(LogLevel.Information, "Get system configuration '{path}' succeeded.")]
     private static partial void GetSystemConfigurationFromJsonSucceeded(ILogger logger, string? path);
+
+    [LoggerMessage(LogLevel.Warning, "Marked system configuration '{Path}' defective.")]
+    private static partial void MarkedSystemConfigurationDefective(ILogger logger, string? path);
 
     [LoggerMessage(LogLevel.Warning, "Prepare system configuration '{Path}' completed with warnings. {Message}")]
     private static partial void PrepareConfigurationCompletedWithMessage(ILogger logger, string? path, string? message);
