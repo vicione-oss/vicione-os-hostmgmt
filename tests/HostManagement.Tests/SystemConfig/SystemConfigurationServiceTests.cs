@@ -479,11 +479,15 @@ public class SystemConfigurationServiceTests
 
     public sealed class SetConfiguration : SystemConfigurationServiceTests
     {
-        private const string RevertConfig = "Revert system configuration";
+        private const string RevertConfigSucceeded =
+            "Revert system configuration succeeded, after setting system configuration failed.";
+        private const string SetConfigCompletedWithWarnings = "Set system configuration completed with warnings.";
+        private const string SetConfigFailed = "Set system configuration failed.";
 
         [Fact]
         public async Task ShouldReturnErrorResult_WhenGetConfigurationFails()
         {
+            // Arrange
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesScript()
@@ -491,11 +495,20 @@ public class SystemConfigurationServiceTests
 
             var proposedConfig = CreateSharedConfig();
 
-            var result = await context.Sut
-                .SetConfiguration(proposedConfig, shouldPersistConfiguration: true, CancellationToken.None);
+            // Act
+            var result = await context.Sut.SetConfiguration(
+                proposedConfig,
+                shouldPersistConfiguration: true,
+                CancellationToken.None);
+
+            // Assert
+            AssertLogReceived(
+                context.Logger,
+                LogLevel.Error,
+                SetConfigFailed);
 
             result.Status.Should().Be(OperationStatus.Error);
-            result.Message.Should().Contain(TestExceptionMessage);
+            result.Message.Should().ContainAll(SetConfigFailed, TestExceptionMessage);
         }
 
         [Fact]
@@ -504,6 +517,7 @@ public class SystemConfigurationServiceTests
             // Reset cache, so config is read again via scripts
             SystemConfigurationCache.Instance.ResetForTests();
 
+            // Arrange
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesScript()
@@ -511,64 +525,102 @@ public class SystemConfigurationServiceTests
 
             var proposedConfig = CreateSharedConfig();
 
-            var result = await context.Sut
-                .SetConfiguration(proposedConfig, shouldPersistConfiguration: true, CancellationToken.None);
+            // Act
+            var result = await context.Sut.SetConfiguration(
+                proposedConfig,
+                shouldPersistConfiguration: true,
+                CancellationToken.None);
+
+            // Assert
+            AssertSetConfigFailedWithMessageLogReceived(context, GetConfigFromScriptsFailed);
 
             result.Status.Should().Be(OperationStatus.Error);
-            result.Message.Should().Contain(GetConfigFromScriptsFailed);
+            result.Message.Should().Contain(SetConfigFailed + Environment.NewLine + GetConfigFromScriptsFailed);
         }
 
         [Fact]
         public async Task ShouldReturnWarningResult_WhenGetConfigurationReturnsWarning()
         {
+            // Arrange
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
                 .ReturnsForAnyArgs((OperationStatus.Warning, []));
 
             var proposedConfig = CreateSharedConfig();
+            var expectedMessage = SetConfigCompletedWithWarnings + Environment.NewLine + GetConfigFromScriptsWarning;
 
-            var result = await context.Sut
-                .SetConfiguration(proposedConfig, shouldPersistConfiguration: true, CancellationToken.None);
+            // Act
+            var result = await context.Sut.SetConfiguration(
+                proposedConfig,
+                shouldPersistConfiguration: true,
+                CancellationToken.None);
+
+            // Assert
+            AssertLogReceived(
+                context.Logger,
+                LogLevel.Warning,
+                expectedMessage);
 
             result.Status.Should().Be(OperationStatus.Warning);
-            result.Message.Should().Contain(GetConfigFromScriptsWarning);
+            result.Message.Should().Contain(expectedMessage);
         }
 
         [Fact]
         public async Task ShouldReturnErrorResult_WhenValidationFails()
         {
+            // Arrange
             var context = new SystemConfigurationServiceContext();
             var proposedConfig = CreateSharedConfig();
             proposedConfig.NetworkInterfacesSettings.NetworkInterfaces.Clear();
 
-            var result = await context.Sut
-                .SetConfiguration(proposedConfig, shouldPersistConfiguration: true, CancellationToken.None);
+            var message = "ValidationFailed: No network interfaces specified.";
+
+            // Act
+            var result = await context.Sut.SetConfiguration(
+                proposedConfig,
+                shouldPersistConfiguration: true,
+                CancellationToken.None);
+
+            // Assert
+            AssertSetConfigFailedWithMessageLogReceived(context, message);
 
             result.Status.Should().Be(OperationStatus.Error);
-            result.Message.Should().Contain("No network interfaces specified.");
+            result.Message.Should().Contain(SetConfigFailed + Environment.NewLine + message);
         }
 
         [Fact]
         public async Task ShouldReturnSuccessResult_WhenSetConfigurationSucceeds()
         {
+            // Arrange
             var context = new SystemConfigurationServiceContext();
             context.Persistence
                 .SaveUserConfiguration(default!, Arg.Any<CancellationToken>())
                 .ReturnsForAnyArgs(Task.CompletedTask);
 
             var proposedConfig = CreateSharedConfig();
+            var expectedMessage = "Set system configuration succeeded.";
 
-            var result = await context.Sut
-                .SetConfiguration(proposedConfig, shouldPersistConfiguration: true, CancellationToken.None);
+            // Act
+            var result = await context.Sut.SetConfiguration(
+                proposedConfig,
+                shouldPersistConfiguration: true,
+                CancellationToken.None);
+
+            // Assert
+            AssertLogReceived(
+                context.Logger,
+                LogLevel.Information,
+                expectedMessage);
 
             result.Status.Should().Be(OperationStatus.Success);
-            result.Message.Should().NotBeEmpty();
+            result.Message.Should().Contain(expectedMessage);
         }
 
         [Fact]
         public async Task ShouldPersistConfiguration_WhenShouldPersistIsTrue()
         {
+            // Arrange
             var context = new SystemConfigurationServiceContext();
             context.Persistence
                 .SaveUserConfiguration(default!, Arg.Any<CancellationToken>())
@@ -576,9 +628,13 @@ public class SystemConfigurationServiceTests
 
             var proposedConfig = CreateSharedConfig();
 
-            await context.Sut
-                .SetConfiguration(proposedConfig, shouldPersistConfiguration: true, CancellationToken.None);
+            // Act
+            await context.Sut.SetConfiguration(
+                proposedConfig,
+                shouldPersistConfiguration: true,
+                CancellationToken.None);
 
+            // Assert
             await context.Persistence.Received(1).SaveUserConfiguration(
                 Arg.Any<InternalSystemConfiguration>(),
                 Arg.Any<CancellationToken>());
@@ -587,12 +643,17 @@ public class SystemConfigurationServiceTests
         [Fact]
         public async Task ShouldNotPersistConfiguration_WhenShouldPersistIsFalse()
         {
+            // Arrange
             var context = new SystemConfigurationServiceContext();
             var proposedConfig = CreateSharedConfig();
 
-            await context.Sut
-                .SetConfiguration(proposedConfig, shouldPersistConfiguration: false, CancellationToken.None);
+            // Act
+            await context.Sut.SetConfiguration(
+                proposedConfig,
+                shouldPersistConfiguration: false,
+                CancellationToken.None);
 
+            // Assert
             await context.Persistence.DidNotReceive().SaveUserConfiguration(
                 Arg.Any<InternalSystemConfiguration>(),
                 Arg.Any<CancellationToken>());
@@ -601,23 +662,32 @@ public class SystemConfigurationServiceTests
         [Fact]
         public async Task ShouldReturnErrorResult_WhenPersistenceFails()
         {
+            // Arrange
             var context = new SystemConfigurationServiceContext();
             context.Persistence
                 .SaveUserConfiguration(default!, Arg.Any<CancellationToken>())
                 .ThrowsAsyncForAnyArgs(new InvalidOperationException(TestExceptionMessage));
 
             var proposedConfig = CreateSharedConfig();
+            var message = "Could not persist system configuration";
 
-            var result = await context.Sut
-                .SetConfiguration(proposedConfig, shouldPersistConfiguration: true, CancellationToken.None);
+            // Act
+            var result = await context.Sut.SetConfiguration(
+                proposedConfig,
+                shouldPersistConfiguration: true,
+                CancellationToken.None);
+
+            // Assert
+            AssertSetConfigFailedWithMessageLogReceived(context, message);
 
             result.Status.Should().Be(OperationStatus.Error);
-            result.Message.Should().Contain(TestExceptionMessage);
+            result.Message.Should().ContainAll(SetConfigFailed + Environment.NewLine + message, TestExceptionMessage);
         }
 
         [Fact]
         public async Task ShouldRevertConfiguration_WhenSetConfigurationFails()
         {
+            // Arrange
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>())
@@ -627,56 +697,91 @@ public class SystemConfigurationServiceTests
 
             var proposedConfig = CreateSharedConfig();
 
-            var result = await context.Sut
-                .SetConfiguration(proposedConfig, shouldPersistConfiguration: true, CancellationToken.None);
+            // Act
+            var result = await context.Sut.SetConfiguration(
+                proposedConfig,
+                shouldPersistConfiguration: true,
+                CancellationToken.None);
+
+            // Assert
+            AssertLogReceived(
+                context.Logger,
+                LogLevel.Error,
+                RevertConfigSucceeded);
 
             result.Status.Should().Be(OperationStatus.Error);
-            result.Message.Should().Contain(TestExceptionMessage).And.Contain(RevertConfig);
+            result.Message.Should().ContainAll(RevertConfigSucceeded, TestExceptionMessage);
         }
 
         [Fact]
         public async Task ShouldRevertConfiguration_WhenSetConfigurationReturnsError()
         {
+            // Arrange
             var context = new SystemConfigurationServiceContext();
+
+            // Return error when 'SetConfiguration' is called; return success on 'RevertConfiguration' later
             context.ScriptHandler
                 .ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>())
-                .ReturnsForAnyArgs(OperationStatus.Error);
+                .ReturnsForAnyArgs(OperationStatus.Error, OperationStatus.Success);
 
             var proposedConfig = CreateSharedConfig();
 
-            var result = await context.Sut
-                .SetConfiguration(proposedConfig, shouldPersistConfiguration: true, CancellationToken.None);
+            // Act
+            var result = await context.Sut.SetConfiguration(
+                proposedConfig,
+                shouldPersistConfiguration: true,
+                CancellationToken.None);
+
+            // Assert
+            AssertLogReceived(
+                context.Logger,
+                LogLevel.Error,
+                RevertConfigSucceeded);
 
             result.Status.Should().Be(OperationStatus.Error);
-            result.Message.Should().Contain(RevertConfig).And.Contain("setting system configuration failed");
+            result.Message.Should().Contain(RevertConfigSucceeded);
         }
 
         [Fact]
         public async Task ShouldReturnWarningResult_WhenSetConfigurationReturnsWarning()
         {
+            // Arrange
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
                 .ReturnsForAnyArgs((OperationStatus.Warning, []));
 
             var proposedConfig = CreateSharedConfig();
+            var expectedMessage = SetConfigCompletedWithWarnings + Environment.NewLine + GetConfigFromScriptsWarning;
 
-            var result = await context.Sut
-                .SetConfiguration(proposedConfig, shouldPersistConfiguration: true, CancellationToken.None);
+            // Act
+            var result = await context.Sut.SetConfiguration(
+                proposedConfig,
+                shouldPersistConfiguration: true,
+                CancellationToken.None);
+
+            // Assert
+            AssertLogReceived(
+                context.Logger,
+                LogLevel.Warning,
+                expectedMessage);
 
             result.Status.Should().Be(OperationStatus.Warning);
-            result.Message.Should().Contain("completed with warnings");
+            result.Message.Should().Contain(expectedMessage);
         }
 
         [Fact]
         public async Task ShouldPassCancellationToken()
         {
+            // Arrange
             var context = new SystemConfigurationServiceContext();
             var proposedConfig = CreateSharedConfig();
             using var cts = new CancellationTokenSource();
 
+            // Act
             await context.Sut.SetConfiguration(proposedConfig, true, cts.Token);
 
+            // Assert
             await context.Persistence.Received(1).SaveUserConfiguration(
                 Arg.Any<InternalSystemConfiguration>(),
                 cts.Token);
@@ -844,6 +949,14 @@ public class SystemConfigurationServiceTests
             context.Logger,
             LogLevel.Error,
             $"Prepare system configuration '{AppPaths.SystemConfigurationFilePath}' failed.");
+
+    private static void AssertSetConfigFailedWithMessageLogReceived(
+        SystemConfigurationServiceContext context,
+        string message)
+            => AssertLogReceived(
+                context.Logger,
+                LogLevel.Error,
+                $"Set system configuration failed.{Environment.NewLine}{message}");
 
 #pragma warning disable CA1873 // Avoid potentially expensive logging
     private static void AssertLogReceived(

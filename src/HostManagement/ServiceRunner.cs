@@ -109,7 +109,11 @@ internal static partial class ServiceRunner
 
                 if (configResult.Configuration is SystemConfiguration jsonConfig)
                 {
-                    if (!await SetJsonConfigurationOnDeviceStartup(jsonConfig, lifetime.Token))
+                    var status = await s_configurationService
+                        .SetConfigurationOnDeviceStartup(jsonConfig, lifetime.Token)
+                        .ConfigureAwait(false);
+
+                    if (status == OperationStatus.Error)
                         return 1;
                 }
             }
@@ -122,28 +126,6 @@ internal static partial class ServiceRunner
             ServiceErrorOccurredWhileRunning(s_logger, ex);
             return 1;
         }
-    }
-
-    private static async Task<bool> SetJsonConfigurationOnDeviceStartup(
-        SystemConfiguration jsonConfig,
-        CancellationToken cancellationToken)
-    {
-        var setConfigResult = await s_configurationService
-            .SetConfiguration(jsonConfig, shouldPersistConfiguration: false, cancellationToken);
-
-        if (setConfigResult.Status == OperationStatus.Error)
-        {
-            ResultReturnedError(s_logger, setConfigResult.Message);
-            return false;
-        }
-
-        if (setConfigResult.Status == OperationStatus.Warning)
-            ResultReturnedWarning(s_logger, setConfigResult.Message);
-
-        if (setConfigResult.Status == OperationStatus.Success)
-            ResultReturnedSuccess(s_logger, setConfigResult.Message);
-
-        return true;
     }
 
     private static async Task StartNamedPipeServer(CancellationToken cancellationToken)
@@ -311,15 +293,6 @@ internal static partial class ServiceRunner
 
     [LoggerMessage(LogLevel.Error, "The following environment variables were not specified or are invalid: {EnvironmentVariables}")]
     private static partial void EnvironmentVariablesInvalid(ILogger logger, string? environmentVariables);
-
-    [LoggerMessage(LogLevel.Error, "{Message}")]
-    private static partial void ResultReturnedError(ILogger logger, string? message);
-
-    [LoggerMessage(LogLevel.Warning, "{Message}")]
-    private static partial void ResultReturnedWarning(ILogger logger, string? message);
-
-    [LoggerMessage(LogLevel.Information, "{Message}")]
-    private static partial void ResultReturnedSuccess(ILogger logger, string? message);
 
     [LoggerMessage(LogLevel.Error, "An error occurred while starting the service. The service is already running.")]
     private static partial void ServiceAlreadyRunning(ILogger logger);

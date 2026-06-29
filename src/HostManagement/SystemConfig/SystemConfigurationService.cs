@@ -79,6 +79,22 @@ internal sealed partial class SystemConfigurationService(
     }
 
     /// <summary>
+    /// Sets a previously prepared system configuration to the system.
+    /// </summary>
+    /// <param name="jsonConfig">The JSON config used during prepare.</param>
+    /// <param name="cancellationToken">A token to cancel the request.</param>
+    /// <returns><see cref="OperationStatus"/></returns>
+    public async Task<OperationStatus> SetConfigurationOnDeviceStartup(
+        SystemConfiguration jsonConfig,
+        CancellationToken cancellationToken)
+    {
+        var setConfigResult = await SetConfiguration(jsonConfig, shouldPersistConfiguration: false, cancellationToken)
+            .ConfigureAwait(false);
+
+        return setConfigResult.Status;
+    }
+
+    /// <summary>
     /// Gets the system configuration from the system.
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the request.</param>
@@ -129,23 +145,15 @@ internal sealed partial class SystemConfigurationService(
     {
         var configResult = await GetConfiguration(cancellationToken).ConfigureAwait(false);
 
-        if (configResult.Status == OperationStatus.Error)
+        if (configResult.Status == OperationStatus.Error ||
+            configResult.Configuration is null)
         {
             var message =
                 SystemConfigResources.SetConfigFailed +
                 Environment.NewLine +
                 configResult.Message;
 
-            return SetSystemConfigurationResult.CreateErrorResult(message);
-        }
-
-        if (configResult.Configuration is null)
-        {
-            var message =
-                SystemConfigResources.SetConfigFailed +
-                Environment.NewLine +
-                SystemConfigResources.ConfigWasNull;
-
+            SetConfigurationFailedWithMessage(_logger, message);
             return SetSystemConfigurationResult.CreateErrorResult(message);
         }
 
@@ -160,6 +168,7 @@ internal sealed partial class SystemConfigurationService(
                 Environment.NewLine +
                 validationResult.EntriesString;
 
+            SetConfigurationFailedWithMessage(_logger, message);
             return SetSystemConfigurationResult.CreateErrorResult(message);
         }
 
@@ -174,6 +183,7 @@ internal sealed partial class SystemConfigurationService(
                 Environment.NewLine +
                 internalValidationResult.EntriesString;
 
+            SetConfigurationFailedWithMessage(_logger, message);
             return SetSystemConfigurationResult.CreateErrorResult(message);
         }
 
@@ -453,11 +463,7 @@ internal sealed partial class SystemConfigurationService(
 
             if (operationStatus == OperationStatus.Error)
             {
-                return
-                    await RevertConfiguration(
-                        currentConfig,
-                        configurationResult.Messages,
-                        cancellationToken)
+                return await RevertConfiguration(currentConfig, configurationResult.Messages, cancellationToken)
                     .ConfigureAwait(false);
             }
 
@@ -483,18 +489,14 @@ internal sealed partial class SystemConfigurationService(
                         Environment.NewLine +
                         persistResult.Messages;
 
+                    SetConfigurationFailedWithMessage(_logger, message);
                     return SetSystemConfigurationResult.CreateErrorResult(message);
                 }
             }
         }
         catch (Exception ex)
         {
-            return
-                await RevertConfiguration(
-                    currentConfig,
-                    ex.Message,
-                    cancellationToken)
-                .ConfigureAwait(false);
+            return await RevertConfiguration(currentConfig, ex.Message, cancellationToken).ConfigureAwait(false);
         }
 
         if (currentWarningMessage is not null)
@@ -504,11 +506,12 @@ internal sealed partial class SystemConfigurationService(
                 Environment.NewLine +
                 currentWarningMessage;
 
+            SetConfigurationCompletedWithMessage(_logger, message);
             return SetSystemConfigurationResult.CreateWarningResult(message);
         }
 
-        return SetSystemConfigurationResult.CreateSuccessResult(
-            SystemConfigResources.SetConfigSucceeded);
+        SetConfigurationSucceeded(_logger, SystemConfigResources.SetConfigSucceeded);
+        return SetSystemConfigurationResult.CreateSuccessResult(SystemConfigResources.SetConfigSucceeded);
     }
 
     private string GetJsonConfigurationPath(JsonConfigurationType jsonConfigType)
@@ -687,6 +690,7 @@ internal sealed partial class SystemConfigurationService(
 
         var errorMessage = baseErrorMessage + Environment.NewLine + message;
 
+        SetConfigurationFailedWithMessage(_logger, errorMessage);
         return SetSystemConfigurationResult.CreateErrorResult(errorMessage);
     }
 
@@ -728,6 +732,15 @@ internal sealed partial class SystemConfigurationService(
 
     [LoggerMessage(LogLevel.Information, "Prepare system configuration '{Path}' succeeded.")]
     private static partial void PrepareConfigurationSucceeded(ILogger logger, string? path);
+
+    [LoggerMessage(LogLevel.Error, "{Message}")]
+    private static partial void SetConfigurationFailedWithMessage(ILogger logger, string message);
+
+    [LoggerMessage(LogLevel.Warning, "{Message}")]
+    private static partial void SetConfigurationCompletedWithMessage(ILogger logger, string message);
+
+    [LoggerMessage(LogLevel.Information, "{Message}")]
+    private static partial void SetConfigurationSucceeded(ILogger logger, string message);
 
     [LoggerMessage(LogLevel.Information, "{Message}")]
     private static partial void SystemConfigCached(ILogger logger, string? message);
