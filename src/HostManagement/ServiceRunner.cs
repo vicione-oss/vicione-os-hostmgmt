@@ -36,16 +36,13 @@ internal static partial class ServiceRunner
     /// '<c>DefaultSystemConfiguration.json</c>' to the system without applying them yet and
     /// creates a '<c>set-config.flag</c>' file if successful.
     /// </remarks>
-    /// <returns>Always returns 0 (graceful exit on error)</returns>
+    /// <returns>Always returns 0 (graceful exit on error), so service start does not fail.</returns>
     internal static async Task<int> PrepareConfiguration()
     {
         try
         {
             if (!TryInitializeService())
-            {
-                // gracefully exit application
                 return 0;
-            }
 
             if (EnvironmentVariables.Environment.Value is TargetEnvironment.EdgeSViciOne)
             {
@@ -57,11 +54,8 @@ internal static partial class ServiceRunner
                     .PrepareConfigurationOnDeviceStartup(CancellationToken.None)
                     .ConfigureAwait(false);
 
-                if (status == OperationStatus.Error)
-                {
-                    // gracefully exit application
+                if (status == OperationStatus.Warning)
                     return 0;
-                }
 
                 await CreateSetConfigFlag();
             }
@@ -71,8 +65,6 @@ internal static partial class ServiceRunner
         catch (Exception ex)
         {
             ServiceErrorOccurredWhileRunning(s_logger, ex);
-
-            // gracefully exit application
             return 0;
         }
     }
@@ -103,9 +95,6 @@ internal static partial class ServiceRunner
 
                 var configResult = await s_configurationService.GetConfigurationOnDeviceStartup(lifetime.Token)
                     .ConfigureAwait(false);
-
-                if (configResult.Status == OperationStatus.Error)
-                    lifetime.Cancel();
 
                 if (configResult.Configuration is SystemConfiguration jsonConfig)
                 {

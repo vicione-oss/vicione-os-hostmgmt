@@ -177,7 +177,7 @@ public class SystemConfigurationServiceTests
     public sealed class GetConfigurationOnDeviceStartup : SystemConfigurationServiceTests
     {
         [Fact]
-        public async Task ShouldReturnError_WhenNoJsonFilesExists()
+        public async Task ShouldReturnWarning_WhenNoJsonFilesExists()
         {
             // Arrange
             var context = new SystemConfigurationServiceContext();
@@ -196,10 +196,10 @@ public class SystemConfigurationServiceTests
 
             AssertLogReceived(
                 context.Logger,
-                LogLevel.Error,
+                LogLevel.Warning,
                 "Get system configuration from JSON not possible.");
 
-            result.Status.Should().Be(OperationStatus.Error);
+            result.Status.Should().Be(OperationStatus.Warning);
             result.Configuration.Should().BeNull();
         }
 
@@ -232,7 +232,7 @@ public class SystemConfigurationServiceTests
         }
 
         [Fact]
-        public async Task ShouldReturnError_WhenExceptionOccurs()
+        public async Task ShouldReturnWarning_WhenExceptionOccurs()
         {
             // Arrange
             var context = new SystemConfigurationServiceContext();
@@ -248,7 +248,7 @@ public class SystemConfigurationServiceTests
             AssertFoundExistingUserConfigLogReceived(context);
             AssertGetUserConfigFailedLogReceived(context);
 
-            result.Status.Should().Be(OperationStatus.Error);
+            result.Status.Should().Be(OperationStatus.Warning);
             result.Configuration.Should().BeNull();
         }
 
@@ -331,7 +331,7 @@ public class SystemConfigurationServiceTests
         }
 
         [Fact]
-        public async Task ShouldReturnError_WhenGetConfigurationFromJsonReturnsError()
+        public async Task ShouldReturnWarning_WhenGetConfigurationFromJsonReturnsWarning()
         {
             // Arrange
             var context = new SystemConfigurationServiceContext();
@@ -350,13 +350,13 @@ public class SystemConfigurationServiceTests
             AssertPrepareConfigAtBootTimeLogReceived(context);
             AssertFoundExistingUserConfigLogReceived(context);
             AssertGetUserConfigFailedLogReceived(context);
-            AssertPrepareUserConfigFailedLogReceived(context);
+            AssertPrepareUserConfigFailedWithExceptionLogReceived(context);
 
-            status.Should().Be(OperationStatus.Error);
+            status.Should().Be(OperationStatus.Warning);
         }
 
         [Fact]
-        public async Task ShouldReturnError_WhenExceptionOccurs()
+        public async Task ShouldReturnWarning_WhenExceptionOccurs()
         {
             // Arrange
             var context = new SystemConfigurationServiceContext();
@@ -383,11 +383,11 @@ public class SystemConfigurationServiceTests
             AssertGetUserConfigSucceededLogReceived(context);
             AssertPrepareUserConfigFailedWithExceptionLogReceived(context);
 
-            status.Should().Be(OperationStatus.Error);
+            status.Should().Be(OperationStatus.Warning);
         }
 
         [Fact]
-        public async Task ShouldReturnError_WhenAnyConfigurationAdapterReturnsError()
+        public async Task ShouldReturnWarning_WhenAnyConfigurationAdapterReturnsError()
         {
             // Arrange
             var context = new SystemConfigurationServiceContext();
@@ -414,7 +414,7 @@ public class SystemConfigurationServiceTests
             AssertGetUserConfigSucceededLogReceived(context);
             AssertPrepareUserConfigFailedLogReceived(context);
 
-            status.Should().Be(OperationStatus.Error);
+            status.Should().Be(OperationStatus.Warning);
         }
 
         [Fact]
@@ -893,7 +893,7 @@ public class SystemConfigurationServiceTests
     private static void AssertGetUserConfigFailedLogReceived(SystemConfigurationServiceContext context)
         => AssertLogReceived<InvalidOperationException>(
             context.Logger,
-            LogLevel.Error,
+            LogLevel.Warning,
             $"Get system configuration '{AppPaths.SystemConfigurationFilePath}' failed.");
 
     private static void AssertGetPreparationConfigSucceededLogReceived(SystemConfigurationServiceContext context)
@@ -941,13 +941,13 @@ public class SystemConfigurationServiceTests
     private static void AssertPrepareUserConfigFailedLogReceived(SystemConfigurationServiceContext context)
         => AssertLogReceived(
             context.Logger,
-            LogLevel.Error,
+            LogLevel.Warning,
             $"Prepare system configuration '{AppPaths.SystemConfigurationFilePath}' failed.");
 
     private static void AssertPrepareUserConfigFailedWithExceptionLogReceived(SystemConfigurationServiceContext context)
         => AssertLogReceived<InvalidOperationException>(
             context.Logger,
-            LogLevel.Error,
+            LogLevel.Warning,
             $"Prepare system configuration '{AppPaths.SystemConfigurationFilePath}' failed.");
 
     private static void AssertSetConfigFailedWithMessageLogReceived(

@@ -33,7 +33,13 @@ internal sealed partial class SystemConfigurationService(
     /// '<c>DefaultSystemConfiguration.json</c>' to the system without applying them yet.
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the request.</param>
-    /// <returns><see cref="OperationStatus"/></returns>
+    /// <returns>
+    /// <see cref="OperationStatus"/>
+    /// <para>
+    /// This method only returns <see cref="OperationStatus.Success"/> or <see cref="OperationStatus.Warning"/>,
+    /// so service start does not fail.
+    /// </para>
+    /// </returns>
     public async Task<OperationStatus> PrepareConfigurationOnDeviceStartup(CancellationToken cancellationToken)
     {
         PrepareConfigurationStarted(_logger);
@@ -60,6 +66,10 @@ internal sealed partial class SystemConfigurationService(
     /// </remarks>
     /// <returns>
     /// <see cref="OperationStatus"/> and the <see cref="SystemConfiguration"/> or <see langword="null"/>
+    /// <para>
+    /// This method only returns <see cref="OperationStatus.Success"/> or <see cref="OperationStatus.Warning"/>,
+    /// so service start does not fail.
+    /// </para>
     /// </returns>
     public async Task<(OperationStatus Status, SystemConfiguration? Configuration)> GetConfigurationOnDeviceStartup(
         CancellationToken cancellationToken)
@@ -69,7 +79,7 @@ internal sealed partial class SystemConfigurationService(
         if (jsonConfigType == JsonConfigurationType.None)
         {
             GetSystemConfigurationFromJsonNotPossible(_logger);
-            return (OperationStatus.Error, null);
+            return (OperationStatus.Warning, null);
         }
 
         var (status, configuration) = await GetConfigurationFromJson(jsonConfigType, cancellationToken)
@@ -351,6 +361,10 @@ internal sealed partial class SystemConfigurationService(
         return JsonConfigurationType.None;
     }
 
+    /// <remarks>
+    /// This method only returns <see cref="OperationStatus.Success"/> or <see cref="OperationStatus.Warning"/>,
+    /// so service start does not fail.
+    /// </remarks>
     private async Task<OperationStatus> PrepareConfigurationFromJson(
         JsonConfigurationType jsonConfigType,
         CancellationToken cancellationToken = default)
@@ -360,11 +374,11 @@ internal sealed partial class SystemConfigurationService(
         var (status, configFromJson) = await GetConfigurationFromJson(jsonConfigType, cancellationToken)
             .ConfigureAwait(false);
 
-        if (status == OperationStatus.Error ||
+        if (status == OperationStatus.Warning ||
             configFromJson is null)
         {
             PrepareConfigurationFailed(_logger, jsonConfigPath);
-            return OperationStatus.Error;
+            return OperationStatus.Warning;
         }
 
         var configurationResult = new Result();
@@ -389,7 +403,7 @@ internal sealed partial class SystemConfigurationService(
             if (operationStatus == OperationStatus.Error)
             {
                 PrepareConfigurationFailedWithMessage(_logger, jsonConfigPath, configurationResult.Messages);
-                return OperationStatus.Error;
+                return OperationStatus.Warning;
             }
 
             if (operationStatus == OperationStatus.Warning)
@@ -401,13 +415,17 @@ internal sealed partial class SystemConfigurationService(
         catch (Exception ex)
         {
             PrepareConfigurationFailedWithException(_logger, jsonConfigPath, ex);
-            return OperationStatus.Error;
+            return OperationStatus.Warning;
         }
 
         PrepareConfigurationSucceeded(_logger, jsonConfigPath);
         return OperationStatus.Success;
     }
 
+    /// <remarks>
+    /// This method only returns <see cref="OperationStatus.Success"/> or <see cref="OperationStatus.Warning"/>,
+    /// so service start does not fail.
+    /// </remarks>
     private async Task<(OperationStatus Status, InternalContracts.SystemConfiguration? SystemConfiguration)>
         GetConfigurationFromJson(
             JsonConfigurationType jsonConfigType,
@@ -433,7 +451,7 @@ internal sealed partial class SystemConfigurationService(
         catch (Exception ex)
         {
             GetSystemConfigurationFromJsonFailed(_logger, jsonConfigPath, ex);
-            return (OperationStatus.Error, null);
+            return (OperationStatus.Warning, null);
         }
     }
 
@@ -703,10 +721,10 @@ internal sealed partial class SystemConfigurationService(
     [LoggerMessage(LogLevel.Warning, "Get system configuration '{Path}' canceled.")]
     private static partial void GetSystemConfigurationFromJsonCanceled(ILogger logger, string? path);
 
-    [LoggerMessage(LogLevel.Error, "Get system configuration '{Path}' failed.")]
+    [LoggerMessage(LogLevel.Warning, "Get system configuration '{Path}' failed.")]
     private static partial void GetSystemConfigurationFromJsonFailed(ILogger logger, string? path, Exception? exception);
 
-    [LoggerMessage(LogLevel.Error, "Get system configuration from JSON not possible.")]
+    [LoggerMessage(LogLevel.Warning, "Get system configuration from JSON not possible.")]
     private static partial void GetSystemConfigurationFromJsonNotPossible(ILogger logger);
 
     [LoggerMessage(LogLevel.Information, "Get system configuration '{path}' succeeded.")]
@@ -715,13 +733,13 @@ internal sealed partial class SystemConfigurationService(
     [LoggerMessage(LogLevel.Warning, "Prepare system configuration '{Path}' completed with warnings. {Message}")]
     private static partial void PrepareConfigurationCompletedWithMessage(ILogger logger, string? path, string? message);
 
-    [LoggerMessage(LogLevel.Error, "Prepare system configuration '{Path}' failed.")]
+    [LoggerMessage(LogLevel.Warning, "Prepare system configuration '{Path}' failed.")]
     private static partial void PrepareConfigurationFailed(ILogger logger, string? path);
 
-    [LoggerMessage(LogLevel.Error, "Prepare system configuration '{Path}' failed.")]
+    [LoggerMessage(LogLevel.Warning, "Prepare system configuration '{Path}' failed.")]
     private static partial void PrepareConfigurationFailedWithException(ILogger logger, string? path, Exception? exception);
 
-    [LoggerMessage(LogLevel.Error, "Prepare system configuration '{Path}' failed. {Message}")]
+    [LoggerMessage(LogLevel.Warning, "Prepare system configuration '{Path}' failed. {Message}")]
     private static partial void PrepareConfigurationFailedWithMessage(ILogger logger, string? path, string? message);
 
     [LoggerMessage(LogLevel.Warning, "Prepare system configuration from JSON not possible.")]
