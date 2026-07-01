@@ -99,7 +99,7 @@ internal static partial class ServiceRunner
 
             if (s_fileSystem.File.Exists(s_setConfigFlag))
             {
-                s_fileSystem.File.Delete(s_setConfigFlag);
+                DeleteSetConfigFlag();
 
                 var configResult = await s_configurationService.GetConfigurationOnDeviceStartup(lifetime.Token)
                     .ConfigureAwait(false);
@@ -155,7 +155,16 @@ internal static partial class ServiceRunner
     private static async Task CreateSetConfigFlag()
     {
         if (!s_fileSystem.File.Exists(s_setConfigFlag))
+        {
             await s_fileSystem.File.Create(s_setConfigFlag).DisposeAsync();
+            CreateSetConfigFlag(s_logger, s_setConfigFlag);
+        }
+    }
+
+    private static void DeleteSetConfigFlag()
+    {
+        s_fileSystem.File.Delete(s_setConfigFlag);
+        DeletedSetConfigFlag(s_logger, s_setConfigFlag);
     }
 
     private static bool TryInitializeService()
@@ -288,8 +297,14 @@ internal static partial class ServiceRunner
     [LoggerMessage(LogLevel.Error, "An error occurred while starting the service. Could not determine if the service is already running. {StandardError}")]
     private static partial void CouldNotDetermineServiceAlreadyRunning(ILogger logger, string? standardError);
 
+    [LoggerMessage(LogLevel.Debug, "Created flag '{FlagFile}'.")]
+    private static partial void CreateSetConfigFlag(ILogger logger, string flagFile);
+
     [LoggerMessage(LogLevel.Information, "Current target environment: '{TargetEnvironment}'")]
     private static partial void CurrentTargetEnvironment(ILogger logger, string targetEnvironment);
+
+    [LoggerMessage(LogLevel.Debug, "Deleted flag '{FlagFile}'.")]
+    private static partial void DeletedSetConfigFlag(ILogger logger, string flagFile);
 
     [LoggerMessage(LogLevel.Error, "The following environment variables were not specified or are invalid: {EnvironmentVariables}")]
     private static partial void EnvironmentVariablesInvalid(ILogger logger, string? environmentVariables);
