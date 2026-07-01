@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved XML documentation of `SystemConfigurationSerializer`
 - Made `--extract-help` command-line argument available in release builds
 - Moved logging for prepare/get/set config from `ServiceRunner` to `SystemConfigurationService` and improved some log messages
+- Simplified debug log for "resources added" in `ResourceManager`
 
 ### Removed
 
