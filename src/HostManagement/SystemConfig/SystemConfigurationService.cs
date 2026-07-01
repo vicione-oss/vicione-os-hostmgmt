@@ -29,39 +29,26 @@ internal sealed partial class SystemConfigurationService(
     private readonly ILogger _logger = logger;
 
     /// <summary>
-    /// Gets the system configuration from the system.
+    /// Prepares the system by writing changes of the '<c>SystemConfiguration.json</c>' or
+    /// '<c>DefaultSystemConfiguration.json</c>' to the system without applying them yet.
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the request.</param>
-    /// <remarks>
-    /// <see cref="GetSystemConfigurationResult.Configuration"/> contains:
-    /// <br/>- <see cref="SystemConfiguration"/> if <see cref="OperationStatus.Success"/> or
-    /// <see cref="OperationStatus.Warning"/>
-    /// <br/>- <see langword="null"/> if <see cref="OperationStatus.Error"/>
-    /// </remarks>
-    public async Task<GetSystemConfigurationResult> GetConfiguration(CancellationToken cancellationToken = default)
+    /// <returns><see cref="SetSystemConfigurationResult"/></returns>
+    public async Task<SetSystemConfigurationResult> PrepareConfigurationOnDeviceStartup(CancellationToken cancellationToken)
     {
-        var cachedConfig = SystemConfigurationCache.Instance.GetCachedConfig();
+        var jsonConfigType = GetAvailableJsonConfigurationType();
 
-        if (cachedConfig is not null)
+        if (jsonConfigType == JsonConfigurationType.None)
         {
-            return GetSystemConfigurationResult.CreateSuccessResult(
-                SystemConfigResources.GetConfigFromCacheSucceeded,
-                cachedConfig);
+            var noConfigMessage = string.Format(
+                CultureInfo.InvariantCulture,
+                CompositeFormat.Parse(SystemConfigResources.NoConfigFound),
+                $"'{_persistence.GetUserConfigurationPath()}' or '{_persistence.GetPreparationConfigurationPath()}'");
+
+            return SetSystemConfigurationResult.CreateWarningResult(noConfigMessage);
         }
 
-        var getConfigResult = await GetConfigurationFromScripts(cancellationToken).ConfigureAwait(false);
-
-        if (getConfigResult.Status != OperationStatus.Error &&
-            getConfigResult.Configuration is not null)
-        {
-            SystemConfigurationCache.Instance.SetCachedConfig(
-                getConfigResult.Configuration,
-                cacheLog: message => SystemConfigCached(_logger, message),
-                invalidateCacheLog: message => SystemConfigCacheInvalidated(_logger, message),
-                invalidateCacheFailedLog: message => SystemConfigCacheInvalidationFailed(_logger, message));
-        }
-
-        return getConfigResult;
+        return await PrepareConfigurationFromJson(jsonConfigType, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -100,26 +87,39 @@ internal sealed partial class SystemConfigurationService(
     }
 
     /// <summary>
-    /// Prepares the system by writing changes of the '<c>SystemConfiguration.json</c>' or
-    /// '<c>DefaultSystemConfiguration.json</c>' to the system without applying them yet.
+    /// Gets the system configuration from the system.
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the request.</param>
-    /// <returns><see cref="SetSystemConfigurationResult"/></returns>
-    public async Task<SetSystemConfigurationResult> PrepareConfigurationOnDeviceStartup(CancellationToken cancellationToken)
+    /// <remarks>
+    /// <see cref="GetSystemConfigurationResult.Configuration"/> contains:
+    /// <br/>- <see cref="SystemConfiguration"/> if <see cref="OperationStatus.Success"/> or
+    /// <see cref="OperationStatus.Warning"/>
+    /// <br/>- <see langword="null"/> if <see cref="OperationStatus.Error"/>
+    /// </remarks>
+    public async Task<GetSystemConfigurationResult> GetConfiguration(CancellationToken cancellationToken = default)
     {
-        var jsonConfigType = GetAvailableJsonConfigurationType();
+        var cachedConfig = SystemConfigurationCache.Instance.GetCachedConfig();
 
-        if (jsonConfigType == JsonConfigurationType.None)
+        if (cachedConfig is not null)
         {
-            var noConfigMessage = string.Format(
-                CultureInfo.InvariantCulture,
-                CompositeFormat.Parse(SystemConfigResources.NoConfigFound),
-                $"'{_persistence.GetUserConfigurationPath()}' or '{_persistence.GetPreparationConfigurationPath()}'");
-
-            return SetSystemConfigurationResult.CreateWarningResult(noConfigMessage);
+            return GetSystemConfigurationResult.CreateSuccessResult(
+                SystemConfigResources.GetConfigFromCacheSucceeded,
+                cachedConfig);
         }
 
-        return await PrepareConfigurationFromJson(jsonConfigType, cancellationToken).ConfigureAwait(false);
+        var getConfigResult = await GetConfigurationFromScripts(cancellationToken).ConfigureAwait(false);
+
+        if (getConfigResult.Status != OperationStatus.Error &&
+            getConfigResult.Configuration is not null)
+        {
+            SystemConfigurationCache.Instance.SetCachedConfig(
+                getConfigResult.Configuration,
+                cacheLog: message => SystemConfigCached(_logger, message),
+                invalidateCacheLog: message => SystemConfigCacheInvalidated(_logger, message),
+                invalidateCacheFailedLog: message => SystemConfigCacheInvalidationFailed(_logger, message));
+        }
+
+        return getConfigResult;
     }
 
     /// <summary>
@@ -433,6 +433,52 @@ internal sealed partial class SystemConfigurationService(
         return SetSystemConfigurationResult.CreateSuccessResult(successMessage);
     }
 
+    private async Task<(OperationStatus Status, string Message, InternalContracts.SystemConfiguration? SystemConfiguration)>
+        GetConfigurationFromJson(
+            JsonConfigurationType jsonConfigType,
+            CancellationToken cancellationToken)
+    {
+        var jsonConfigPath = string.Empty;
+
+        try
+        {
+            jsonConfigPath = GetJsonConfigurationPath(jsonConfigType);
+
+            var loadedJsonConfig = await LoadJsonConfiguration(jsonConfigType, cancellationToken)
+                .ConfigureAwait(false);
+
+            var message =
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    CompositeFormat.Parse(SystemConfigResources.GetConfigFromJsonSucceeded),
+                    jsonConfigPath);
+
+            return (OperationStatus.Success, message, loadedJsonConfig);
+        }
+        catch (OperationCanceledException)
+        {
+            var message =
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    CompositeFormat.Parse(SystemConfigResources.GetConfigFromJsonCanceled),
+                    jsonConfigPath);
+
+            return (OperationStatus.Warning, message, null);
+        }
+        catch (Exception ex)
+        {
+            var message =
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    CompositeFormat.Parse(SystemConfigResources.GetConfigFromJsonFailed),
+                    jsonConfigPath) +
+                Environment.NewLine +
+                ex.Message;
+
+            return (OperationStatus.Error, message, null);
+        }
+    }
+
     private async Task<SetSystemConfigurationResult> SetConfigurationInternal(
         string? currentWarningMessage,
         SystemConfiguration currentConfig,
@@ -515,52 +561,6 @@ internal sealed partial class SystemConfigurationService(
 
         return SetSystemConfigurationResult.CreateSuccessResult(
             SystemConfigResources.SetConfigSucceeded);
-    }
-
-    private async Task<(OperationStatus Status, string Message, InternalContracts.SystemConfiguration? SystemConfiguration)>
-        GetConfigurationFromJson(
-            JsonConfigurationType jsonConfigType,
-            CancellationToken cancellationToken)
-    {
-        var jsonConfigPath = string.Empty;
-
-        try
-        {
-            jsonConfigPath = GetJsonConfigurationPath(jsonConfigType);
-
-            var loadedJsonConfig = await LoadJsonConfiguration(jsonConfigType, cancellationToken)
-                .ConfigureAwait(false);
-
-            var message =
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    CompositeFormat.Parse(SystemConfigResources.GetConfigFromJsonSucceeded),
-                    jsonConfigPath);
-
-            return (OperationStatus.Success, message, loadedJsonConfig);
-        }
-        catch (OperationCanceledException)
-        {
-            var message =
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    CompositeFormat.Parse(SystemConfigResources.GetConfigFromJsonCanceled),
-                    jsonConfigPath);
-
-            return (OperationStatus.Warning, message, null);
-        }
-        catch (Exception ex)
-        {
-            var message =
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    CompositeFormat.Parse(SystemConfigResources.GetConfigFromJsonFailed),
-                    jsonConfigPath) +
-                Environment.NewLine +
-                ex.Message;
-
-            return (OperationStatus.Error, message, null);
-        }
     }
 
     private string GetJsonConfigurationPath(JsonConfigurationType jsonConfigType)
