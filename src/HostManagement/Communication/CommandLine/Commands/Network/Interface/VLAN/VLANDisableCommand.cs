@@ -1,10 +1,10 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Extensions;
 
-namespace HostManagement.Communication.CommandLine.Commands.Network.Interface.IPv4.VLAN;
+namespace HostManagement.Communication.CommandLine.Commands.Network.Interface.VLAN;
 
 /// <summary>
 /// Represents the VLAN disable command.
@@ -40,13 +40,13 @@ internal sealed class VLANDisableCommand : ConfigCommandBase
             return;
         }
 
-        if (!interfaceToConfigure.IPv4.VLANEnabled)
+        if (!interfaceToConfigure.VLAN.Enabled)
         {
             SimpleOutput.WriteLineInformation(CommandLineStrings_NetworkInterfaces.VLANAlreadyDisabled, interfaceName);
             return;
         }
 
-        interfaceToConfigure.IPv4.VLANEnabled = false;
+        interfaceToConfigure.VLAN.Enabled = false;
 
         if (!await SetConfiguration(config, cancellationToken))
             return;

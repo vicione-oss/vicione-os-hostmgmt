@@ -1,6 +1,6 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 
-namespace HostManagement.Communication.CommandLine.Commands.Network.Interface.IPv4.VLAN;
+namespace HostManagement.Communication.CommandLine.Commands.Network.Interface.VLAN;
 
 /// <summary>
 /// Represents the VLAN command.

@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using AwesomeAssertions;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Validation;
@@ -209,26 +209,28 @@ public class NetworkInterfacesValidatorTests
         result.Entries.Should().Contain(expectedValidationEntry);
     }
 
-    [Fact]
-    public async Task ShouldHaveNoValidationError_WhenVLANDisabledAndDuplicateVLANIDsFound()
+    [Theory]
+    [InlineData(0)]
+    [InlineData(42)]
+    public async Task ShouldHaveNoValidationError_WhenVLANDisabledAndDuplicateVLANIDsFound(int duplicateId)
     {
         // Arrange
         var interfaces = new List<NetworkInterfaceDetail>
         {
             ValidationTestData.Interface.Static with
             {
-                IPv4 = ValidationTestData.Interface.Static.IPv4 with
+                VLAN = new()
                 {
-                    VLANEnabled = false,
-                    VLANID = 0
+                    Enabled = false,
+                    ID = duplicateId
                 }
             },
             ValidationTestData.Interface.DHCP with
             {
-                IPv4 = ValidationTestData.Interface.DHCP.IPv4 with
+                VLAN = new()
                 {
-                    VLANEnabled = false,
-                    VLANID = 0
+                    Enabled = false,
+                    ID = duplicateId
                 }
             }
         };
@@ -251,20 +253,20 @@ public class NetworkInterfacesValidatorTests
         {
             ValidationTestData.Interface.Static with
             {
-                IPv4 = new()
+                VLAN = new()
                 {
-                    VLANEnabled = true,
-                    VLANID = duplicateId
+                    Enabled = true,
+                    ID = duplicateId
                 }
             },
             ValidationTestData.Interface.DHCP with
             {
-                IPv4 = new()
+                VLAN = new()
                 {
-                    VLANEnabled = true,
-                    VLANID = duplicateId
+                    Enabled = true,
+                    ID = duplicateId
                 }
-            }
+            },
         };
 
         var expectedValidationEntry = new ValidationEntry(

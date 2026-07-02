@@ -68,7 +68,7 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
                     .GetDHCPLeaseInformation(networkInterface.CommonInformation.Name, cancellationToken);
             }
 
-            AppendOutputForVLAN(listOutput, 2, networkInterface.IPv4.VLANEnabled, networkInterface.IPv4.VLANID);
+            AppendOutputForVLAN(listOutput, 2, networkInterface.VLAN);
             AppendOutputForIPv4(listOutput, 2, networkInterface.IPv4, dhcpLease);
         }
 
@@ -239,15 +239,14 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
     private static void AppendOutputForVLAN(
         CliComplexOutputBase output,
         int indentationLevel,
-        bool vlanEnabled,
-        int vlanID)
+        VLANSettings vlanSettings)
     {
-        // If vlanID is '0' it is set to null to interpret as 'not set' value.
-        int? vlanIdValue = vlanID == 0 ? null : vlanID;
+        // If VLAN ID is '0', it is set to 'null' to interpret as 'not set' value.
+        int? vlanIdValue = vlanSettings.ID == 0 ? null : vlanSettings.ID;
 
         output.AddKeyValueOutput(indentationLevel)
             .WithTitle(CommandLineStrings_NetworkInterfaces.VLAN)
-            .With(new(CommandLineStrings_NetworkInterfaces.Enabled, vlanEnabled))
+            .With(new(CommandLineStrings_NetworkInterfaces.Enabled, vlanSettings.Enabled))
             .With(new(CommandLineStrings_NetworkInterfaces.VLANID, vlanIdValue));
     }
 }

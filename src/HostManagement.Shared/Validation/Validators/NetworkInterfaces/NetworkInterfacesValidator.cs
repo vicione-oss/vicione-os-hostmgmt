@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
 using HostManagement.Shared.Contracts.Network;
@@ -245,8 +245,8 @@ public sealed class NetworkInterfacesValidator : IValidator<IReadOnlyList<Networ
         interfacesWithDuplicateVLANIDString = null;
 
         var duplicateInterfaces = networkInterfaces
-            .Where(detail => detail.IPv4.VLANEnabled)
-            .GroupBy(detail => detail.IPv4.VLANID)
+            .Where(detail => detail.VLAN.Enabled)
+            .GroupBy(detail => detail.VLAN.ID)
             .Where(group => group.Count() > 1)
             .SelectMany(group => group)
             .ToList();

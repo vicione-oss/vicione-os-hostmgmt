@@ -1,10 +1,10 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Extensions;
 
-namespace HostManagement.Communication.CommandLine.Commands.Network.Interface.IPv4.VLAN;
+namespace HostManagement.Communication.CommandLine.Commands.Network.Interface.VLAN;
 
 /// <summary>
 /// Represents the VLAN set command.
@@ -43,17 +43,17 @@ internal sealed class VLANSetCommand : ConfigCommandBase
             return;
         }
 
-        if (!interfaceToConfigure.IPv4.VLANEnabled &&
+        if (!interfaceToConfigure.VLAN.Enabled &&
             vlanId.Equals(0))
         {
             SimpleOutput.WriteLineInformation(CommandLineStrings_NetworkInterfaces.VLANAlreadyDisabled, interfaceName);
             return;
         }
 
-        if (interfaceToConfigure.IPv4.VLANID.Equals(0))
+        if (interfaceToConfigure.VLAN.ID.Equals(0))
         {
-            interfaceToConfigure.IPv4.VLANID = vlanId;
-            interfaceToConfigure.IPv4.VLANEnabled = true;
+            interfaceToConfigure.VLAN.ID = vlanId;
+            interfaceToConfigure.VLAN.Enabled = true;
 
             if (!await SetConfiguration(config, cancellationToken))
                 return;
@@ -65,9 +65,9 @@ internal sealed class VLANSetCommand : ConfigCommandBase
         }
         else
         {
-            var oldVlanId = interfaceToConfigure.IPv4.VLANID;
-            interfaceToConfigure.IPv4.VLANID = vlanId;
-            interfaceToConfigure.IPv4.VLANEnabled = true;
+            var oldVlanId = interfaceToConfigure.VLAN.ID;
+            interfaceToConfigure.VLAN.ID = vlanId;
+            interfaceToConfigure.VLAN.Enabled = true;
 
             if (!await SetConfiguration(config, cancellationToken))
                 return;

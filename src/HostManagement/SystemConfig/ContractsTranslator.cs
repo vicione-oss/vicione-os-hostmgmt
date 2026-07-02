@@ -73,7 +73,8 @@ internal static class ContractsTranslator
         return new()
         {
             CommonInformation = internalCommonInformation.ToSharedContracts(),
-            IPv4 = intern.IPv4?.ToSharedContracts(intern.VLAN) ?? new()
+            IPv4 = intern.IPv4?.ToSharedContracts() ?? new(),
+            VLAN = intern.VLAN?.ToSharedContracts() ?? new()
         };
     }
 
@@ -92,7 +93,7 @@ internal static class ContractsTranslator
         return commonInformation;
     }
 
-    private static SharedNetwork.IPv4Settings ToSharedContracts(this IPv4Settings intern, VLANSettings? vlanSettings)
+    private static SharedNetwork.IPv4Settings ToSharedContracts(this IPv4Settings intern)
     {
         var ipv4Settings = new SharedNetwork.IPv4Settings
         {
@@ -110,12 +111,6 @@ internal static class ContractsTranslator
             };
         }
 
-        if (vlanSettings?.Enabled is { } vlanEnabled)
-            ipv4Settings.VLANEnabled = vlanEnabled;
-
-        if (vlanSettings?.ID is { } vlanId)
-            ipv4Settings.VLANID = vlanId;
-
         return ipv4Settings;
     }
 
@@ -125,6 +120,19 @@ internal static class ContractsTranslator
             IPAddress = intern.IPAddress,
             Netmask = intern.Netmask,
         };
+
+    private static SharedNetwork.VLANSettings ToSharedContracts(this VLANSettings intern)
+    {
+        var vlanSettings = new SharedNetwork.VLANSettings();
+
+        if (intern.Enabled is { } enabled)
+            vlanSettings.Enabled = enabled;
+
+        if (intern.ID is { } id)
+            vlanSettings.ID = id;
+
+        return vlanSettings;
+    }
 
     private static SharedNetwork.NetworkDNSSettings ToSharedContracts(this NetworkDNSSettings intern)
     {
@@ -318,7 +326,7 @@ internal static class ContractsTranslator
         {
             CommonInformation = shared.CommonInformation.ToInternalContracts(),
             IPv4 = shared.IPv4.ToInternalContracts(),
-            VLAN = ToInternalContracts(shared.IPv4.VLANEnabled, shared.IPv4.VLANID)
+            VLAN = shared.VLAN.ToInternalContracts()
         };
 
     private static NetworkInterfaceCommonInformation ToInternalContracts(
@@ -345,11 +353,11 @@ internal static class ContractsTranslator
             Netmask = shared.Netmask
         };
 
-    private static VLANSettings ToInternalContracts(bool vlanEnabled, int vlanID)
+    private static VLANSettings ToInternalContracts(this SharedNetwork.VLANSettings shared)
         => new()
         {
-            Enabled = vlanEnabled,
-            ID = vlanID,
+            Enabled = shared.Enabled,
+            ID = shared.ID
         };
 
     private static NetworkDNSSettings ToInternalContracts(this SharedNetwork.NetworkDNSSettings shared)

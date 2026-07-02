@@ -1,5 +1,6 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Commands.Network.Interface.IPv4;
+using HostManagement.Communication.CommandLine.Commands.Network.Interface.VLAN;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Interface;
 
@@ -26,6 +27,7 @@ internal sealed class InterfaceCommand : Command
         Add(new InterfaceStatusCommand(CommonOptions.s_interfaceNameOption));
         Add(new InterfaceResetCommand(CommonOptions.s_interfaceNameOption));
         Add(new InterfaceMACCommand(CommonOptions.s_interfaceNameOption, s_macAddressOption));
+        Add(new VLANCommand());
         Add(new IPv4Command());
     }
 }

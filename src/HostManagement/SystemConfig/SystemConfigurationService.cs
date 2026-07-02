@@ -675,10 +675,10 @@ internal sealed partial class SystemConfigurationService(
         if (defaultVlan is not null)
         {
             if (defaultVlan.Enabled.HasValue)
-                currentInterface.IPv4.VLANEnabled = defaultVlan.Enabled.Value;
+                currentInterface.VLAN.Enabled = defaultVlan.Enabled.Value;
 
             if (defaultVlan.ID.HasValue)
-                currentInterface.IPv4.VLANID = defaultVlan.ID.Value;
+                currentInterface.VLAN.ID = defaultVlan.ID.Value;
         }
     }
 

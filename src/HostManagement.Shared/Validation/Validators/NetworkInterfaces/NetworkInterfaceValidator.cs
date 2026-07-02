@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Net;
 using System.Text;
 using HostManagement.Shared.Contracts.Network;
@@ -40,11 +40,11 @@ public sealed class NetworkInterfaceValidator : IValidator<NetworkInterfaceDetai
             if (IsLoopbackInterface(networkInterface))
                 result.AddError(NetworkInterfacesValidationResults.LoopbackInterfaceCanNotBeSpecified);
 
-            if (networkInterface.IPv4.VLANEnabled)
+            if (networkInterface.VLAN.Enabled)
             {
                 result.AddResult(
                     await new VLANIDValidator()
-                        .ValidateAsync(networkInterface.IPv4.VLANID, cancellationToken)
+                        .ValidateAsync(networkInterface.VLAN.ID, cancellationToken)
                         .ConfigureAwait(false));
             }
 

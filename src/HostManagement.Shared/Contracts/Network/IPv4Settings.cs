@@ -31,21 +31,6 @@ public sealed record IPv4Settings
     /// </summary>
     public List<IPv4Detail> IPv4Details { get; init; } = [];
 
-    /// <summary>
-    /// Determines if VLAN should be enabled.
-    /// </summary>
-    public bool VLANEnabled { get; set; }
-
-    /// <summary>
-    /// The VLAN ID.
-    /// </summary>
-    /// <remarks>
-    /// <b>0:</b> indicates that the frame does not carry a VLAN ID<br/>
-    /// <b>1-4094:</b> usable VLAN IDs<br/>
-    /// <b>4095:</b> reserved for implementation use and can not be configured
-    /// </remarks>
-    public int VLANID { get; set; }
-
     /// <inheritdoc/>
     public override int GetHashCode()
     {
@@ -54,8 +39,6 @@ public sealed record IPv4Settings
         hashCode.Add(Gateway);
         hashCode.Add(DHCPEnabled);
         hashCode.Add(IPv4Details.GetSequenceHashCode());
-        hashCode.Add(VLANEnabled);
-        hashCode.Add(VLANID);
 
         return hashCode.ToHashCode();
     }
@@ -65,7 +48,5 @@ public sealed record IPv4Settings
         => other is not null
         && EqualityComparer<IPAddress>.Default.Equals(Gateway, other.Gateway)
         && DHCPEnabled == other.DHCPEnabled
-        && IPv4Details.SequenceEqual(other.IPv4Details)
-        && VLANEnabled == other.VLANEnabled
-        && VLANID == other.VLANID;
+        && IPv4Details.SequenceEqual(other.IPv4Details);
 }

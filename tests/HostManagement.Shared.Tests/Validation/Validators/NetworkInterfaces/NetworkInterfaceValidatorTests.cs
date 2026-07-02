@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using AwesomeAssertions;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.NetworkInterfaces;
@@ -78,10 +78,10 @@ public class NetworkInterfaceValidatorTests
         // Arrange
         var interfaceWithInvalidVLANID = ValidationTestData.Interface.Static with
         {
-            IPv4 = ValidationTestData.Interface.Static.IPv4 with
+            VLAN = new()
             {
-                VLANEnabled = true,
-                VLANID = 0
+                Enabled = true,
+                ID = 0 // invalid if enabled
             }
         };
 

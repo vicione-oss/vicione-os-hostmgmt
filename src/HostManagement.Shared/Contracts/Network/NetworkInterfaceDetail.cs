@@ -1,4 +1,4 @@
-﻿namespace HostManagement.Shared.Contracts.Network;
+namespace HostManagement.Shared.Contracts.Network;
 
 /// <summary>
 /// Represents a <see cref="NetworkInterfaceDetail"/>.
@@ -14,4 +14,9 @@ public sealed record NetworkInterfaceDetail
     /// The IPv4 settings of the network interface.
     /// </summary>
     public required IPv4Settings IPv4 { get; set; }
+
+    /// <summary>
+    /// The VLAN settings of the network interface.
+    /// </summary>
+    public VLANSettings VLAN { get; set; } = new();
 }
