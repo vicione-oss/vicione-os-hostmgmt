@@ -235,7 +235,139 @@ public class ScriptRunnerTests
         }
 
         [Fact]
-        public async Task ShouldThrow_WhenGetScriptContentCalledWithUnknownIdentifier()
+        public async Task ShouldNotExecuteScriptThroughShell_WhenRunCalled()
+        {
+            // Arrange
+            var (logger, fileSystem, resourceHelper, processWrapper) = CreateSubstitutes();
+
+            ProcessStartInfo? capturedStartInfo = null;
+
+            ResetSingletonsAndInitializeSubstitutes(fileSystem, resourceHelper);
+
+            processWrapper
+                .StartScriptAsync(
+                    Arg.Do<ProcessStartInfo>(startInfo => capturedStartInfo = startInfo),
+                    Arg.Any<int>(),
+                    Arg.Any<CancellationToken>())
+                .Returns(new ScriptResponse(0, "HelloWorld!", string.Empty));
+
+            ScriptRunner.Initialize(s_testResourceDeployDirectory);
+
+            ResourceManager.Initialize(
+                logger,
+                fileSystem,
+                resourceHelper,
+                processWrapper,
+                s_testResourceDeployDirectory,
+                EdgeSViciOne);
+
+            // Act
+            var response = await ScriptRunner
+                .GetInstance()
+                .Run(60_000, ScriptIdentifier.UnitTesting, processWrapper, CancellationToken.None);
+
+            // Assert
+            response.ExitCode.Should().Be(0);
+
+            capturedStartInfo.Should().NotBeNull();
+            capturedStartInfo.FileName.Should().NotBe("/bin/bash");
+            capturedStartInfo.ArgumentList.Should().NotContain("-c");
+            capturedStartInfo.Arguments.Should().BeEmpty();
+        }
+
+        [Theory]
+        [MemberData(nameof(ShellInjectionRegressionArguments))]
+        public async Task ShouldPassArgumentsWithoutShellParsing_WhenArgumentsContainShellMetacharacters(
+            string[] scriptArguments)
+        {
+            // Arrange
+            var (logger, fileSystem, resourceHelper, processWrapper) = CreateSubstitutes();
+
+            ProcessStartInfo? capturedStartInfo = null;
+
+            ResetSingletonsAndInitializeSubstitutes(fileSystem, resourceHelper);
+
+            processWrapper
+                .StartScriptAsync(
+                    Arg.Do<ProcessStartInfo>(startInfo => capturedStartInfo = startInfo),
+                    Arg.Any<int>(),
+                    Arg.Any<CancellationToken>())
+                .Returns(new ScriptResponse(0, "HelloWorld!", string.Empty));
+
+            ScriptRunner.Initialize(s_testResourceDeployDirectory);
+
+            ResourceManager.Initialize(
+                logger,
+                fileSystem,
+                resourceHelper,
+                processWrapper,
+                s_testResourceDeployDirectory,
+                EdgeSViciOne);
+
+            // Act
+            var response = await ScriptRunner
+                .GetInstance()
+                .Run(60_000, ScriptIdentifier.UnitTesting, processWrapper, CancellationToken.None, scriptArguments);
+
+            // Assert
+            response.ExitCode.Should().Be(0);
+
+            capturedStartInfo.Should().NotBeNull();
+            capturedStartInfo.UseShellExecute.Should().BeFalse();
+            capturedStartInfo.FileName.Should().NotContainAny("/bin/sh", "/bin/bash", "cmd");
+            capturedStartInfo.ArgumentList.Should().Equal(scriptArguments);
+            capturedStartInfo.Arguments.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task ShouldPreserveArgumentBoundaries_WhenArgumentsContainWhitespaceAndQuotes()
+        {
+            // Arrange
+            var (logger, fileSystem, resourceHelper, processWrapper) = CreateSubstitutes();
+
+            ProcessStartInfo? capturedStartInfo = null;
+
+            ResetSingletonsAndInitializeSubstitutes(fileSystem, resourceHelper);
+
+            processWrapper
+                .StartScriptAsync(
+                    Arg.Do<ProcessStartInfo>(startInfo => capturedStartInfo = startInfo),
+                    Arg.Any<int>(),
+                    Arg.Any<CancellationToken>())
+                .Returns(new ScriptResponse(0, "HelloWorld!", string.Empty));
+
+            ScriptRunner.Initialize(s_testResourceDeployDirectory);
+
+            ResourceManager.Initialize(
+                logger,
+                fileSystem,
+                resourceHelper,
+                processWrapper,
+                s_testResourceDeployDirectory,
+                EdgeSViciOne);
+
+            var scriptArguments = new[]
+            {
+                "one argument",
+                "\"still one argument\"",
+                "key=\"value with spaces\""
+            };
+
+            // Act
+            var response = await ScriptRunner
+                .GetInstance()
+                .Run(60_000, ScriptIdentifier.UnitTesting, processWrapper, CancellationToken.None, scriptArguments);
+
+            // Assert
+            response.ExitCode.Should().Be(0);
+
+            capturedStartInfo.Should().NotBeNull();
+            capturedStartInfo.ArgumentList.Should().Equal(scriptArguments);
+            capturedStartInfo.ArgumentList.Should().HaveCount(3);
+        }
+
+        [Fact]
+        public async Task ShouldThrow_WhenGetScriptPathCalledWithUnknownIdentifier()
         {
             // Arrange
             var (logger, fileSystem, resourceHelper, processWrapper) = CreateSubstitutes();
@@ -259,42 +391,6 @@ public class ScriptRunnerTests
             var result = () => ScriptRunner
                 .GetInstance()
                 .Run(60_000, invalidScriptIdentifier, processWrapper, CancellationToken.None);
-
-            // Assert
-            await result.Should()
-                .ThrowAsync<InvalidOperationException>()
-                .WithMessage(expectedExceptionMessage);
-        }
-
-        [Fact]
-        public async Task ShouldThrow_WhenGetScriptContentReturnsEmptyString()
-        {
-            // Arrange
-            var (logger, fileSystem, resourceHelper, processWrapper) = CreateSubstitutes();
-
-            var expectedExceptionMessage =
-                $"Script content for script with identifier '{ScriptIdentifier.UnitTesting}' was empty.";
-
-            ResetSingletonsAndInitializeSubstitutes(fileSystem, resourceHelper);
-
-            fileSystem.File
-                .ReadAllBytes(Path.Combine(s_testResourceDeployDirectoryStructure, s_testEmbeddedResourceFile))
-                .Returns([]);
-
-            ScriptRunner.Initialize(s_testResourceDeployDirectory);
-
-            ResourceManager.Initialize(
-                logger,
-                fileSystem,
-                resourceHelper,
-                processWrapper,
-                s_testResourceDeployDirectory,
-                EdgeSViciOne);
-
-            // Act
-            var result = () => ScriptRunner
-                .GetInstance()
-                .Run(60_000, ScriptIdentifier.UnitTesting, processWrapper, CancellationToken.None);
 
             // Assert
             await result.Should()
@@ -448,6 +544,44 @@ public class ScriptRunnerTests
             response.StandardOutput.Should().BeEmpty();
             response.StandardError.Should().Contain(expectedScriptResponse);
         }
+
+        public static TheoryData<string[]> ShellInjectionRegressionArguments =>
+        [
+            // Command substitution
+            new[]
+            {
+                "$(touch /tmp/hostmgmt-injection)",
+                "prefix$(cmd) suffix"
+            },
+
+            // Shell separators
+            new[]
+            {
+                ";",
+                "value; rm -rf /",
+                "&",
+                "left & right",
+                "|",
+                "left | right"
+            },
+
+            // Whitespace and quotes
+            new[]
+            {
+                "argument with spaces",
+                "\"quoted argument\"",
+                "value=\"quoted value\"",
+                "'single quoted argument'",
+                "value='single quoted value'",
+            },
+
+            // GlobExpansion
+            new[]
+            {
+                "*",
+                "*.sh"
+            }
+        ];
 
         private static (
             ILogger logger,

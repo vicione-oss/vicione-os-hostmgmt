@@ -222,55 +222,6 @@ public sealed partial class ResourceManager
     }
 
     /// <summary>
-    /// Gets the resource with '<paramref name="resourceName"/>' as an UTF8 string.
-    /// </summary>
-    /// <param name="resourceName">The resource name.</param>
-    /// <returns>The resource as an UTF8 string</returns>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown if the resource with the given name is unknown, if the resource cannot be found at the expected path or
-    /// if the content of the resource could not be loaded or decoded as UTF8 string.
-    /// </exception>
-    internal string GetResource(string resourceName)
-    {
-        var bytes = GetResourceBytes(resourceName);
-
-        try
-        {
-            // Invalid byte sequences are replaced with '�', no exceptions are thrown because of ill-formed UTF8 data.
-            return Encoding.UTF8.GetString(bytes);
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException(
-                $"Could not load content of resource '{resourceName}'.",
-                ex);
-        }
-    }
-
-    /// <summary>
-    /// Gets the resource with '<paramref name="resourceName"/>' as a byte array.
-    /// </summary>
-    /// <param name="resourceName">The resource name.</param>
-    /// <returns>The resource as a byte array</returns>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown if the resource with the given name is unknown, if the resource cannot be found at the expected path or
-    /// if the content of the resource could not be loaded.
-    /// </exception>
-    internal byte[] GetResourceBytes(string resourceName)
-    {
-        var resourcePath = GetResourcePath(resourceName);
-
-        try
-        {
-            return _fileSystem.File.ReadAllBytes(resourcePath);
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException($"Could not load resource with name '{resourceName}'.", ex);
-        }
-    }
-
-    /// <summary>
     /// Gets the resource path for the resource with '<paramref name="resourceName"/>'.
     /// </summary>
     /// <param name="resourceName">The resource name</param>

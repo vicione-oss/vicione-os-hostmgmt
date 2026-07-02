@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using HostManagement.Scripts.Enums;
-using HostManagement.Scripts.Extensions;
 
 namespace HostManagement.Scripts;
 
@@ -174,12 +173,10 @@ public sealed class ScriptRunner
         if (timeoutInMilliseconds < DefaultTimeoutInMilliseconds)
             timeoutInMilliseconds = DefaultTimeoutInMilliseconds;
 
-        var processStartInfo = GetProcessStartInfo(
-            GetScriptContent(scriptIdentifier),
-            ScriptArgumentFormatter.GetFormattedArguments(scriptArguments));
+        var processStartInfo = GetProcessStartInfo(GetScriptPath(scriptIdentifier), scriptArguments);
 
         while (ResourceManager.GetInstance().IsDeploymentInProgress)
-            await Task.Delay(100);
+            await Task.Delay(100, cancellationToken);
 
 #if DEBUG
         var stopwatch = Stopwatch.StartNew();
@@ -224,89 +221,87 @@ public sealed class ScriptRunner
         return scriptResponse;
     }
 
-    private ProcessStartInfo GetProcessStartInfo(string scriptContent, string scriptArguments)
+    private ProcessStartInfo GetProcessStartInfo(string scriptPath, IEnumerable<string> scriptArguments)
     {
-        var argument = $"temp_function () {{ {scriptContent} }} && temp_function {scriptArguments}";
-
-        return new ProcessStartInfo()
+        var startInfo = new ProcessStartInfo()
         {
-            FileName = @"/bin/bash",
+            FileName = scriptPath,
             WorkingDirectory = _resourceDeployDirectory,
-            ArgumentList = { "-c", argument },
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
             CreateNoWindow = true,
             WindowStyle = ProcessWindowStyle.Hidden
         };
+
+        // Arguments must be passed via ArgumentList to avoid shell parsing at process start.
+        // Residual risk remains inside shell scripts if they use eval, unquoted expansions
+        // or build commands dynamically.
+
+        foreach (var argument in scriptArguments)
+            startInfo.ArgumentList.Add(argument);
+
+        return startInfo;
     }
 
-    private static string GetScriptContent(ScriptIdentifier scriptIdentifier)
+    private static string GetScriptPath(ScriptIdentifier scriptIdentifier)
     {
-        var resourceManager = ResourceManager.GetInstance();
-
-        var scriptContent = scriptIdentifier switch
+        var scriptName = scriptIdentifier switch
         {
             // System
-            ScriptIdentifier.SetExecutePermission => resourceManager.GetResource("set_execute_permission"),
-            ScriptIdentifier.CheckUserExists => resourceManager.GetResource("check_user_exists"),
-            ScriptIdentifier.CheckGroupExists => resourceManager.GetResource("check_group_exists"),
-            ScriptIdentifier.SetOwnership => resourceManager.GetResource("set_ownership"),
+            ScriptIdentifier.SetExecutePermission => "set_execute_permission",
+            ScriptIdentifier.CheckUserExists => "check_user_exists",
+            ScriptIdentifier.CheckGroupExists => "check_group_exists",
+            ScriptIdentifier.SetOwnership => "set_ownership",
 
-            ScriptIdentifier.CommonSystemArchitectureGet => resourceManager.GetResource("get_system_architecture"),
+            ScriptIdentifier.CommonSystemArchitectureGet => "get_system_architecture",
 
-            ScriptIdentifier.ResetSystem => resourceManager.GetResource("reset_system"),
-            ScriptIdentifier.ShutdownSystem => resourceManager.GetResource("shutdown_system"),
-            ScriptIdentifier.UpdateSystem => resourceManager.GetResource("update_system"),
+            ScriptIdentifier.ResetSystem => "reset_system",
+            ScriptIdentifier.ShutdownSystem => "shutdown_system",
+            ScriptIdentifier.UpdateSystem => "update_system",
 
-            ScriptIdentifier.SystemdUnitActiveStateGet => resourceManager.GetResource("get_systemd_unit_active_state"),
-            ScriptIdentifier.SystemdUnitStateGet => resourceManager.GetResource("get_systemd_unit_state"),
-            ScriptIdentifier.SystemdUnitStateSet => resourceManager.GetResource("set_systemd_unit_state"),
+            ScriptIdentifier.SystemdUnitActiveStateGet => "get_systemd_unit_active_state",
+            ScriptIdentifier.SystemdUnitStateGet => "get_systemd_unit_state",
+            ScriptIdentifier.SystemdUnitStateSet => "set_systemd_unit_state",
 
             // Network
-            ScriptIdentifier.ApplyNetplanConfiguration => resourceManager.GetResource("apply_netplan_configuration"),
-            ScriptIdentifier.IsNetworkInterfaceAvailable => resourceManager.GetResource("is_network_interface_available"),
-            ScriptIdentifier.NetworkInterfacesGet => resourceManager.GetResource("get_network_interfaces"),
-            ScriptIdentifier.OriginalPhysicalAddressGet => resourceManager.GetResource("get_original_physical_address"),
-            ScriptIdentifier.NetworkInterfacesCommonInformationGet => resourceManager.GetResource("get_network_interfaces_common_information"),
-            ScriptIdentifier.NetworkInterfaceSettingsGet => resourceManager.GetResource("get_network_interface_settings"),
-            ScriptIdentifier.NetworkInterfaceSettingsSet => resourceManager.GetResource("set_network_interface_settings"),
-            ScriptIdentifier.NetworkInterfaceIPv4DHCPLeaseGet => resourceManager.GetResource("get_network_interface_ipv4_dhcp_lease"),
-            ScriptIdentifier.RenewDHCPLease => resourceManager.GetResource("renew_dhcp_lease"),
-            ScriptIdentifier.NetworkStatusInformationGet => resourceManager.GetResource("get_network_status_information"),
+            ScriptIdentifier.ApplyNetplanConfiguration => "apply_netplan_configuration",
+            ScriptIdentifier.IsNetworkInterfaceAvailable => "is_network_interface_available",
+            ScriptIdentifier.NetworkInterfacesGet => "get_network_interfaces",
+            ScriptIdentifier.OriginalPhysicalAddressGet => "get_original_physical_address",
+            ScriptIdentifier.NetworkInterfacesCommonInformationGet => "get_network_interfaces_common_information",
+            ScriptIdentifier.NetworkInterfaceSettingsGet => "get_network_interface_settings",
+            ScriptIdentifier.NetworkInterfaceSettingsSet => "set_network_interface_settings",
+            ScriptIdentifier.NetworkInterfaceIPv4DHCPLeaseGet => "get_network_interface_ipv4_dhcp_lease",
+            ScriptIdentifier.RenewDHCPLease => "renew_dhcp_lease",
+            ScriptIdentifier.NetworkStatusInformationGet => "get_network_status_information",
 
             // DNS
-            ScriptIdentifier.HostnameSet => resourceManager.GetResource("set_hostname"),
-            ScriptIdentifier.NetworkStaticHostsSet => resourceManager.GetResource("set_static_hosts"),
-            ScriptIdentifier.NetworkMulticastDNSSettingsSet => resourceManager.GetResource("set_network_multicast_dns_settings"),
-            ScriptIdentifier.NetworkDNSSettingsGet => resourceManager.GetResource("get_network_dns_settings"),
-            ScriptIdentifier.NetworkDNSSettingsSet => resourceManager.GetResource("set_network_dns_settings"),
+            ScriptIdentifier.HostnameSet => "set_hostname",
+            ScriptIdentifier.NetworkStaticHostsSet => "set_static_hosts",
+            ScriptIdentifier.NetworkMulticastDNSSettingsSet => "set_network_multicast_dns_settings",
+            ScriptIdentifier.NetworkDNSSettingsGet => "get_network_dns_settings",
+            ScriptIdentifier.NetworkDNSSettingsSet => "set_network_dns_settings",
 
             // Proxy
-            ScriptIdentifier.NetworkProxySettingsGet => resourceManager.GetResource("get_network_proxy_settings"),
-            ScriptIdentifier.NetworkProxySettingsSet => resourceManager.GetResource("set_network_proxy_settings"),
+            ScriptIdentifier.NetworkProxySettingsGet => "get_network_proxy_settings",
+            ScriptIdentifier.NetworkProxySettingsSet => "set_network_proxy_settings",
 
             // NTP
-            ScriptIdentifier.NetworkNTPFallbackInformationGet => resourceManager.GetResource("get_network_ntp_fallback_information"),
-            ScriptIdentifier.NetworkNTPSettingsGet => resourceManager.GetResource("get_network_ntp_settings"),
-            ScriptIdentifier.NetworkNTPSettingsSet => resourceManager.GetResource("set_network_ntp_settings"),
+            ScriptIdentifier.NetworkNTPFallbackInformationGet => "get_network_ntp_fallback_information",
+            ScriptIdentifier.NetworkNTPSettingsGet => "get_network_ntp_settings",
+            ScriptIdentifier.NetworkNTPSettingsSet => "set_network_ntp_settings",
 
             // Install
-            ScriptIdentifier.InstallDebianPackage => resourceManager.GetResource("install_deb_package"),
+            ScriptIdentifier.InstallDebianPackage => "install_deb_package",
 
             // Test
-            ScriptIdentifier.UnitTesting => resourceManager.GetResource("UnitTesting"),
+            ScriptIdentifier.UnitTesting => "UnitTesting",
 
             // Unknown
             _ => throw new InvalidOperationException($"Unknown script identifier '{scriptIdentifier}'."),
         };
 
-        if (string.IsNullOrWhiteSpace(scriptContent))
-        {
-            throw new InvalidOperationException(
-                $"Script content for script with identifier '{scriptIdentifier}' was empty.");
-        }
-
-        return scriptContent.EnsureLFLineEndings();
+        return ResourceManager.GetInstance().GetResourcePath(scriptName);
     }
 }

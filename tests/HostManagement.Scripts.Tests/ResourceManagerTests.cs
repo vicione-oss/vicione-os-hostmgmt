@@ -159,7 +159,6 @@ public class ResourceManagerTests
                     path.Contains(NormalizedEdgeSViciOne, StringComparison.Ordinal)));
         }
 
-
         [Fact]
         public void ShouldHaveNoResources_WhenInitializedWithUnknownEnvironment()
         {
@@ -181,6 +180,40 @@ public class ResourceManagerTests
             var instance = ResourceManager.GetInstance();
             instance.Should().NotBeNull();
             instance.ResourceDictionary.Should().BeEmpty();
+        }
+
+        [Theory]
+        [MemberData(nameof(EmbeddedResourceTestData))]
+        public void ShouldHaveCorrectResourceKeysAndValues_WhenInitialized(EmbeddedResourceFile embeddedResource)
+        {
+            // Arrange
+            ResourceManager.ResetInstance();
+
+            var (logger, fileSystem, _, resourceHelper, processWrapper) = CreateSubstitutes();
+
+            var testEmbeddedResourceContent = "test content";
+            var testEmbeddedResourceContentBytes = Encoding.UTF8.GetBytes(testEmbeddedResourceContent);
+            var testResourceDeployDirectoryStructure = Path.Combine(_testResourceDeployDirectory, embeddedResource.DirectoryStructure);
+            var targetFilePath = Path.Combine(testResourceDeployDirectoryStructure, embeddedResource.FileNameAndExtension);
+
+            resourceHelper.GetManifestResourceNames(Arg.Any<Func<string, bool>?>()).Returns([embeddedResource.Location]);
+
+            // Act
+            ResourceManager.Initialize(
+                logger,
+                fileSystem,
+                resourceHelper,
+                processWrapper,
+                _testResourceDeployDirectory,
+                EdgeSViciOne);
+
+            // Assert
+            var instance = ResourceManager.GetInstance();
+            instance.Should().NotBeNull();
+            instance.ResourceDictionary.Should().ContainKey(embeddedResource.FileName);
+            instance.ResourceDictionary.TryGetValue(embeddedResource.FileName, out var resourceInfo).Should().BeTrue();
+            resourceInfo.Should().NotBeNull();
+            resourceInfo.DeployPath.Should().BeEquivalentTo(targetFilePath);
         }
 
         [Theory]
@@ -208,6 +241,68 @@ public class ResourceManagerTests
             var instance = ResourceManager.GetInstance();
             instance.Should().NotBeNull();
             instance.ResourceDictionary.Should().HaveSameCount(scriptNames).And.ContainKeys(scriptNames);
+        }
+
+        public static TheoryData<EmbeddedResourceFile> EmbeddedResourceTestData
+            => [.. EnumerateEmbeddedResourceTestData()];
+
+        public static IEnumerable<EmbeddedResourceFile> EnumerateEmbeddedResourceTestData()
+        {
+            const string Dir = "Dir";
+            const string SubDir = "SubDir";
+            const string File = "file";
+            const string FileWithExtension = "file.sh";
+
+            // Files under root
+            yield return new()
+            {
+                Location = $"{ScriptsDirectoryLocation}.{File}",
+                DirectoryStructure = ScriptsDirectoryName,
+                FileName = File,
+                FileNameAndExtension = File
+            };
+
+            yield return new()
+            {
+                Location = $"{ScriptsDirectoryLocation}.{FileWithExtension}",
+                DirectoryStructure = ScriptsDirectoryName,
+                FileName = FileWithExtension.Split('.').First(),
+                FileNameAndExtension = FileWithExtension
+            };
+
+            // Files under root/dir
+            yield return new()
+            {
+                Location = $"{ScriptsDirectoryLocation}.{Dir}.{File}",
+                DirectoryStructure = Path.Combine(ScriptsDirectoryName, Dir),
+                FileName = File,
+                FileNameAndExtension = File
+            };
+
+            yield return new()
+            {
+                Location = $"{ScriptsDirectoryLocation}.{Dir}.{FileWithExtension}",
+                DirectoryStructure = Path.Combine(ScriptsDirectoryName, Dir),
+                FileName = FileWithExtension.Split('.').First(),
+                FileNameAndExtension = FileWithExtension
+            };
+
+            // Files under root/dir/subdir
+            yield return new()
+            {
+                Location = $"{ScriptsDirectoryLocation}.{Dir}.{SubDir}.{File}",
+                DirectoryStructure = Path.Combine(ScriptsDirectoryName, Dir, SubDir),
+                FileName = File,
+                FileNameAndExtension = File
+            };
+
+            yield return new()
+            {
+                Location = $"{ScriptsDirectoryLocation}.{Dir}.{SubDir}.{FileWithExtension}",
+                DirectoryStructure = Path.Combine(ScriptsDirectoryName, Dir, SubDir),
+                FileName = FileWithExtension.Split('.').First(),
+                FileNameAndExtension = FileWithExtension
+            };
         }
 
         public static TheoryData<(string, List<string>)> DebianScriptNamesData =>
@@ -293,182 +388,11 @@ public class ResourceManagerTests
                 }
             )
         ];
-    }
-
-    public class GetResource : ResourceManagerTests
-    {
-        [Fact]
-        public void ShouldThrow_WhenResourceContentCanNotBeDecodedAsUTF8()
-        {
-            // Arrange
-            ResourceManager.ResetInstance();
-
-            var (logger, fileSystem, directoryInfo, resourceHelper, processWrapper) = CreateSubstitutes();
-
-            var scriptName = "invalid_encoding";
-            var scriptFile = "invalid_encoding.sh";
-            var contentBytes = Encoding.UTF8.GetBytes(scriptName);
-            var resourceDeployDirectoryStructure = GetDeployDirectoryStructure(_testResourceDeployDirectory);
-            var targetFilePath = Path.Combine(resourceDeployDirectoryStructure, scriptFile);
-            var resourceLocation = BuildEnvironmentResource(scriptFile, NormalizedEdgeSViciOne);
-
-            SetupFilteredManifestResourceNames(resourceHelper, resourceLocation);
-            SetupDirectoryCreation(fileSystem, directoryInfo, resourceDeployDirectoryStructure);
-
-            // GetManifestResourceNames shall return the embedded resource location
-            resourceHelper.GetManifestResourceNames(Arg.Any<Func<string, bool>?>()).Returns([resourceLocation]);
-
-            SetupSuccessfulSingleScriptDeployment(
-                resourceHelper,
-                fileSystem,
-                resourceLocation,
-                contentBytes,
-                targetFilePath);
-
-            fileSystem.File.Exists(targetFilePath).Returns(true);
-
-            // Encoding will fail and throw, when content is null
-            fileSystem.File.ReadAllBytes(targetFilePath).Returns(_ => null!);
-
-            SetupProcessWrapperSuccess(processWrapper);
-
-            ResourceManager.Initialize(
-                logger,
-                fileSystem,
-                resourceHelper,
-                processWrapper,
-                _testResourceDeployDirectory,
-                EdgeSViciOne);
-
-            ResourceManager.GetInstance().DeployScripts();
-
-            // Act + Assert
-            var func = () => ResourceManager.GetInstance().GetResource(scriptName);
-            func.Should()
-                .Throw<InvalidOperationException>()
-                .WithMessage($"Could not load content of resource '{scriptName}'.");
-        }
-
-        [Theory]
-        [MemberData(nameof(EmbeddedResourceData))]
-        public void ShouldGetResourceContent_WhenGetResourceCalled(EmbeddedResourceFile embeddedResource)
-        {
-            // Arrange
-            ResourceManager.ResetInstance();
-
-            var (logger, fileSystem, directoryInfo, resourceHelper, processWrapper) = CreateSubstitutes();
-
-            var testEmbeddedResourceContent = "test content";
-            var testEmbeddedResourceContentBytes = Encoding.UTF8.GetBytes(testEmbeddedResourceContent);
-            var testResourceDeployDirectoryStructure = Path.Combine(_testResourceDeployDirectory, embeddedResource.DirectoryStructure);
-            var targetFilePath = Path.Combine(testResourceDeployDirectoryStructure, embeddedResource.FileNameAndExtension);
-
-            SetupDirectoryCreation(fileSystem, directoryInfo, testResourceDeployDirectoryStructure);
-
-            // GetManifestResourceNames shall return the embedded resource locations (namespace syntax)
-            resourceHelper
-                .GetManifestResourceNames(Arg.Any<Func<string, bool>?>())
-                .Returns([embeddedResource.Location]);
-
-            SetupSuccessfulSingleScriptDeployment(
-                resourceHelper,
-                fileSystem,
-                embeddedResource.Location,
-                testEmbeddedResourceContentBytes,
-                targetFilePath);
-
-            fileSystem.File.Exists(targetFilePath).Returns(true);
-
-            // Getting the resources shall return the corresponding file content
-            fileSystem.File.ReadAllBytes(targetFilePath).Returns(testEmbeddedResourceContentBytes);
-
-            SetupProcessWrapperSuccess(processWrapper);
-
-            // ResourceManager can now be initialized
-            ResourceManager.Initialize(
-                logger,
-                fileSystem,
-                resourceHelper,
-                processWrapper,
-                _testResourceDeployDirectory,
-                EdgeSViciOne);
-
-            // ResourceManager can now deploy the scripts
-            var deployResult = ResourceManager.GetInstance().DeployScripts();
-
-            // Act
-            var result = ResourceManager.GetInstance().GetResource(embeddedResource.FileName);
-
-            // Assert
-            deployResult.Should().BeTrue();
-            result.Should().Be(testEmbeddedResourceContent);
-        }
-
-        public static TheoryData<EmbeddedResourceFile> EmbeddedResourceData => [.. EnumerateEmbeddedResourceData()];
-
-        public static IEnumerable<EmbeddedResourceFile> EnumerateEmbeddedResourceData()
-        {
-            const string Dir = "Dir";
-            const string SubDir = "SubDir";
-            const string File = "file";
-            const string FileWithExtension = "file.sh";
-
-            // Files under root
-            yield return new()
-            {
-                Location = $"{ScriptsDirectoryLocation}.{File}",
-                DirectoryStructure = ScriptsDirectoryName,
-                FileName = File,
-                FileNameAndExtension = File
-            };
-
-            yield return new()
-            {
-                Location = $"{ScriptsDirectoryLocation}.{FileWithExtension}",
-                DirectoryStructure = ScriptsDirectoryName,
-                FileName = FileWithExtension.Split('.').First(),
-                FileNameAndExtension = FileWithExtension
-            };
-
-            // Files under root/dir
-            yield return new()
-            {
-                Location = $"{ScriptsDirectoryLocation}.{Dir}.{File}",
-                DirectoryStructure = Path.Combine(ScriptsDirectoryName, Dir),
-                FileName = File,
-                FileNameAndExtension = File
-            };
-
-            yield return new()
-            {
-                Location = $"{ScriptsDirectoryLocation}.{Dir}.{FileWithExtension}",
-                DirectoryStructure = Path.Combine(ScriptsDirectoryName, Dir),
-                FileName = FileWithExtension.Split('.').First(),
-                FileNameAndExtension = FileWithExtension
-            };
-
-            // Files under root/dir/subdir
-            yield return new()
-            {
-                Location = $"{ScriptsDirectoryLocation}.{Dir}.{SubDir}.{File}",
-                DirectoryStructure = Path.Combine(ScriptsDirectoryName, Dir, SubDir),
-                FileName = File,
-                FileNameAndExtension = File
-            };
-
-            yield return new()
-            {
-                Location = $"{ScriptsDirectoryLocation}.{Dir}.{SubDir}.{FileWithExtension}",
-                DirectoryStructure = Path.Combine(ScriptsDirectoryName, Dir, SubDir),
-                FileName = FileWithExtension.Split('.').First(),
-                FileNameAndExtension = FileWithExtension
-            };
-        }
 
         public sealed record EmbeddedResourceFile
         {
             /// <summary>
-            /// The embedded resource file location (dot-separated, e.g.: 'HostManagement.Scripts.Resources.Scripts.Dir.SubDir.file.sh').
+            /// The embedded resource file location, e.g.: 'HostManagement.Scripts.Resources.Scripts.Dir.SubDir.file.sh').
             /// </summary>
             public required string Location { get; init; }
 
@@ -486,58 +410,6 @@ public class ResourceManagerTests
             /// The embedded resource file name and extension (e.g.: 'file.sh' or 'file' if no extension).
             /// </summary>
             public required string FileNameAndExtension { get; init; }
-        }
-    }
-
-    public class GetResourceBytes : ResourceManagerTests
-    {
-        [Fact]
-        public void ShouldThrow_WhenReadingResourceFileFails()
-        {
-            // Arrange
-            ResourceManager.ResetInstance();
-
-            var (logger, fileSystem, directoryInfo, resourceHelper, processWrapper) = CreateSubstitutes();
-
-            var scriptName = "readfail";
-            var scriptFile = "readfail.sh";
-            var scriptContentBytes = Encoding.UTF8.GetBytes("readfail content");
-            var resourceDeployDirectoryStructure = GetDeployDirectoryStructure(_testResourceDeployDirectory);
-            var targetFilePath = Path.Combine(resourceDeployDirectoryStructure, scriptFile);
-            var resourceLocation = BuildEnvironmentResource(scriptFile, NormalizedEdgeSViciOne);
-
-            SetupFilteredManifestResourceNames(resourceHelper, resourceLocation);
-            SetupDirectoryCreation(fileSystem, directoryInfo, resourceDeployDirectoryStructure);
-            SetupSuccessfulSingleScriptDeployment(
-                resourceHelper,
-                fileSystem,
-                resourceLocation,
-                scriptContentBytes,
-                targetFilePath);
-
-            SetupProcessWrapperSuccess(processWrapper);
-
-            ResourceManager.Initialize(
-                logger,
-                fileSystem,
-                resourceHelper,
-                processWrapper,
-                _testResourceDeployDirectory,
-                EdgeSViciOne);
-
-            ResourceManager.GetInstance().DeployScripts();
-
-            // Resource deployed but ReadAllBytes throws
-            fileSystem.File.Exists(Arg.Any<string>()).Returns(true);
-            fileSystem.File.ReadAllBytes(Arg.Any<string>()).Returns(_ => throw new IOException("read failed"));
-
-            // Act
-            var func = () => ResourceManager.GetInstance().GetResourceBytes(scriptName);
-
-            // Assert
-            func.Should()
-                .Throw<InvalidOperationException>()
-                .WithMessage($"Could not load resource with name '{scriptName}'.");
         }
     }
 
