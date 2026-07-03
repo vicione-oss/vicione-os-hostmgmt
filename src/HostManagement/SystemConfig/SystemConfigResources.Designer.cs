@@ -61,24 +61,6 @@ namespace HostManagement.SystemConfig {
         }
         
         /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die Affected system configuration was: Current config ähnelt.
-        /// </summary>
-        internal static string AffectedConfigWasCurrentConfig {
-            get {
-                return ResourceManager.GetString("AffectedConfigWasCurrentConfig", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die Affected system configuration was: &apos;{0}&apos; ähnelt.
-        /// </summary>
-        internal static string AffectedConfigWasJsonConfig {
-            get {
-                return ResourceManager.GetString("AffectedConfigWasJsonConfig", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die System configuration has been cached. ähnelt.
         /// </summary>
         internal static string ConfigCached {
@@ -124,47 +106,11 @@ namespace HostManagement.SystemConfig {
         }
         
         /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die Get system configuration completed with warnings. ähnelt.
-        /// </summary>
-        internal static string GetConfigCompletedWithWarnings {
-            get {
-                return ResourceManager.GetString("GetConfigCompletedWithWarnings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die Get system configuration failed. ähnelt.
-        /// </summary>
-        internal static string GetConfigFailed {
-            get {
-                return ResourceManager.GetString("GetConfigFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Get system configuration from cache succeeded. ähnelt.
         /// </summary>
         internal static string GetConfigFromCacheSucceeded {
             get {
                 return ResourceManager.GetString("GetConfigFromCacheSucceeded", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die Get system configuration from &apos;{0}&apos; failed. ähnelt.
-        /// </summary>
-        internal static string GetConfigFromJsonFailed {
-            get {
-                return ResourceManager.GetString("GetConfigFromJsonFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die Get system configuration from &apos;{0}&apos; succeeded. ähnelt.
-        /// </summary>
-        internal static string GetConfigFromJsonSucceeded {
-            get {
-                return ResourceManager.GetString("GetConfigFromJsonSucceeded", resourceCulture);
             }
         }
         
@@ -196,65 +142,11 @@ namespace HostManagement.SystemConfig {
         }
         
         /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die Get system configuration succeeded. ähnelt.
-        /// </summary>
-        internal static string GetConfigSucceeded {
-            get {
-                return ResourceManager.GetString("GetConfigSucceeded", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die No &apos;{0}&apos; found. ähnelt.
+        ///   Sucht eine lokalisierte Zeichenfolge, die No {0} found. ähnelt.
         /// </summary>
         internal static string NoConfigFound {
             get {
                 return ResourceManager.GetString("NoConfigFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die Prepare system configuration from &apos;{0}&apos; completed with warnings. ähnelt.
-        /// </summary>
-        internal static string PrepareConfigCompletedWithWarnings {
-            get {
-                return ResourceManager.GetString("PrepareConfigCompletedWithWarnings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die Prepare system configuration from &apos;{0}&apos; failed. ähnelt.
-        /// </summary>
-        internal static string PrepareConfigFailed {
-            get {
-                return ResourceManager.GetString("PrepareConfigFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die Prepare system configuration not possible. ähnelt.
-        /// </summary>
-        internal static string PrepareConfigNotPossible {
-            get {
-                return ResourceManager.GetString("PrepareConfigNotPossible", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die Prepare system configuration skipped. ähnelt.
-        /// </summary>
-        internal static string PrepareConfigSkipped {
-            get {
-                return ResourceManager.GetString("PrepareConfigSkipped", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die Prepare system configuration from &apos;{0}&apos; succeeded. ähnelt.
-        /// </summary>
-        internal static string PrepareConfigSucceeded {
-            get {
-                return ResourceManager.GetString("PrepareConfigSucceeded", resourceCulture);
             }
         }
         

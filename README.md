@@ -134,7 +134,9 @@ will print the current active state of the service, e.g. `active`, `inactive` et
 
 ### HostManagement Service
 
-**HostManagement** is normally started as a Linux service after successful installation. If it shall be started manually via terminal, follow the steps below.
+**HostManagement** is normally started as a Linux service after successful installation. For a detailed description of the startup behaviour see [docs/HostManagementServiceStartup.md].
+
+If it shall be started manually via terminal, follow the steps below.
 
 > [!important]
 > Elevated privileges are required.
@@ -159,7 +161,7 @@ will print the current active state of the service, e.g. `active`, `inactive` et
 
 ### Environment Variables
 
-A list of environment variables defined for **HostManagement** can be found in [/docs/EnvironmentVariables.md](/docs/EnvironmentVariables.md).
+A list of environment variables defined for **HostManagement** can be found in [docs/EnvironmentVariables.md].
 
 ### Logging
 
@@ -285,7 +287,7 @@ It includes the definitions of the commands for the **command line** and the log
 Persisted `SystemConfiguration` JSON files contain a `Version` property.\
 When HostManagement loads a configuration, older supported contract versions are migrated to the current internal contract version before deserialization.
 
-Details about the migration design, versioning rules and how to add new migrations are documented in [System Configuration Migrations].
+Details about the migration design, versioning rules and how to add new migrations are documented in [docs/SystemConfigurationMigrations.md].
 
 ### HostManagement.Common
 
@@ -301,7 +303,7 @@ This part of the application is responsible for executing the **shell scripts** 
 
 `HostManagement.Scripts` is the only **interface** to the **operating system** and performs all read and write operations of the system configuration. It also serves as a data source for **monitoring** and **health checks**.
 
-When a **shell script** is executed, it returns a response ([ScriptResponse]) indicating whether the actions performed were successful and whether warnings or errors occurred.
+When a **shell script** is executed, it returns a response indicating whether the actions performed were successful and whether warnings or errors occurred (see [docs/ScriptResponse.md]).
 
 ### HostManagement.Shared
 
@@ -411,13 +413,15 @@ This file is excluded via [`.gitignore`] and is not committed.
 This project is licensed under the MIT License.
 The full license text is available in [`LICENSE.txt`](./LICENSE.txt).
 
+[`.gitignore`]: .gitignore
 [Concept]: docs/Concept.md
 [`copilot-instructions.md`]: .github/copilot-instructions.md
 [DNS Validation]: docs/DNSValidation.md
-[`.gitignore`]: .gitignore
+[docs/EnvironmentVariables.md]: docs/EnvironmentVariables.md
+[docs/HostManagementServiceStartup.md]: docs/HostManagementServiceStartup.md
+[docs/ScriptResponse.md]: docs/ScriptResponse.md
+[docs/SystemConfigurationMigrations.md]: docs/SystemConfigurationMigrations.md
 [InstallNetSdk]: https://learn.microsoft.com/en-us/dotnet/core/install/linux-debian#install-the-sdk
-[ScriptResponse]: docs/ScriptResponse.md
-[System Configuration Migrations]: docs/SystemConfigurationMigrations.md
 [`testing.instructions.md`]: .github/instructions/testing.instructions.md
 [Visual Studio 2026]: https://visualstudio.microsoft.com/vs/
 [Visual Studio Code]: https://code.visualstudio.com/Download

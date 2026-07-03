@@ -247,7 +247,10 @@ public class SystemConfigurationPersistenceTests
             _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new(string.Empty));
 
             await _persistence.Invoking(x => x.LoadPreparationConfiguration(CancellationToken.None))
-                .Should().ThrowAsync<JsonException>().WithMessage("*expected*valid*JSON*");
+                .Should().ThrowAsync<InvalidSystemConfigurationException>()
+                .WithMessage("UTF-8 JSON stream could not be deserialized to 'SystemConfiguration'.")
+                .WithInnerException(typeof(JsonException))
+                .WithMessage("*expected*valid*JSON*");
         }
 
         [Fact]
@@ -256,7 +259,10 @@ public class SystemConfigurationPersistenceTests
             _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new("{}"));
 
             await _persistence.Invoking(x => x.LoadPreparationConfiguration(CancellationToken.None))
-                .Should().ThrowAsync<JsonException>().WithMessage("*missing*required*'Version'*");
+                .Should().ThrowAsync<InvalidSystemConfigurationException>()
+                .WithMessage("UTF-8 JSON stream could not be deserialized to 'SystemConfiguration'.")
+                .WithInnerException(typeof(JsonException))
+                .WithMessage("*missing*required*'Version'*");
         }
 
         [Fact]
@@ -276,8 +282,9 @@ public class SystemConfigurationPersistenceTests
             _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new("""{"Version":"2"}"""));
 
             await _persistence.Invoking(x => x.LoadPreparationConfiguration(CancellationToken.None))
-                .Should()
-                .ThrowAsync<JsonException>()
+                .Should().ThrowAsync<InvalidSystemConfigurationException>()
+                .WithMessage("UTF-8 JSON stream could not be deserialized to 'SystemConfiguration'.")
+                .WithInnerException(typeof(JsonException))
                 .WithMessage("*'Version' must be an integer*");
         }
 
@@ -359,14 +366,14 @@ public class SystemConfigurationPersistenceTests
     {
         [Fact]
         public void ShouldReturnFalse_WhenFileDoesNotExist()
-            => _persistence.PreparationConfigurationExists().Should().BeFalse();
+            => _persistence.ExistsPreparationConfiguration().Should().BeFalse();
 
         [Fact]
         public void ShouldReturnTrue_WhenFileExists()
         {
             _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new(string.Empty));
 
-            _persistence.PreparationConfigurationExists().Should().BeTrue();
+            _persistence.ExistsPreparationConfiguration().Should().BeTrue();
         }
     }
 
@@ -374,14 +381,14 @@ public class SystemConfigurationPersistenceTests
     {
         [Fact]
         public void ShouldReturnFalse_WhenFileDoesNotExist()
-            => _persistence.UserConfigurationExists().Should().BeFalse();
+            => _persistence.ExistsUserConfiguration().Should().BeFalse();
 
         [Fact]
         public void ShouldReturnTrue_WhenFileExists()
         {
             _fileSystem.AddFile(AppPaths.SystemConfigurationFilePath, new(string.Empty));
 
-            _persistence.UserConfigurationExists().Should().BeTrue();
+            _persistence.ExistsUserConfiguration().Should().BeTrue();
         }
     }
 

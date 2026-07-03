@@ -5,7 +5,6 @@ using HostManagement.Communication.NamedPipes.Extensions;
 using HostManagement.Communication.NamedPipes.RequestHandlers;
 using HostManagement.Configuration;
 using HostManagement.Scripts;
-using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Contracts;
 using HostManagement.SystemConfig;
@@ -23,7 +22,6 @@ internal static partial class ServiceRunner
     private static readonly FileSystem s_fileSystem = new();
     private static readonly SystemConfigurationPersistence s_systemConfigurationPersistence = new(s_fileSystem);
     private static readonly SystemConfigurationService s_configurationService = new(
-        s_fileSystem,
         s_systemConfigurationPersistence,
         new ScriptHandler(),
         s_logger);
@@ -31,18 +29,20 @@ internal static partial class ServiceRunner
     private static readonly string s_setConfigFlag = Path.Combine(AppPaths.TempPath, "set-config.flag");
 
     /// <summary>
-    /// Starts the "prepare configuration" mode of the application, that should run at first boot.
+    /// Starts the "prepare configuration" mode of the application, that runs at device startup.
     /// </summary>
-    /// <returns>Always returns 0 (graceful exit on error)</returns>
+    /// <remarks>
+    /// Prepares the system by writing changes of the '<c>SystemConfiguration.json</c>' or
+    /// '<c>DefaultSystemConfiguration.json</c>' to the system without applying them yet and
+    /// creates a '<c>set-config.flag</c>' file if successful.
+    /// </remarks>
+    /// <returns>Always returns 0 (graceful exit on error), so service start does not fail.</returns>
     internal static async Task<int> PrepareConfiguration()
     {
         try
         {
             if (!TryInitializeService())
-            {
-                // gracefully exit application
                 return 0;
-            }
 
             if (EnvironmentVariables.Environment.Value is TargetEnvironment.EdgeSViciOne)
             {
@@ -50,25 +50,14 @@ internal static partial class ServiceRunner
                 // However, if it is called on a not supported environment, like 'debian' or 'unknown',
                 // prepare configuration will not be executed.
 
-                PrepareConfigurationStarted(s_logger);
+                var status = await s_configurationService
+                    .PrepareConfigurationOnDeviceStartup(CancellationToken.None)
+                    .ConfigureAwait(false);
 
-                var prepareConfigResult = await s_configurationService.PrepareConfiguration();
-
-                if (prepareConfigResult.Status == OperationStatus.Error)
-                {
-                    ResultReturnedError(s_logger, prepareConfigResult.Message);
-
-                    // gracefully exit application
+                if (status == OperationStatus.Warning)
                     return 0;
-                }
 
                 await CreateSetConfigFlag();
-
-                if (prepareConfigResult.Status == OperationStatus.Warning)
-                    ResultReturnedWarning(s_logger, prepareConfigResult.Message);
-
-                if (prepareConfigResult.Status == OperationStatus.Success)
-                    ResultReturnedSuccess(s_logger, prepareConfigResult.Message);
             }
 
             return 0;
@@ -76,8 +65,6 @@ internal static partial class ServiceRunner
         catch (Exception ex)
         {
             ServiceErrorOccurredWhileRunning(s_logger, ex);
-
-            // gracefully exit application
             return 0;
         }
     }
@@ -85,6 +72,10 @@ internal static partial class ServiceRunner
     /// <summary>
     /// Starts the application as a service, that runs in the background.
     /// </summary>
+    /// <remarks>
+    /// If '<c>set-config.flag</c>' is present, either '<c>SystemConfiguration.json</c>' or
+    /// '<c>DefaultSystemConfiguration.json</c>' is applied. The flag file is deleted.
+    /// </remarks>
     /// <returns>0 if service ended normally, otherwise 1</returns>
     internal static async Task<int> StartService()
     {
@@ -100,27 +91,23 @@ internal static partial class ServiceRunner
 
             if (s_fileSystem.File.Exists(s_setConfigFlag))
             {
-                s_fileSystem.File.Delete(s_setConfigFlag);
+                DeleteSetConfigFlag();
 
-                var getJsonConfig = await GetJsonConfigurationOnStartUp()
-                    .ContinueWith(task =>
-                    {
-                        if (task.Result.Status == OperationStatus.Error)
-                            lifetime.Cancel();
+                var configResult = await s_configurationService.GetConfigurationOnDeviceStartup(lifetime.Token)
+                    .ConfigureAwait(false);
 
-                        return task.Result.Configuration;
-                    },
-                    TaskScheduler.Current);
-
-                if (getJsonConfig is SystemConfiguration jsonConfig)
+                if (configResult.Configuration is SystemConfiguration jsonConfig)
                 {
-                    if (!await SetJsonConfigurationOnStartUp(jsonConfig, lifetime.Token))
+                    var status = await s_configurationService
+                        .SetConfigurationOnDeviceStartup(jsonConfig, lifetime.Token)
+                        .ConfigureAwait(false);
+
+                    if (status == OperationStatus.Error)
                         return 1;
                 }
             }
 
             await StartNamedPipeServer(lifetime.Token);
-
             return 0;
         }
         catch (Exception ex)
@@ -128,51 +115,6 @@ internal static partial class ServiceRunner
             ServiceErrorOccurredWhileRunning(s_logger, ex);
             return 1;
         }
-    }
-
-    private static async Task<GetSystemConfigurationResult> GetJsonConfigurationOnStartUp()
-    {
-        if (s_systemConfigurationPersistence.UserConfigurationExists())
-            FoundExistingSystemConfiguration(s_logger, s_systemConfigurationPersistence.GetUserConfigurationPath());
-        else if (s_systemConfigurationPersistence.PreparationConfigurationExists())
-            FoundExistingSystemConfiguration(s_logger, s_systemConfigurationPersistence.GetPreparationConfigurationPath());
-        else
-            CreateSystemConfigurationStarted(s_logger);
-
-        var getJsonConfigResult = await s_configurationService.GetConfigurationFromJson();
-
-        if (getJsonConfigResult.Status == OperationStatus.Error)
-            ResultReturnedError(s_logger, getJsonConfigResult.Message);
-
-        if (getJsonConfigResult.Status == OperationStatus.Warning)
-            ResultReturnedWarning(s_logger, getJsonConfigResult.Message);
-
-        if (getJsonConfigResult.Status == OperationStatus.Success)
-            ResultReturnedSuccess(s_logger, getJsonConfigResult.Message);
-
-        return getJsonConfigResult;
-    }
-
-    private static async Task<bool> SetJsonConfigurationOnStartUp(
-        SystemConfiguration jsonConfig,
-        CancellationToken cancellationToken)
-    {
-        var setConfigResult = await s_configurationService
-            .SetConfiguration(jsonConfig, shouldPersistConfiguration: false, cancellationToken);
-
-        if (setConfigResult.Status == OperationStatus.Error)
-        {
-            ResultReturnedError(s_logger, setConfigResult.Message);
-            return false;
-        }
-
-        if (setConfigResult.Status == OperationStatus.Warning)
-            ResultReturnedWarning(s_logger, setConfigResult.Message);
-
-        if (setConfigResult.Status == OperationStatus.Success)
-            ResultReturnedSuccess(s_logger, setConfigResult.Message);
-
-        return true;
     }
 
     private static async Task StartNamedPipeServer(CancellationToken cancellationToken)
@@ -202,7 +144,16 @@ internal static partial class ServiceRunner
     private static async Task CreateSetConfigFlag()
     {
         if (!s_fileSystem.File.Exists(s_setConfigFlag))
+        {
             await s_fileSystem.File.Create(s_setConfigFlag).DisposeAsync();
+            CreateSetConfigFlag(s_logger, s_setConfigFlag);
+        }
+    }
+
+    private static void DeleteSetConfigFlag()
+    {
+        s_fileSystem.File.Delete(s_setConfigFlag);
+        DeletedSetConfigFlag(s_logger, s_setConfigFlag);
     }
 
     private static bool TryInitializeService()
@@ -335,29 +286,17 @@ internal static partial class ServiceRunner
     [LoggerMessage(LogLevel.Error, "An error occurred while starting the service. Could not determine if the service is already running. {StandardError}")]
     private static partial void CouldNotDetermineServiceAlreadyRunning(ILogger logger, string? standardError);
 
-    [LoggerMessage(LogLevel.Information, "Creating system configuration started.")]
-    private static partial void CreateSystemConfigurationStarted(ILogger logger);
+    [LoggerMessage(LogLevel.Debug, "Created flag '{FlagFile}'.")]
+    private static partial void CreateSetConfigFlag(ILogger logger, string flagFile);
 
     [LoggerMessage(LogLevel.Information, "Current target environment: '{TargetEnvironment}'")]
     private static partial void CurrentTargetEnvironment(ILogger logger, string targetEnvironment);
 
+    [LoggerMessage(LogLevel.Debug, "Deleted flag '{FlagFile}'.")]
+    private static partial void DeletedSetConfigFlag(ILogger logger, string flagFile);
+
     [LoggerMessage(LogLevel.Error, "The following environment variables were not specified or are invalid: {EnvironmentVariables}")]
     private static partial void EnvironmentVariablesInvalid(ILogger logger, string? environmentVariables);
-
-    [LoggerMessage(LogLevel.Information, "Found existing system configuration '{SystemConfigurationFilePath}'.")]
-    private static partial void FoundExistingSystemConfiguration(ILogger logger, string? systemConfigurationFilePath);
-
-    [LoggerMessage(LogLevel.Information, "Preparing configuration at boot time started.")]
-    private static partial void PrepareConfigurationStarted(ILogger logger);
-
-    [LoggerMessage(LogLevel.Error, "{Message}")]
-    private static partial void ResultReturnedError(ILogger logger, string? message);
-
-    [LoggerMessage(LogLevel.Warning, "{Message}")]
-    private static partial void ResultReturnedWarning(ILogger logger, string? message);
-
-    [LoggerMessage(LogLevel.Information, "{Message}")]
-    private static partial void ResultReturnedSuccess(ILogger logger, string? message);
 
     [LoggerMessage(LogLevel.Error, "An error occurred while starting the service. The service is already running.")]
     private static partial void ServiceAlreadyRunning(ILogger logger);

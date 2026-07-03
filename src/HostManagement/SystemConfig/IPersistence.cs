@@ -1,42 +1,60 @@
-﻿using HostManagement.SystemConfig.Contracts;
+using HostManagement.SystemConfig.Contracts;
 
 namespace HostManagement.SystemConfig;
 
+/// <summary>
+/// Defines persistence operations for preparation and user-defined system configuration.
+/// </summary>
 internal interface IPersistence
 {
     /// <summary>
-    /// Loads the configuration that was flashed onto the device to prepare the device for initial use.
+    /// Deletes the previously marked defective user-defined configuration.
     /// </summary>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The configuration to prepare the device.</returns>
-    Task<SystemConfiguration> LoadPreparationConfiguration(CancellationToken cancellationToken);
+    void DeleteDefectiveMarkedUserConfiguration();
 
     /// <summary>
-    /// Loads the configuration with user-defined customizations.
+    /// Checks whether a defective preparation configuration exists.
     /// </summary>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The user-defined configuration.</returns>
-    Task<SystemConfiguration> LoadUserConfiguration(CancellationToken cancellationToken);
+    /// <returns>
+    /// <see langword="true"/> if a defective preparation configuration exists, otherwise <see langword="false"/>.
+    /// </returns>
+    bool ExistsDefectivePreparationConfiguration();
 
     /// <summary>
-    /// Saves the configuration with user-defined customizations.
+    /// Checks whether a defective user-defined configuration exists.
     /// </summary>
-    /// <param name="systemConfiguration">The <see cref="SystemConfiguration"/> to save.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <exception cref="InvalidOperationException">The directory name could not be determined.</exception>
-    Task SaveUserConfiguration(SystemConfiguration systemConfiguration, CancellationToken cancellationToken);
+    /// <returns>
+    /// <see langword="true"/> if a defective user-defined configuration exists, otherwise <see langword="false"/>.
+    /// </returns>
+    bool ExistsDefectiveUserConfiguration();
 
     /// <summary>
-    /// Checks if the preparation configuration exists.
+    /// Checks whether the preparation configuration exists.
     /// </summary>
-    /// <returns><see langword="true"/> if the preparation configuration exists; otherwise, <see langword="false"/>.</returns>
-    bool PreparationConfigurationExists();
+    /// <returns>
+    /// <see langword="true"/> if the preparation configuration exists, otherwise <see langword="false"/>.
+    /// </returns>
+    bool ExistsPreparationConfiguration();
 
     /// <summary>
-    /// Checks if the user-defined configuration exists.
+    /// Checks whether the user-defined configuration exists.
     /// </summary>
-    /// <returns><see langword="true"/> if the user-defined configuration exists; otherwise, <see langword="false"/>.</returns>
-    bool UserConfigurationExists();
+    /// <returns>
+    /// <see langword="true"/> if the user-defined configuration exists, otherwise <see langword="false"/>.
+    /// </returns>
+    bool ExistsUserConfiguration();
+
+    /// <summary>
+    /// Gets the file path of the defective preparation configuration.
+    /// </summary>
+    /// <returns>The file path of the defective preparation configuration.</returns>
+    string GetDefectivePreparationConfigurationPath();
+
+    /// <summary>
+    /// Gets the file path of the defective user-defined configuration.
+    /// </summary>
+    /// <returns>The file path of the defective user-defined configuration.</returns>
+    string GetDefectiveUserConfigurationPath();
 
     /// <summary>
     /// Gets the file path of the preparation configuration.
@@ -49,4 +67,36 @@ internal interface IPersistence
     /// </summary>
     /// <returns>The file path of the user-defined configuration.</returns>
     string GetUserConfigurationPath();
+
+    /// <summary>
+    /// Loads the preparation configuration that came with the initial device image.
+    /// </summary>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The configuration to prepare the device.</returns>
+    Task<SystemConfiguration> LoadPreparationConfiguration(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Loads the user-defined configuration.
+    /// </summary>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The user-defined configuration.</returns>
+    Task<SystemConfiguration> LoadUserConfiguration(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Marks the preparation configuration as defective.
+    /// </summary>
+    void MarkPreparationConfigurationDefective();
+
+    /// <summary>
+    /// Marks the user-defined configuration as defective.
+    /// </summary>
+    void MarkUserConfigurationDefective();
+
+    /// <summary>
+    /// Saves the user-defined configuration.
+    /// </summary>
+    /// <param name="systemConfiguration">The <see cref="SystemConfiguration"/> to save.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <exception cref="InvalidOperationException">The directory name could not be determined.</exception>
+    Task SaveUserConfiguration(SystemConfiguration systemConfiguration, CancellationToken cancellationToken);
 }
