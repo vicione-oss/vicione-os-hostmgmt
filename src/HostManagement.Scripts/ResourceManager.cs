@@ -1,9 +1,9 @@
 using System.Collections.Frozen;
 using System.IO.Abstractions;
 using System.Text;
-using Microsoft.Extensions.Logging;
 using HostManagement.Scripts.Enums;
 using HostManagement.Scripts.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Scripts;
 
@@ -286,10 +286,10 @@ public sealed partial class ResourceManager
     {
         // Skip "HostManagement.Scripts.Resources." from embedded resource location,
         // so the relative embedded resource location starts with "Scripts."
-        var relativeEmbeddedResourceNamespace = embeddedResourceLocation[(s_resourcesDirectory.Length + 1)..];
-        var relativeEmbeddedResourceNamespaceParts = relativeEmbeddedResourceNamespace.Split('.');
+        var relativeEmbeddedResourceLocation = embeddedResourceLocation[(s_resourcesDirectory.Length + 1)..];
+        var relativeEmbeddedResourceLocationParts = relativeEmbeddedResourceLocation.Split('.');
 
-        if (relativeEmbeddedResourceNamespaceParts.Length == 0 ||
+        if (relativeEmbeddedResourceLocationParts.Length == 0 ||
             string.IsNullOrEmpty(embeddedResourceLocation))
         {
             throw new InvalidOperationException(
@@ -300,36 +300,40 @@ public sealed partial class ResourceManager
         string resourceName;
         string resourceFile;
 
-        if (relativeEmbeddedResourceNamespaceParts.Length >= 3 &&
-            relativeEmbeddedResourceNamespaceParts.Last().Equals("sh"))
+        if (relativeEmbeddedResourceLocationParts.Length >= 3 &&
+            relativeEmbeddedResourceLocationParts.Last().Equals("sh"))
         {
             // Scripts.file.sh / Scripts.Dir.file.sh etc. -> Currently only '.sh' files are supported
 
-            // relative embedded resource namespace without file name and extension
+            // relative embedded resource location without file name and extension
             resourceDirectoryStructure = string.Join(
                 Path.DirectorySeparatorChar,
-                relativeEmbeddedResourceNamespaceParts[..^2]);
+                relativeEmbeddedResourceLocationParts[..^2]);
 
-            resourceName = relativeEmbeddedResourceNamespaceParts[^2];
-            resourceFile = resourceName + "." + relativeEmbeddedResourceNamespaceParts[^1];
+            resourceName = relativeEmbeddedResourceLocationParts[^2];
+            resourceFile = resourceName + "." + relativeEmbeddedResourceLocationParts[^1];
         }
         else
         {
             // Scripts.file / Scripts.Dir.file etc.
 
-            // relative embedded resource namespace without file name
+            // relative embedded resource location without file name
             resourceDirectoryStructure = string.Join(
                 Path.DirectorySeparatorChar,
-                relativeEmbeddedResourceNamespaceParts[..^1]);
+                relativeEmbeddedResourceLocationParts[..^1]);
 
-            resourceName = relativeEmbeddedResourceNamespaceParts[^1];
+            resourceName = relativeEmbeddedResourceLocationParts[^1];
             resourceFile = resourceName;
         }
 
         var deployDirectoryStructure = Path.Combine(_resourceDeployDirectory, resourceDirectoryStructure);
         deployDirectoryStructure = GetTargetIndependentDeployDirectoryStructure(deployDirectoryStructure);
 
-        return new ResourceInformation(embeddedResourceLocation, deployDirectoryStructure, resourceFile);
+        return new ResourceInformation(
+            embeddedResourceLocation,
+            relativeEmbeddedResourceLocation,
+            deployDirectoryStructure,
+            resourceFile);
     }
 
     private string GetTargetIndependentDeployDirectoryStructure(string deployDirectoryStructure)
@@ -355,7 +359,7 @@ public sealed partial class ResourceManager
 #if DEBUG
         Console.WriteLine(resourceInfo);
 #endif
-        ResourceAddedToResourceDictionary(_logger, resourceInfo.EmbeddedResourceLocation);
+        AddedResourceToResourceDictionary(_logger, resourceInfo.RelativeEmbeddedResourceLocation);
     }
 
     private void CleanUpResourceDeployDirectory()
@@ -433,6 +437,7 @@ public sealed partial class ResourceManager
 
     internal sealed class ResourceInformation(
         string embeddedResourceLocation,
+        string relativeEmbeddedResourceLocation,
         string deployDirectoryStructure,
         string resourceFile)
     {
@@ -452,6 +457,11 @@ public sealed partial class ResourceManager
         public string EmbeddedResourceLocation { get; init; } = embeddedResourceLocation;
 
         /// <summary>
+        /// The relative location of the embedded resource (e.g.: "Scripts.script.sh").
+        /// </summary>
+        public string RelativeEmbeddedResourceLocation { get; init; } = relativeEmbeddedResourceLocation;
+
+        /// <summary>
         /// The name of the resource without file extension (e.g.: "script").
         /// </summary>
         // Can not handle multiple file extensions (e.g.: ".tar.gz")
@@ -463,6 +473,7 @@ public sealed partial class ResourceManager
 
             builder.AppendLine($"Resource information for {resourceFile}");
             builder.AppendLine($"> EmbeddedResourceLocation: {EmbeddedResourceLocation}");
+            builder.AppendLine($"> RelativeEmbeddedResourceLocation: {RelativeEmbeddedResourceLocation}");
             builder.AppendLine($"> DeployPath: {DeployPath}");
             builder.AppendLine($"> Name: {Name}");
 
@@ -494,6 +505,6 @@ public sealed partial class ResourceManager
     [LoggerMessage(LogLevel.Debug, "Overwritten file '{ResourceDeployPath}' successfully.")]
     private static partial void FileOverwritten(ILogger logger, string resourceDeployPath);
 
-    [LoggerMessage(LogLevel.Debug, "Resource '{EmbeddedResourceLocation}' added to resource dictionary.")]
-    private static partial void ResourceAddedToResourceDictionary(ILogger logger, string embeddedResourceLocation);
+    [LoggerMessage(LogLevel.Debug, "Added '{RelativeEmbeddedResourceLocation}' to resource dictionary.")]
+    private static partial void AddedResourceToResourceDictionary(ILogger logger, string relativeEmbeddedResourceLocation);
 }
