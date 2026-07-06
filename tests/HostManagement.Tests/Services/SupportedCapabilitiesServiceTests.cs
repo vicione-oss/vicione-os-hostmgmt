@@ -1,5 +1,4 @@
 using System.IO.Abstractions.TestingHelpers;
-using System.Text.Json;
 using AwesomeAssertions;
 using HostManagement.Configuration;
 using HostManagement.Services;
@@ -13,7 +12,12 @@ namespace HostManagement.Tests.Services;
 
 public class SupportedCapabilitiesServiceTests
 {
-    private const string EmptyCapabilitiesJson = "{}";
+    private const string ValidCapabilitiesIni =
+        """
+        [Settings]
+        [Topics]
+        """;
+
     private const string GetCanceledMessage = "Getting supported capabilities was canceled.";
     private const string GetFailedMessage = "Getting supported capabilities failed.";
 
@@ -132,7 +136,7 @@ public class SupportedCapabilitiesServiceTests
     public class InitializeSupportedCapabilities
     {
         [Fact]
-        public async Task ShouldLoadCapabilities_WhenFileContainsValidJson()
+        public async Task ShouldLoadCapabilities_WhenFileContainsValidIni()
         {
             // Arrange
             using var sut = CreateService(CreateFileSystem());
@@ -156,7 +160,7 @@ public class SupportedCapabilitiesServiceTests
             var expectedCapabilities =
                 await sut.InitializeSupportedCapabilities(CancellationToken.None);
 
-            fileSystem.File.WriteAllText(AppPaths.SupportedCapabilitiesFilePath, "[]");
+            fileSystem.File.WriteAllText(AppPaths.SupportedCapabilitiesFilePath, "[Unknown]");
 
             // Act
             var result = await sut.InitializeSupportedCapabilities(CancellationToken.None);
@@ -192,10 +196,10 @@ public class SupportedCapabilitiesServiceTests
         }
 
         [Fact]
-        public async Task ShouldThrow_WhenCapabilitiesConfigurationNotObject()
+        public async Task ShouldThrow_WhenIniEntryOutsideSection()
         {
             // Arrange
-            var fileSystem = CreateFileSystem("[]");
+            var fileSystem = CreateFileSystem("GetServiceState=Enabled");
             using var sut = CreateService(fileSystem);
 
             // Act
@@ -203,22 +207,24 @@ public class SupportedCapabilitiesServiceTests
 
             // Assert
             await action.Should()
-                .ThrowAsync<InvalidOperationException>()
-                .WithMessage("The supported capabilities configuration must be a JSON object.");
+                .ThrowAsync<FormatException>()
+                .WithMessage("INI entry at line 1 is not inside a section.");
         }
 
         [Fact]
-        public async Task ShouldThrow_WhenJsonInvalid()
+        public async Task ShouldThrow_WhenIniSectionInvalid()
         {
             // Arrange
-            var fileSystem = CreateFileSystem("{");
+            var fileSystem = CreateFileSystem("[Topics");
             using var sut = CreateService(fileSystem);
 
             // Act
             var action = () => sut.InitializeSupportedCapabilities(CancellationToken.None);
 
             // Assert
-            await action.Should().ThrowAsync<JsonException>();
+            await action.Should()
+                .ThrowAsync<FormatException>()
+                .WithMessage("Invalid INI section at line 1.");
         }
 
         [Fact]
@@ -256,11 +262,11 @@ public class SupportedCapabilitiesServiceTests
         ILogger? logger = null)
             => new(fileSystem ?? new MockFileSystem(), logger ?? Substitute.For<ILogger>());
 
-    private static MockFileSystem CreateFileSystem(string capabilitiesJson = EmptyCapabilitiesJson)
+    private static MockFileSystem CreateFileSystem(string capabilitiesIni = ValidCapabilitiesIni)
         => new(
             new Dictionary<string, MockFileData>
             {
-                [AppPaths.SupportedCapabilitiesFilePath] = new(capabilitiesJson)
+                [AppPaths.SupportedCapabilitiesFilePath] = new(capabilitiesIni)
             });
 
     private static ILogger CreateLogger()

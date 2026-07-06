@@ -1,5 +1,4 @@
 using System.IO.Abstractions;
-using System.Text.Json;
 using HostManagement.Configuration;
 using HostManagement.Shared.Communication.Capabilities;
 using HostManagement.Shared.Communication.Contracts;
@@ -126,9 +125,10 @@ internal sealed partial class SupportedCapabilitiesService(IFileSystem fileSyste
             Share = FileShare.Read,
         });
 
-        using var jsonDocument = await JsonDocument
-            .ParseAsync(stream, cancellationToken: cancellationToken)
-            .ConfigureAwait(false);
+        using var reader = new StreamReader(stream);
+
+        var iniContent = await reader.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
+        using var jsonDocument = SupportedCapabilitiesIniConverter.ToJsonDocument(iniContent);
 
         capabilities.ApplyCapabilities(jsonDocument.RootElement);
 
