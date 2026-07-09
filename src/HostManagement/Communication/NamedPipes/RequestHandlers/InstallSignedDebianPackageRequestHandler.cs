@@ -32,32 +32,26 @@ internal sealed class InstallSignedDebianPackageRequestHandler(ILogger logger) :
     /// <exception cref="InvalidOperationException"/>
     public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
     {
-        try
-        {
-            var signedDebianPackage = JsonSerializer
-                .Deserialize(messageContent, SharedJsonContext.Default.SignedDebianPackage)
-                ?? throw new InvalidOperationException(
-                    $"JSON string could not be deserialized to '{nameof(SignedDebianPackage)}'." +
-                    Environment.NewLine +
-                    $"JSON string was: '{messageContent}'");
+        var signedDebianPackage = JsonSerializer
+            .Deserialize(messageContent, SharedJsonContext.Default.SignedDebianPackage)
+            ?? throw new InvalidOperationException(
+                $"JSON string could not be deserialized to '{nameof(SignedDebianPackage)}'." +
+                Environment.NewLine +
+                $"JSON string was: '{messageContent}'");
 
-            var scriptResult = new Result();
-            var scriptHandler = new ScriptHandler(scriptResult);
+        var scriptResult = new Result();
+        var scriptHandler = new ScriptHandler(scriptResult);
 
-            var signatureValidator = new MinisignSignedDebianPackageSignatureValidator();
-            var service = new SystemService(logger, scriptHandler, scriptResult, signatureValidator);
+        var signatureValidator = new MinisignSignedDebianPackageSignatureValidator();
+        var service = new SystemService(logger, scriptHandler, scriptResult, signatureValidator);
 
-            var result = await service.InstallSignedDebianPackage(
+        var result = await service
+            .InstallSignedDebianPackage(
                 signedDebianPackage,
                 EnvironmentVariables.PublicKeys.Value,
-                cancellationToken);
+                cancellationToken)
+            .ConfigureAwait(false);
 
-            return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
-        }
-        catch (JsonException)
-        {
-            throw new InvalidOperationException(
-                $"{nameof(SystemControlResult)} could not be serialized into a string.");
-        }
+        return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
     }
 }

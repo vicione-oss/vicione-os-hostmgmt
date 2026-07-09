@@ -130,7 +130,6 @@ internal static partial class ServiceRunner
                 // Testing purposes
                 registry.RegisterHandler(new EchoRequestHandler(pipeServer, s_logger));
 #endif
-
                 await pipeServer.SetExecutePermission();
                 await pipeServer.SetOwnership();
                 await pipeServer.WaitForConnection(cancellationToken).ConfigureAwait(false);
@@ -239,16 +238,18 @@ internal static partial class ServiceRunner
 
     private static RequestHandlerRegistry GetRequestHandlerRegistry()
     {
-        var registry = new RequestHandlerRegistry(EnvironmentVariables.Environment.Value);
-        registry.RegisterHandler(new InstallSignedDebianPackageRequestHandler(s_logger));
-        registry.RegisterHandler(new RedeployScriptsRequestHandler());
-        registry.RegisterHandler(new RenewDHCPLeaseRequestHandler(s_logger));
-        registry.RegisterHandlers(GetServiceRequestHandlers());
-        registry.RegisterHandlers(GetStateRequestHandlers());
-        registry.RegisterHandlers(GetSystemConfigurationRequestHandlers());
-        registry.RegisterHandlers(GetSystemRequestHandlers());
+        List<IRequestHandler> handlers =
+        [
+            new InstallSignedDebianPackageRequestHandler(s_logger),
+            new RedeployScriptsRequestHandler(),
+            new RenewDHCPLeaseRequestHandler(s_logger),
+            .. GetServiceRequestHandlers(),
+            .. GetStateRequestHandlers(),
+            .. GetSystemConfigurationRequestHandlers(),
+            .. GetSystemRequestHandlers()
+        ];
 
-        return registry;
+        return new RequestHandlerRegistry(EnvironmentVariables.Environment.Value, handlers, s_logger);
 
 
         static IEnumerable<IRequestHandler> GetServiceRequestHandlers()

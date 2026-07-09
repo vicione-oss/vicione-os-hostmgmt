@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
@@ -29,16 +28,8 @@ internal sealed class GetSystemConfigurationRequestHandler(SystemConfigurationSe
     /// <exception cref="InvalidOperationException"/>
     public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
     {
-        try
-        {
-            var result = await configurationService.GetConfiguration(cancellationToken).ConfigureAwait(false);
+        var result = await configurationService.GetConfiguration(cancellationToken).ConfigureAwait(false);
 
-            return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
-        }
-        catch (JsonException)
-        {
-            throw new InvalidOperationException(
-                $"{nameof(GetSystemConfigurationResult)} could not be serialized into a string.");
-        }
+        return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
     }
 }

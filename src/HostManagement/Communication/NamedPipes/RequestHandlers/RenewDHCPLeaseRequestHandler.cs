@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using HostManagement.Services;
 using HostManagement.Shared.Communication;
@@ -28,17 +27,9 @@ internal sealed class RenewDHCPLeaseRequestHandler(ILogger logger) : RequestHand
     /// <exception cref="InvalidOperationException"/>
     public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
     {
-        try
-        {
-            var service = new DHCPLeaseService(logger);
-            var result = await service.RenewDHCPLease(messageContent, cancellationToken);
+        var service = new DHCPLeaseService(logger);
+        var result = await service.RenewDHCPLease(messageContent, cancellationToken).ConfigureAwait(false);
 
-            return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
-        }
-        catch (JsonException)
-        {
-            throw new InvalidOperationException(
-                $"{nameof(GetDHCPLeaseInformationResult)} could not be serialized into a string.");
-        }
+        return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
     }
 }

@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
@@ -29,18 +28,10 @@ internal sealed class ResetNetworkInterfaceRequestHandler(SystemConfigurationSer
     /// <exception cref="InvalidOperationException"/>
     public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var result = await configurationService
-                .ResetNetworkInterface(messageContent, cancellationToken)
-                .ConfigureAwait(false);
+        var result = await configurationService
+            .ResetNetworkInterface(messageContent, cancellationToken)
+            .ConfigureAwait(false);
 
-            return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
-        }
-        catch (JsonException)
-        {
-            throw new InvalidOperationException(
-                $"{nameof(SystemControlResult)} could not be serialized into a string.");
-        }
+        return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
     }
 }

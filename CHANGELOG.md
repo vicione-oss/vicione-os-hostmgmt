@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added asynchronous self-update installation path for `HostManagement` Debian packages. (Kept synchronous installation with error propagation for non-HostManagement Debian packages.)
 - Added functionality to handle defective persisted JSON configs
 - Added documentation for HostManagement service startup
+- Added logging to `RequestHandlerRegistry`
 
 ### Changed
 
@@ -38,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made `--extract-help` command-line argument available in release builds
 - Moved logging for prepare/get/set config from `ServiceRunner` to `SystemConfigurationService` and improved some log messages
 - Simplified debug log for "resources added" in `ResourceManager`
+- Improved XML documentation of `SourceGeneratedTypeSerializer`
 
 ### Removed
 

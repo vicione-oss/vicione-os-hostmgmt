@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using HostManagement.Shared.Communication.Contracts;
@@ -47,8 +47,12 @@ public static class SourceGeneratedTypeSerializer
     /// <param name="value">The value to convert.</param>
     /// <param name="jsonTypeInfo">Metadata about the type to convert.</param>
     /// <returns>A string representation of the value.</returns>
-    /// <exception cref="ArgumentNullException"></exception>
-    /// <exception cref="NotSupportedException"></exception>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="jsonTypeInfo"/> is <see langword="null"/>.
+    /// </exception>
+    /// <exception cref="NotSupportedException">
+    /// There is no compatible JsonConverter for <typeparamref name="TValue"/> or its serializable members.
+    /// </exception>
     public static string Serialize<TValue>(TValue value, JsonTypeInfo<TValue> jsonTypeInfo)
         => JsonSerializer.Serialize(value, jsonTypeInfo);
 }

@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using HostManagement.Services;
 using HostManagement.Shared.Communication;
@@ -29,21 +28,13 @@ internal sealed class RestartSystemRequestHandler(ILogger logger) : RequestHandl
     /// <exception cref="InvalidOperationException"/>
     public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var scriptResult = new Result();
-            var scriptHandler = new ScriptHandler(scriptResult);
-            var signatureValidator = new MinisignSignedDebianPackageSignatureValidator();
-            var service = new SystemService(logger, scriptHandler, scriptResult, signatureValidator);
+        var scriptResult = new Result();
+        var scriptHandler = new ScriptHandler(scriptResult);
+        var signatureValidator = new MinisignSignedDebianPackageSignatureValidator();
+        var service = new SystemService(logger, scriptHandler, scriptResult, signatureValidator);
 
-            var result = await service.RestartSystem(messageContent);
+        var result = await service.RestartSystem(messageContent).ConfigureAwait(false);
 
-            return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
-        }
-        catch (JsonException)
-        {
-            throw new InvalidOperationException(
-                $"{nameof(SystemControlResult)} could not be serialized into a string.");
-        }
+        return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
     }
 }

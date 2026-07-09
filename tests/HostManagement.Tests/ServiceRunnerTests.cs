@@ -44,10 +44,11 @@ public sealed class ServiceRunnerTests
 
             // Act
             var registry = CreateRequestHandlerRegistry();
-            var handlers = GetRegisteredHandlers(registry);
 
             // Assert
-            handlers.Keys.Should().BeEquivalentTo(expectedTopics);
+            registry.Handlers
+                .Select(handler => handler.Topic)
+                .Should().BeEquivalentTo(expectedTopics);
         }
 
         [Fact]
@@ -56,17 +57,15 @@ public sealed class ServiceRunnerTests
             // Arrange
             var expectedConfigurationService = GetSystemConfigurationService();
             var registry = CreateRequestHandlerRegistry();
-            var handlers = GetRegisteredHandlers(registry);
 
             // Act
-            var systemConfigurationHandlers = new[]
-            {
-                handlers[Topics.GetSystemConfiguration],
-                handlers[Topics.SetSystemConfiguration],
-                handlers[Topics.ResetNetworkInterface]
-            };
 
             // Assert
+            var systemConfigurationHandlers = registry.Handlers.Where(handler =>
+                handler.Topic == Topics.GetSystemConfiguration ||
+                handler.Topic == Topics.SetSystemConfiguration ||
+                handler.Topic == Topics.ResetNetworkInterface);
+
             foreach (var handler in systemConfigurationHandlers)
                 ShouldReferenceConfigurationService(handler, expectedConfigurationService);
         }
@@ -83,20 +82,6 @@ public sealed class ServiceRunnerTests
             result.Should().BeOfType<RequestHandlerRegistry>();
 
             return (RequestHandlerRegistry)result;
-        }
-
-        private static Dictionary<string, IRequestHandler> GetRegisteredHandlers(RequestHandlerRegistry registry)
-        {
-            var handlersField = typeof(RequestHandlerRegistry).GetField(
-                "_handlers",
-                BindingFlags.NonPublic | BindingFlags.Instance);
-
-            handlersField.Should().NotBeNull();
-
-            var value = handlersField.GetValue(registry);
-            value.Should().BeOfType<Dictionary<string, IRequestHandler>>();
-
-            return (Dictionary<string, IRequestHandler>)value;
         }
 
         private static SystemConfigurationService GetSystemConfigurationService()
