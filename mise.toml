@@ -1,5 +1,5 @@
 [tools]
-dotnet = "10.0.300" # Pin SDK version
+dotnet = "10.0.301" # Pin SDK version
 
 [settings]
 windows_default_inline_shell_args = "pwsh -NoProfile -Command"
