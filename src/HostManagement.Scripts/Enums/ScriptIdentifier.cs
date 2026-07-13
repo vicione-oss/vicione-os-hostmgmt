@@ -94,14 +94,14 @@ public enum ScriptIdentifier
     NetworkInterfacesCommonInformationGet,
 
     /// <summary>
-    /// Script to get IPv4 settings of a network interface.
+    /// Script to get interface settings of a network interface.
     /// </summary>
-    NetworkInterfaceIPv4SettingsGet,
+    NetworkInterfaceSettingsGet,
 
     /// <summary>
-    /// Script to set IPv4 settings of a network interface.
+    /// Script to set interface settings of a network interface.
     /// </summary>
-    NetworkInterfaceIPv4SettingsSet,
+    NetworkInterfaceSettingsSet,
 
     /// <summary>
     /// Script to get IPv4 DHCP lease information of a network interface.

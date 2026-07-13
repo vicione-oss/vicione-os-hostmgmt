@@ -68,7 +68,7 @@ public class NetworkInterfacesConfigurationAdapterTests
         }
 
         [Fact]
-        public async Task ShouldReturnError_WhenIPv4SettingsScriptFails()
+        public async Task ShouldReturnError_WhenInterfaceSettingsScriptFails()
         {
             // Arrange
             var scriptHandler = Substitute.For<IScriptHandler>();
@@ -82,8 +82,8 @@ public class NetworkInterfacesConfigurationAdapterTests
                 .Returns((Result.SuccessResult, [CreateCommonInformation(Lan1)]));
 
             scriptHandler
-                .ExecuteGetInterfaceIPv4SettingsScript(Lan1)
-                .Returns((Result.ErrorResult, new()));
+                .ExecuteGetInterfaceSettingsScript(Lan1)
+                .Returns((Result.ErrorResult, new(), new()));
 
             var sut = CreateSut(scriptHandler);
 
@@ -118,8 +118,8 @@ public class NetworkInterfacesConfigurationAdapterTests
                 .Returns((expectedResult, [CreateCommonInformation(Lan1),]));
 
             scriptHandler
-                .ExecuteGetInterfaceIPv4SettingsScript(Lan1)
-                .Returns((Result.SuccessResult, new() { DHCPEnabled = dhcpEnabled }));
+                .ExecuteGetInterfaceSettingsScript(Lan1)
+                .Returns((Result.SuccessResult, new() { DHCPEnabled = dhcpEnabled }, new()));
 
             var sut = CreateSut(scriptHandler);
             var config = new SystemConfiguration();

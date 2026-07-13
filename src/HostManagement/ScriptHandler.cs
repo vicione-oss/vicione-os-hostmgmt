@@ -54,14 +54,15 @@ internal sealed class ScriptHandler : IScriptHandler
     public async Task<(Result, string)> ExecuteGetOriginalPhysicalAddressScript(string interfaceName)
         => await ExecuteScriptAndReturnRawStandardOutput(ScriptIdentifier.OriginalPhysicalAddressGet, interfaceName);
 
-    public async Task<(Result, IPv4Settings)> ExecuteGetInterfaceIPv4SettingsScript(string interfaceName)
-        => await ExecuteScriptAndReturnDeserializedType(
+    public async Task<(Result, IPv4Settings, VLANSettings)> ExecuteGetInterfaceSettingsScript(string interfaceName)
+        => await ExecuteScriptAndReturnDeserializedTypes(
             SystemConfigurationJsonSerializerContext.Default.IPv4Settings,
-            ScriptIdentifier.NetworkInterfaceIPv4SettingsGet,
+            SystemConfigurationJsonSerializerContext.Default.VLANSettings,
+            ScriptIdentifier.NetworkInterfaceSettingsGet,
             interfaceName);
 
     public async Task<Result> ExecuteSetInterfaceIPv4SettingsScript(ScriptOptions scriptOptions)
-        => await ExecuteScript(ScriptIdentifier.NetworkInterfaceIPv4SettingsSet, scriptOptions.Options);
+        => await ExecuteScript(ScriptIdentifier.NetworkInterfaceSettingsSet, scriptOptions.Options);
 
     public async Task<(Result, DHCPLease)> ExecuteGetInterfaceIPv4DHCPLeaseScript(string interfaceName)
         => await ExecuteScriptAndReturnDeserializedType(
@@ -180,7 +181,8 @@ internal sealed class ScriptHandler : IScriptHandler
         ScriptIdentifier scriptIdentifier,
         IEnumerable<string> scriptArguments,
         Func<T> newValueFactory,
-        bool includeWarnings = true) where T : class
+        bool includeWarnings = true)
+            where T : class
     {
         var (result, scriptResponse) = await RunScriptAsync(scriptIdentifier, scriptArguments, includeWarnings);
 
@@ -203,6 +205,56 @@ internal sealed class ScriptHandler : IScriptHandler
         {
             throw new InvalidOperationException(
                 GetInvalidOperationExceptionMessage(typeof(T).Name, scriptIdentifier, ex.Message));
+        }
+    }
+
+    private async Task<(Result, TFirst, TSecond)> ExecuteScriptAndReturnDeserializedTypes<TFirst, TSecond>(
+        JsonTypeInfo<TFirst> firstJsonTypeInfo,
+        JsonTypeInfo<TSecond> secondJsonTypeInfo,
+        ScriptIdentifier scriptIdentifier,
+        string? scriptArgument = null,
+        bool includeWarnings = true)
+            where TFirst : class, new()
+            where TSecond : class, new()
+            => await ExecuteScriptAndReturnDeserializedTypes(
+                firstJsonTypeInfo,
+                secondJsonTypeInfo,
+                scriptIdentifier,
+                ToArgs(scriptArgument),
+                includeWarnings);
+
+    private async Task<(Result, TFirst, TSecond)> ExecuteScriptAndReturnDeserializedTypes<TFirst, TSecond>(
+        JsonTypeInfo<TFirst> firstJsonTypeInfo,
+        JsonTypeInfo<TSecond> secondJsonTypeInfo,
+        ScriptIdentifier scriptIdentifier,
+        IEnumerable<string> scriptArguments,
+        bool includeWarnings = true)
+            where TFirst : class, new()
+            where TSecond : class, new()
+    {
+        var (result, scriptResponse) =
+            await RunScriptAsync(scriptIdentifier, scriptArguments, includeWarnings);
+
+        if (result.OperationStatus is OperationStatus.Error)
+            return (result, new TFirst(), new TSecond());
+
+        try
+        {
+            using var document = JsonDocument.Parse(scriptResponse.StandardOutput);
+            var rootElement = document.RootElement;
+
+            var firstResult = DeserializeStandardOutputSection(rootElement, firstJsonTypeInfo);
+            var secondResult = DeserializeStandardOutputSection(rootElement, secondJsonTypeInfo);
+
+            return (result, firstResult, secondResult);
+        }
+        catch (JsonException ex)
+        {
+            var typeNames = $"{typeof(TFirst).Name} and {typeof(TSecond).Name}";
+
+            throw new InvalidOperationException(
+                GetInvalidOperationExceptionMessage(typeNames, scriptIdentifier, ex.Message),
+                ex);
         }
     }
 
@@ -295,4 +347,23 @@ internal sealed class ScriptHandler : IScriptHandler
 
         return (result, scriptResponse);
     }
+
+    private static T DeserializeStandardOutputSection<T>(
+        JsonElement rootElement,
+        JsonTypeInfo<T> jsonTypeInfo)
+            where T : class
+    {
+        var sectionName = GetStandardOutputSectionName<T>();
+
+        if (!rootElement.TryGetProperty(sectionName, out var section))
+            throw new JsonException($"Required JSON property '{sectionName}' was not found.");
+
+        return section.Deserialize(jsonTypeInfo)
+            ?? throw new JsonException($"JSON property '{sectionName}' contains null.");
+    }
+
+    private static string GetStandardOutputSectionName<T>()
+        => typeof(T).Name.EndsWith("Settings", StringComparison.Ordinal)
+            ? typeof(T).Name[..^"Settings".Length]
+            : typeof(T).Name;
 }

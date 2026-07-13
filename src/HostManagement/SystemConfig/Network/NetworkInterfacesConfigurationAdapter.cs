@@ -57,7 +57,8 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
         {
             var interfaceName = commonInformation.Name;
 
-            (result, var ipv4Settings) = await GetInterfaceIPv4Settings(interfaceName).ConfigureAwait(false);
+            (result, var ipv4Settings, var vlanSettings) =
+                await GetInterfaceIPv4AndVLANSettings(interfaceName).ConfigureAwait(false);
 
             combinedResult.AddResult(result);
 
@@ -68,6 +69,7 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
             {
                 CommonInformation = commonInformation,
                 IPv4 = ipv4Settings,
+                VLAN = vlanSettings
             });
         }
 
@@ -209,15 +211,16 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
         }
     }
 
-    private async Task<(Result, IPv4Settings?)> GetInterfaceIPv4Settings(string interfaceName)
+    private async Task<(Result, IPv4Settings?, VLANSettings?)> GetInterfaceIPv4AndVLANSettings(
+        string interfaceName)
     {
-        var (result, ipv4) = await _scriptHandler
-            .ExecuteGetInterfaceIPv4SettingsScript(interfaceName)
+        var (result, ipv4, vlan) = await _scriptHandler
+            .ExecuteGetInterfaceSettingsScript(interfaceName)
             .ConfigureAwait(false);
 
         if (result.OperationStatus is OperationStatus.Error)
-            return (result, default);
+            return (result, default, default);
 
-        return (result, ipv4);
+        return (result, ipv4, vlan);
     }
 }

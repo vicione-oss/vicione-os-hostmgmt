@@ -2,7 +2,7 @@
 
 # ###
 #
-# Get Network Interface IPv4 Settings Script
+# Get Network Interface Settings Script
 #
 # The script returns 0 if ok or warning, non zero for error.
 # ###
@@ -140,12 +140,17 @@ main() {
         determine_ip_addresses
     fi
 
-    json_output="{"
+    json_output="{\"IPv4\":"
+    json_output+="{"
     json_output+="\"DHCPEnabled\": ${DHCP_ENABLED},"
     json_output+="\"Gateway\": ${GATEWAY},"
-    json_output+="\"IPv4Details\": [$(printf '%s, ' "${IP_DETAILS[@]}" | sed 's/, $//')],"
-    json_output+="\"VLANID\": ${VLAN_ID},"
-    json_output+="\"VLANEnabled\": ${VLAN_ENABLED}"
+    json_output+="\"IPv4Details\": [$(printf '%s, ' "${IP_DETAILS[@]}" | sed 's/, $//')]"
+    json_output+="},"
+    json_output+="\"VLAN\":"
+    json_output+="{"
+    json_output+="\"ID\": ${VLAN_ID},"
+    json_output+="\"Enabled\": ${VLAN_ENABLED}"
+    json_output+="}"
     json_output+="}"
 
     echo "$json_output"
