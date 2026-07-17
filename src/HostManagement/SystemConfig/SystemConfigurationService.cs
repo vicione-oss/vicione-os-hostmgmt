@@ -167,32 +167,15 @@ internal sealed partial class SystemConfigurationService(
             return SetSystemConfigurationResult.CreateErrorResult(message);
         }
 
-        var validationResult = await new SystemConfigurationValidator()
-            .ValidateAsync(proposedConfig, cancellationToken)
+        var validationMessage = await ValidateConfigurationChangeAsync(proposedConfig, cancellationToken)
             .ConfigureAwait(false);
 
-        if (!validationResult.IsValid)
+        if (validationMessage is not null)
         {
-            var message =
-                SystemConfigResources.SetConfigFailed +
-                Environment.NewLine +
-                validationResult.EntriesString;
+            validationMessage = SystemConfigResources.SetConfigFailed + Environment.NewLine + validationMessage;
 
-            SetConfigurationFailedWithMessage(_logger, message);
-            return SetSystemConfigurationResult.CreateErrorResult(message);
-        }
-
-        var policyValidationResult = SystemConfigurationPolicyValidator.Validate(proposedConfig);
-
-        if (!policyValidationResult.IsValid)
-        {
-            var message =
-                SystemConfigResources.SetConfigFailed +
-                Environment.NewLine +
-                policyValidationResult.FormattedMessages;
-
-            SetConfigurationFailedWithMessage(_logger, message);
-            return SetSystemConfigurationResult.CreateErrorResult(message);
+            SetConfigurationFailedWithMessage(_logger, validationMessage);
+            return SetSystemConfigurationResult.CreateErrorResult(validationMessage);
         }
 
         var warningMessage = configResult.Status == OperationStatus.Warning
@@ -207,6 +190,25 @@ internal sealed partial class SystemConfigurationService(
                 shouldPersistConfiguration,
                 cancellationToken)
             .ConfigureAwait(false);
+    }
+
+    private async Task<string?> ValidateConfigurationChangeAsync(
+        SystemConfiguration proposedConfig,
+        CancellationToken cancellationToken)
+    {
+        var validationResult = await new SystemConfigurationValidator()
+            .ValidateAsync(proposedConfig, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (!validationResult.IsValid)
+            return validationResult.EntriesString;
+
+        var policyValidationResult = SystemConfigurationPolicyValidator.Validate(proposedConfig);
+
+        if (!policyValidationResult.IsValid)
+            return policyValidationResult.FormattedMessages;
+
+        return null;
     }
 
     /// <summary>
