@@ -32,7 +32,7 @@ internal sealed partial class DHCPLeaseService(ILogger logger)
                 await GetDHCPLease(new ScriptHandler(result), interfaceName, cancellationToken);
 
             if (status == OperationStatus.Error)
-                LogAndReturnGetDHCPLeaseFailed(result.Messages);
+                LogAndReturnGetDHCPLeaseFailed(result.FormattedMessages);
 
             if (dhcpLease.LeaseObtained is null)
                 LogAndReturnGetDHCPLeaseFailed(ServicesResources.DHCPLeaseEmpty);
@@ -79,7 +79,7 @@ internal sealed partial class DHCPLeaseService(ILogger logger)
                 await RenewDHCPLease(new ScriptHandler(result), interfaceName, cancellationToken);
 
             if (status == OperationStatus.Error)
-                LogAndReturnRenewDHCPLeaseFailed(result.Messages);
+                LogAndReturnRenewDHCPLeaseFailed(result.FormattedMessages);
 
             if (dhcpLease.LeaseObtained is null)
                 LogAndReturnRenewDHCPLeaseFailed(ServicesResources.DHCPLeaseEmpty);

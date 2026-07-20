@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 
@@ -34,7 +34,7 @@ internal sealed partial class PhysicalAddressService(ILogger logger)
                 .ConfigureAwait(false);
 
             if (status == OperationStatus.Error)
-                LogAndReturnGetOriginalPhysicalAddressFailedResult(result.Messages);
+                LogAndReturnGetOriginalPhysicalAddressFailedResult(result.FormattedMessages);
 
             return new GetOriginalPhysicalAddressResult
             {

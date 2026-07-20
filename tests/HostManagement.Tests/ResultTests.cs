@@ -9,10 +9,10 @@ public sealed class ResultTests
     private const string ErrorMessage = "An error occurred.";
     private const string WarningMessage = "A warning occurred.";
 
-    public class MessagesProperty
+    public class FormattedMessagesProperty
     {
         [Fact]
-        public void ShouldBeEmpty_WhenResultCreated() => new Result().Messages.Should().BeEmpty();
+        public void ShouldBeEmpty_WhenResultCreated() => new Result().FormattedMessages.Should().BeEmpty();
 
         [Fact]
         public void ShouldReturnMessagesInInsertionOrder_WhenMultipleMessagesAdded()
@@ -23,7 +23,7 @@ public sealed class ResultTests
             sut.AddError(ErrorMessage);
 
             // Act
-            var messages = sut.Messages;
+            var messages = sut.FormattedMessages;
 
             // Assert
             messages.Should().Be(string.Join(Environment.NewLine, WarningMessage, ErrorMessage));
@@ -49,7 +49,7 @@ public sealed class ResultTests
             sut.AddError(ErrorMessage);
 
             // Assert
-            sut.Messages.Should().Be(ErrorMessage);
+            sut.FormattedMessages.Should().Be(ErrorMessage);
             sut.OperationStatus.Should().Be(OperationStatus.Error);
         }
 
@@ -63,7 +63,7 @@ public sealed class ResultTests
             sut.AddError("Error for interface '{0}'.", "lan1");
 
             // Assert
-            sut.Messages.Should().Be("Error for interface 'lan1'.");
+            sut.FormattedMessages.Should().Be("Error for interface 'lan1'.");
             sut.OperationStatus.Should().Be(OperationStatus.Error);
         }
 
@@ -77,7 +77,7 @@ public sealed class ResultTests
             sut.AddError(ErrorMessage, []);
 
             // Assert
-            sut.Messages.Should().Be(ErrorMessage);
+            sut.FormattedMessages.Should().Be(ErrorMessage);
             sut.OperationStatus.Should().Be(OperationStatus.Error);
         }
 
@@ -91,7 +91,7 @@ public sealed class ResultTests
             sut.AddError(ErrorMessage, null);
 
             // Assert
-            sut.Messages.Should().Be(ErrorMessage);
+            sut.FormattedMessages.Should().Be(ErrorMessage);
             sut.OperationStatus.Should().Be(OperationStatus.Error);
         }
 
@@ -122,7 +122,7 @@ public sealed class ResultTests
             sut.AddWarning(WarningMessage);
 
             // Assert
-            sut.Messages.Should().Be(WarningMessage);
+            sut.FormattedMessages.Should().Be(WarningMessage);
             sut.OperationStatus.Should().Be(OperationStatus.Warning);
         }
 
@@ -136,7 +136,7 @@ public sealed class ResultTests
             sut.AddWarning("Warning for interface '{0}'.", "lan1");
 
             // Assert
-            sut.Messages.Should().Be("Warning for interface 'lan1'.");
+            sut.FormattedMessages.Should().Be("Warning for interface 'lan1'.");
             sut.OperationStatus.Should().Be(OperationStatus.Warning);
         }
 
@@ -150,7 +150,7 @@ public sealed class ResultTests
             sut.AddWarning(WarningMessage, []);
 
             // Assert
-            sut.Messages.Should().Be(WarningMessage);
+            sut.FormattedMessages.Should().Be(WarningMessage);
             sut.OperationStatus.Should().Be(OperationStatus.Warning);
         }
 
@@ -164,7 +164,7 @@ public sealed class ResultTests
             sut.AddWarning(WarningMessage, null);
 
             // Assert
-            sut.Messages.Should().Be(WarningMessage);
+            sut.FormattedMessages.Should().Be(WarningMessage);
             sut.OperationStatus.Should().Be(OperationStatus.Warning);
         }
 

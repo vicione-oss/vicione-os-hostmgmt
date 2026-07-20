@@ -10,9 +10,9 @@ internal sealed class Result
     private readonly List<string> _messages = [];
 
     /// <summary>
-    /// The list of configuration messages.
+    /// A string of result messages joined with <see cref="Environment.NewLine"/>.
     /// </summary>
-    public string Messages => string.Join(Environment.NewLine, _messages);
+    public string FormattedMessages => string.Join(Environment.NewLine, _messages);
 
     /// <summary>
     /// The operation status.

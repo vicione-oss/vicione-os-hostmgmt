@@ -417,13 +417,13 @@ internal sealed partial class SystemConfigurationService(
 
             if (operationStatus == OperationStatus.Error)
             {
-                PrepareConfigurationFailedWithMessage(_logger, jsonConfigPath, configurationResult.Messages);
+                PrepareConfigurationFailedWithMessage(_logger, jsonConfigPath, configurationResult.FormattedMessages);
                 return OperationStatus.Warning;
             }
 
             if (operationStatus == OperationStatus.Warning)
             {
-                PrepareConfigurationCompletedWithMessage(_logger, jsonConfigPath, configurationResult.Messages);
+                PrepareConfigurationCompletedWithMessage(_logger, jsonConfigPath, configurationResult.FormattedMessages);
                 return OperationStatus.Warning;
             }
         }
@@ -502,15 +502,15 @@ internal sealed partial class SystemConfigurationService(
 
             if (operationStatus == OperationStatus.Error)
             {
-                return await RevertConfiguration(currentConfig, configurationResult.Messages, cancellationToken)
+                return await RevertConfiguration(currentConfig, configurationResult.FormattedMessages, cancellationToken)
                     .ConfigureAwait(false);
             }
 
             if (operationStatus == OperationStatus.Warning)
             {
                 currentWarningMessage += string.IsNullOrWhiteSpace(currentWarningMessage)
-                    ? configurationResult.Messages
-                    : Environment.NewLine + configurationResult.Messages;
+                    ? configurationResult.FormattedMessages
+                    : Environment.NewLine + configurationResult.FormattedMessages;
             }
 
             SystemConfigurationCache.Instance.Invalidate(
@@ -526,7 +526,7 @@ internal sealed partial class SystemConfigurationService(
                     var message =
                         SystemConfigResources.SetConfigFailed +
                         Environment.NewLine +
-                        persistResult.Messages;
+                        persistResult.FormattedMessages;
 
                     SetConfigurationFailedWithMessage(_logger, message);
                     return SetSystemConfigurationResult.CreateErrorResult(message);
@@ -618,7 +618,7 @@ internal sealed partial class SystemConfigurationService(
                 var message =
                     SystemConfigResources.GetConfigFromScriptsFailed +
                     Environment.NewLine +
-                    configurationResult.Messages;
+                    configurationResult.FormattedMessages;
 
                 return GetSystemConfigurationResult.CreateErrorResult(message);
             }
@@ -627,7 +627,7 @@ internal sealed partial class SystemConfigurationService(
                 var message =
                     SystemConfigResources.GetConfigFromScriptsCompletedWithWarnings +
                     Environment.NewLine +
-                    configurationResult.Messages;
+                    configurationResult.FormattedMessages;
 
                 return GetSystemConfigurationResult.CreateWarningResult(message, currentConfig.ToSharedContracts());
             }

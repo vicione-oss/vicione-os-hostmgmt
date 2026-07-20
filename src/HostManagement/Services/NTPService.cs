@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 
@@ -29,7 +29,7 @@ internal sealed partial class NTPService(ILogger logger)
                     .ExecuteGetNetworkNTPFallbackInformationScript();
 
             if (status == OperationStatus.Error)
-                LogAndReturnGetNTPFallbackServersFailed(result.Messages);
+                LogAndReturnGetNTPFallbackServersFailed(result.FormattedMessages);
 
             return new GetNTPFallbackInformationResult
             {

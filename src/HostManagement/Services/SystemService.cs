@@ -76,7 +76,7 @@ internal sealed partial class SystemService(
                         CompositeFormat.Parse(
                             ServicesResources.InstallingSignedPackageFailed),
                         signedDebianPackage.FilePath,
-                        _result.Messages);
+                        _result.FormattedMessages);
 
                 LogError(_logger, message);
 
@@ -153,7 +153,7 @@ internal sealed partial class SystemService(
                 var message =
                     ServicesResources.UpdateSystemFailed +
                     Environment.NewLine +
-                    _result.Messages;
+                    _result.FormattedMessages;
 
                 LogError(_logger, message);
 
@@ -227,7 +227,7 @@ internal sealed partial class SystemService(
         var message =
             ServicesResources.ResetSystemFailed +
             Environment.NewLine +
-            _result.Messages;
+            _result.FormattedMessages;
 
         LogError(_logger, message);
 
@@ -284,7 +284,7 @@ internal sealed partial class SystemService(
                 message =
                     ServicesResources.RestartSystemFailed +
                     Environment.NewLine +
-                    _result.Messages;
+                    _result.FormattedMessages;
 
                 LogError(_logger, message);
 
@@ -361,7 +361,7 @@ internal sealed partial class SystemService(
                 message =
                     ServicesResources.ShutdownSystemFailed +
                     Environment.NewLine +
-                    _result.Messages;
+                    _result.FormattedMessages;
 
                 LogError(_logger, message);
 

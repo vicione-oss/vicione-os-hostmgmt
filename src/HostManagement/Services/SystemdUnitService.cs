@@ -50,7 +50,7 @@ internal sealed partial class SystemdUnitService(
             var (status, activeState) = await _scriptHandler.ExecuteGetSystemdUnitActiveStateScript(scriptOptions);
 
             if (status == OperationStatus.Error)
-                return LogErrorAndReturnGetServiceStateResult(failedCompositeFormat, systemdUnit, _result.Messages);
+                return LogErrorAndReturnGetServiceStateResult(failedCompositeFormat, systemdUnit, _result.FormattedMessages);
 
             return new GetServiceStateResult
             {
@@ -179,7 +179,7 @@ internal sealed partial class SystemdUnitService(
             }
 
             if (status == OperationStatus.Error)
-                return LogErrorAndReturnServiceControlResult(controlFailedMessage, systemdUnit, _result.Messages);
+                return LogErrorAndReturnServiceControlResult(controlFailedMessage, systemdUnit, _result.FormattedMessages);
 
             return new ServiceControlResult
             {

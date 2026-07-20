@@ -1,4 +1,4 @@
-﻿using HostManagement.Scripts;
+using HostManagement.Scripts;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Contracts.NetworkStatus;
@@ -37,14 +37,14 @@ internal sealed partial class NetworkStatusService(ILogger logger, IScriptHandle
                 .ConfigureAwait(false);
 
             if (status is OperationStatus.Warning or OperationStatus.Error)
-                return LogFailedAndReturnResult(_result.Messages);
+                return LogFailedAndReturnResult(_result.FormattedMessages);
 
             (status, var rawInterfacesString) = await _scriptHandler
                 .ExecuteGetNetworkInterfacesScript()
                 .ConfigureAwait(false);
 
             if (status is OperationStatus.Error)
-                return LogFailedAndReturnResult(_result.Messages);
+                return LogFailedAndReturnResult(_result.FormattedMessages);
 
             var scriptOptions = new ScriptOptions();
             scriptOptions.Add(ScriptOptionNames.GetNetworkStatusInformation.InterfaceName, interfaceName);
@@ -55,7 +55,7 @@ internal sealed partial class NetworkStatusService(ILogger logger, IScriptHandle
                 .ConfigureAwait(false);
 
             if (status == OperationStatus.Error)
-                return LogFailedAndReturnResult(_result.Messages);
+                return LogFailedAndReturnResult(_result.FormattedMessages);
 
             return new GetNetworkStatusInformationResult
             {
