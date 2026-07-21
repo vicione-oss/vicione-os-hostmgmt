@@ -17,7 +17,7 @@ public class NetworkInterfacesConfigurationAdapterTests
         IScriptHandler scriptHandler,
         bool bypassHasChanges = false,
         bool bypassApply = false)
-        => new(scriptHandler, bypassHasChanges, bypassApply);
+            => new(scriptHandler, bypassHasChanges, bypassApply);
 
     private static NetworkInterfaceCommonInformation CreateCommonInformation(string name, bool enabled = true)
         => new() { Name = name, Enabled = enabled };
@@ -363,7 +363,5 @@ public class NetworkInterfacesConfigurationAdapterTests
                 ScriptOptionNames.Network.IPAddress, "192.168.0.10/24",
                 ScriptOptionNames.Network.Gateway, "192.168.0.1");
         }
-
-
     }
 }

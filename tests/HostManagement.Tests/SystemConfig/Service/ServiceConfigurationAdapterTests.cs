@@ -10,15 +10,15 @@ namespace HostManagement.Tests.SystemConfig.Service;
 
 public class ServiceConfigurationAdapterTests
 {
+    private const string Service1 = "svc1.service";
+    private const string Service2 = "svc2.service";
+    private const string Service3 = "svc3.service";
+
     private static ServiceConfigurationAdapter CreateSut(IScriptHandler handler, IReadOnlyCollection<string>? configurableServices = default,
         bool bypassHasChanges = false, bool bypassApply = false)
         => new(handler, configurableServices ?? [], bypassHasChanges, bypassApply);
 
     private static ServiceDetail CreateDetail(string name, ServiceState state) => new() { Name = name, State = state };
-
-    private const string Service1 = "svc1.service";
-    private const string Service2 = "svc2.service";
-    private const string Service3 = "svc3.service";
 
     public sealed class GetConfiguration
     {
@@ -221,16 +221,16 @@ public class ServiceConfigurationAdapterTests
                 Services =
                 [
                     CreateDetail(Service1, ServiceState.Enabled),
-                    CreateDetail(Service2, ServiceState.Disabled),
-                ],
+                    CreateDetail(Service2, ServiceState.Disabled)
+                ]
             };
             SystemConfiguration proposed = new()
             {
                 Services =
                 [
                     CreateDetail(Service2, ServiceState.Disabled),
-                    CreateDetail(Service1, ServiceState.Enabled),
-                ],
+                    CreateDetail(Service1, ServiceState.Enabled)
+                ]
             };
 
             sut.HasChanges(current, proposed).Should().BeFalse();
@@ -241,8 +241,8 @@ public class ServiceConfigurationAdapterTests
         {
             var handler = Substitute.For<IScriptHandler>();
             var sut = CreateSut(handler);
-            SystemConfiguration current = new() { Services = [CreateDetail(Service1, ServiceState.Enabled),], };
-            SystemConfiguration proposed = new() { Services = [CreateDetail(Service1, ServiceState.Disabled),], };
+            SystemConfiguration current = new() { Services = [CreateDetail(Service1, ServiceState.Enabled)] };
+            SystemConfiguration proposed = new() { Services = [CreateDetail(Service1, ServiceState.Disabled)] };
 
             sut.HasChanges(current, proposed).Should().BeTrue();
         }
@@ -256,16 +256,16 @@ public class ServiceConfigurationAdapterTests
             {
                 Services =
                 [
-                    CreateDetail(Service1, ServiceState.Enabled),
-                ],
+                    CreateDetail(Service1, ServiceState.Enabled)
+                ]
             };
             SystemConfiguration proposed = new()
             {
                 Services =
                 [
                     CreateDetail(Service1, ServiceState.Enabled),
-                    CreateDetail(Service2, ServiceState.Enabled),
-                ],
+                    CreateDetail(Service2, ServiceState.Enabled)
+                ]
             };
 
             sut.HasChanges(current, proposed).Should().BeTrue();
@@ -290,7 +290,7 @@ public class ServiceConfigurationAdapterTests
             SystemConfiguration current = new();
             SystemConfiguration proposed = new()
             {
-                Services = [CreateDetail(Service1, ServiceState.Enabled),],
+                Services = [CreateDetail(Service1, ServiceState.Enabled)]
             };
 
             sut.HasChanges(current, proposed).Should().BeTrue();
@@ -303,7 +303,7 @@ public class ServiceConfigurationAdapterTests
             var sut = CreateSut(handler);
             SystemConfiguration current = new()
             {
-                Services = [CreateDetail(Service1, ServiceState.Enabled),],
+                Services = [CreateDetail(Service1, ServiceState.Enabled)]
             };
             SystemConfiguration proposed = new();
 
@@ -317,11 +317,11 @@ public class ServiceConfigurationAdapterTests
             var sut = CreateSut(handler);
             SystemConfiguration current = new()
             {
-                Services = [CreateDetail(Service1, ServiceState.Enabled),],
+                Services = [CreateDetail(Service1, ServiceState.Enabled)]
             };
             SystemConfiguration proposed = new()
             {
-                Services = [CreateDetail(Service1, ServiceState.Disabled),],
+                Services = [CreateDetail(Service1, ServiceState.Disabled)]
             };
 
             sut.HasChanges(current, proposed).Should().BeTrue();
@@ -355,8 +355,8 @@ public class ServiceConfigurationAdapterTests
                 [
                     CreateDetail(Service1, ServiceState.Enabled),
                     CreateDetail(Service2, ServiceState.Disabled),
-                    CreateDetail(Service3, ServiceState.Enabled),
-                ],
+                    CreateDetail(Service3, ServiceState.Enabled)
+                ]
             };
 
             var result = await sut.SetConfiguration(config, CancellationToken.None);
@@ -379,8 +379,8 @@ public class ServiceConfigurationAdapterTests
                 Services =
                 [
                     CreateDetail(Service1, ServiceState.Enabled),
-                    CreateDetail(Service2, ServiceState.Disabled),
-                ],
+                    CreateDetail(Service2, ServiceState.Disabled)
+                ]
             };
 
             var result = await sut.SetConfiguration(config, CancellationToken.None);
@@ -403,8 +403,8 @@ public class ServiceConfigurationAdapterTests
                 Services =
                 [
                     CreateDetail(Service1, ServiceState.Enabled),
-                    CreateDetail(Service2, ServiceState.Disabled),
-                ],
+                    CreateDetail(Service2, ServiceState.Disabled)
+                ]
             };
 
             var result = await sut.SetConfiguration(config, CancellationToken.None);
@@ -457,8 +457,8 @@ public class ServiceConfigurationAdapterTests
                 [
                     CreateDetail(Service1, ServiceState.Enabled),
                     CreateDetail(Service2, ServiceState.Disabled),
-                    CreateDetail(Service3, ServiceState.Unknown),
-                ],
+                    CreateDetail(Service3, ServiceState.Unknown)
+                ]
             };
 
             var result = await sut.SetConfiguration(config, CancellationToken.None);
@@ -498,8 +498,8 @@ public class ServiceConfigurationAdapterTests
                 [
                     CreateDetail(Service1, ServiceState.Enabled),
                     CreateDetail(Service2, ServiceState.Disabled),
-                    CreateDetail(Service3, ServiceState.Enabled),
-                ],
+                    CreateDetail(Service3, ServiceState.Enabled)
+                ]
             };
 
             var result = await sut.SetConfiguration(config, CancellationToken.None);

@@ -41,7 +41,9 @@ internal sealed class NetworkNTPConfigurationAdapter(
         SystemConfiguration currentConfig,
         SystemConfiguration proposedConfig)
     {
-        return !EqualityComparer<NetworkNTPSettings>.Default.Equals(currentConfig.NetworkNTPSettings, proposedConfig.NetworkNTPSettings);
+        return !EqualityComparer<NetworkNTPSettings>.Default.Equals(
+            currentConfig.NetworkNTPSettings,
+            proposedConfig.NetworkNTPSettings);
     }
 
     private protected override async Task<Result> PrepareConfiguration(
@@ -50,23 +52,19 @@ internal sealed class NetworkNTPConfigurationAdapter(
     {
         if (config.NetworkNTPSettings is not null && config.NetworkNTPSettings.NTPServersEnabled.HasValue)
         {
+            var ntpList = config.NetworkNTPSettings.NTPServers?.Count > 0
+                ? config.NetworkNTPSettings.NTPServers
+                : ["none"];
+
             var scriptOptions = new ScriptOptions();
 
             scriptOptions.Add(
                 ScriptOptionNames.NetworkNTP.NTPServersEnabled,
                 config.NetworkNTPSettings.NTPServersEnabled.Value);
 
-            var ntpList = config.NetworkNTPSettings.NTPServers?.Count > 0
-                ? config.NetworkNTPSettings.NTPServers
-                : ["none"];
+            scriptOptions.Add(ScriptOptionNames.NetworkNTP.NTPServers, ntpList.ToArray());
 
-            scriptOptions.Add(
-                ScriptOptionNames.NetworkNTP.NTPServers,
-                ntpList.ToArray());
-
-            return await _scriptHandler
-                .ExecuteSetNetworkNTPSettingsScript(scriptOptions)
-                .ConfigureAwait(false);
+            return await _scriptHandler.ExecuteSetNetworkNTPSettingsScript(scriptOptions).ConfigureAwait(false);
         }
 
         return Result.SuccessResult;
@@ -77,17 +75,9 @@ internal sealed class NetworkNTPConfigurationAdapter(
         CancellationToken cancellationToken)
     {
         var scriptOptions = new ScriptOptions();
+        scriptOptions.Add(ScriptOptionNames.SetSystemdUnitState.Name, SystemdTimesyncd);
+        scriptOptions.Add(ScriptOptionNames.SetSystemdUnitState.State, RestartState);
 
-        scriptOptions.Add(
-            ScriptOptionNames.SetSystemdUnitState.Name,
-            SystemdTimesyncd);
-
-        scriptOptions.Add(
-            ScriptOptionNames.SetSystemdUnitState.State,
-            RestartState);
-
-        return await _scriptHandler
-            .ExecuteSetSystemdUnitStateScript(scriptOptions)
-            .ConfigureAwait(false);
+        return await _scriptHandler.ExecuteSetSystemdUnitStateScript(scriptOptions).ConfigureAwait(false);
     }
 }

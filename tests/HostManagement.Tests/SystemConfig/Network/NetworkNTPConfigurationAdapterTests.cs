@@ -17,7 +17,7 @@ public class NetworkNTPConfigurationAdapterTests
         IScriptHandler scriptHandler,
         bool bypassHasChanges = false,
         bool bypassApplyConfig = false)
-        => new(scriptHandler, bypassHasChanges, bypassApplyConfig);
+            => new(scriptHandler, bypassHasChanges, bypassApplyConfig);
 
     private static SystemConfiguration CreateSystemConfig(bool ntpServersEnabled, params string[] ntpServers)
        => new()
@@ -25,8 +25,8 @@ public class NetworkNTPConfigurationAdapterTests
            NetworkNTPSettings = new()
            {
                NTPServersEnabled = ntpServersEnabled,
-               NTPServers = [.. ntpServers],
-           },
+               NTPServers = [.. ntpServers]
+           }
        };
 
     public sealed class GetConfiguration

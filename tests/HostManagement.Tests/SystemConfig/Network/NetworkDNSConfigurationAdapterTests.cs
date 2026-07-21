@@ -19,7 +19,7 @@ public class NetworkDNSConfigurationAdapterTests
         IScriptHandler scriptHandler,
         bool bypassHasChanges = false,
         bool bypassApply = false)
-        => new(current, scriptHandler, bypassHasChanges, bypassApply);
+            => new(current, scriptHandler, bypassHasChanges, bypassApply);
 
     public sealed class GetConfiguration
     {

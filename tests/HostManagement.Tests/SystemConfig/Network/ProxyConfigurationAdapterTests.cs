@@ -39,7 +39,7 @@ public class ProxyConfigurationAdapterTests
         IScriptHandler handler,
         bool bypassHasChanges = false,
         bool bypassApply = false)
-        => new(current, handler, bypassHasChanges, bypassApply);
+            => new(current, handler, bypassHasChanges, bypassApply);
 
     private static SystemConfiguration CreateSystemConfig(NetworkProxySettings? proxy = null)
         => new() { NetworkProxySettings = proxy };
@@ -50,7 +50,7 @@ public class ProxyConfigurationAdapterTests
         int port,
         string? user = null,
         string? password = null)
-        => new() { Enabled = enabled, Server = server, Port = port, Username = user, Password = password };
+            => new() { Enabled = enabled, Server = server, Port = port, Username = user, Password = password };
 
     public sealed class GetConfiguration
     {

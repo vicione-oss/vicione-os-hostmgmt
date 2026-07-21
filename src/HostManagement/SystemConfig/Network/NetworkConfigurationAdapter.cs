@@ -30,7 +30,7 @@ internal sealed class NetworkConfigurationAdapter : ConfigurationAdapter<SystemC
         IScriptHandler scriptHandler,
         bool bypassHasChanges,
         bool bypassApplyConfig)
-        : base(bypassHasChanges, bypassApplyConfig)
+            : base(bypassHasChanges, bypassApplyConfig)
     {
         _currentConfig = currentConfig;
         _scriptHandler = scriptHandler;
@@ -71,9 +71,12 @@ internal sealed class NetworkConfigurationAdapter : ConfigurationAdapter<SystemC
         SystemConfiguration proposedConfig)
     {
         return
-            !EqualityComparer<NetworkInterfaceDetail>.Default.SequenceEqual(currentConfig.NetworkInterfacesSettings?.NetworkInterfaces,
+            !EqualityComparer<NetworkInterfaceDetail>.Default.SequenceEqual(
+                currentConfig.NetworkInterfacesSettings?.NetworkInterfaces,
                 proposedConfig.NetworkInterfacesSettings?.NetworkInterfaces) ||
-            !EqualityComparer<NetworkDNSSettings>.Default.Equals(currentConfig.NetworkDNSSettings, proposedConfig.NetworkDNSSettings);
+            !EqualityComparer<NetworkDNSSettings>.Default.Equals(
+                currentConfig.NetworkDNSSettings,
+                proposedConfig.NetworkDNSSettings);
     }
 
     private protected override async Task<Result> PrepareConfiguration(
@@ -103,11 +106,7 @@ internal sealed class NetworkConfigurationAdapter : ConfigurationAdapter<SystemC
         CancellationToken cancellationToken)
     {
         if (_isNetplanApplyRequired)
-        {
-            return await _scriptHandler
-                .ExecuteApplyNetplanConfigurationScript()
-                .ConfigureAwait(false);
-        }
+            return await _scriptHandler.ExecuteApplyNetplanConfigurationScript().ConfigureAwait(false);
 
         return Result.SuccessResult;
     }

@@ -39,10 +39,7 @@ internal sealed class ServiceConfigurationAdapter(
         foreach (var name in configurableServicesWithoutWildcard)
         {
             var scriptOptions = new ScriptOptions();
-
-            scriptOptions.Add(
-                ScriptOptionNames.GetSystemdUnitState.Name,
-                name);
+            scriptOptions.Add(ScriptOptionNames.GetSystemdUnitState.Name, name);
 
             var (result, serviceDetail) = await _scriptHandler
                 .ExecuteGetSystemdUnitStateScript(scriptOptions)
@@ -96,14 +93,8 @@ internal sealed class ServiceConfigurationAdapter(
     private async Task<Result> SetServiceState(string serviceName, ServiceState serviceState)
     {
         var scriptOptions = new ScriptOptions();
-
-        scriptOptions.Add(
-            ScriptOptionNames.SetSystemdUnitState.Name,
-            serviceName);
-
-        scriptOptions.Add(
-            ScriptOptionNames.SetSystemdUnitState.State,
-            serviceState.ToString());
+        scriptOptions.Add(ScriptOptionNames.SetSystemdUnitState.Name, serviceName);
+        scriptOptions.Add(ScriptOptionNames.SetSystemdUnitState.State, serviceState.ToString());
 
         return await _scriptHandler.ExecuteSetSystemdUnitStateScript(scriptOptions).ConfigureAwait(false);
     }

@@ -130,19 +130,6 @@ internal sealed partial class SystemdUnitService(
             systemdUnitName.Length > prefix.Length + suffix.Length;
     }
 
-    private static async Task<Result> SetSystemdUnitState(
-        IScriptHandler scriptHandler,
-        string name,
-        ServiceControlAction controlAction)
-    {
-        var scriptOptions = new ScriptOptions();
-
-        scriptOptions.Add(ScriptOptionNames.SetSystemdUnitState.Name, name);
-        scriptOptions.Add(ScriptOptionNames.SetSystemdUnitState.State, controlAction.ToString());
-
-        return await scriptHandler.ExecuteSetSystemdUnitStateScript(scriptOptions);
-    }
-
     private async Task<ServiceControlResult> ControlSystemdUnit(
         string systemdUnit,
         ServiceControlAction controlAction,
@@ -193,6 +180,19 @@ internal sealed partial class SystemdUnitService(
         {
             return LogErrorAndReturnServiceControlResult(controlFailedMessage, systemdUnit, null, ex);
         }
+    }
+
+    private static async Task<Result> SetSystemdUnitState(
+        IScriptHandler scriptHandler,
+        string name,
+        ServiceControlAction controlAction)
+    {
+        var scriptOptions = new ScriptOptions();
+
+        scriptOptions.Add(ScriptOptionNames.SetSystemdUnitState.Name, name);
+        scriptOptions.Add(ScriptOptionNames.SetSystemdUnitState.State, controlAction.ToString());
+
+        return await scriptHandler.ExecuteSetSystemdUnitStateScript(scriptOptions);
     }
 
     private GetServiceStateResult LogErrorAndReturnGetServiceStateResult(

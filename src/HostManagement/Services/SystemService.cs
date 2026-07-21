@@ -213,22 +213,6 @@ internal sealed partial class SystemService(
         }
     }
 
-    private SystemControlResult LogErrorAndReturnSystemControlResult(Result result)
-    {
-        var message =
-            ServicesResources.ResetSystemFailed +
-            Environment.NewLine +
-            result.FormattedMessages;
-
-        LogError(_logger, message);
-
-        return new SystemControlResult
-        {
-            Status = OperationStatus.Error,
-            Message = message,
-        };
-    }
-
     /// <summary>
     /// Restarts the system.
     /// </summary>
@@ -381,6 +365,22 @@ internal sealed partial class SystemService(
                 Message = message,
             };
         }
+    }
+
+    private SystemControlResult LogErrorAndReturnSystemControlResult(Result result)
+    {
+        var message =
+            ServicesResources.ResetSystemFailed +
+            Environment.NewLine +
+            result.FormattedMessages;
+
+        LogError(_logger, message);
+
+        return new SystemControlResult
+        {
+            Status = OperationStatus.Error,
+            Message = message,
+        };
     }
 
     private async Task<Result> ShutdownOrRestart(int delayInSeconds, bool restart)

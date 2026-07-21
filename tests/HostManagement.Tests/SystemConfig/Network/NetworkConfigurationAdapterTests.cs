@@ -39,9 +39,9 @@ public class NetworkConfigurationAdapterTests
                         new()
                         {
                             CommonInformation = new() { Enabled = true, Name = "eth0" },
-                            IPv4 = new(),
-                        },
-                    ],
+                            IPv4 = new()
+                        }
+                    ]
                 }
             };
             var sut = CreateSut(current, handler);
@@ -58,8 +58,8 @@ public class NetworkConfigurationAdapterTests
             {
                 NetworkDNSSettings = new()
                 {
-                    Hostname = "other",
-                },
+                    Hostname = "other"
+                }
             };
             var sut = CreateSut(current, handler);
 
@@ -93,8 +93,8 @@ public class NetworkConfigurationAdapterTests
             {
                 NetworkDNSSettings = new()
                 {
-                    Hostname = "new", // force change
-                },
+                    Hostname = "new" // force change
+                }
             };
 
             var sut = CreateSut(current, scriptHandler);

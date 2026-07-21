@@ -212,16 +212,13 @@ internal sealed class ProxyConfigurationAdapter(
         return Result.SuccessResult;
     }
 
-    private static ScriptOptions GetNoProxyListScriptOptions(
-        List<string> noProxyList,
-        bool noProxyListEnabled)
+    private static ScriptOptions GetNoProxyListScriptOptions(List<string> noProxyList, bool noProxyListEnabled)
     {
-        var scriptOptions = new ScriptOptions();
-
         var noProxyListString = noProxyList.Count > 0
             ? GetNoProxyListString(noProxyList)
             : "NONE";
 
+        var scriptOptions = new ScriptOptions();
         scriptOptions.Add(ScriptOptionNames.Proxy.NoProxyList, noProxyListString);
         scriptOptions.Add(ScriptOptionNames.Proxy.NoProxyListEnabled, noProxyListEnabled);
 
