@@ -13,19 +13,16 @@ namespace HostManagement.Services;
 /// </summary>
 /// <param name="logger">An <see cref="ILogger"/> implementation.</param>
 /// <param name="scriptHandler">An <see cref="IScriptHandler"/> implementation.</param>
-/// <param name="result">The result.</param>
 /// <param name="configurableServices">The list of configurable services.</param>
 internal sealed partial class SystemdUnitService(
     ILogger logger,
     IScriptHandler scriptHandler,
-    Result result,
     IReadOnlyCollection<string> configurableServices)
 {
     private const char WildcardChar = '*';
 
     private readonly ILogger _logger = logger;
     private readonly IScriptHandler _scriptHandler = scriptHandler;
-    private readonly Result _result = result;
     private readonly IReadOnlyCollection<string> _configurableServices = configurableServices;
 
     /// <summary>
@@ -47,10 +44,10 @@ internal sealed partial class SystemdUnitService(
             var scriptOptions = new ScriptOptions();
             scriptOptions.Add(ScriptOptionNames.GetSystemdUnitActiveState.Name, systemdUnit);
 
-            var (status, activeState) = await _scriptHandler.ExecuteGetSystemdUnitActiveStateScript(scriptOptions);
+            var (result, activeState) = await _scriptHandler.ExecuteGetSystemdUnitActiveStateScript(scriptOptions);
 
-            if (status == OperationStatus.Error)
-                return LogErrorAndReturnGetServiceStateResult(failedCompositeFormat, systemdUnit, _result.FormattedMessages);
+            if (result.OperationStatus is OperationStatus.Error)
+                return LogErrorAndReturnGetServiceStateResult(failedCompositeFormat, systemdUnit, result.FormattedMessages);
 
             return new GetServiceStateResult
             {
@@ -133,7 +130,7 @@ internal sealed partial class SystemdUnitService(
             systemdUnitName.Length > prefix.Length + suffix.Length;
     }
 
-    private static async Task<OperationStatus> SetSystemdUnitState(
+    private static async Task<Result> SetSystemdUnitState(
         IScriptHandler scriptHandler,
         string name,
         ServiceControlAction controlAction)
@@ -163,23 +160,28 @@ internal sealed partial class SystemdUnitService(
                     systemdUnit);
             }
 
-            var status = OperationStatus.Error;
+            var result = new Result();
 
             switch (controlAction)
             {
                 case ServiceControlAction.Start:
-                    status = await SetSystemdUnitState(_scriptHandler, systemdUnit, ServiceControlAction.Start);
+                    result = await SetSystemdUnitState(_scriptHandler, systemdUnit, ServiceControlAction.Start);
                     break;
                 case ServiceControlAction.Stop:
-                    status = await SetSystemdUnitState(_scriptHandler, systemdUnit, ServiceControlAction.Stop);
+                    result = await SetSystemdUnitState(_scriptHandler, systemdUnit, ServiceControlAction.Stop);
                     break;
                 case ServiceControlAction.Restart:
-                    status = await SetSystemdUnitState(_scriptHandler, systemdUnit, ServiceControlAction.Restart);
+                    result = await SetSystemdUnitState(_scriptHandler, systemdUnit, ServiceControlAction.Restart);
                     break;
             }
 
-            if (status == OperationStatus.Error)
-                return LogErrorAndReturnServiceControlResult(controlFailedMessage, systemdUnit, _result.FormattedMessages);
+            if (result.OperationStatus is OperationStatus.Error)
+            {
+                return LogErrorAndReturnServiceControlResult(
+                    controlFailedMessage,
+                    systemdUnit,
+                    result.FormattedMessages);
+            }
 
             return new ServiceControlResult
             {

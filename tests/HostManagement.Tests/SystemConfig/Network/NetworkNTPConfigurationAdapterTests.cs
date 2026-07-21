@@ -1,4 +1,4 @@
-﻿using AwesomeAssertions;
+using AwesomeAssertions;
 using HostManagement.Scripts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.SystemConfig.Contracts;
@@ -36,16 +36,17 @@ public class NetworkNTPConfigurationAdapterTests
         {
             // Arrange
             var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler.ExecuteGetNetworkNTPSettingsScript().Returns((OperationStatus.Error, new()));
+            scriptHandler.ExecuteGetNetworkNTPSettingsScript().Returns((Result.ErrorResult, new()));
 
             var config = CreateSystemConfig(false, [NTPServer1, NTPServer2]);
             var originalNTPSettings = config.NetworkNTPSettings;
             var sut = CreateSut(scriptHandler);
 
             // Act + Assert
-            var status = await sut.GetConfiguration(config, CancellationToken.None);
+            var result = await sut.GetConfiguration(config, CancellationToken.None);
 
-            status.Should().Be(OperationStatus.Error);
+            result.OperationStatus.Should().Be(OperationStatus.Error);
+            result.Messages.Should().Contain(Result.ErrorMessage);
             config.NetworkNTPSettings.Should().BeSameAs(originalNTPSettings);
         }
 
@@ -60,15 +61,16 @@ public class NetworkNTPConfigurationAdapterTests
             };
 
             var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler.ExecuteGetNetworkNTPSettingsScript().Returns((OperationStatus.Success, ntpSettings));
+            scriptHandler.ExecuteGetNetworkNTPSettingsScript().Returns((Result.SuccessResult, ntpSettings));
 
             var sut = CreateSut(scriptHandler);
 
             // Act + Assert
             var config = new SystemConfiguration();
-            var status = await sut.GetConfiguration(config, CancellationToken.None);
+            var result = await sut.GetConfiguration(config, CancellationToken.None);
 
-            status.Should().Be(OperationStatus.Success);
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
             config.NetworkNTPSettings.Should().BeSameAs(ntpSettings);
         }
     }
@@ -125,15 +127,16 @@ public class NetworkNTPConfigurationAdapterTests
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteSetNetworkNTPSettingsScript(Arg.Any<ScriptOptions>())
-                .Returns(Task.FromResult(OperationStatus.Error));
+                .Returns(Result.ErrorResult);
 
             var sut = CreateSut(scriptHandler, bypassHasChanges: true, bypassApplyConfig: false);
             var config = CreateSystemConfig(true, NTPServer1);
 
             // Act + Assert
-            var status = await sut.SetConfiguration(config, CancellationToken.None);
+            var result = await sut.SetConfiguration(config, CancellationToken.None);
 
-            status.Should().Be(OperationStatus.Error);
+            result.OperationStatus.Should().Be(OperationStatus.Error);
+            result.Messages.Should().Contain(Result.ErrorMessage);
 
             // Apply was not executed
             await scriptHandler.DidNotReceive().ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>());
@@ -149,20 +152,21 @@ public class NetworkNTPConfigurationAdapterTests
 
             scriptHandler
                 .ExecuteSetNetworkNTPSettingsScript(Arg.Do<ScriptOptions>(so => ntpScriptOptions = so))
-                .Returns(Task.FromResult(OperationStatus.Success));
+                .Returns(Result.SuccessResult);
 
             scriptHandler
                 .ExecuteSetSystemdUnitStateScript(Arg.Do<ScriptOptions>(so => systemdScriptOptions = so))
-                .Returns(Task.FromResult(OperationStatus.Success));
+                .Returns(Result.SuccessResult);
 
             var sut = CreateSut(scriptHandler, bypassHasChanges: true, bypassApplyConfig: false);
             var config = CreateSystemConfig(true, NTPServer1);
 
             // Act
-            var status = await sut.SetConfiguration(config, CancellationToken.None);
+            var result = await sut.SetConfiguration(config, CancellationToken.None);
 
             // Assert
-            status.Should().Be(OperationStatus.Success);
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
 
             // Prepare was executed
             await scriptHandler.Received(1).ExecuteSetNetworkNTPSettingsScript(Arg.Any<ScriptOptions>());
@@ -186,15 +190,16 @@ public class NetworkNTPConfigurationAdapterTests
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteSetNetworkNTPSettingsScript(Arg.Any<ScriptOptions>())
-                .Returns(Task.FromResult(OperationStatus.Success));
+                .Returns(Result.SuccessResult);
 
             var sut = CreateSut(scriptHandler, bypassHasChanges: true, bypassApplyConfig: true);
             var config = CreateSystemConfig(true, NTPServer1);
 
             // Act + Assert
-            var status = await sut.SetConfiguration(config, CancellationToken.None);
+            var result = await sut.SetConfiguration(config, CancellationToken.None);
 
-            status.Should().Be(OperationStatus.Success);
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
 
             // Prepare was executed
             await scriptHandler.Received(1).ExecuteSetNetworkNTPSettingsScript(Arg.Any<ScriptOptions>());
@@ -214,13 +219,19 @@ public class NetworkNTPConfigurationAdapterTests
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteSetNetworkNTPSettingsScript(Arg.Do<ScriptOptions>(so => ntpScriptOptions = so))
-                .Returns(Task.FromResult(OperationStatus.Success));
+                .Returns(Result.SuccessResult);
+            scriptHandler
+                .ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>())
+                .Returns(Result.SuccessResult);
 
             var sut = CreateSut(scriptHandler, bypassHasChanges: true, bypassApplyConfig);
             var config = CreateSystemConfig(true); // without NTP server
 
             // Act + Assert
-            var status = await sut.SetConfiguration(config, CancellationToken.None);
+            var result = await sut.SetConfiguration(config, CancellationToken.None);
+
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
 
             ntpScriptOptions.Should().NotBeNull();
             ntpScriptOptions!.Options.Should().ContainInOrder(

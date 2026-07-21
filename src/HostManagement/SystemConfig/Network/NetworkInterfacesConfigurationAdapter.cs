@@ -1,4 +1,4 @@
-﻿using HostManagement.Common.Utilities;
+using HostManagement.Common.Utilities;
 using HostManagement.Scripts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.SystemConfig.Contracts;
@@ -24,28 +24,32 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
     private readonly IScriptHandler _scriptHandler = scriptHandler;
     private readonly bool _bypassApplyConfig = bypassApplyConfig;
 
-    protected internal override async Task<OperationStatus> GetConfiguration(
+    protected internal override async Task<Result> GetConfiguration(
         SystemConfiguration config,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
-        var (status, rawInterfacesString) = await _scriptHandler
+        var combinedResult = Result.SuccessResult;
+
+        var (result, rawInterfacesString) = await _scriptHandler
             .ExecuteGetNetworkInterfacesScript()
             .ConfigureAwait(false);
 
-        if (status is OperationStatus.Error)
-            return OperationStatus.Error;
+        combinedResult.AddResult(result);
+
+        if (combinedResult.OperationStatus is OperationStatus.Error)
+            return combinedResult;
 
         var scriptOptions = new ScriptOptions();
         scriptOptions.Add(ScriptOptionNames.Network.Interfaces, rawInterfacesString);
 
-        (status, var networkInterfacesCommonInformation) = await _scriptHandler
+        (result, var networkInterfacesCommonInformation) = await _scriptHandler
             .ExecuteGetNetworkInterfacesCommonInformationScript(scriptOptions)
             .ConfigureAwait(false);
 
-        if (status == OperationStatus.Error)
-            return OperationStatus.Error;
+        combinedResult.AddResult(result);
 
-        var hasWarning = status == OperationStatus.Warning;
+        if (combinedResult.OperationStatus is OperationStatus.Error)
+            return combinedResult;
 
         var networkInterfaces = new List<NetworkInterfaceDetail>();
 
@@ -53,11 +57,12 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
         {
             var interfaceName = commonInformation.Name;
 
-            (status, var ipv4Settings) =
-                await GetInterfaceIPv4Settings(interfaceName).ConfigureAwait(false);
+            (result, var ipv4Settings) = await GetInterfaceIPv4Settings(interfaceName).ConfigureAwait(false);
 
-            if (status == OperationStatus.Error)
-                return OperationStatus.Error;
+            combinedResult.AddResult(result);
+
+            if (combinedResult.OperationStatus is OperationStatus.Error)
+                return combinedResult;
 
             networkInterfaces.Add(new NetworkInterfaceDetail()
             {
@@ -71,7 +76,7 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
             NetworkInterfaces = networkInterfaces
         };
 
-        return hasWarning ? OperationStatus.Warning : OperationStatus.Success;
+        return combinedResult;
     }
 
     private protected override bool HasChangesInternal(
@@ -93,48 +98,55 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
                 proposedConfig.NetworkDNSSettings);
     }
 
-    private protected override async Task<OperationStatus> PrepareConfiguration(
+    private protected override async Task<Result> PrepareConfiguration(
         SystemConfiguration config,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
-        if (config.NetworkInterfacesSettings?.NetworkInterfaces?.Count > 0)
+        if (config.NetworkInterfacesSettings?.NetworkInterfaces is null ||
+            config.NetworkInterfacesSettings.NetworkInterfaces.Count < 1)
         {
-            foreach (var proposedInterface in config.NetworkInterfacesSettings.NetworkInterfaces)
-            {
-                var interfaceName = proposedInterface.CommonInformation?.Name ?? string.Empty;
-
-                var status = await _scriptHandler
-                    .ExecuteIsNetworkInterfaceAvailableScript(interfaceName)
-                    .ConfigureAwait(false);
-
-                if (status is OperationStatus.Warning or OperationStatus.Error)
-                    return OperationStatus.Error;
-
-                var scriptOptions = new ScriptOptions();
-
-                AddVLANScriptOptions(scriptOptions, proposedInterface.IPv4);
-                AddInterfaceNameScriptOption(scriptOptions, interfaceName);
-
-                if (!string.IsNullOrWhiteSpace(proposedInterface.CommonInformation?.PhysicalAddress))
-                {
-                    proposedInterface.CommonInformation.PhysicalAddress = MACUtilities
-                        .ConvertToColonNotation(proposedInterface.CommonInformation.PhysicalAddress);
-                }
-
-                AddMACAddressScriptOption(scriptOptions, proposedInterface.CommonInformation?.PhysicalAddress);
-                AddInterfaceEnabledScriptOption(scriptOptions, proposedInterface.CommonInformation?.Enabled);
-                AddIPv4ScriptOptions(scriptOptions, proposedInterface.IPv4);
-
-                status = await _scriptHandler
-                    .ExecuteSetInterfaceIPv4SettingsScript(scriptOptions)
-                    .ConfigureAwait(false);
-
-                if (status == OperationStatus.Error)
-                    return OperationStatus.Error;
-            }
+            return Result.SuccessResult;
         }
 
-        return OperationStatus.Success;
+        var combinedResult = Result.SuccessResult;
+
+        foreach (var proposedInterface in config.NetworkInterfacesSettings.NetworkInterfaces)
+        {
+            var interfaceName = proposedInterface.CommonInformation?.Name ?? string.Empty;
+
+            var result = await _scriptHandler.ExecuteIsNetworkInterfaceAvailableScript(interfaceName)
+                .ConfigureAwait(false);
+
+            if (result.OperationStatus is OperationStatus.Warning or OperationStatus.Error)
+            {
+                combinedResult.AddError(result.FormattedMessages);
+                return combinedResult;
+            }
+
+            var scriptOptions = new ScriptOptions();
+
+            AddVLANScriptOptions(scriptOptions, proposedInterface.IPv4);
+            AddInterfaceNameScriptOption(scriptOptions, interfaceName);
+
+            if (!string.IsNullOrWhiteSpace(proposedInterface.CommonInformation?.PhysicalAddress))
+            {
+                proposedInterface.CommonInformation.PhysicalAddress = MACUtilities
+                    .ConvertToColonNotation(proposedInterface.CommonInformation.PhysicalAddress);
+            }
+
+            AddMACAddressScriptOption(scriptOptions, proposedInterface.CommonInformation?.PhysicalAddress);
+            AddInterfaceEnabledScriptOption(scriptOptions, proposedInterface.CommonInformation?.Enabled);
+            AddIPv4ScriptOptions(scriptOptions, proposedInterface.IPv4);
+
+            combinedResult.AddResult(
+                await _scriptHandler.ExecuteSetInterfaceIPv4SettingsScript(scriptOptions)
+                    .ConfigureAwait(false));
+
+            if (combinedResult.OperationStatus is OperationStatus.Error)
+                return combinedResult;
+        }
+
+        return combinedResult;
     }
 
     private static void AddVLANScriptOptions(ScriptOptions scriptOptions, IPv4Settings? ipv4Settings)
@@ -194,15 +206,15 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
         }
     }
 
-    private async Task<(OperationStatus, IPv4Settings?)> GetInterfaceIPv4Settings(string interfaceName)
+    private async Task<(Result, IPv4Settings?)> GetInterfaceIPv4Settings(string interfaceName)
     {
-        var (status, ipv4) = await _scriptHandler
+        var (result, ipv4) = await _scriptHandler
             .ExecuteGetInterfaceIPv4SettingsScript(interfaceName)
             .ConfigureAwait(false);
 
-        if (status == OperationStatus.Error)
-            return (OperationStatus.Error, default);
+        if (result.OperationStatus is OperationStatus.Error)
+            return (result, default);
 
-        return (status, ipv4);
+        return (result, ipv4);
     }
 }

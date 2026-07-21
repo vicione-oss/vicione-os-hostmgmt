@@ -35,13 +35,14 @@ public class NetworkInterfacesConfigurationAdapterTests
 
             scriptHandler
                 .ExecuteGetNetworkInterfacesScript()
-                .Returns(Task.FromResult((OperationStatus.Error, "")));
+                .Returns((Result.ErrorResult, ""));
 
             var sut = CreateSut(scriptHandler);
 
             // Act + Assert
-            var status = await sut.GetConfiguration(new(), CancellationToken.None);
-            status.Should().Be(OperationStatus.Error);
+            var result = await sut.GetConfiguration(new(), CancellationToken.None);
+            result.OperationStatus.Should().Be(OperationStatus.Error);
+            result.Messages.Should().Contain(Result.ErrorMessage);
         }
 
         [Fact]
@@ -52,17 +53,18 @@ public class NetworkInterfacesConfigurationAdapterTests
 
             scriptHandler
                 .ExecuteGetNetworkInterfacesScript()
-                .Returns(Task.FromResult((OperationStatus.Success, "")));
+                .Returns((Result.SuccessResult, ""));
 
             scriptHandler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
-                .Returns((OperationStatus.Error, []));
+                .Returns((Result.ErrorResult, []));
 
             var sut = CreateSut(scriptHandler);
 
             // Act + Assert
-            var status = await sut.GetConfiguration(new(), CancellationToken.None);
-            status.Should().Be(OperationStatus.Error);
+            var result = await sut.GetConfiguration(new(), CancellationToken.None);
+            result.OperationStatus.Should().Be(OperationStatus.Error);
+            result.Messages.Should().Contain(Result.ErrorMessage);
         }
 
         [Fact]
@@ -73,21 +75,22 @@ public class NetworkInterfacesConfigurationAdapterTests
 
             scriptHandler
                 .ExecuteGetNetworkInterfacesScript()
-                .Returns(Task.FromResult((OperationStatus.Success, RawInterfacesString)));
+                .Returns((Result.SuccessResult, RawInterfacesString));
 
             scriptHandler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
-                .Returns((OperationStatus.Success, [CreateCommonInformation(Lan1)]));
+                .Returns((Result.SuccessResult, [CreateCommonInformation(Lan1)]));
 
             scriptHandler
                 .ExecuteGetInterfaceIPv4SettingsScript(Lan1)
-                .Returns((OperationStatus.Error, new()));
+                .Returns((Result.ErrorResult, new()));
 
             var sut = CreateSut(scriptHandler);
 
             // Act + Assert
-            var status = await sut.GetConfiguration(new(), CancellationToken.None);
-            status.Should().Be(OperationStatus.Error);
+            var result = await sut.GetConfiguration(new(), CancellationToken.None);
+            result.OperationStatus.Should().Be(OperationStatus.Error);
+            result.Messages.Should().Contain(Result.ErrorMessage);
         }
 
         [Theory]
@@ -104,24 +107,34 @@ public class NetworkInterfacesConfigurationAdapterTests
 
             scriptHandler
                 .ExecuteGetNetworkInterfacesScript()
-                .Returns(Task.FromResult((OperationStatus.Success, RawInterfacesString)));
+                .Returns((Result.SuccessResult, RawInterfacesString));
+
+            var expectedResult = operationStatusFromCommonInfoScript is OperationStatus.Warning
+                ? Result.WarningResult
+                : Result.SuccessResult;
 
             scriptHandler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
-                .Returns((operationStatusFromCommonInfoScript, [CreateCommonInformation(Lan1),]));
+                .Returns((expectedResult, [CreateCommonInformation(Lan1),]));
 
             scriptHandler
                 .ExecuteGetInterfaceIPv4SettingsScript(Lan1)
-                .Returns((OperationStatus.Success, new() { DHCPEnabled = dhcpEnabled }));
+                .Returns((Result.SuccessResult, new() { DHCPEnabled = dhcpEnabled }));
 
             var sut = CreateSut(scriptHandler);
             var config = new SystemConfiguration();
 
             // Act
-            var status = await sut.GetConfiguration(config, CancellationToken.None);
+            var result = await sut.GetConfiguration(config, CancellationToken.None);
 
             // Assert
-            status.Should().Be(operationStatusFromCommonInfoScript);
+            result.OperationStatus.Should().Be(operationStatusFromCommonInfoScript);
+
+            if (operationStatusFromCommonInfoScript is OperationStatus.Warning)
+                result.Messages.Should().Contain(Result.WarningMessage);
+            else
+                result.Messages.Should().BeEmpty();
+
             config.NetworkInterfacesSettings.Should().NotBeNull();
 
             var networkInterface = config.NetworkInterfacesSettings.NetworkInterfaces.Should().ContainSingle().Subject;
@@ -210,9 +223,13 @@ public class NetworkInterfacesConfigurationAdapterTests
             // Arrange
             var scriptHandler = Substitute.For<IScriptHandler>();
 
+            var (expectedResult, expectedMessage) = operationStatusFromInterfaceAvailableScript is OperationStatus.Warning
+                ? (Result.WarningResult, Result.WarningMessage)
+                : (Result.ErrorResult, Result.ErrorMessage);
+
             scriptHandler
                 .ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>())
-                .Returns(Task.FromResult(operationStatusFromInterfaceAvailableScript));
+                .Returns(expectedResult);
 
             var sut = CreateSut(scriptHandler, bypassHasChanges: true);
 
@@ -232,8 +249,10 @@ public class NetworkInterfacesConfigurationAdapterTests
             };
 
             // Act + Assert
-            var status = await sut.SetConfiguration(config, CancellationToken.None);
-            status.Should().Be(OperationStatus.Error);
+            var result = await sut.SetConfiguration(config, CancellationToken.None);
+            result.OperationStatus.Should().Be(OperationStatus.Error);
+            result.Messages.Should().Contain(expectedMessage);
+
             _ = await scriptHandler.DidNotReceive().ExecuteSetInterfaceIPv4SettingsScript(Arg.Any<ScriptOptions>());
         }
 
@@ -245,11 +264,11 @@ public class NetworkInterfacesConfigurationAdapterTests
 
             scriptHandler
                 .ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>())
-                .Returns(Task.FromResult(OperationStatus.Success));
+                .Returns(Result.SuccessResult);
 
             scriptHandler
                 .ExecuteSetInterfaceIPv4SettingsScript(Arg.Any<ScriptOptions>())
-                .Returns(Task.FromResult(OperationStatus.Error));
+                .Returns(Result.ErrorResult);
 
             var sut = CreateSut(scriptHandler, bypassHasChanges: true);
 
@@ -269,8 +288,9 @@ public class NetworkInterfacesConfigurationAdapterTests
             };
 
             // Act + Assert
-            var status = await sut.SetConfiguration(config, CancellationToken.None);
-            status.Should().Be(OperationStatus.Error);
+            var result = await sut.SetConfiguration(config, CancellationToken.None);
+            result.OperationStatus.Should().Be(OperationStatus.Error);
+            result.Messages.Should().Contain(Result.ErrorMessage);
         }
 
         [Fact]
@@ -282,11 +302,11 @@ public class NetworkInterfacesConfigurationAdapterTests
 
             scriptHandler
                 .ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>())
-                .Returns(Task.FromResult(OperationStatus.Success));
+                .Returns(Result.SuccessResult);
 
             scriptHandler
                 .ExecuteSetInterfaceIPv4SettingsScript(Arg.Do<ScriptOptions>(so => captured = so))
-                .Returns(Task.FromResult(OperationStatus.Success));
+                .Returns(Result.SuccessResult);
 
             var sut = CreateSut(scriptHandler, bypassHasChanges: true);
 
@@ -325,10 +345,11 @@ public class NetworkInterfacesConfigurationAdapterTests
             };
 
             // Act
-            var status = await sut.SetConfiguration(config, CancellationToken.None);
+            var result = await sut.SetConfiguration(config, CancellationToken.None);
 
             // Assert
-            status.Should().Be(OperationStatus.Success);
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
 
             await scriptHandler.Received(1).ExecuteSetInterfaceIPv4SettingsScript(Arg.Any<ScriptOptions>());
 

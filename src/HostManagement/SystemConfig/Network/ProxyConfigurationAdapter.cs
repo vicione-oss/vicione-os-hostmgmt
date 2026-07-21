@@ -26,16 +26,16 @@ internal sealed class ProxyConfigurationAdapter(
     private readonly SystemConfiguration _current = current;
     private readonly IScriptHandler _scriptHandler = scriptHandler;
 
-    protected internal override async Task<OperationStatus> GetConfiguration(
+    protected internal override async Task<Result> GetConfiguration(
         SystemConfiguration config,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
-        var (status, networkProxySettings) = await _scriptHandler
+        var (result, networkProxySettings) = await _scriptHandler
             .ExecuteGetNetworkProxySettingsScript()
             .ConfigureAwait(false);
 
-        if (status == OperationStatus.Error)
-            return OperationStatus.Error;
+        if (result.OperationStatus is OperationStatus.Error)
+            return result;
 
         // In /etc/environment we had to percent-encode special characters in username or password
         // for applications like apt, wget, curl etc. Now we need to reverse this.
@@ -72,7 +72,7 @@ internal sealed class ProxyConfigurationAdapter(
             config.NetworkProxySettings.DoNotProxyList = modifiedNoProxyList;
         }
 
-        return OperationStatus.Success;
+        return result;
 
 
         static void UnescapeNetworkProxySettingsAuthentication(NetworkProxySettings networkProxySettings)
@@ -105,15 +105,15 @@ internal sealed class ProxyConfigurationAdapter(
             proposedConfig.NetworkProxySettings);
     }
 
-    private protected override async Task<OperationStatus> PrepareConfiguration(
+    private protected override async Task<Result> PrepareConfiguration(
         SystemConfiguration config,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         var proposedProxySettings = config.NetworkProxySettings;
         var currentProxySettings = _current.NetworkProxySettings;
 
         if (proposedProxySettings is null)
-            return OperationStatus.Success;
+            return Result.SuccessResult;
 
         var proxyDetails = new (NetworkProxyDetail? Proposed, NetworkProxyDetail? Current)[]
         {
@@ -124,22 +124,26 @@ internal sealed class ProxyConfigurationAdapter(
             (proposedProxySettings.SOCKS, currentProxySettings?.SOCKS)
         };
 
+        var combinedResult = Result.SuccessResult;
+
         foreach (var (proposed, current) in proxyDetails)
         {
-            if (await SetProxyDetail(proposed, current).ConfigureAwait(false) == OperationStatus.Error)
-                return OperationStatus.Error;
+            combinedResult.AddResult(await SetProxyDetail(proposed, current).ConfigureAwait(false));
+
+            if (combinedResult.OperationStatus is OperationStatus.Error)
+                return combinedResult;
         }
 
-        return await
-            SetDoNotProxyList(
+        return combinedResult.AddResult(
+            await SetDoNotProxyList(
                 proposedProxySettings.DoNotProxyListEnabled,
                 proposedProxySettings.DoNotProxyList,
                 currentProxySettings?.DoNotProxyListEnabled,
                 currentProxySettings?.DoNotProxyList)
-            .ConfigureAwait(false);
+                .ConfigureAwait(false));
     }
 
-    private async Task<OperationStatus> SetProxyDetail(
+    private async Task<Result> SetProxyDetail(
         NetworkProxyDetail? proposedProxyDetail,
         NetworkProxyDetail? currentProxyDetail)
     {
@@ -152,7 +156,7 @@ internal sealed class ProxyConfigurationAdapter(
                 .ConfigureAwait(false);
         }
 
-        return OperationStatus.Success;
+        return Result.SuccessResult;
     }
 
     private static ScriptOptions GetProxyScriptOptions(NetworkProxyDetail proxyDetail)
@@ -182,7 +186,7 @@ internal sealed class ProxyConfigurationAdapter(
         return scriptOptions;
     }
 
-    private async Task<OperationStatus> SetDoNotProxyList(
+    private async Task<Result> SetDoNotProxyList(
         bool? proposedListEnabled,
         List<string>? proposedList,
         bool? currentListEnabled,
@@ -197,15 +201,15 @@ internal sealed class ProxyConfigurationAdapter(
         {
             var scriptOptions = GetNoProxyListScriptOptions(proposedList, proposedListEnabled.Value);
 
-            var status = await _scriptHandler
+            var result = await _scriptHandler
                 .ExecuteSetNetworkProxySettingsScript(scriptOptions)
                 .ConfigureAwait(false);
 
-            if (status == OperationStatus.Error)
-                return OperationStatus.Error;
+            if (result.OperationStatus is OperationStatus.Error)
+                return result;
         }
 
-        return OperationStatus.Success;
+        return Result.SuccessResult;
     }
 
     private static ScriptOptions GetNoProxyListScriptOptions(

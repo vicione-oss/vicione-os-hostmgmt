@@ -1,6 +1,6 @@
-using Microsoft.Extensions.Logging;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
+using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Services;
 
@@ -27,13 +27,11 @@ internal sealed partial class PhysicalAddressService(ILogger logger)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var result = new Result();
-
-            var (status, physicalAddress) = await new ScriptHandler(result)
+            var (result, physicalAddress) = await new ScriptHandler()
                 .ExecuteGetOriginalPhysicalAddressScript(interfaceName)
                 .ConfigureAwait(false);
 
-            if (status == OperationStatus.Error)
+            if (result.OperationStatus is OperationStatus.Error)
                 LogAndReturnGetOriginalPhysicalAddressFailedResult(result.FormattedMessages);
 
             return new GetOriginalPhysicalAddressResult

@@ -1,4 +1,4 @@
-﻿using HostManagement.Shared.Communication.Enums;
+using HostManagement.Shared.Communication.Enums;
 using HostManagement.SystemConfig.Contracts;
 
 namespace HostManagement.SystemConfig.Network;
@@ -49,26 +49,21 @@ internal sealed class NetworkConfigurationAdapter : ConfigurationAdapter<SystemC
                 bypassApplyConfig));
     }
 
-    protected internal override async Task<OperationStatus> GetConfiguration(
+    protected internal override async Task<Result> GetConfiguration(
         SystemConfiguration config,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
-        var hasWarnings = false;
+        var result = Result.SuccessResult;
 
         foreach (var adapter in _adapters)
         {
-            var operationStatus = await adapter
-                .GetConfiguration(config, cancellationToken)
-                .ConfigureAwait(false);
+            result.AddResult(await adapter.GetConfiguration(config, cancellationToken).ConfigureAwait(false));
 
-            if (operationStatus == OperationStatus.Error)
-                return operationStatus;
-
-            if (operationStatus == OperationStatus.Warning)
-                hasWarnings = true;
+            if (result.OperationStatus is OperationStatus.Error)
+                return result;
         }
 
-        return hasWarnings ? OperationStatus.Warning : OperationStatus.Success;
+        return result;
     }
 
     private protected override bool HasChangesInternal(
@@ -81,36 +76,31 @@ internal sealed class NetworkConfigurationAdapter : ConfigurationAdapter<SystemC
             !EqualityComparer<NetworkDNSSettings>.Default.Equals(currentConfig.NetworkDNSSettings, proposedConfig.NetworkDNSSettings);
     }
 
-    private protected override async Task<OperationStatus> PrepareConfiguration(
+    private protected override async Task<Result> PrepareConfiguration(
         SystemConfiguration config,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
-        var hasWarnings = false;
+        var result = Result.SuccessResult;
 
         foreach (var adapter in _adapters)
         {
             if (!adapter.HasChanges(_currentConfig, config))
                 continue;
 
-            var operationStatus = await adapter
-                .SetConfiguration(config, cancellationToken)
-                .ConfigureAwait(false);
+            result.AddResult(await adapter.SetConfiguration(config, cancellationToken).ConfigureAwait(false));
 
-            if (operationStatus == OperationStatus.Error)
-                return operationStatus;
-
-            if (operationStatus == OperationStatus.Warning)
-                hasWarnings = true;
+            if (result.OperationStatus is OperationStatus.Error)
+                return result;
 
             _isNetplanApplyRequired = true;
         }
 
-        return hasWarnings ? OperationStatus.Warning : OperationStatus.Success;
+        return result;
     }
 
-    private protected override async Task<OperationStatus> ApplyConfiguration(
+    private protected override async Task<Result> ApplyConfiguration(
         SystemConfiguration config,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         if (_isNetplanApplyRequired)
         {
@@ -119,6 +109,6 @@ internal sealed class NetworkConfigurationAdapter : ConfigurationAdapter<SystemC
                 .ConfigureAwait(false);
         }
 
-        return OperationStatus.Success;
+        return Result.SuccessResult;
     }
 }

@@ -13,17 +13,14 @@ namespace HostManagement.Services;
 /// </summary>
 /// <param name="logger">An <see cref="ILogger"/> implementation.</param>
 /// <param name="scriptHandler">An <see cref="IScriptHandler"/> implementation.</param>
-/// <param name="result">The result.</param>
 /// <param name="signatureValidator">An <see cref="ISignedDebianPackageSignatureValidator"/> implementation.</param>
 internal sealed partial class SystemService(
     ILogger logger,
     IScriptHandler scriptHandler,
-    Result result,
     ISignedDebianPackageSignatureValidator signatureValidator)
 {
     private readonly ILogger _logger = logger;
     private readonly IScriptHandler _scriptHandler = scriptHandler;
-    private readonly Result _result = result;
     private readonly ISignedDebianPackageSignatureValidator _signatureValidator = signatureValidator;
 
     /// <summary>
@@ -64,11 +61,9 @@ internal sealed partial class SystemService(
             var scriptOptions = new ScriptOptions();
             scriptOptions.Add(ScriptOptionNames.InstallDebianPackage.DebianPackage, signedDebianPackage.FilePath);
 
-            var status = await _scriptHandler
-                .ExecuteInstallDebianPackageScript(scriptOptions)
-                .ConfigureAwait(false);
+            var result = await _scriptHandler.ExecuteInstallDebianPackageScript(scriptOptions).ConfigureAwait(false);
 
-            if (status is OperationStatus.Warning or OperationStatus.Error)
+            if (result.OperationStatus is OperationStatus.Warning or OperationStatus.Error)
             {
                 var message =
                     string.Format(
@@ -76,7 +71,7 @@ internal sealed partial class SystemService(
                         CompositeFormat.Parse(
                             ServicesResources.InstallingSignedPackageFailed),
                         signedDebianPackage.FilePath,
-                        _result.FormattedMessages);
+                        result.FormattedMessages);
 
                 LogError(_logger, message);
 
@@ -144,16 +139,14 @@ internal sealed partial class SystemService(
             var scriptOptions = new ScriptOptions();
             scriptOptions.Add(ScriptOptionNames.UpdateSystem.FilePath, filePath);
 
-            var status = await _scriptHandler
-                .ExecuteUpdateSystemScript(scriptOptions)
-                .ConfigureAwait(false);
+            var result = await _scriptHandler.ExecuteUpdateSystemScript(scriptOptions).ConfigureAwait(false);
 
-            if (status == OperationStatus.Error)
+            if (result.OperationStatus is OperationStatus.Error)
             {
                 var message =
                     ServicesResources.UpdateSystemFailed +
                     Environment.NewLine +
-                    _result.FormattedMessages;
+                    result.FormattedMessages;
 
                 LogError(_logger, message);
 
@@ -188,23 +181,21 @@ internal sealed partial class SystemService(
     {
         try
         {
-            var status = await _scriptHandler
-                .ExecuteResetSystemScript()
-                .ConfigureAwait(false);
+            var result = await _scriptHandler.ExecuteResetSystemScript().ConfigureAwait(false);
 
-            if (status is OperationStatus.Error)
-                return LogErrorAndReturnSystemControlResult();
+            if (result.OperationStatus is OperationStatus.Error)
+                return LogErrorAndReturnSystemControlResult(result);
 
             // Clear all proxy settings after successful reset
             var proxyScriptOptions = new ScriptOptions();
             proxyScriptOptions.Add(ScriptOptionNames.Proxy.Clear);
 
-            status = await _scriptHandler
-                .ExecuteSetNetworkProxySettingsScript(proxyScriptOptions)
-                .ConfigureAwait(false);
+            result.AddResult(
+                await _scriptHandler.ExecuteSetNetworkProxySettingsScript(proxyScriptOptions)
+                    .ConfigureAwait(false));
 
-            if (status is OperationStatus.Error)
-                return LogErrorAndReturnSystemControlResult();
+            if (result.OperationStatus is OperationStatus.Error)
+                return LogErrorAndReturnSystemControlResult(result);
 
             return await RestartSystem();
         }
@@ -222,12 +213,12 @@ internal sealed partial class SystemService(
         }
     }
 
-    private SystemControlResult LogErrorAndReturnSystemControlResult()
+    private SystemControlResult LogErrorAndReturnSystemControlResult(Result result)
     {
         var message =
             ServicesResources.ResetSystemFailed +
             Environment.NewLine +
-            _result.FormattedMessages;
+            result.FormattedMessages;
 
         LogError(_logger, message);
 
@@ -277,14 +268,14 @@ internal sealed partial class SystemService(
                 }
             }
 
-            var status = await ShutdownOrRestart(delayInSeconds, restart: true).ConfigureAwait(false);
+            var result = await ShutdownOrRestart(delayInSeconds, restart: true).ConfigureAwait(false);
 
-            if (status == OperationStatus.Error)
+            if (result.OperationStatus is OperationStatus.Error)
             {
                 message =
                     ServicesResources.RestartSystemFailed +
                     Environment.NewLine +
-                    _result.FormattedMessages;
+                    result.FormattedMessages;
 
                 LogError(_logger, message);
 
@@ -354,14 +345,14 @@ internal sealed partial class SystemService(
                 }
             }
 
-            var status = await ShutdownOrRestart(delayInSeconds, restart: false).ConfigureAwait(false);
+            var result = await ShutdownOrRestart(delayInSeconds, restart: false).ConfigureAwait(false);
 
-            if (status == OperationStatus.Error)
+            if (result.OperationStatus is OperationStatus.Error)
             {
                 message =
                     ServicesResources.ShutdownSystemFailed +
                     Environment.NewLine +
-                    _result.FormattedMessages;
+                    result.FormattedMessages;
 
                 LogError(_logger, message);
 
@@ -392,7 +383,7 @@ internal sealed partial class SystemService(
         }
     }
 
-    private async Task<OperationStatus> ShutdownOrRestart(int delayInSeconds, bool restart)
+    private async Task<Result> ShutdownOrRestart(int delayInSeconds, bool restart)
     {
         var scriptOptions = new ScriptOptions();
 

@@ -1,6 +1,6 @@
-using Microsoft.Extensions.Logging;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
+using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Services;
 
@@ -19,16 +19,15 @@ internal sealed partial class NTPService(ILogger logger)
     /// <returns><see cref="GetNTPFallbackInformationResult"/></returns>
     internal async Task<GetNTPFallbackInformationResult> GetNTPFallbackInformation(CancellationToken cancellationToken)
     {
-        var result = new Result();
-
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var (status, fallbackNTPServers) = await new ScriptHandler(result)
-                    .ExecuteGetNetworkNTPFallbackInformationScript();
+            var (result, fallbackNTPServers) = await new ScriptHandler()
+                    .ExecuteGetNetworkNTPFallbackInformationScript()
+                    .ConfigureAwait(false);
 
-            if (status == OperationStatus.Error)
+            if (result.OperationStatus is OperationStatus.Error)
                 LogAndReturnGetNTPFallbackServersFailed(result.FormattedMessages);
 
             return new GetNTPFallbackInformationResult

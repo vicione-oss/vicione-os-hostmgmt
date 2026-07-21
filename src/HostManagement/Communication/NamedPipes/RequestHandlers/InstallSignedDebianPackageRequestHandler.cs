@@ -39,11 +39,9 @@ internal sealed class InstallSignedDebianPackageRequestHandler(ILogger logger) :
                 Environment.NewLine +
                 $"JSON string was: '{messageContent}'");
 
-        var scriptResult = new Result();
-        var scriptHandler = new ScriptHandler(scriptResult);
-
+        var scriptHandler = new ScriptHandler();
         var signatureValidator = new MinisignSignedDebianPackageSignatureValidator();
-        var service = new SystemService(logger, scriptHandler, scriptResult, signatureValidator);
+        var service = new SystemService(logger, scriptHandler, signatureValidator);
 
         var result = await service
             .InstallSignedDebianPackage(

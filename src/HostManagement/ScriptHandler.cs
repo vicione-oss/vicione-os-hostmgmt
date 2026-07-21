@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using HostManagement.Scripts;
@@ -21,36 +21,29 @@ namespace HostManagement;
 internal partial class CommonInformationListJsonSerializerContext : JsonSerializerContext;
 
 /// <inheritdoc cref="IScriptHandler"/>
-internal sealed class ScriptHandler(Result? result = default) : IScriptHandler
+internal sealed class ScriptHandler : IScriptHandler
 {
-    private Result _result = result ?? new();
-
-    public void UseResult(Result result) => _result = result;
-
-    public async Task<OperationStatus> ExecuteApplyNetplanConfigurationScript()
+    public async Task<Result> ExecuteApplyNetplanConfigurationScript()
         => await ExecuteScript(ScriptIdentifier.ApplyNetplanConfiguration, includeWarnings: false);
 
-    public async Task<OperationStatus> ExecuteIsNetworkInterfaceAvailableScript(string interfaceName)
+    public async Task<Result> ExecuteIsNetworkInterfaceAvailableScript(string interfaceName)
         => await ExecuteScript(ScriptIdentifier.IsNetworkInterfaceAvailable, interfaceName);
 
-    public async Task<(OperationStatus, string)> ExecuteGetArchitectureScript()
-        => await ExecuteScriptAndReturnRawStandardOutput(ScriptIdentifier.CommonSystemArchitectureGet);
-
-    public async Task<(OperationStatus, string)> ExecuteGetNetworkInterfacesScript(string interfaceType = "")
+    public async Task<(Result, string)> ExecuteGetNetworkInterfacesScript(string interfaceType = "")
     {
         return string.IsNullOrWhiteSpace(interfaceType)
             ? await ExecuteScriptAndReturnRawStandardOutput(ScriptIdentifier.NetworkInterfacesGet)
             : await ExecuteScriptAndReturnRawStandardOutput(ScriptIdentifier.NetworkInterfacesGet, interfaceType);
     }
 
-    public async Task<(OperationStatus, List<NetworkInterfaceCommonInformation>)> ExecuteGetNetworkInterfacesCommonInformationScript(
-        ScriptOptions scriptOptions)
-        => await ExecuteScriptAndReturnDeserializedType(
-            CommonInformationListJsonSerializerContext.Default.ListNetworkInterfaceCommonInformation,
-            ScriptIdentifier.NetworkInterfacesCommonInformationGet,
-            scriptOptions.Options);
+    public async Task<(Result, List<NetworkInterfaceCommonInformation>)>
+        ExecuteGetNetworkInterfacesCommonInformationScript(ScriptOptions scriptOptions)
+            => await ExecuteScriptAndReturnDeserializedType(
+                CommonInformationListJsonSerializerContext.Default.ListNetworkInterfaceCommonInformation,
+                ScriptIdentifier.NetworkInterfacesCommonInformationGet,
+                scriptOptions.Options);
 
-    public async Task<(OperationStatus, NetworkStatusInformation)> ExecuteGetNetworkStatusInformationScript(
+    public async Task<(Result, NetworkStatusInformation)> ExecuteGetNetworkStatusInformationScript(
         ScriptOptions scriptOptions)
         => await ExecuteScriptAndReturnDeserializedType(
             SharedCommunicationSourceGenerationContext.Default.NetworkStatusInformation,
@@ -58,91 +51,91 @@ internal sealed class ScriptHandler(Result? result = default) : IScriptHandler
             scriptOptions.Options,
             () => NetworkStatusInformation.Empty);
 
-    public async Task<(OperationStatus, string)> ExecuteGetOriginalPhysicalAddressScript(string interfaceName)
+    public async Task<(Result, string)> ExecuteGetOriginalPhysicalAddressScript(string interfaceName)
         => await ExecuteScriptAndReturnRawStandardOutput(ScriptIdentifier.OriginalPhysicalAddressGet, interfaceName);
 
-    public async Task<(OperationStatus, IPv4Settings)> ExecuteGetInterfaceIPv4SettingsScript(string interfaceName)
+    public async Task<(Result, IPv4Settings)> ExecuteGetInterfaceIPv4SettingsScript(string interfaceName)
         => await ExecuteScriptAndReturnDeserializedType(
             SystemConfigurationJsonSerializerContext.Default.IPv4Settings,
             ScriptIdentifier.NetworkInterfaceIPv4SettingsGet,
             interfaceName);
 
-    public async Task<OperationStatus> ExecuteSetInterfaceIPv4SettingsScript(ScriptOptions scriptOptions)
+    public async Task<Result> ExecuteSetInterfaceIPv4SettingsScript(ScriptOptions scriptOptions)
         => await ExecuteScript(ScriptIdentifier.NetworkInterfaceIPv4SettingsSet, scriptOptions.Options);
 
-    public async Task<(OperationStatus, DHCPLease)> ExecuteGetInterfaceIPv4DHCPLeaseScript(string interfaceName)
+    public async Task<(Result, DHCPLease)> ExecuteGetInterfaceIPv4DHCPLeaseScript(string interfaceName)
         => await ExecuteScriptAndReturnDeserializedType(
             SystemConfigurationJsonSerializerContext.Default.DHCPLease,
             ScriptIdentifier.NetworkInterfaceIPv4DHCPLeaseGet,
             interfaceName);
 
-    public async Task<OperationStatus> ExecuteRenewDHCPLeaseScript(string interfaceName)
+    public async Task<Result> ExecuteRenewDHCPLeaseScript(string interfaceName)
         => await ExecuteScript(ScriptIdentifier.RenewDHCPLease, interfaceName);
 
-    public async Task<(OperationStatus, NetworkDNSSettings)> ExecuteGetNetworkDNSSettingsScript()
+    public async Task<(Result, NetworkDNSSettings)> ExecuteGetNetworkDNSSettingsScript()
         => await ExecuteScriptAndReturnDeserializedType(
             SystemConfigurationJsonSerializerContext.Default.NetworkDNSSettings,
             ScriptIdentifier.NetworkDNSSettingsGet);
 
-    public async Task<OperationStatus> ExecuteSetStaticHostsScript(ScriptOptions scriptOptions)
+    public async Task<Result> ExecuteSetStaticHostsScript(ScriptOptions scriptOptions)
         => await ExecuteScript(ScriptIdentifier.NetworkStaticHostsSet, scriptOptions.Options);
 
-    public async Task<OperationStatus> ExecuteSetNetworkDNSSettingsScript(ScriptOptions scriptOptions)
+    public async Task<Result> ExecuteSetNetworkDNSSettingsScript(ScriptOptions scriptOptions)
         => await ExecuteScript(ScriptIdentifier.NetworkDNSSettingsSet, scriptOptions.Options);
 
-    public async Task<OperationStatus> ExecuteSetNetworkMulticastDNSSettingsScript(ScriptOptions scriptOptions)
+    public async Task<Result> ExecuteSetNetworkMulticastDNSSettingsScript(ScriptOptions scriptOptions)
         => await ExecuteScript(ScriptIdentifier.NetworkMulticastDNSSettingsSet, scriptOptions.Options);
 
-    public async Task<OperationStatus> ExecuteSetHostnameScript(string hostname)
+    public async Task<Result> ExecuteSetHostnameScript(string hostname)
         => await ExecuteScript(ScriptIdentifier.HostnameSet, hostname);
 
-    public async Task<(OperationStatus, IEnumerable<string>)> ExecuteGetNetworkNTPFallbackInformationScript()
+    public async Task<(Result, IEnumerable<string>)> ExecuteGetNetworkNTPFallbackInformationScript()
         => await ExecuteScriptAndReturnSplittedStandardOutput(ScriptIdentifier.NetworkNTPFallbackInformationGet);
 
-    public async Task<(OperationStatus, NetworkNTPSettings)> ExecuteGetNetworkNTPSettingsScript()
+    public async Task<(Result, NetworkNTPSettings)> ExecuteGetNetworkNTPSettingsScript()
         => await ExecuteScriptAndReturnDeserializedType(
             SystemConfigurationJsonSerializerContext.Default.NetworkNTPSettings,
             ScriptIdentifier.NetworkNTPSettingsGet);
 
-    public async Task<OperationStatus> ExecuteSetNetworkNTPSettingsScript(ScriptOptions scriptOptions)
+    public async Task<Result> ExecuteSetNetworkNTPSettingsScript(ScriptOptions scriptOptions)
         => await ExecuteScript(ScriptIdentifier.NetworkNTPSettingsSet, scriptOptions.Options);
 
-    public async Task<(OperationStatus, NetworkProxySettings)> ExecuteGetNetworkProxySettingsScript()
+    public async Task<(Result, NetworkProxySettings)> ExecuteGetNetworkProxySettingsScript()
         => await ExecuteScriptAndReturnDeserializedType(
             SystemConfigurationJsonSerializerContext.Default.NetworkProxySettings,
             ScriptIdentifier.NetworkProxySettingsGet);
 
-    public async Task<OperationStatus> ExecuteSetNetworkProxySettingsScript(ScriptOptions scriptOptions)
+    public async Task<Result> ExecuteSetNetworkProxySettingsScript(ScriptOptions scriptOptions)
         => await ExecuteScript(ScriptIdentifier.NetworkProxySettingsSet, scriptOptions.Options);
 
-    public async Task<(OperationStatus, string)> ExecuteGetSystemdUnitActiveStateScript(ScriptOptions scriptOptions)
+    public async Task<(Result, string)> ExecuteGetSystemdUnitActiveStateScript(ScriptOptions scriptOptions)
         => await ExecuteScriptAndReturnRawStandardOutput(
             ScriptIdentifier.SystemdUnitActiveStateGet,
             scriptOptions.Options);
 
-    public async Task<(OperationStatus, ServiceDetail)> ExecuteGetSystemdUnitStateScript(ScriptOptions scriptOptions)
+    public async Task<(Result, ServiceDetail)> ExecuteGetSystemdUnitStateScript(ScriptOptions scriptOptions)
         => await ExecuteScriptAndReturnDeserializedType(
             SystemConfigurationJsonSerializerContext.Default.ServiceDetail,
             ScriptIdentifier.SystemdUnitStateGet,
             scriptOptions.Options,
-            () => new() { Name = "Empty", State = ServiceState.Unknown, });
+            () => new() { Name = "Empty", State = ServiceState.Unknown });
 
-    public async Task<OperationStatus> ExecuteSetSystemdUnitStateScript(ScriptOptions scriptOptions)
+    public async Task<Result> ExecuteSetSystemdUnitStateScript(ScriptOptions scriptOptions)
         => await ExecuteScript(ScriptIdentifier.SystemdUnitStateSet, scriptOptions.Options);
 
-    public async Task<OperationStatus> ExecuteInstallDebianPackageScript(ScriptOptions scriptOptions)
+    public async Task<Result> ExecuteInstallDebianPackageScript(ScriptOptions scriptOptions)
         => await ExecuteScript(
             ScriptIdentifier.InstallDebianPackage,
             scriptOptions.Options,
             timeoutInMilliseconds: 180_000);
 
-    public async Task<OperationStatus> ExecuteUpdateSystemScript(ScriptOptions scriptOptions)
+    public async Task<Result> ExecuteUpdateSystemScript(ScriptOptions scriptOptions)
         => await ExecuteScript(ScriptIdentifier.UpdateSystem, scriptOptions.Options);
 
-    public async Task<OperationStatus> ExecuteResetSystemScript()
+    public async Task<Result> ExecuteResetSystemScript()
         => await ExecuteScript(ScriptIdentifier.ResetSystem);
 
-    public async Task<OperationStatus> ExecuteShutdownSystemScript(ScriptOptions scriptOptions)
+    public async Task<Result> ExecuteShutdownSystemScript(ScriptOptions scriptOptions)
         => await ExecuteScript(ScriptIdentifier.ShutdownSystem, scriptOptions.Options);
 
     private static string GetInvalidOperationExceptionMessage(
@@ -159,44 +152,44 @@ internal sealed class ScriptHandler(Result? result = default) : IScriptHandler
 
     private static IEnumerable<string> ToArgs(string? arg) => arg is null ? [] : [arg];
 
-    private async Task<(OperationStatus, T)> ExecuteScriptAndReturnDeserializedType<T>(
+    private async Task<(Result, T)> ExecuteScriptAndReturnDeserializedType<T>(
         JsonTypeInfo<T> jsonTypeInfo,
         ScriptIdentifier scriptIdentifier,
         string? scriptArgument = null,
         bool includeWarnings = true) where T : class, new()
-        => await ExecuteScriptAndReturnDeserializedType(
-            jsonTypeInfo,
-            scriptIdentifier,
-            ToArgs(scriptArgument),
-            includeWarnings);
+            => await ExecuteScriptAndReturnDeserializedType(
+                jsonTypeInfo,
+                scriptIdentifier,
+                ToArgs(scriptArgument),
+                includeWarnings);
 
-    private async Task<(OperationStatus, T)> ExecuteScriptAndReturnDeserializedType<T>(
+    private async Task<(Result, T)> ExecuteScriptAndReturnDeserializedType<T>(
         JsonTypeInfo<T> jsonTypeInfo,
         ScriptIdentifier scriptIdentifier,
         IEnumerable<string> scriptArguments,
         bool includeWarnings = true) where T : class, new()
-        => await ExecuteScriptAndReturnDeserializedType(
-            jsonTypeInfo,
-            scriptIdentifier,
-            scriptArguments,
-            () => new T(),
-            includeWarnings);
+            => await ExecuteScriptAndReturnDeserializedType(
+                jsonTypeInfo,
+                scriptIdentifier,
+                scriptArguments,
+                () => new T(),
+                includeWarnings);
 
-    private async Task<(OperationStatus, T)> ExecuteScriptAndReturnDeserializedType<T>(
+    private async Task<(Result, T)> ExecuteScriptAndReturnDeserializedType<T>(
         JsonTypeInfo<T> jsonTypeInfo,
         ScriptIdentifier scriptIdentifier,
         IEnumerable<string> scriptArguments,
         Func<T> newValueFactory,
         bool includeWarnings = true) where T : class
     {
-        var (status, scriptResponse) = await RunScriptAsync(scriptIdentifier, scriptArguments, includeWarnings);
+        var (result, scriptResponse) = await RunScriptAsync(scriptIdentifier, scriptArguments, includeWarnings);
 
-        if (status is OperationStatus.Error)
-            return (OperationStatus.Error, newValueFactory());
+        if (result.OperationStatus is OperationStatus.Error)
+            return (result, newValueFactory());
 
         try
         {
-            var result = JsonSerializer
+            var typeResult = JsonSerializer
                 .Deserialize(scriptResponse.StandardOutput, jsonTypeInfo)
                 ?? throw new InvalidOperationException(
                     GetInvalidOperationExceptionMessage(
@@ -204,7 +197,7 @@ internal sealed class ScriptHandler(Result? result = default) : IScriptHandler
                         scriptIdentifier,
                         scriptResponse.StandardOutput));
 
-            return (status, result);
+            return (result, typeResult);
         }
         catch (JsonException ex)
         {
@@ -213,93 +206,93 @@ internal sealed class ScriptHandler(Result? result = default) : IScriptHandler
         }
     }
 
-    private async Task<OperationStatus> ExecuteScript(
+    private async Task<Result> ExecuteScript(
         ScriptIdentifier scriptIdentifier,
         string? scriptArgument = null,
         bool includeWarnings = true,
         int? timeoutInMilliseconds = null)
-        => await ExecuteScript(scriptIdentifier, ToArgs(scriptArgument), includeWarnings, timeoutInMilliseconds);
+            => await ExecuteScript(scriptIdentifier, ToArgs(scriptArgument), includeWarnings, timeoutInMilliseconds);
 
-    private async Task<OperationStatus> ExecuteScript(
+    private async Task<Result> ExecuteScript(
         ScriptIdentifier scriptIdentifier,
         IEnumerable<string> scriptArguments,
         bool includeWarnings = true,
         int? timeoutInMilliseconds = null)
     {
-        var (status, _) = await RunScriptAsync(scriptIdentifier, scriptArguments, includeWarnings, timeoutInMilliseconds);
-        return status;
+        var (result, _) = await RunScriptAsync(scriptIdentifier, scriptArguments, includeWarnings, timeoutInMilliseconds);
+        return result;
     }
 
-    private async Task<(OperationStatus, string)> ExecuteScriptAndReturnRawStandardOutput(
+    private async Task<(Result, string)> ExecuteScriptAndReturnRawStandardOutput(
         ScriptIdentifier scriptIdentifier,
         string? scriptArgument = null,
         bool includeWarnings = true)
-        => await ExecuteScriptAndReturnRawStandardOutput(scriptIdentifier, ToArgs(scriptArgument), includeWarnings);
+            => await ExecuteScriptAndReturnRawStandardOutput(scriptIdentifier, ToArgs(scriptArgument), includeWarnings);
 
-    private async Task<(OperationStatus, string)> ExecuteScriptAndReturnRawStandardOutput(
+    private async Task<(Result, string)> ExecuteScriptAndReturnRawStandardOutput(
         ScriptIdentifier scriptIdentifier,
         IEnumerable<string> scriptArguments,
         bool includeWarnings = true)
     {
-        var (status, scriptResponse) = await RunScriptAsync(scriptIdentifier, scriptArguments, includeWarnings);
+        var (result, scriptResponse) = await RunScriptAsync(scriptIdentifier, scriptArguments, includeWarnings);
 
-        if (status is OperationStatus.Error)
-            return (OperationStatus.Error, string.Empty);
+        if (result.OperationStatus is OperationStatus.Error)
+            return (result, string.Empty);
 
-        return (status, scriptResponse.StandardOutput);
+        return (result, scriptResponse.StandardOutput);
     }
 
-    private async Task<(OperationStatus, IEnumerable<string>)> ExecuteScriptAndReturnSplittedStandardOutput(
+    private async Task<(Result, IEnumerable<string>)> ExecuteScriptAndReturnSplittedStandardOutput(
         ScriptIdentifier scriptIdentifier,
         string? scriptArgument = null,
         char separator = ' ',
         bool includeWarnings = true)
-        => await ExecuteScriptAndReturnSplittedStandardOutput(
+            => await ExecuteScriptAndReturnSplittedStandardOutput(
             scriptIdentifier,
             ToArgs(scriptArgument),
             separator,
             includeWarnings);
 
-    private async Task<(OperationStatus, IEnumerable<string>)> ExecuteScriptAndReturnSplittedStandardOutput(
+    private async Task<(Result, IEnumerable<string>)> ExecuteScriptAndReturnSplittedStandardOutput(
         ScriptIdentifier scriptIdentifier,
         IEnumerable<string> scriptArguments,
         char separator = ' ',
         bool includeWarnings = true)
     {
-        var (status, scriptResponse) = await RunScriptAsync(scriptIdentifier, scriptArguments, includeWarnings);
+        var (result, scriptResponse) = await RunScriptAsync(scriptIdentifier, scriptArguments, includeWarnings);
 
-        if (status is OperationStatus.Error)
-            return (OperationStatus.Error, []);
+        if (result.OperationStatus is OperationStatus.Error)
+            return (result, []);
 
         var values = (scriptResponse.StandardOutput ?? string.Empty)
             .Split(separator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .AsEnumerable();
 
-        return (status, values);
+        return (result, values);
     }
 
-    private async Task<(OperationStatus Status, ScriptResponse ScriptResponse)> RunScriptAsync(
+    private async Task<(Result, ScriptResponse)> RunScriptAsync(
         ScriptIdentifier scriptIdentifier,
         IEnumerable<string> scriptArguments,
         bool includeWarnings,
         int? timeoutInMilliseconds = null)
     {
         var scriptResponse = timeoutInMilliseconds.HasValue
-            ? await ScriptRunner.GetInstance().Run(timeoutInMilliseconds.Value, scriptIdentifier, scriptArguments)
-            : await ScriptRunner.GetInstance().Run(scriptIdentifier, scriptArguments);
+            ? await ScriptRunner.GetInstance()
+                .Run(timeoutInMilliseconds.Value, scriptIdentifier, scriptArguments)
+                .ConfigureAwait(false)
+            : await ScriptRunner.GetInstance()
+                .Run(scriptIdentifier, scriptArguments)
+                .ConfigureAwait(false);
+
+        var result = new Result();
 
         if (scriptResponse.HasErrors)
-        {
-            _result.AddScriptError(scriptIdentifier, scriptResponse.StandardError);
-            return (OperationStatus.Error, scriptResponse);
-        }
+            result.AddScriptError(scriptIdentifier, scriptResponse.StandardError);
 
         if (includeWarnings && scriptResponse.HasWarnings)
-        {
-            _result.AddScriptWarning(scriptIdentifier, scriptResponse.StandardError);
-            return (OperationStatus.Warning, scriptResponse);
-        }
+            result.AddScriptWarning(scriptIdentifier, scriptResponse.StandardError);
 
-        return (OperationStatus.Success, scriptResponse);
+        return (result, scriptResponse);
     }
 }

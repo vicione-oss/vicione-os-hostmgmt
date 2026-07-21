@@ -382,7 +382,7 @@ internal sealed partial class SystemConfigurationService(
     /// </remarks>
     private async Task<OperationStatus> PrepareConfigurationFromJson(
         JsonConfigurationType jsonConfigType,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         var jsonConfigPath = GetJsonConfigurationPath(jsonConfigType);
 
@@ -396,9 +396,6 @@ internal sealed partial class SystemConfigurationService(
             return OperationStatus.Warning;
         }
 
-        var configurationResult = new Result();
-        _scriptHandler.UseResult(configurationResult);
-
         try
         {
             // Bypass check for changes / Bypass apply of config
@@ -411,19 +408,17 @@ internal sealed partial class SystemConfigurationService(
                 bypassHasChanges: true,
                 bypassApplyConfig: true);
 
-            var operationStatus = await adapter
-                .SetConfiguration(configFromJson, cancellationToken)
-                .ConfigureAwait(false);
+            var result = await adapter.SetConfiguration(configFromJson, cancellationToken).ConfigureAwait(false);
 
-            if (operationStatus == OperationStatus.Error)
+            if (result.OperationStatus is OperationStatus.Error)
             {
-                PrepareConfigurationFailedWithMessage(_logger, jsonConfigPath, configurationResult.FormattedMessages);
+                PrepareConfigurationFailedWithMessage(_logger, jsonConfigPath, result.FormattedMessages);
                 return OperationStatus.Warning;
             }
 
-            if (operationStatus == OperationStatus.Warning)
+            if (result.OperationStatus is OperationStatus.Warning)
             {
-                PrepareConfigurationCompletedWithMessage(_logger, jsonConfigPath, configurationResult.FormattedMessages);
+                PrepareConfigurationCompletedWithMessage(_logger, jsonConfigPath, result.FormattedMessages);
                 return OperationStatus.Warning;
             }
         }
@@ -483,9 +478,6 @@ internal sealed partial class SystemConfigurationService(
         bool shouldPersistConfiguration = true,
         CancellationToken cancellationToken = default)
     {
-        var configurationResult = new Result();
-        _scriptHandler.UseResult(configurationResult);
-
         try
         {
             // Don't bypass check for changes / Don't bypass apply of config
@@ -496,21 +488,21 @@ internal sealed partial class SystemConfigurationService(
                 bypassHasChanges: false,
                 bypassApplyConfig: false);
 
-            var operationStatus = await adapter
+            var result = await adapter
                 .SetConfiguration(proposedConfig.ToInternalContracts(), cancellationToken)
                 .ConfigureAwait(false);
 
-            if (operationStatus == OperationStatus.Error)
+            if (result.OperationStatus is OperationStatus.Error)
             {
-                return await RevertConfiguration(currentConfig, configurationResult.FormattedMessages, cancellationToken)
+                return await RevertConfiguration(currentConfig, result.FormattedMessages, cancellationToken)
                     .ConfigureAwait(false);
             }
 
-            if (operationStatus == OperationStatus.Warning)
+            if (result.OperationStatus is OperationStatus.Warning)
             {
                 currentWarningMessage += string.IsNullOrWhiteSpace(currentWarningMessage)
-                    ? configurationResult.FormattedMessages
-                    : Environment.NewLine + configurationResult.FormattedMessages;
+                    ? result.FormattedMessages
+                    : Environment.NewLine + result.FormattedMessages;
             }
 
             SystemConfigurationCache.Instance.Invalidate(
@@ -597,9 +589,7 @@ internal sealed partial class SystemConfigurationService(
     {
         try
         {
-            var configurationResult = new Result();
-            _scriptHandler.UseResult(configurationResult);
-            Contracts.SystemConfiguration currentConfig = new();
+            var currentConfig = new InternalContracts.SystemConfiguration();
 
             // Don't bypass check for changes / Don't bypass apply of config
             // -> Setting is not relevant, since we only load the configuration
@@ -609,25 +599,23 @@ internal sealed partial class SystemConfigurationService(
                 bypassHasChanges: false,
                 bypassApplyConfig: false);
 
-            var operationStatus = await adapter
-                .GetConfiguration(currentConfig, cancellationToken)
-                .ConfigureAwait(false);
+            var result = await adapter.GetConfiguration(currentConfig, cancellationToken).ConfigureAwait(false);
 
-            if (operationStatus == OperationStatus.Error)
+            if (result.OperationStatus is OperationStatus.Error)
             {
                 var message =
                     SystemConfigResources.GetConfigFromScriptsFailed +
                     Environment.NewLine +
-                    configurationResult.FormattedMessages;
+                    result.FormattedMessages;
 
                 return GetSystemConfigurationResult.CreateErrorResult(message);
             }
-            else if (operationStatus == OperationStatus.Warning)
+            else if (result.OperationStatus is OperationStatus.Warning)
             {
                 var message =
                     SystemConfigResources.GetConfigFromScriptsCompletedWithWarnings +
                     Environment.NewLine +
-                    configurationResult.FormattedMessages;
+                    result.FormattedMessages;
 
                 return GetSystemConfigurationResult.CreateWarningResult(message, currentConfig.ToSharedContracts());
             }
@@ -726,8 +714,8 @@ internal sealed partial class SystemConfigurationService(
 
     private async Task<SetSystemConfigurationResult> RevertConfiguration(
         SystemConfiguration configToRevert,
-        string message,
-        CancellationToken cancellationToken = default)
+        string setConfigurationErrorMessage,
+        CancellationToken cancellationToken)
     {
         var config = configToRevert.ToInternalContracts();
 
@@ -739,15 +727,18 @@ internal sealed partial class SystemConfigurationService(
             bypassHasChanges: true,
             bypassApplyConfig: false);
 
-        var operationStatus = await adapter
+        var result = await adapter
             .SetConfiguration(config, cancellationToken)
             .ConfigureAwait(false);
 
-        var baseErrorMessage = operationStatus == OperationStatus.Error
+        var baseErrorMessage = result.OperationStatus is OperationStatus.Error
             ? SystemConfigResources.RevertConfigFailedAfterSetFailed
             : SystemConfigResources.RevertConfigSucceededAfterSetFailed;
 
-        var errorMessage = baseErrorMessage + Environment.NewLine + message;
+        if (!string.IsNullOrWhiteSpace(result.FormattedMessages))
+            baseErrorMessage += Environment.NewLine + result.FormattedMessages;
+
+        var errorMessage = baseErrorMessage + Environment.NewLine + setConfigurationErrorMessage;
 
         SetConfigurationFailedWithMessage(_logger, errorMessage);
         return SetSystemConfigurationResult.CreateErrorResult(errorMessage);

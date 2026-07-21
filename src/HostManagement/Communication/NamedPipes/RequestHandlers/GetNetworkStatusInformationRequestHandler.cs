@@ -29,9 +29,8 @@ internal sealed class GetNetworkStatusInformationRequestHandler(ILogger logger)
     /// <exception cref="InvalidOperationException"/>
     public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
     {
-        var scriptResult = new Result();
-        var scriptHandler = new ScriptHandler(scriptResult);
-        var service = new NetworkStatusService(logger, scriptHandler, scriptResult);
+        var scriptHandler = new ScriptHandler();
+        var service = new NetworkStatusService(logger, scriptHandler);
         var result = await service.GetNetworkStatusInformation(messageContent, cancellationToken).ConfigureAwait(false);
 
         return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);

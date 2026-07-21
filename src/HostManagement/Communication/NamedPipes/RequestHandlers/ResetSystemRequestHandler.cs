@@ -28,10 +28,9 @@ internal sealed class ResetSystemRequestHandler(ILogger logger) : RequestHandler
     /// <exception cref="InvalidOperationException"/>
     public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken = default)
     {
-        var scriptResult = new Result();
-        var scriptHandler = new ScriptHandler(scriptResult);
+        var scriptHandler = new ScriptHandler();
         var signatureValidator = new MinisignSignedDebianPackageSignatureValidator();
-        var service = new SystemService(logger, scriptHandler, scriptResult, signatureValidator);
+        var service = new SystemService(logger, scriptHandler, signatureValidator);
 
         var result = await service.ResetSystem().ConfigureAwait(false);
 

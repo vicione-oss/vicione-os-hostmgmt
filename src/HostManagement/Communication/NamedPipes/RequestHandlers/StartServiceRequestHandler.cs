@@ -29,14 +29,8 @@ internal sealed class StartServiceRequestHandler(ILogger logger) : RequestHandle
     /// <exception cref="InvalidOperationException"/>
     public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken = default)
     {
-        var scriptResult = new Result();
-        var scriptHandler = new ScriptHandler(scriptResult);
-
-        var service = new SystemdUnitService(
-            logger,
-            scriptHandler,
-            scriptResult,
-            EnvironmentVariables.ConfigurableServices.Value);
+        var scriptHandler = new ScriptHandler();
+        var service = new SystemdUnitService(logger, scriptHandler, EnvironmentVariables.ConfigurableServices.Value);
 
         var result = await service.StartSystemdUnit(messageContent).ConfigureAwait(false);
 
