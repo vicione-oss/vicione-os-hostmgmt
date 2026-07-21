@@ -58,6 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed `network status` command missing it's name argument description
 - Fixed script for changing the MAC address when using VLAN
 - Fixed potential overwrite of an already invalid validation result, when adding an information message, resulting in a valid result.
+- Fixed potential overwrite of an error status of a result, when adding a warning message, resulting in a warning status.
 
 ## [1.3.0] - 2026-03-23
 

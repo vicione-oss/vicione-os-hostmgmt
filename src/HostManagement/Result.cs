@@ -1,4 +1,4 @@
-﻿using HostManagement.Shared.Communication.Enums;
+using HostManagement.Shared.Communication.Enums;
 
 namespace HostManagement;
 
@@ -46,13 +46,15 @@ internal sealed class Result
 
     /// <summary>
     /// Adds a new message to the list of Messages and sets <see cref="OperationStatus"/> to
-    /// <see cref="OperationStatus.Warning"/>.
+    /// <see cref="OperationStatus.Warning"/> if not already <see cref="OperationStatus.Error"/>.
     /// </summary>
     /// <param name="message">The warning message.</param>
     public void AddWarning(string message)
     {
         _messages.Add(message);
-        OperationStatus = OperationStatus.Warning;
+
+        if (OperationStatus != OperationStatus.Error)
+            OperationStatus = OperationStatus.Warning;
     }
 
     /// <summary>
