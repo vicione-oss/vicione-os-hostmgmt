@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 
@@ -27,50 +27,50 @@ internal sealed class NTPRemoveCommand : ConfigCommandBase
         });
     }
 
-    private static async Task RemoveHandler(string[] ntpServers, CancellationToken cancellationToken)
+    private static async Task RemoveHandler(string[] servers, CancellationToken cancellationToken)
     {
         if (await GetConfiguration(cancellationToken) is not SystemConfiguration config)
             return;
 
-        var hasRemovedNtpServer = false;
+        var hasRemovedServer = false;
         var output = new ListOutput();
 
-        foreach (var ntpServer in ntpServers)
+        foreach (var server in servers)
         {
-            if (!config.NetworkNTPSettings.NTPServers.Contains(ntpServer))
+            if (!config.NetworkNTPSettings.Servers.Contains(server))
             {
-                output.WithWarning(CommandLineStrings_NTP.ServerNotFound, ntpServer);
+                output.WithWarning(CommandLineStrings_NTP.ServerNotFound, server);
                 continue;
             }
 
-            if (!config.NetworkNTPSettings.NTPServers.Remove(ntpServer))
+            if (!config.NetworkNTPSettings.Servers.Remove(server))
             {
                 output
-                    .WithError(CommandLineStrings_NTP.ServerCouldNotBeRemoved, ntpServer)
+                    .WithError(CommandLineStrings_NTP.ServerCouldNotBeRemoved, server)
                     .WriteLine();
 
                 return;
             }
 
-            output.With(ntpServer);
+            output.With(server);
 
-            hasRemovedNtpServer = true;
+            hasRemovedServer = true;
         }
 
-        if (hasRemovedNtpServer)
+        if (hasRemovedServer)
         {
-            if (config.NetworkNTPSettings.NTPServersEnabled)
+            if (config.NetworkNTPSettings.Enabled)
             {
-                if (config.NetworkNTPSettings.NTPServers.Count == 0)
+                if (config.NetworkNTPSettings.Servers.Count == 0)
                 {
-                    config.NetworkNTPSettings.NTPServersEnabled = false;
+                    config.NetworkNTPSettings.Enabled = false;
 
                     output.WithInformation(CommandLineStrings_NTP.ServersDisabled);
                 }
             }
             else
             {
-                if (config.NetworkNTPSettings.NTPServers.Count > 0)
+                if (config.NetworkNTPSettings.Servers.Count > 0)
                 {
                     output.WithWarning(CommandLineStrings_NTP.ServersCurrentlyDisabled);
                 }

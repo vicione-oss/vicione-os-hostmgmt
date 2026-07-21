@@ -155,8 +155,8 @@ public class SourceGeneratedTypeSerializerTests
             ]
           },
           "NetworkNTPSettings": {
-            "NTPServersEnabled": true,
-            "NTPServers": [
+            "Enabled": true,
+            "Servers": [
               "ptbtime1.ptb.de",
               "ptbtime2.ptb.de",
               "ptbtime3.ptb.de"

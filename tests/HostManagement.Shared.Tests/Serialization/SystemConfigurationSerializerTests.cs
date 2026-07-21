@@ -14,7 +14,7 @@ public class SystemConfigurationSerializerTests
     private static readonly IPAddress s_ipAddress = IPAddress.Parse("120.86.52.18");
     private static readonly SystemConfiguration s_sampleSystemConfiguration = new()
     {
-        Version = 1,
+        Version = 2,
         NetworkInterfacesSettings = new()
         {
             NetworkInterfaces =
@@ -112,8 +112,8 @@ public class SystemConfigurationSerializerTests
         },
         NetworkNTPSettings = new()
         {
-            NTPServersEnabled = true,
-            NTPServers = ["NTPServer"],
+            Enabled = true,
+            Servers = ["NTPServer"],
         },
         Services =
         [
@@ -133,7 +133,7 @@ public class SystemConfigurationSerializerTests
         var sampleJsonWithIndentation =
         """
         {
-          "Version": 1,
+          "Version": 2,
           "NetworkInterfacesSettings": {
             "NetworkInterfaces": [
               {
@@ -220,8 +220,8 @@ public class SystemConfigurationSerializerTests
             ]
           },
           "NetworkNTPSettings": {
-            "NTPServersEnabled": true,
-            "NTPServers": [
+            "Enabled": true,
+            "Servers": [
               "NTPServer"
             ]
           },

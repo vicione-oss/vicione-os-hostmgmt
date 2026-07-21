@@ -135,7 +135,7 @@ internal static class SystemConfigurationTemplate
             },
             NetworkNTPSettings = new()
             {
-                NTPServers = ["ptbtime1.ptb.de", "ptbtime2.ptb.de"]
+                Servers = ["ptbtime1.ptb.de", "ptbtime2.ptb.de"]
             },
             Services =
             [

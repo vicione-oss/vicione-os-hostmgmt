@@ -1,4 +1,4 @@
-﻿using HostManagement.Shared.Contracts.Network;
+using HostManagement.Shared.Contracts.Network;
 
 namespace HostManagement.Shared.Validation.Validators.NTP;
 
@@ -21,10 +21,10 @@ public sealed class NetworkNTPSettingsValidator : IValidator<NetworkNTPSettings>
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (ntpSettings.NTPServersEnabled)
+            if (ntpSettings.Enabled)
             {
                 return await new NTPServersValidator()
-                    .ValidateAsync(ntpSettings.NTPServers, cancellationToken)
+                    .ValidateAsync(ntpSettings.Servers, cancellationToken)
                     .ConfigureAwait(false);
             }
 

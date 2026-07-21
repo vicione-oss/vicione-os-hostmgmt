@@ -15,24 +15,22 @@ internal sealed class NTPListCommand : ConfigCommandBase
     public NTPListCommand() : base(
         CommandLineStrings_Common.ListCommandName,
         CommandLineStrings_NTP.NTPListCommandDescription)
-    {
-        SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
-    }
+            => SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
 
     private static async Task ListHandler(CancellationToken cancellationToken)
     {
         if (await GetConfiguration(cancellationToken) is not SystemConfiguration config)
             return;
 
-        if (config.NetworkNTPSettings.NTPServers.Count == 0)
+        if (config.NetworkNTPSettings.Servers.Count == 0)
         {
             SimpleOutput.WriteLine(CommandLineStrings_NTP.ServersNotConfigured);
         }
         else
         {
             new ListOutput()
-                .WithTitle(CommandLineStrings_NTP.Servers, config.NetworkNTPSettings.NTPServersEnabled)
-                .WithEach(config.NetworkNTPSettings.NTPServers.Select(CliOutputValue.Create))
+                .WithTitle(CommandLineStrings_NTP.Servers, config.NetworkNTPSettings.Enabled)
+                .WithEach(config.NetworkNTPSettings.Servers.Select(CliOutputValue.Create))
                 .WriteLine();
         }
 

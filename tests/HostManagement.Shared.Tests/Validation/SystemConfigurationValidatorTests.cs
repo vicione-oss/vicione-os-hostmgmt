@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using AwesomeAssertions;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
@@ -106,8 +106,8 @@ public class SystemConfigurationValidatorTests
             },
             NetworkNTPSettings = new()
             {
-                NTPServersEnabled = true,
-                NTPServers =
+                Enabled = true,
+                Servers =
                 [
                     ValidationTestData.NTPServer.IPv4,
                     ValidationTestData.NTPServer.FQDN

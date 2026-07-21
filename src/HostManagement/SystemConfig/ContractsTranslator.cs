@@ -147,10 +147,16 @@ internal static class ContractsTranslator
         };
 
     private static SharedNetwork.NetworkNTPSettings ToSharedContracts(this NetworkNTPSettings intern)
-        => new(intern.Servers?.ToList())
-        {
-            NTPServersEnabled = intern.Enabled ?? false,
-        };
+    {
+        var networkNTPSettings = intern.Servers is { } servers
+            ? new SharedNetwork.NetworkNTPSettings() { Servers = servers }
+            : new SharedNetwork.NetworkNTPSettings();
+
+        if (intern.Enabled is { } enabled)
+            networkNTPSettings.Enabled = enabled;
+
+        return networkNTPSettings;
+    }
 
     internal static SystemConfiguration ToInternalContracts(this SharedContracts.SystemConfiguration shared)
         => new()
@@ -250,8 +256,8 @@ internal static class ContractsTranslator
     private static NetworkNTPSettings ToInternalContracts(this SharedNetwork.NetworkNTPSettings shared)
         => new()
         {
-            Enabled = shared.NTPServersEnabled,
-            Servers = [.. shared.NTPServers]
+            Enabled = shared.Enabled,
+            Servers = [.. shared.Servers]
         };
 
     private static ServiceDetail ToInternalContracts(this SharedService.ServiceDetail shared)
