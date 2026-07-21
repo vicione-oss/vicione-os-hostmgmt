@@ -250,8 +250,8 @@ public class V1ToV2SystemConfigurationMigrationTests
             result.Should().NotBeNull();
             result.NetworkNTPSettings.Should().NotBeNull();
 
-            result.NetworkNTPSettings.NTPServersEnabled.Should().BeTrue();
-            result.NetworkNTPSettings.NTPServers.Should().Equal("time.example.local", "192.168.1.20");
+            result.NetworkNTPSettings.Enabled.Should().BeTrue();
+            result.NetworkNTPSettings.Servers.Should().Equal("time.example.local", "192.168.1.20");
         }
 
         [Fact]

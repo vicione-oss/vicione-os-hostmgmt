@@ -121,8 +121,8 @@ internal sealed class V1ToV2SystemConfigurationMigration
         => new()
         {
             // FallbackNTPServers was removed in version 2 and was not persisted previously either.
-            NTPServersEnabled = source.NTPServersEnabled,
-            NTPServers = source.NTPServers.CopyListOrNull()
+            Enabled = source.NTPServersEnabled,
+            Servers = source.NTPServers.CopyListOrNull()
         };
 
     private static CurrentContracts.ServiceDetail MigrateServiceDetail(V1Contracts.ServiceDetail source)

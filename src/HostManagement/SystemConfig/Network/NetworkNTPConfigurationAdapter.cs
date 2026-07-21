@@ -50,17 +50,17 @@ internal sealed class NetworkNTPConfigurationAdapter(
         SystemConfiguration config,
         CancellationToken cancellationToken)
     {
-        if (config.NetworkNTPSettings is not null && config.NetworkNTPSettings.NTPServersEnabled.HasValue)
+        if (config.NetworkNTPSettings is not null && config.NetworkNTPSettings.Enabled.HasValue)
         {
-            var ntpList = config.NetworkNTPSettings.NTPServers?.Count > 0
-                ? config.NetworkNTPSettings.NTPServers
+            var ntpList = config.NetworkNTPSettings.Servers?.Count > 0
+                ? config.NetworkNTPSettings.Servers
                 : ["none"];
 
             var scriptOptions = new ScriptOptions();
 
             scriptOptions.Add(
                 ScriptOptionNames.NetworkNTP.NTPServersEnabled,
-                config.NetworkNTPSettings.NTPServersEnabled.Value);
+                config.NetworkNTPSettings.Enabled.Value);
 
             scriptOptions.Add(ScriptOptionNames.NetworkNTP.NTPServers, ntpList.ToArray());
 

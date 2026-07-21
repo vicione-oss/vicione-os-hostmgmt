@@ -1,4 +1,4 @@
-﻿using HostManagement.SystemConfig.Contracts;
+using HostManagement.SystemConfig.Contracts;
 using SharedContracts = HostManagement.Shared.Contracts;
 using SharedNetwork = HostManagement.Shared.Contracts.Network;
 using SharedService = HostManagement.Shared.Contracts.Service;
@@ -147,9 +147,9 @@ internal static class ContractsTranslator
         };
 
     private static SharedNetwork.NetworkNTPSettings ToSharedContracts(this NetworkNTPSettings intern)
-        => new(intern.NTPServers?.ToList())
+        => new(intern.Servers?.ToList())
         {
-            NTPServersEnabled = intern.NTPServersEnabled ?? false,
+            NTPServersEnabled = intern.Enabled ?? false,
         };
 
     internal static SystemConfiguration ToInternalContracts(this SharedContracts.SystemConfiguration shared)
@@ -250,8 +250,8 @@ internal static class ContractsTranslator
     private static NetworkNTPSettings ToInternalContracts(this SharedNetwork.NetworkNTPSettings shared)
         => new()
         {
-            NTPServersEnabled = shared.NTPServersEnabled,
-            NTPServers = [.. shared.NTPServers]
+            Enabled = shared.NTPServersEnabled,
+            Servers = [.. shared.NTPServers]
         };
 
     private static ServiceDetail ToInternalContracts(this SharedService.ServiceDetail shared)

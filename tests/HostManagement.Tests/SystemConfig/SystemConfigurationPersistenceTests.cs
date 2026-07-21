@@ -214,8 +214,8 @@ public class SystemConfigurationPersistenceTests
             },
             NetworkNTPSettings = new()
             {
-                NTPServersEnabled = false,
-                NTPServers = []
+                Enabled = false,
+                Servers = []
             },
             Services =
             [
@@ -532,8 +532,8 @@ public class SystemConfigurationPersistenceTests
                 },
                 NetworkNTPSettings = new()
                 {
-                    NTPServersEnabled = true,
-                    NTPServers = ["NTPServer"],
+                    Enabled = true,
+                    Servers = ["NTPServer"]
                 },
                 Services =
                 [
@@ -635,8 +635,8 @@ public class SystemConfigurationPersistenceTests
                 ]
               },
               "NetworkNTPSettings": {
-                "NTPServersEnabled": true,
-                "NTPServers": [
+                "Enabled": true,
+                "Servers": [
                   "NTPServer"
                 ]
               },

@@ -10,8 +10,8 @@ namespace HostManagement.Tests.SystemConfig.Network;
 
 public class NetworkNTPConfigurationAdapterTests
 {
-    private const string NTPServer1 = "0.pool.ntp.org";
-    private const string NTPServer2 = "1.pool.ntp.org";
+    private const string Server1 = "0.pool.ntp.org";
+    private const string Server2 = "1.pool.ntp.org";
 
     private static NetworkNTPConfigurationAdapter CreateSut(
         IScriptHandler scriptHandler,
@@ -19,13 +19,13 @@ public class NetworkNTPConfigurationAdapterTests
         bool bypassApplyConfig = false)
             => new(scriptHandler, bypassHasChanges, bypassApplyConfig);
 
-    private static SystemConfiguration CreateSystemConfig(bool ntpServersEnabled, params string[] ntpServers)
+    private static SystemConfiguration CreateSystemConfig(bool enabled, params string[] servers)
        => new()
        {
            NetworkNTPSettings = new()
            {
-               NTPServersEnabled = ntpServersEnabled,
-               NTPServers = [.. ntpServers]
+               Enabled = enabled,
+               Servers = [.. servers]
            }
        };
 
@@ -38,7 +38,7 @@ public class NetworkNTPConfigurationAdapterTests
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler.ExecuteGetNetworkNTPSettingsScript().Returns((Result.ErrorResult, new()));
 
-            var config = CreateSystemConfig(false, [NTPServer1, NTPServer2]);
+            var config = CreateSystemConfig(false, [Server1, Server2]);
             var originalNTPSettings = config.NetworkNTPSettings;
             var sut = CreateSut(scriptHandler);
 
@@ -56,8 +56,8 @@ public class NetworkNTPConfigurationAdapterTests
             // Arrange
             var ntpSettings = new NetworkNTPSettings()
             {
-                NTPServersEnabled = true,
-                NTPServers = [NTPServer1, NTPServer2]
+                Enabled = true,
+                Servers = [Server1, Server2]
             };
 
             var scriptHandler = Substitute.For<IScriptHandler>();
@@ -82,36 +82,36 @@ public class NetworkNTPConfigurationAdapterTests
         {
             var scriptHandler = Substitute.For<IScriptHandler>();
             var sut = CreateSut(scriptHandler);
-            var current = CreateSystemConfig(true, NTPServer1);
-            var proposed = CreateSystemConfig(true, NTPServer1);
+            var current = CreateSystemConfig(true, Server1);
+            var proposed = CreateSystemConfig(true, Server1);
 
             sut.HasChanges(current, proposed).Should().BeFalse();
         }
 
         [Theory]
-        [InlineData(true, NTPServer2)]
-        [InlineData(false, NTPServer1)]
-        [InlineData(false, NTPServer2)]
+        [InlineData(true, Server2)]
+        [InlineData(false, Server1)]
+        [InlineData(false, Server2)]
         public void ShouldBeTrue_WhenSettingsDifferent(bool ntpEnabled, string ntpServer)
         {
             var scriptHandler = Substitute.For<IScriptHandler>();
             var sut = CreateSut(scriptHandler);
-            var current = CreateSystemConfig(true, NTPServer1);
+            var current = CreateSystemConfig(true, Server1);
             var proposed = CreateSystemConfig(ntpEnabled, ntpServer);
 
             sut.HasChanges(current, proposed).Should().BeTrue();
         }
 
         [Theory]
-        [InlineData(true, NTPServer2)]
-        [InlineData(false, NTPServer1)]
-        [InlineData(false, NTPServer2)]
-        [InlineData(true, NTPServer1)]
+        [InlineData(true, Server2)]
+        [InlineData(false, Server1)]
+        [InlineData(false, Server2)]
+        [InlineData(true, Server1)]
         public void ShouldBeTrue_WhenBypassHasChangesFlagTrue(bool ntpEnabled, string ntpServer)
         {
             var scriptHandler = Substitute.For<IScriptHandler>();
             var sut = CreateSut(scriptHandler, bypassHasChanges: true);
-            var current = CreateSystemConfig(true, NTPServer1);
+            var current = CreateSystemConfig(true, Server1);
             var proposed = CreateSystemConfig(ntpEnabled, ntpServer);
 
             sut.HasChanges(current, proposed).Should().BeTrue();
@@ -130,7 +130,7 @@ public class NetworkNTPConfigurationAdapterTests
                 .Returns(Result.ErrorResult);
 
             var sut = CreateSut(scriptHandler, bypassHasChanges: true, bypassApplyConfig: false);
-            var config = CreateSystemConfig(true, NTPServer1);
+            var config = CreateSystemConfig(true, Server1);
 
             // Act + Assert
             var result = await sut.SetConfiguration(config, CancellationToken.None);
@@ -159,7 +159,7 @@ public class NetworkNTPConfigurationAdapterTests
                 .Returns(Result.SuccessResult);
 
             var sut = CreateSut(scriptHandler, bypassHasChanges: true, bypassApplyConfig: false);
-            var config = CreateSystemConfig(true, NTPServer1);
+            var config = CreateSystemConfig(true, Server1);
 
             // Act
             var result = await sut.SetConfiguration(config, CancellationToken.None);
@@ -173,7 +173,7 @@ public class NetworkNTPConfigurationAdapterTests
             ntpScriptOptions.Should().NotBeNull();
             ntpScriptOptions!.Options.Should().ContainInOrder(
                 ScriptOptionNames.NetworkNTP.NTPServersEnabled, "true",
-                ScriptOptionNames.NetworkNTP.NTPServers, NTPServer1);
+                ScriptOptionNames.NetworkNTP.NTPServers, Server1);
 
             // Apply was executed
             await scriptHandler.Received(1).ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>());
@@ -193,7 +193,7 @@ public class NetworkNTPConfigurationAdapterTests
                 .Returns(Result.SuccessResult);
 
             var sut = CreateSut(scriptHandler, bypassHasChanges: true, bypassApplyConfig: true);
-            var config = CreateSystemConfig(true, NTPServer1);
+            var config = CreateSystemConfig(true, Server1);
 
             // Act + Assert
             var result = await sut.SetConfiguration(config, CancellationToken.None);
