@@ -1,6 +1,6 @@
-﻿using AwesomeAssertions;
-using Xunit;
+using AwesomeAssertions;
 using HostManagement.Shared.Validation;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Validation;
 
@@ -148,47 +148,45 @@ public class ValidationResultTests
     }
 
     [Fact]
-    public void ShouldAddValidationResult_WhenAddResultCalled()
+    public void ShouldRemainInvalid_WhenMultipleResultsAdded()
     {
         // Arrange
-        var baseInformationMessage = "An information.";
-        var additionalErrorMessage = "Another error occurred.";
+        var informationMessage = "An information.";
+        var errorMessage = "Another error occurred.";
 
-        var baseResult = ValidationResult.CreateWithInformation(baseInformationMessage);
-        var invalidResultToAdd = ValidationResult.CreateWithError(additionalErrorMessage);
-        var validResultToAdd = ValidationResult.Valid;
+        var previousResult = ValidationResult.Valid;
+        var currentResult = new ValidationResult();
 
         // Act + Assert
-        baseResult.IsValid.Should().BeTrue();
-        baseResult.Entries.Count.Should().Be(1);
-        baseResult.ToList()[0].Message.Should().Be(baseInformationMessage);
-        baseResult.ToList()[0].Code.Should().Be(ErrorCodes.Valid);
-        baseResult.EntriesString.Should().Be($"Valid: {baseInformationMessage}");
+        currentResult.AddError(errorMessage); // start with invalid
+        currentResult.IsValid.Should().BeFalse();
+        currentResult.Entries.Count.Should().Be(1);
+        currentResult.ToList()[0].Message.Should().Be(errorMessage);
+        currentResult.ToList()[0].Code.Should().Be(ErrorCodes.ValidationFailed);
+        currentResult.EntriesString.Should().Be($"ValidationFailed: {errorMessage}");
 
-        baseResult.AddResult(invalidResultToAdd);
-
-        baseResult.IsValid.Should().BeFalse();
-        baseResult.Entries.Count.Should().Be(2);
-        baseResult.ToList()[0].Message.Should().Be(baseInformationMessage);
-        baseResult.ToList()[0].Code.Should().Be(ErrorCodes.Valid);
-        baseResult.ToList()[1].Message.Should().Be(additionalErrorMessage);
-        baseResult.ToList()[1].Code.Should().Be(ErrorCodes.ValidationFailed);
-        baseResult.EntriesString.Should().Be(
-            $"Valid: {baseInformationMessage}" +
+        currentResult.AddInformation(informationMessage); // remain invalid
+        currentResult.IsValid.Should().BeFalse();
+        currentResult.Entries.Count.Should().Be(2);
+        currentResult.ToList()[0].Message.Should().Be(errorMessage);
+        currentResult.ToList()[0].Code.Should().Be(ErrorCodes.ValidationFailed);
+        currentResult.ToList()[1].Message.Should().Be(informationMessage);
+        currentResult.ToList()[1].Code.Should().Be(ErrorCodes.Valid);
+        currentResult.EntriesString.Should().Be(
+            $"ValidationFailed: {errorMessage}" +
             Environment.NewLine +
-            $"ValidationFailed: {additionalErrorMessage}");
+            $"Valid: {informationMessage}");
 
-        baseResult.AddResult(validResultToAdd);
-
-        baseResult.IsValid.Should().BeFalse();
-        baseResult.Entries.Count.Should().Be(2);
-        baseResult.ToList()[0].Message.Should().Be(baseInformationMessage);
-        baseResult.ToList()[0].Code.Should().Be(ErrorCodes.Valid);
-        baseResult.ToList()[1].Message.Should().Be(additionalErrorMessage);
-        baseResult.ToList()[1].Code.Should().Be(ErrorCodes.ValidationFailed);
-        baseResult.EntriesString.Should().Be(
-            $"Valid: {baseInformationMessage}" +
+        currentResult.AddResult(previousResult); // remain invalid
+        currentResult.IsValid.Should().BeFalse();
+        currentResult.Entries.Count.Should().Be(2);
+        currentResult.ToList()[0].Message.Should().Be(errorMessage);
+        currentResult.ToList()[0].Code.Should().Be(ErrorCodes.ValidationFailed);
+        currentResult.ToList()[1].Message.Should().Be(informationMessage);
+        currentResult.ToList()[1].Code.Should().Be(ErrorCodes.Valid);
+        currentResult.EntriesString.Should().Be(
+            $"ValidationFailed: {errorMessage}" +
             Environment.NewLine +
-            $"ValidationFailed: {additionalErrorMessage}");
+            $"Valid: {informationMessage}");
     }
 }

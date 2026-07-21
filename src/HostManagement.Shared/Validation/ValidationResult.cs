@@ -1,4 +1,4 @@
-﻿namespace HostManagement.Shared.Validation;
+namespace HostManagement.Shared.Validation;
 
 /// <summary>
 /// Represents the result of a validation.
@@ -49,14 +49,10 @@ public class ValidationResult
 
     /// <summary>
     /// Adds a new <see cref="ValidationEntry"/> with the specified information message to the list
-    /// of validation entries and sets <see cref="IsValid"/> to <see langword="true"/>.
+    /// of validation entries.
     /// </summary>
     /// <param name="message">The information message used for the validation entry.</param>
-    public void AddInformation(string message)
-    {
-        _entries.Add(new ValidationEntry(message, ErrorCodes.Valid));
-        IsValid = true;
-    }
+    public void AddInformation(string message) => _entries.Add(new ValidationEntry(message, ErrorCodes.Valid));
 
     /// <summary>
     /// Creates a new <see cref="ValidationResult"/> and adds the specified error message and
