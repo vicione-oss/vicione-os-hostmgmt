@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -166,7 +166,7 @@
     <value>Configure the list of ignored URLs by the proxy.</value>
   </data>
   <data name="NoProxyListCommandName" xml:space="preserve">
-    <value>no-proxy-list</value>
+    <value>no-proxy</value>
   </data>
   <data name="NoProxyListCurrentlyDisabled" xml:space="preserve">
     <value>No-proxy list is currently disabled.</value>

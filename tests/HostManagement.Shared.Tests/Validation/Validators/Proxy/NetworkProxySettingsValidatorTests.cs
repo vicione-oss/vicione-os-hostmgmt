@@ -1,4 +1,4 @@
-﻿using AwesomeAssertions;
+using AwesomeAssertions;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.Proxy;
@@ -32,10 +32,7 @@ public class NetworkProxySettingsValidatorTests
     [InlineData(false, ValidationTestData.NoProxyItem.InvalidNoProxyItem, true)]
     [InlineData(true, ValidationTestData.NoProxyItem.InvalidNoProxyItem, false)]
     [InlineData(true, ValidationTestData.NoProxyItem.FQDN, true)]
-    public async Task ShouldReturnValidationResult_WhenValidateAsyncCalled(
-        bool doNotProxyListEnabled,
-        string noProxyItem,
-        bool isValid)
+    public async Task ShouldReturnValidationResult_WhenValidateAsyncCalled(bool enabled, string entry, bool isValid)
     {
         // Arrange
         var interfaces = new List<NetworkInterfaceDetail>
@@ -46,18 +43,21 @@ public class NetworkProxySettingsValidatorTests
 
         var proxySettings = new NetworkProxySettings
         {
-            DoNotProxyListEnabled = doNotProxyListEnabled,
-            DoNotProxyList =
-            [
-                ValidationTestData.NoProxyItem.IPv4,
-                ValidationTestData.NoProxyItem.IPv4Port,
-                ValidationTestData.NoProxyItem.IPv6,
-                ValidationTestData.NoProxyItem.IPv6Port,
-                ValidationTestData.NoProxyItem.IPv6LinkLocal,
-                ValidationTestData.NoProxyItem.IPv6LinkLocalPort,
-                ValidationTestData.NoProxyItem.Simple,
-                noProxyItem
-            ]
+            NoProxy = new NoProxySettings()
+            {
+                Enabled = enabled,
+                Entries =
+                [
+                    ValidationTestData.NoProxyItem.IPv4,
+                    ValidationTestData.NoProxyItem.IPv4Port,
+                    ValidationTestData.NoProxyItem.IPv6,
+                    ValidationTestData.NoProxyItem.IPv6Port,
+                    ValidationTestData.NoProxyItem.IPv6LinkLocal,
+                    ValidationTestData.NoProxyItem.IPv6LinkLocalPort,
+                    ValidationTestData.NoProxyItem.Simple,
+                    entry
+                ]
+            }
         };
 
         // Act

@@ -73,7 +73,7 @@ public class SystemConfigurationSerializerTests
                 Password = "httpPassword",
                 Port = 80,
                 Server = "httpServer",
-                Username = "httpUser",
+                Username = "httpUser"
             },
             HTTPS = new()
             {
@@ -81,7 +81,7 @@ public class SystemConfigurationSerializerTests
                 Password = "httpsPassword",
                 Port = 443,
                 Server = "httpsServer",
-                Username = "httpsUser",
+                Username = "httpsUser"
             },
             FTP = new()
             {
@@ -89,7 +89,7 @@ public class SystemConfigurationSerializerTests
                 Password = "ftpPassword",
                 Port = 21,
                 Server = "ftpServer",
-                Username = "ftpUser",
+                Username = "ftpUser"
             },
             SFTP = new()
             {
@@ -97,7 +97,7 @@ public class SystemConfigurationSerializerTests
                 Password = "sftpPassword",
                 Port = 22,
                 Server = "sftpServer",
-                Username = "sftpUser",
+                Username = "sftpUser"
             },
             SOCKS = new()
             {
@@ -105,10 +105,13 @@ public class SystemConfigurationSerializerTests
                 Password = "socksPassword",
                 Port = 1080,
                 Server = "socksServer",
-                Username = "socksUser",
+                Username = "socksUser"
             },
-            DoNotProxyListEnabled = true,
-            DoNotProxyList = ["InternalProxy"]
+            NoProxy = new()
+            {
+                Enabled = true,
+                Entries = ["InternalProxy"]
+            }
         },
         NetworkNTPSettings = new()
         {
@@ -214,10 +217,12 @@ public class SystemConfigurationSerializerTests
               "Username": "socksUser",
               "Password": "socksPassword"
             },
-            "DoNotProxyListEnabled": true,
-            "DoNotProxyList": [
-              "InternalProxy"
-            ]
+            "NoProxy": {
+              "Enabled": true,
+              "Entries": [
+                "InternalProxy"
+              ]
+            }
           },
           "NetworkNTPSettings": {
             "Enabled": true,

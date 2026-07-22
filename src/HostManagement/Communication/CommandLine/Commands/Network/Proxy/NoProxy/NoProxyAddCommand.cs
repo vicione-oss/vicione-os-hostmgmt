@@ -1,19 +1,19 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 
-namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy.NoProxyList;
+namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy.NoProxy;
 
 /// <summary>
-/// Represents the no-proxy list add command.
+/// Represents the no-proxy list command.
 /// </summary>
-internal sealed class NoProxyListAddCommand : ConfigCommandBase
+internal sealed class NoProxyAddCommand : ConfigCommandBase
 {
     /// <summary>
-    /// Initializes a new <see cref="NoProxyListAddCommand"/>.
+    /// Initializes a new <see cref="NoProxyAddCommand"/>.
     /// </summary>
     /// <param name="noProxyItemsOption">The no-proxy items option.</param>
-    public NoProxyListAddCommand(Option<string[]> noProxyItemsOption) : base(
+    public NoProxyAddCommand(Option<string[]> noProxyItemsOption) : base(
         CommandLineStrings_Common.AddCommandName,
         CommandLineStrings_Proxy.NoProxyListAddCommandDescription)
     {
@@ -27,29 +27,29 @@ internal sealed class NoProxyListAddCommand : ConfigCommandBase
         });
     }
 
-    private static async Task AddHandler(string[] noProxyItems, CancellationToken cancellationToken)
+    private static async Task AddHandler(string[] entries, CancellationToken cancellationToken)
     {
         if (await GetConfiguration(cancellationToken) is not SystemConfiguration config)
             return;
 
-        var hasAddedNoProxyItems = false;
+        var hasAddedEntry = false;
         var output = new ListOutput();
 
-        foreach (var noProxyItem in noProxyItems)
+        foreach (var entry in entries)
         {
-            if (config.NetworkProxySettings.DoNotProxyList.Contains(noProxyItem, StringComparer.OrdinalIgnoreCase))
+            if (config.NetworkProxySettings.NoProxy.Entries.Contains(entry, StringComparer.OrdinalIgnoreCase))
             {
-                output.WithInformation(CommandLineStrings_Proxy.NoProxyItemAlreadyDefined, noProxyItem);
+                output.WithInformation(CommandLineStrings_Proxy.NoProxyItemAlreadyDefined, entry);
                 continue;
             }
 
-            config.NetworkProxySettings.DoNotProxyList.Add(noProxyItem);
-            output.With(noProxyItem);
+            config.NetworkProxySettings.NoProxy.Entries.Add(entry);
+            output.With(entry);
 
-            hasAddedNoProxyItems = true;
+            hasAddedEntry = true;
         }
 
-        if (hasAddedNoProxyItems)
+        if (hasAddedEntry)
         {
             if (!await SetConfiguration(config, cancellationToken))
                 return;
@@ -60,7 +60,7 @@ internal sealed class NoProxyListAddCommand : ConfigCommandBase
 
             output.WithTitle(title);
 
-            if (!config.NetworkProxySettings.DoNotProxyListEnabled)
+            if (!config.NetworkProxySettings.NoProxy.Enabled)
                 output.WithWarning(CommandLineStrings_Proxy.NoProxyListCurrentlyDisabled);
         }
 

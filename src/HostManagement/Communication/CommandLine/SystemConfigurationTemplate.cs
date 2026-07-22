@@ -131,7 +131,10 @@ internal static class SystemConfigurationTemplate
                     Server = "socks://proxy.example.com",
                     Port = 1080
                 },
-                DoNotProxyList = ["company.com", "192.168.178.42"]
+                NoProxy = new()
+                {
+                    Entries = ["company.com", "192.168.178.42"]
+                }
             },
             NetworkNTPSettings = new()
             {

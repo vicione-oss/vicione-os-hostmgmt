@@ -91,18 +91,21 @@ public class SystemConfigurationValidatorTests
             NetworkProxySettings = new NetworkProxySettings() with
             {
                 HTTP = ValidationTestData.Proxy.HTTP,
-                DoNotProxyListEnabled = true,
-                DoNotProxyList =
-                [
-                    ValidationTestData.NoProxyItem.IPv4,
-                    ValidationTestData.NoProxyItem.IPv4Port,
-                    ValidationTestData.NoProxyItem.IPv6,
-                    ValidationTestData.NoProxyItem.IPv6Port,
-                    ValidationTestData.NoProxyItem.IPv6LinkLocal,
-                    ValidationTestData.NoProxyItem.IPv6LinkLocalPort,
-                    ValidationTestData.NoProxyItem.Simple,
-                    ValidationTestData.NoProxyItem.FQDN
-                ]
+                NoProxy = new NoProxySettings()
+                {
+                    Enabled = true,
+                    Entries =
+                    [
+                        ValidationTestData.NoProxyItem.IPv4,
+                        ValidationTestData.NoProxyItem.IPv4Port,
+                        ValidationTestData.NoProxyItem.IPv6,
+                        ValidationTestData.NoProxyItem.IPv6Port,
+                        ValidationTestData.NoProxyItem.IPv6LinkLocal,
+                        ValidationTestData.NoProxyItem.IPv6LinkLocalPort,
+                        ValidationTestData.NoProxyItem.Simple,
+                        ValidationTestData.NoProxyItem.FQDN
+                    ]
+                }
             },
             NetworkNTPSettings = new()
             {

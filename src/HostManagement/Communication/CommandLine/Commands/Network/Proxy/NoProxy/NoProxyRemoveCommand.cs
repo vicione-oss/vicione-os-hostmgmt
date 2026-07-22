@@ -1,19 +1,19 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 
-namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy.NoProxyList;
+namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy.NoProxy;
 
 /// <summary>
-/// Represents the no-proxy list remove command.
+/// Represents the no-proxy remove command.
 /// </summary>
-internal sealed class NoProxyListRemoveCommand : ConfigCommandBase
+internal sealed class NoProxyRemoveCommand : ConfigCommandBase
 {
     /// <summary>
-    /// Initializes a new <see cref="NoProxyListRemoveCommand"/>.
+    /// Initializes a new <see cref="NoProxyRemoveCommand"/>.
     /// </summary>
     /// <param name="noProxyItemsOption">The no-proxy items option.</param>
-    public NoProxyListRemoveCommand(Option<string[]> noProxyItemsOption) : base(
+    public NoProxyRemoveCommand(Option<string[]> noProxyItemsOption) : base(
         CommandLineStrings_Common.RemoveCommandName,
         CommandLineStrings_Proxy.NoProxyListRemoveCommandDescription)
     {
@@ -27,37 +27,37 @@ internal sealed class NoProxyListRemoveCommand : ConfigCommandBase
         });
     }
 
-    private static async Task RemoveHandler(string[] noProxyItems, CancellationToken cancellationToken)
+    private static async Task RemoveHandler(string[] entries, CancellationToken cancellationToken)
     {
         if (await GetConfiguration(cancellationToken) is not SystemConfiguration config)
             return;
 
-        var hasRemovedNoProxyItems = false;
+        var hasRemovedEntry = false;
         var output = new ListOutput();
 
-        foreach (var noProxyItem in noProxyItems)
+        foreach (var entry in entries)
         {
-            if (!config.NetworkProxySettings.DoNotProxyList.Contains(noProxyItem, StringComparer.OrdinalIgnoreCase))
+            if (!config.NetworkProxySettings.NoProxy.Entries.Contains(entry, StringComparer.OrdinalIgnoreCase))
             {
-                output.WithWarning(CommandLineStrings_Proxy.NoProxyItemNotFound, noProxyItem);
+                output.WithWarning(CommandLineStrings_Proxy.NoProxyItemNotFound, entry);
                 continue;
             }
 
-            if (!config.NetworkProxySettings.DoNotProxyList.Remove(noProxyItem))
+            if (!config.NetworkProxySettings.NoProxy.Entries.Remove(entry))
             {
                 output
-                    .WithError(CommandLineStrings_Proxy.NoProxyItemCouldNotBeRemoved, noProxyItem)
+                    .WithError(CommandLineStrings_Proxy.NoProxyItemCouldNotBeRemoved, entry)
                     .WriteLine();
 
                 return;
             }
 
-            output.With(noProxyItem);
+            output.With(entry);
 
-            hasRemovedNoProxyItems = true;
+            hasRemovedEntry = true;
         }
 
-        if (hasRemovedNoProxyItems)
+        if (hasRemovedEntry)
         {
             if (!await SetConfiguration(config, cancellationToken))
                 return;
@@ -68,8 +68,8 @@ internal sealed class NoProxyListRemoveCommand : ConfigCommandBase
 
             output.WithTitle(title);
 
-            if (!config.NetworkProxySettings.DoNotProxyListEnabled &&
-                config.NetworkProxySettings.DoNotProxyList.Count > 0)
+            if (!config.NetworkProxySettings.NoProxy.Enabled &&
+                config.NetworkProxySettings.NoProxy.Entries.Count > 0)
             {
                 output.WithWarning(CommandLineStrings_Proxy.NoProxyListCurrentlyDisabled);
             }

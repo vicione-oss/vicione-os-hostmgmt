@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Text;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
@@ -20,9 +20,7 @@ internal sealed class ProxyTypeListCommand : ProxyTypeCommandBase
             CultureInfo.InvariantCulture,
             CompositeFormat.Parse(CommandLineStrings_Proxy.ProxyTypeListCommandDescription),
             proxyType))
-    {
-        SetAction((parseResult, cancellationToken) => ListHandler(proxyType, cancellationToken));
-    }
+                => SetAction((parseResult, cancellationToken) => ListHandler(proxyType, cancellationToken));
 
     private static async Task ListHandler(ProxyType proxyType, CancellationToken cancellationToken)
     {

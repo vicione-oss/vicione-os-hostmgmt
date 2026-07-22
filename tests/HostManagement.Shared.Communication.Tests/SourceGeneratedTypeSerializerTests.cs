@@ -149,10 +149,12 @@ public class SourceGeneratedTypeSerializerTests
               "Username": "socksUser",
               "Password": "socksPassword"
             },
-            "DoNotProxyListEnabled": true,
-            "DoNotProxyList": [
-              "InternalProxy"
-            ]
+            "NoProxy": {
+              "Enabled": true,
+              "Entries": [
+                "InternalProxy"
+              ]
+            }
           },
           "NetworkNTPSettings": {
             "Enabled": true,

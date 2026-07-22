@@ -1,36 +1,34 @@
-﻿using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 
-namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy.NoProxyList;
+namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy.NoProxy;
 
 /// <summary>
-/// Represents the no-proxy list clear command.
+/// Represents the no-proxy clear command.
 /// </summary>
-internal sealed class NoProxyListClearCommand : ConfigCommandBase
+internal sealed class NoProxyClearCommand : ConfigCommandBase
 {
     /// <summary>
-    /// Initializes a new <see cref="NoProxyListClearCommand"/>.
+    /// Initializes a new <see cref="NoProxyClearCommand"/>.
     /// </summary>
-    public NoProxyListClearCommand() : base(
+    public NoProxyClearCommand() : base(
         CommandLineStrings_Common.ClearCommandName,
         CommandLineStrings_Proxy.NoProxyListClearCommandDescription)
-    {
-        SetAction((parseResult, cancellationToken) => ClearHandler(cancellationToken));
-    }
+            => SetAction((parseResult, cancellationToken) => ClearHandler(cancellationToken));
 
     private static async Task ClearHandler(CancellationToken cancellationToken)
     {
         if (await GetConfiguration(cancellationToken) is not SystemConfiguration config)
             return;
 
-        if (config.NetworkProxySettings.DoNotProxyList.Count == 0)
+        if (config.NetworkProxySettings.NoProxy.Entries.Count == 0)
         {
             SimpleOutput.WriteLineInformation(CommandLineStrings_Proxy.NoProxyListNotConfigured);
             return;
         }
 
-        config.NetworkProxySettings.DoNotProxyList.Clear();
-        config.NetworkProxySettings.DoNotProxyListEnabled = false;
+        config.NetworkProxySettings.NoProxy.Entries.Clear();
+        config.NetworkProxySettings.NoProxy.Enabled = false;
 
         if (!await SetConfiguration(config, cancellationToken))
             return;

@@ -1,19 +1,19 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 
-namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy.NoProxyList;
+namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy.NoProxy;
 
 /// <summary>
-/// Represents the no-proxy list set command.
+/// Represents the no-proxy set command.
 /// </summary>
-internal sealed class NoProxyListSetCommand : ConfigCommandBase
+internal sealed class NoProxySetCommand : ConfigCommandBase
 {
     /// <summary>
-    /// Initializes a new <see cref="NoProxyListSetCommand"/>.
+    /// Initializes a new <see cref="NoProxySetCommand"/>.
     /// </summary>
     /// <param name="noProxyItemsOption">The no-proxy items option.</param>
-    public NoProxyListSetCommand(Option<string[]> noProxyItemsOption) : base(
+    public NoProxySetCommand(Option<string[]> noProxyItemsOption) : base(
         CommandLineStrings_Common.SetCommandName,
         CommandLineStrings_Proxy.NoProxyListSetCommandDescription)
     {
@@ -27,19 +27,19 @@ internal sealed class NoProxyListSetCommand : ConfigCommandBase
         });
     }
 
-    private static async Task SetHandler(string[] noProxyItems, CancellationToken cancellationToken)
+    private static async Task SetHandler(string[] entries, CancellationToken cancellationToken)
     {
         if (await GetConfiguration(cancellationToken) is not SystemConfiguration config)
             return;
 
-        config.NetworkProxySettings.DoNotProxyList.Clear();
+        config.NetworkProxySettings.NoProxy.Entries.Clear();
 
         var output = new ListOutput();
 
-        foreach (var noProxyItem in noProxyItems)
+        foreach (var entry in entries)
         {
-            config.NetworkProxySettings.DoNotProxyList.Add(noProxyItem);
-            output.With(noProxyItem);
+            config.NetworkProxySettings.NoProxy.Entries.Add(entry);
+            output.With(entry);
         }
 
         if (!await SetConfiguration(config, cancellationToken))
@@ -51,7 +51,7 @@ internal sealed class NoProxyListSetCommand : ConfigCommandBase
 
         output.WithTitle(title);
 
-        if (!config.NetworkProxySettings.DoNotProxyListEnabled)
+        if (!config.NetworkProxySettings.NoProxy.Enabled)
             output.WithWarning(CommandLineStrings_Proxy.NoProxyListCurrentlyDisabled);
 
         output.WriteLine();
