@@ -119,7 +119,7 @@ public class SystemConfigurationServiceTests
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
-                .ReturnsForAnyArgs((OperationStatus.Error, []));
+                .ReturnsForAnyArgs((Result.ErrorResult, []));
 
             var result = await context.Sut.GetConfiguration(CancellationToken.None);
 
@@ -137,7 +137,7 @@ public class SystemConfigurationServiceTests
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
-                .ReturnsForAnyArgs((OperationStatus.Warning, []));
+                .ReturnsForAnyArgs((Result.WarningResult, []));
 
             var result = await context.Sut.GetConfiguration(CancellationToken.None);
 
@@ -540,7 +540,7 @@ public class SystemConfigurationServiceTests
 
             context.ScriptHandler
                 .ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>())
-                .ReturnsForAnyArgs(OperationStatus.Error);
+                .ReturnsForAnyArgs(Result.ErrorResult);
 
             // Act
             var status = await context.Sut.PrepareConfigurationOnDeviceStartup(CancellationToken.None);
@@ -570,8 +570,6 @@ public class SystemConfigurationServiceTests
             AssertPrepareConfigAtBootTimeLogReceived(context);
             AssertFoundExistingUserConfigLogReceived(context);
             AssertGetUserConfigSucceededLogReceived(context);
-
-            context.ScriptHandler.Received().UseResult(Arg.Any<Result>());
 
             AssertLogReceived(
                 context.Logger,
@@ -603,8 +601,6 @@ public class SystemConfigurationServiceTests
             AssertFoundExistingPreparationConfigLogReceived(context);
             AssertGetPreparationConfigSucceededLogReceived(context);
 
-            context.ScriptHandler.Received().UseResult(Arg.Any<Result>());
-
             AssertLogReceived(
                 context.Logger,
                 LogLevel.Information,
@@ -616,6 +612,8 @@ public class SystemConfigurationServiceTests
 
     public sealed class SetConfiguration : SystemConfigurationServiceTests
     {
+        private const string RevertConfigFailed =
+            "Revert system configuration failed, after setting system configuration failed.";
         private const string RevertConfigSucceeded =
             "Revert system configuration succeeded, after setting system configuration failed.";
         private const string SetConfigCompletedWithWarnings = "Set system configuration completed with warnings.";
@@ -658,7 +656,7 @@ public class SystemConfigurationServiceTests
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesScript()
-                .ReturnsForAnyArgs((OperationStatus.Error, ""));
+                .ReturnsForAnyArgs((Result.ErrorResult, ""));
 
             var proposedConfig = CreateSharedConfig();
 
@@ -682,7 +680,7 @@ public class SystemConfigurationServiceTests
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
-                .ReturnsForAnyArgs((OperationStatus.Warning, []));
+                .ReturnsForAnyArgs((Result.WarningResult, []));
 
             var proposedConfig = CreateSharedConfig();
             var expectedMessage = SetConfigCompletedWithWarnings + Environment.NewLine + GetConfigFromScriptsWarning;
@@ -822,6 +820,45 @@ public class SystemConfigurationServiceTests
         }
 
         [Fact]
+        public async Task ShouldIncludeBothErrorMessages_WhenSetAndRevertConfigurationFail()
+        {
+            // Arrange
+            const string SetErrorMessage = "Setting configuration failed.";
+            const string RevertErrorMessage = "Reverting configuration failed.";
+
+            var setResult = new Result();
+            setResult.AddError(SetErrorMessage);
+
+            var revertResult = new Result();
+            revertResult.AddError(RevertErrorMessage);
+
+            var context = new SystemConfigurationServiceContext();
+            context.ScriptHandler
+                .ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>())
+                .ReturnsForAnyArgs(setResult, revertResult);
+
+            var proposedConfig = CreateSharedConfig();
+
+            // Act
+            var result = await context.Sut.SetConfiguration(
+                proposedConfig,
+                shouldPersistConfiguration: true,
+                CancellationToken.None);
+
+            // Assert
+            result.Status.Should().Be(OperationStatus.Error);
+            result.Message.Should().ContainAll(
+                RevertConfigFailed,
+                SetErrorMessage,
+                RevertErrorMessage);
+
+            AssertLogReceived(
+                context.Logger,
+                LogLevel.Error,
+                RevertErrorMessage);
+        }
+
+        [Fact]
         public async Task ShouldRevertConfiguration_WhenSetConfigurationFails()
         {
             // Arrange
@@ -830,7 +867,7 @@ public class SystemConfigurationServiceTests
                 .ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>())
                 .ReturnsForAnyArgs(
                     x => throw new InvalidOperationException(TestExceptionMessage),
-                    x => OperationStatus.Success);
+                    x => Result.SuccessResult);
 
             var proposedConfig = CreateSharedConfig();
 
@@ -859,7 +896,7 @@ public class SystemConfigurationServiceTests
             // Return error when 'SetConfiguration' is called; return success on 'RevertConfiguration' later
             context.ScriptHandler
                 .ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>())
-                .ReturnsForAnyArgs(OperationStatus.Error, OperationStatus.Success);
+                .ReturnsForAnyArgs(Result.ErrorResult, Result.SuccessResult);
 
             var proposedConfig = CreateSharedConfig();
 
@@ -886,7 +923,7 @@ public class SystemConfigurationServiceTests
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
-                .ReturnsForAnyArgs((OperationStatus.Warning, []));
+                .ReturnsForAnyArgs((Result.WarningResult, []));
 
             var proposedConfig = CreateSharedConfig();
             var expectedMessage = SetConfigCompletedWithWarnings + Environment.NewLine + GetConfigFromScriptsWarning;
@@ -936,7 +973,7 @@ public class SystemConfigurationServiceTests
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
                 .ReturnsForAnyArgs(
                 (
-                    OperationStatus.Success,
+                    Result.SuccessResult,
                     [new() { Name = Lan1, Enabled = true, PhysicalAddress = "11:22:33:44:55:66" }]
                 ));
 
@@ -960,7 +997,7 @@ public class SystemConfigurationServiceTests
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
                 .ReturnsForAnyArgs(
                 (
-                    OperationStatus.Success,
+                    Result.SuccessResult,
                     [new() { Name = Lan1, Enabled = true, PhysicalAddress = "11:22:33:44:55:66" }]
                 ));
 
@@ -988,13 +1025,13 @@ public class SystemConfigurationServiceTests
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
                 .ReturnsForAnyArgs(
                 (
-                    OperationStatus.Success,
+                    Result.SuccessResult,
                     [new() { Name = Lan1, Enabled = true, PhysicalAddress = "11:22:33:44:55:66" }]
                 ));
 
             context.ScriptHandler
                 .ExecuteGetInterfaceIPv4SettingsScript(Arg.Any<string>())
-                .Returns((OperationStatus.Success, new()
+                .Returns((Result.SuccessResult, new()
                 {
                     DHCPEnabled = true,
                     Gateway = IPAddress.Parse("10.10.10.1"),
@@ -1158,24 +1195,24 @@ public class SystemConfigurationServiceTests
             const string ServiceName = "test.service";
             const string RawInterfacesString = $"{Lan1}            UP             00:50:56:36:6d:33 <BROADCAST,MULTICAST,UP,LOWER_UP>";
 
-            ScriptHandler.ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>()).Returns(OperationStatus.Success);
-            ScriptHandler.ExecuteGetNetworkInterfacesScript().ReturnsForAnyArgs((OperationStatus.Success, RawInterfacesString));
-            ScriptHandler.ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs((OperationStatus.Success, []));
-            ScriptHandler.ExecuteGetInterfaceIPv4SettingsScript(Arg.Any<string>()).ReturnsForAnyArgs((OperationStatus.Success, new()));
-            ScriptHandler.ExecuteGetInterfaceIPv4DHCPLeaseScript(Arg.Any<string>()).ReturnsForAnyArgs((OperationStatus.Success, new()));
-            ScriptHandler.ExecuteGetNetworkDNSSettingsScript().ReturnsForAnyArgs((OperationStatus.Success, new() { Hostname = TestHostname }));
-            ScriptHandler.ExecuteGetNetworkProxySettingsScript().ReturnsForAnyArgs((OperationStatus.Success, new()));
-            ScriptHandler.ExecuteGetNetworkNTPSettingsScript().ReturnsForAnyArgs((OperationStatus.Success, new()));
-            ScriptHandler.ExecuteGetSystemdUnitStateScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs((OperationStatus.Success, new() { Name = ServiceName }));
-            ScriptHandler.ExecuteSetInterfaceIPv4SettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
-            ScriptHandler.ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
-            ScriptHandler.ExecuteSetStaticHostsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
-            ScriptHandler.ExecuteSetNetworkMulticastDNSSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
-            ScriptHandler.ExecuteSetHostnameScript(Arg.Any<string>()).ReturnsForAnyArgs(OperationStatus.Success);
-            ScriptHandler.ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
-            ScriptHandler.ExecuteSetNetworkNTPSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
-            ScriptHandler.ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(OperationStatus.Success);
-            ScriptHandler.ExecuteApplyNetplanConfigurationScript().ReturnsForAnyArgs(OperationStatus.Success);
+            ScriptHandler.ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>()).Returns(Result.SuccessResult);
+            ScriptHandler.ExecuteGetNetworkInterfacesScript().ReturnsForAnyArgs((Result.SuccessResult, RawInterfacesString));
+            ScriptHandler.ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs((Result.SuccessResult, []));
+            ScriptHandler.ExecuteGetInterfaceIPv4SettingsScript(Arg.Any<string>()).ReturnsForAnyArgs((Result.SuccessResult, new()));
+            ScriptHandler.ExecuteGetInterfaceIPv4DHCPLeaseScript(Arg.Any<string>()).ReturnsForAnyArgs((Result.SuccessResult, new()));
+            ScriptHandler.ExecuteGetNetworkDNSSettingsScript().ReturnsForAnyArgs((Result.SuccessResult, new() { Hostname = TestHostname }));
+            ScriptHandler.ExecuteGetNetworkProxySettingsScript().ReturnsForAnyArgs((Result.SuccessResult, new()));
+            ScriptHandler.ExecuteGetNetworkNTPSettingsScript().ReturnsForAnyArgs((Result.SuccessResult, new()));
+            ScriptHandler.ExecuteGetSystemdUnitStateScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs((Result.SuccessResult, new() { Name = ServiceName }));
+            ScriptHandler.ExecuteSetInterfaceIPv4SettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(Result.SuccessResult);
+            ScriptHandler.ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(Result.SuccessResult);
+            ScriptHandler.ExecuteSetStaticHostsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(Result.SuccessResult);
+            ScriptHandler.ExecuteSetNetworkMulticastDNSSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(Result.SuccessResult);
+            ScriptHandler.ExecuteSetHostnameScript(Arg.Any<string>()).ReturnsForAnyArgs(Result.SuccessResult);
+            ScriptHandler.ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(Result.SuccessResult);
+            ScriptHandler.ExecuteSetNetworkNTPSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(Result.SuccessResult);
+            ScriptHandler.ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(Result.SuccessResult);
+            ScriptHandler.ExecuteApplyNetplanConfigurationScript().ReturnsForAnyArgs(Result.SuccessResult);
             Sut = new(Persistence, ScriptHandler, Logger);
 
             Environment.SetEnvironmentVariable("CONFIGURABLE_SERVICES", ServiceName);

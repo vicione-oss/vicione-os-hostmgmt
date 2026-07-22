@@ -1,4 +1,4 @@
-﻿using AwesomeAssertions;
+using AwesomeAssertions;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.SystemConfig;
 using HostManagement.SystemConfig.Contracts;
@@ -15,24 +15,24 @@ public class ConfigurationAdapterTests
     {
         public string AdapterPhase { get; private set; } = string.Empty;
 
-        private protected override Task<OperationStatus> PrepareConfiguration(
+        private protected override Task<Result> PrepareConfiguration(
             SystemConfiguration config,
             CancellationToken cancellationToken)
         {
             AdapterPhase = "Prepare";
 
-            return Task.FromResult(OperationStatus.Success);
+            return Task.FromResult(Result.SuccessResult);
         }
-        private protected override Task<OperationStatus> ApplyConfiguration(
+        private protected override Task<Result> ApplyConfiguration(
             SystemConfiguration config,
             CancellationToken cancellationToken)
         {
             AdapterPhase = "Apply";
 
-            return Task.FromResult(OperationStatus.Success);
+            return Task.FromResult(Result.SuccessResult);
         }
 
-        protected internal override Task<OperationStatus> GetConfiguration(
+        protected internal override Task<Result> GetConfiguration(
             SystemConfiguration config,
             CancellationToken cancellationToken)
         {
@@ -41,15 +41,13 @@ public class ConfigurationAdapterTests
                 Hostname = "GetConfiguration-Test",
             };
 
-            return Task.FromResult(OperationStatus.Success);
+            return Task.FromResult(Result.SuccessResult);
         }
 
         private protected override bool HasChangesInternal(
             SystemConfiguration currentConfig,
             SystemConfiguration proposedConfig)
-        {
-            return !currentConfig.Equals(proposedConfig);
-        }
+                => !currentConfig.Equals(proposedConfig);
     }
 
     public class HasChanges
@@ -126,14 +124,14 @@ public class ConfigurationAdapterTests
 
             // Act
             using var cts = new CancellationTokenSource();
-            async Task<OperationStatus> GetAction() => await sut.GetConfiguration(config, cts.Token);
+            async Task<Result> GetAction() => await sut.GetConfiguration(config, cts.Token);
 
             // Assert
             config.NetworkDNSSettings.Should().BeNull();
 
             var result = await GetAction();
 
-            result.Should().Be(OperationStatus.Success);
+            result.OperationStatus.Should().Be(OperationStatus.Success);
             config.NetworkDNSSettings.Hostname.Should().Be("GetConfiguration-Test");
         }
     }
@@ -154,7 +152,7 @@ public class ConfigurationAdapterTests
             var result = await sut.SetConfiguration(config, cts.Token);
 
             // Assert
-            result.Should().Be(OperationStatus.Success);
+            result.OperationStatus.Should().Be(OperationStatus.Success);
             sut.AdapterPhase.Should().Be("Apply");
         }
 
@@ -172,7 +170,7 @@ public class ConfigurationAdapterTests
             var result = await sut.SetConfiguration(config, cts.Token);
 
             // Assert
-            result.Should().Be(OperationStatus.Success);
+            result.OperationStatus.Should().Be(OperationStatus.Success);
             sut.AdapterPhase.Should().Be("Prepare");
         }
     }

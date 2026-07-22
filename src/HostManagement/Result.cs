@@ -1,4 +1,5 @@
 using HostManagement.Shared.Communication.Enums;
+using HostManagement.Shared.Communication.Extensions;
 
 namespace HostManagement;
 
@@ -10,9 +11,19 @@ internal sealed class Result
     private readonly List<string> _messages = [];
 
     /// <summary>
-    /// The list of configuration messages.
+    /// Gets a new <see cref="Result"/> with <see cref="OperationStatus.Success"/>.
     /// </summary>
-    public string Messages => string.Join(Environment.NewLine, _messages);
+    public static Result SuccessResult => new();
+
+    /// <summary>
+    /// The list of result messages.
+    /// </summary>
+    public IReadOnlyCollection<string> Messages => _messages.AsReadOnly();
+
+    /// <summary>
+    /// A string of result messages joined with <see cref="Environment.NewLine"/>.
+    /// </summary>
+    public string FormattedMessages => string.Join(Environment.NewLine, _messages);
 
     /// <summary>
     /// The operation status.
@@ -69,5 +80,22 @@ internal sealed class Result
             AddWarning(message);
         else
             AddWarning(string.Format(message, args));
+    }
+
+    /// <summary>
+    /// Adds a <see cref="Result"/> to the current result.
+    /// </summary>
+    /// <param name="result">The result.</param>
+    /// <returns>The modified result.</returns>
+    public Result AddResult(Result result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        foreach (var message in result.Messages)
+            _messages.Add(message);
+
+        OperationStatus = OperationStatus.GetCombinedStatus(result.OperationStatus);
+
+        return this;
     }
 }

@@ -1,4 +1,4 @@
-﻿using HostManagement.Scripts;
+using HostManagement.Scripts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.SystemConfig.Contracts;
 
@@ -25,72 +25,59 @@ internal sealed class NetworkNTPConfigurationAdapter(
 
     private readonly IScriptHandler _scriptHandler = scriptHandler;
 
-    protected internal override async Task<OperationStatus> GetConfiguration(
+    protected internal override async Task<Result> GetConfiguration(
         SystemConfiguration config,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
-        var (status, ntpSettings) = await _scriptHandler
-            .ExecuteGetNetworkNTPSettingsScript()
-            .ConfigureAwait(false);
+        var (result, ntpSettings) = await _scriptHandler.ExecuteGetNetworkNTPSettingsScript().ConfigureAwait(false);
 
-        if (status == OperationStatus.Error)
-            return OperationStatus.Error;
+        if (result.OperationStatus is not OperationStatus.Error)
+            config.NetworkNTPSettings = ntpSettings;
 
-        config.NetworkNTPSettings = ntpSettings;
-
-        return OperationStatus.Success;
+        return result;
     }
 
     private protected override bool HasChangesInternal(
         SystemConfiguration currentConfig,
         SystemConfiguration proposedConfig)
     {
-        return !EqualityComparer<NetworkNTPSettings>.Default.Equals(currentConfig.NetworkNTPSettings, proposedConfig.NetworkNTPSettings);
+        return !EqualityComparer<NetworkNTPSettings>.Default.Equals(
+            currentConfig.NetworkNTPSettings,
+            proposedConfig.NetworkNTPSettings);
     }
 
-    private protected override async Task<OperationStatus> PrepareConfiguration(
+    private protected override async Task<Result> PrepareConfiguration(
         SystemConfiguration config,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         if (config.NetworkNTPSettings is not null && config.NetworkNTPSettings.NTPServersEnabled.HasValue)
         {
+            var ntpList = config.NetworkNTPSettings.NTPServers?.Count > 0
+                ? config.NetworkNTPSettings.NTPServers
+                : ["none"];
+
             var scriptOptions = new ScriptOptions();
 
             scriptOptions.Add(
                 ScriptOptionNames.NetworkNTP.NTPServersEnabled,
                 config.NetworkNTPSettings.NTPServersEnabled.Value);
 
-            var ntpList = config.NetworkNTPSettings.NTPServers?.Count > 0
-                ? config.NetworkNTPSettings.NTPServers
-                : ["none"];
+            scriptOptions.Add(ScriptOptionNames.NetworkNTP.NTPServers, ntpList.ToArray());
 
-            scriptOptions.Add(
-                ScriptOptionNames.NetworkNTP.NTPServers,
-                ntpList.ToArray());
-
-            return await _scriptHandler
-                .ExecuteSetNetworkNTPSettingsScript(scriptOptions)
-                .ConfigureAwait(false);
+            return await _scriptHandler.ExecuteSetNetworkNTPSettingsScript(scriptOptions).ConfigureAwait(false);
         }
-        return OperationStatus.Success;
+
+        return Result.SuccessResult;
     }
 
-    private protected override async Task<OperationStatus> ApplyConfiguration(
+    private protected override async Task<Result> ApplyConfiguration(
         SystemConfiguration config,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         var scriptOptions = new ScriptOptions();
+        scriptOptions.Add(ScriptOptionNames.SetSystemdUnitState.Name, SystemdTimesyncd);
+        scriptOptions.Add(ScriptOptionNames.SetSystemdUnitState.State, RestartState);
 
-        scriptOptions.Add(
-            ScriptOptionNames.SetSystemdUnitState.Name,
-            SystemdTimesyncd);
-
-        scriptOptions.Add(
-            ScriptOptionNames.SetSystemdUnitState.State,
-            RestartState);
-
-        return await _scriptHandler
-            .ExecuteSetSystemdUnitStateScript(scriptOptions)
-            .ConfigureAwait(false);
+        return await _scriptHandler.ExecuteSetSystemdUnitStateScript(scriptOptions).ConfigureAwait(false);
     }
 }

@@ -1,5 +1,4 @@
-﻿using AwesomeAssertions;
-using HostManagement.Scripts.Enums;
+using AwesomeAssertions;
 using HostManagement.Services;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Contracts.NetworkStatus;
@@ -17,7 +16,6 @@ public class NetworkStatusServiceTests
         private const string InterfaceName = "lan1";
         private const string GetNetworkStatusInformationFailed = "Getting network status information failed.";
         private const string GetNetworkStatusInformationCanceled = "Getting network status information was canceled.";
-        private const string ExpectedScriptSampleMessage = "A script error.";
 
         [Fact]
         public async Task ShouldLogAndReturnErrorResult_WhenExceptionOccurs()
@@ -31,7 +29,7 @@ public class NetworkStatusServiceTests
                 .ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>())
                 .ThrowsAsync(expectedException);
 
-            var sut = new NetworkStatusService(logger, scriptHandler, new Result());
+            var sut = new NetworkStatusService(logger, scriptHandler);
 
             // Act
             var result = await sut.GetNetworkStatusInformation(InterfaceName, CancellationToken.None);
@@ -54,7 +52,7 @@ public class NetworkStatusServiceTests
             // Arrange
             var logger = GetLoggerSubstitute();
             var scriptHandler = Substitute.For<IScriptHandler>();
-            var sut = new NetworkStatusService(logger, scriptHandler, new Result());
+            var sut = new NetworkStatusService(logger, scriptHandler);
 
             // Act
             using var cts = new CancellationTokenSource();
@@ -78,28 +76,24 @@ public class NetworkStatusServiceTests
         {
             // Arrange
             var logger = GetLoggerSubstitute();
-
-            var result = new Result();
-            result.AddScriptError(ScriptIdentifier.IsNetworkInterfaceAvailable, ExpectedScriptSampleMessage);
-
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>())
-                .Returns(Task.FromResult(OperationStatus.Error));
+                .Returns(Task.FromResult(Result.ErrorResult));
 
-            var sut = new NetworkStatusService(logger, scriptHandler, result);
+            var sut = new NetworkStatusService(logger, scriptHandler);
 
             // Act
             var networkStatusResult = await sut.GetNetworkStatusInformation(InterfaceName, CancellationToken.None);
 
             // Assert
+            var expectedLogError = Result.ErrorMessage;
             logger.Received(1).Log(
                 LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(state =>
                     state.ToString()!.StartsWith(GetNetworkStatusInformationFailed) &&
-                    state.ToString()!.Contains(ScriptIdentifier.IsNetworkInterfaceAvailable.ToString()) &&
-                    state.ToString()!.Contains(ExpectedScriptSampleMessage)),
+                    state.ToString()!.Contains(expectedLogError)),
                 null,
                 Arg.Any<Func<object, Exception?, string>>());
 
@@ -113,35 +107,32 @@ public class NetworkStatusServiceTests
             // Arrange
             var logger = GetLoggerSubstitute();
 
-            var result = new Result();
-            result.AddScriptError(ScriptIdentifier.NetworkStatusInformationGet, ExpectedScriptSampleMessage);
-
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>())
-                .Returns(Task.FromResult(OperationStatus.Success));
+                .Returns(Task.FromResult(Result.SuccessResult));
 
             scriptHandler
                 .ExecuteGetNetworkInterfacesScript()
-                .Returns(Task.FromResult((OperationStatus.Success, "")));
+                .Returns(Task.FromResult((Result.SuccessResult, "")));
 
             scriptHandler
                 .ExecuteGetNetworkStatusInformationScript(Arg.Any<ScriptOptions>())
-                .Returns(Task.FromResult((OperationStatus.Error, NetworkStatusInformation.Empty)));
+                .Returns(Task.FromResult((Result.ErrorResult, NetworkStatusInformation.Empty)));
 
-            var sut = new NetworkStatusService(logger, scriptHandler, result);
+            var sut = new NetworkStatusService(logger, scriptHandler);
 
             // Act
             var networkStatusResult = await sut.GetNetworkStatusInformation(InterfaceName, CancellationToken.None);
 
             // Assert
+            var expectedLogError = Result.ErrorMessage;
             logger.Received(1).Log(
                 LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(state =>
                     state.ToString()!.StartsWith(GetNetworkStatusInformationFailed) &&
-                    state.ToString()!.Contains(ScriptIdentifier.NetworkStatusInformationGet.ToString()) &&
-                    state.ToString()!.Contains(ExpectedScriptSampleMessage)),
+                    state.ToString()!.Contains(expectedLogError)),
                 null,
                 Arg.Any<Func<object, Exception?, string>>());
 
@@ -166,17 +157,17 @@ public class NetworkStatusServiceTests
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>())
-                .Returns(Task.FromResult(OperationStatus.Success));
+                .Returns(Task.FromResult(Result.SuccessResult));
 
             scriptHandler
                 .ExecuteGetNetworkInterfacesScript()
-                .Returns(Task.FromResult((OperationStatus.Success, "")));
+                .Returns(Task.FromResult((Result.SuccessResult, "")));
 
             scriptHandler
                 .ExecuteGetNetworkStatusInformationScript(Arg.Any<ScriptOptions>())
-                .Returns(Task.FromResult((OperationStatus.Success, networkStatusInformation)));
+                .Returns(Task.FromResult((Result.SuccessResult, networkStatusInformation)));
 
-            var sut = new NetworkStatusService(logger, scriptHandler, new Result());
+            var sut = new NetworkStatusService(logger, scriptHandler);
 
             // Act
             var networkStatusResult = await sut.GetNetworkStatusInformation(InterfaceName, CancellationToken.None);

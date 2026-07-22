@@ -1,4 +1,4 @@
-﻿using AwesomeAssertions;
+using AwesomeAssertions;
 using HostManagement.Scripts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.SystemConfig.Contracts;
@@ -10,15 +10,15 @@ namespace HostManagement.Tests.SystemConfig.Service;
 
 public class ServiceConfigurationAdapterTests
 {
+    private const string Service1 = "svc1.service";
+    private const string Service2 = "svc2.service";
+    private const string Service3 = "svc3.service";
+
     private static ServiceConfigurationAdapter CreateSut(IScriptHandler handler, IReadOnlyCollection<string>? configurableServices = default,
         bool bypassHasChanges = false, bool bypassApply = false)
         => new(handler, configurableServices ?? [], bypassHasChanges, bypassApply);
 
     private static ServiceDetail CreateDetail(string name, ServiceState state) => new() { Name = name, State = state };
-
-    private const string Service1 = "svc1.service";
-    private const string Service2 = "svc2.service";
-    private const string Service3 = "svc3.service";
 
     public sealed class GetConfiguration
     {
@@ -28,15 +28,16 @@ public class ServiceConfigurationAdapterTests
             var handler = Substitute.For<IScriptHandler>();
             handler.ExecuteGetSystemdUnitStateScript(Arg.Any<ScriptOptions>())
                 .Returns(
-                    (OperationStatus.Error, CreateDetail(Service1, ServiceState.Disabled)),
-                    (OperationStatus.Success, CreateDetail(Service2, ServiceState.Enabled)));
+                    (Result.ErrorResult, CreateDetail(Service1, ServiceState.Disabled)),
+                    (Result.SuccessResult, CreateDetail(Service2, ServiceState.Enabled)));
 
             var sut = CreateSut(handler, [Service1, Service2,]);
             var config = new SystemConfiguration();
 
-            var status = await sut.GetConfiguration(config, CancellationToken.None);
+            var result = await sut.GetConfiguration(config, CancellationToken.None);
 
-            status.Should().Be(OperationStatus.Error);
+            result.OperationStatus.Should().Be(OperationStatus.Error);
+            result.Messages.Should().Contain(Result.ErrorMessage);
             config.Services.Should().ContainSingle().Which.Name.Should().Be(Service2);
         }
 
@@ -46,16 +47,17 @@ public class ServiceConfigurationAdapterTests
             var handler = Substitute.For<IScriptHandler>();
             handler.ExecuteGetSystemdUnitStateScript(Arg.Any<ScriptOptions>())
                 .Returns(
-                    (OperationStatus.Warning, CreateDetail(Service1, ServiceState.Enabled)),
-                    (OperationStatus.Error, CreateDetail(Service2, ServiceState.Disabled)),
-                    (OperationStatus.Success, CreateDetail(Service3, ServiceState.Enabled)));
+                    (Result.WarningResult, CreateDetail(Service1, ServiceState.Enabled)),
+                    (Result.ErrorResult, CreateDetail(Service2, ServiceState.Disabled)),
+                    (Result.SuccessResult, CreateDetail(Service3, ServiceState.Enabled)));
 
             var sut = CreateSut(handler, [Service1, Service2, Service3,]);
             var config = new SystemConfiguration();
 
-            var status = await sut.GetConfiguration(config, CancellationToken.None);
+            var result = await sut.GetConfiguration(config, CancellationToken.None);
 
-            status.Should().Be(OperationStatus.Error);
+            result.OperationStatus.Should().Be(OperationStatus.Error);
+            result.Messages.Should().ContainInOrder(Result.WarningMessage, Result.ErrorMessage);
             config.Services.Should().HaveCount(2)
                 .And.Contain(d => d.Name == Service1)
                 .And.Contain(d => d.Name == Service3);
@@ -67,15 +69,16 @@ public class ServiceConfigurationAdapterTests
             var handler = Substitute.For<IScriptHandler>();
             handler.ExecuteGetSystemdUnitStateScript(Arg.Any<ScriptOptions>())
                 .Returns(
-                    (OperationStatus.Success, CreateDetail(Service1, ServiceState.Enabled)),
-                    (OperationStatus.Warning, CreateDetail(Service2, ServiceState.Disabled)));
+                    (Result.SuccessResult, CreateDetail(Service1, ServiceState.Enabled)),
+                    (Result.WarningResult, CreateDetail(Service2, ServiceState.Disabled)));
 
             var sut = CreateSut(handler, [Service1, Service2,]);
             var config = new SystemConfiguration();
 
-            var status = await sut.GetConfiguration(config, CancellationToken.None);
+            var result = await sut.GetConfiguration(config, CancellationToken.None);
 
-            status.Should().Be(OperationStatus.Warning);
+            result.OperationStatus.Should().Be(OperationStatus.Warning);
+            result.Messages.Should().Contain(Result.WarningMessage);
             config.Services.Should().HaveCount(2)
                 .And.Contain(d => d.Name == Service1)
                 .And.Contain(d => d.Name == Service2);
@@ -87,15 +90,16 @@ public class ServiceConfigurationAdapterTests
             var handler = Substitute.For<IScriptHandler>();
             handler.ExecuteGetSystemdUnitStateScript(Arg.Any<ScriptOptions>())
                 .Returns(
-                    (OperationStatus.Success, CreateDetail(Service1, ServiceState.Enabled)),
-                    (OperationStatus.Success, CreateDetail(Service2, ServiceState.Disabled)));
+                    (Result.SuccessResult, CreateDetail(Service1, ServiceState.Enabled)),
+                    (Result.SuccessResult, CreateDetail(Service2, ServiceState.Disabled)));
 
             var sut = CreateSut(handler, [Service1, Service2,]);
             var config = new SystemConfiguration();
 
-            var status = await sut.GetConfiguration(config, CancellationToken.None);
+            var result = await sut.GetConfiguration(config, CancellationToken.None);
 
-            status.Should().Be(OperationStatus.Success);
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
             config.Services.Should().HaveCount(2)
                 .And.Contain(d => d.Name == Service1)
                 .And.Contain(d => d.Name == Service2);
@@ -106,14 +110,15 @@ public class ServiceConfigurationAdapterTests
         {
             var handler = Substitute.For<IScriptHandler>();
             handler.ExecuteGetSystemdUnitStateScript(Arg.Any<ScriptOptions>())
-                .Returns((OperationStatus.Success, CreateDetail("plain.service", ServiceState.Enabled)));
+                .Returns((Result.SuccessResult, CreateDetail("plain.service", ServiceState.Enabled)));
 
             var sut = CreateSut(handler, ["plain.service", "wild@*.service",]);
             var config = new SystemConfiguration();
 
-            var status = await sut.GetConfiguration(config, CancellationToken.None);
+            var result = await sut.GetConfiguration(config, CancellationToken.None);
 
-            status.Should().Be(OperationStatus.Success);
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
             config.Services.Should().ContainSingle().Which.Name.Should().Be("plain.service");
             await handler.Received(1).ExecuteGetSystemdUnitStateScript(Arg.Is<ScriptOptions>(so => so.Options.Contains("plain.service")));
             await handler.DidNotReceive().ExecuteGetSystemdUnitStateScript(Arg.Is<ScriptOptions>(so => so.Options.Contains("wild@*.service")));
@@ -126,9 +131,10 @@ public class ServiceConfigurationAdapterTests
             var sut = CreateSut(handler, []);
             var config = new SystemConfiguration();
 
-            var status = await sut.GetConfiguration(config, CancellationToken.None);
+            var result = await sut.GetConfiguration(config, CancellationToken.None);
 
-            status.Should().Be(OperationStatus.Success);
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
             config.Services.Should().BeNull();
             await handler.DidNotReceive().ExecuteGetSystemdUnitStateScript(Arg.Any<ScriptOptions>());
         }
@@ -140,9 +146,10 @@ public class ServiceConfigurationAdapterTests
             var sut = CreateSut(handler, ["wild@*.service", "another@*.service",]);
             var config = new SystemConfiguration();
 
-            var status = await sut.GetConfiguration(config, CancellationToken.None);
+            var result = await sut.GetConfiguration(config, CancellationToken.None);
 
-            status.Should().Be(OperationStatus.Success);
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
             config.Services.Should().BeNull();
             await handler.DidNotReceive().ExecuteGetSystemdUnitStateScript(Arg.Any<ScriptOptions>());
         }
@@ -152,14 +159,15 @@ public class ServiceConfigurationAdapterTests
         {
             var handler = Substitute.For<IScriptHandler>();
             handler.ExecuteGetSystemdUnitStateScript(Arg.Any<ScriptOptions>())
-                .Returns((OperationStatus.Success, CreateDetail("normal.service", ServiceState.Enabled)));
+                .Returns((Result.SuccessResult, CreateDetail("normal.service", ServiceState.Enabled)));
 
             var sut = CreateSut(handler, ["normal.service", "*@service.service", "service@*", "*wildcard*",]);
             var config = new SystemConfiguration();
 
-            var status = await sut.GetConfiguration(config, CancellationToken.None);
+            var result = await sut.GetConfiguration(config, CancellationToken.None);
 
-            status.Should().Be(OperationStatus.Success);
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
             config.Services.Should().ContainSingle().Which.Name.Should().Be("normal.service");
             await handler.Received(1).ExecuteGetSystemdUnitStateScript(Arg.Any<ScriptOptions>());
         }
@@ -169,14 +177,15 @@ public class ServiceConfigurationAdapterTests
         {
             var handler = Substitute.For<IScriptHandler>();
             handler.ExecuteGetSystemdUnitStateScript(Arg.Any<ScriptOptions>())
-                .Returns((OperationStatus.Success, CreateDetail(Service1, ServiceState.Enabled)));
+                .Returns((Result.SuccessResult, CreateDetail(Service1, ServiceState.Enabled)));
 
             var sut = CreateSut(handler, [Service1,]);
             var config = new SystemConfiguration() { Services = null, };
 
-            var status = await sut.GetConfiguration(config, CancellationToken.None);
+            var result = await sut.GetConfiguration(config, CancellationToken.None);
 
-            status.Should().Be(OperationStatus.Success);
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
             config.Services.Should().NotBeNull()
                 .And.ContainSingle().Which.Name.Should().Be(Service1);
         }
@@ -187,7 +196,7 @@ public class ServiceConfigurationAdapterTests
             var handler = Substitute.For<IScriptHandler>();
             ScriptOptions? capturedOptions = null;
             handler.ExecuteGetSystemdUnitStateScript(Arg.Do<ScriptOptions>(so => capturedOptions = so))
-                .Returns((OperationStatus.Success, CreateDetail(Service1, ServiceState.Enabled)));
+                .Returns((Result.SuccessResult, CreateDetail(Service1, ServiceState.Enabled)));
 
             var sut = CreateSut(handler, [Service1,]);
             var config = new SystemConfiguration();
@@ -212,16 +221,16 @@ public class ServiceConfigurationAdapterTests
                 Services =
                 [
                     CreateDetail(Service1, ServiceState.Enabled),
-                    CreateDetail(Service2, ServiceState.Disabled),
-                ],
+                    CreateDetail(Service2, ServiceState.Disabled)
+                ]
             };
             SystemConfiguration proposed = new()
             {
                 Services =
                 [
                     CreateDetail(Service2, ServiceState.Disabled),
-                    CreateDetail(Service1, ServiceState.Enabled),
-                ],
+                    CreateDetail(Service1, ServiceState.Enabled)
+                ]
             };
 
             sut.HasChanges(current, proposed).Should().BeFalse();
@@ -232,8 +241,8 @@ public class ServiceConfigurationAdapterTests
         {
             var handler = Substitute.For<IScriptHandler>();
             var sut = CreateSut(handler);
-            SystemConfiguration current = new() { Services = [CreateDetail(Service1, ServiceState.Enabled),], };
-            SystemConfiguration proposed = new() { Services = [CreateDetail(Service1, ServiceState.Disabled),], };
+            SystemConfiguration current = new() { Services = [CreateDetail(Service1, ServiceState.Enabled)] };
+            SystemConfiguration proposed = new() { Services = [CreateDetail(Service1, ServiceState.Disabled)] };
 
             sut.HasChanges(current, proposed).Should().BeTrue();
         }
@@ -247,16 +256,16 @@ public class ServiceConfigurationAdapterTests
             {
                 Services =
                 [
-                    CreateDetail(Service1, ServiceState.Enabled),
-                ],
+                    CreateDetail(Service1, ServiceState.Enabled)
+                ]
             };
             SystemConfiguration proposed = new()
             {
                 Services =
                 [
                     CreateDetail(Service1, ServiceState.Enabled),
-                    CreateDetail(Service2, ServiceState.Enabled),
-                ],
+                    CreateDetail(Service2, ServiceState.Enabled)
+                ]
             };
 
             sut.HasChanges(current, proposed).Should().BeTrue();
@@ -281,7 +290,7 @@ public class ServiceConfigurationAdapterTests
             SystemConfiguration current = new();
             SystemConfiguration proposed = new()
             {
-                Services = [CreateDetail(Service1, ServiceState.Enabled),],
+                Services = [CreateDetail(Service1, ServiceState.Enabled)]
             };
 
             sut.HasChanges(current, proposed).Should().BeTrue();
@@ -294,7 +303,7 @@ public class ServiceConfigurationAdapterTests
             var sut = CreateSut(handler);
             SystemConfiguration current = new()
             {
-                Services = [CreateDetail(Service1, ServiceState.Enabled),],
+                Services = [CreateDetail(Service1, ServiceState.Enabled)]
             };
             SystemConfiguration proposed = new();
 
@@ -308,11 +317,11 @@ public class ServiceConfigurationAdapterTests
             var sut = CreateSut(handler);
             SystemConfiguration current = new()
             {
-                Services = [CreateDetail(Service1, ServiceState.Enabled),],
+                Services = [CreateDetail(Service1, ServiceState.Enabled)]
             };
             SystemConfiguration proposed = new()
             {
-                Services = [CreateDetail(Service1, ServiceState.Disabled),],
+                Services = [CreateDetail(Service1, ServiceState.Disabled)]
             };
 
             sut.HasChanges(current, proposed).Should().BeTrue();
@@ -337,9 +346,7 @@ public class ServiceConfigurationAdapterTests
         {
             var handler = Substitute.For<IScriptHandler>();
             handler.ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>())
-                .Returns(
-                    Task.FromResult(OperationStatus.Success),
-                    Task.FromResult(OperationStatus.Error));
+                .Returns(Result.SuccessResult, Result.ErrorResult);
 
             var sut = CreateSut(handler, bypassHasChanges: true);
             var config = new SystemConfiguration()
@@ -348,13 +355,14 @@ public class ServiceConfigurationAdapterTests
                 [
                     CreateDetail(Service1, ServiceState.Enabled),
                     CreateDetail(Service2, ServiceState.Disabled),
-                    CreateDetail(Service3, ServiceState.Enabled),
-                ],
+                    CreateDetail(Service3, ServiceState.Enabled)
+                ]
             };
 
-            var status = await sut.SetConfiguration(config, CancellationToken.None);
+            var result = await sut.SetConfiguration(config, CancellationToken.None);
 
-            status.Should().Be(OperationStatus.Error);
+            result.OperationStatus.Should().Be(OperationStatus.Error);
+            result.Messages.Should().Contain(Result.ErrorMessage);
             await handler.Received(2).ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>()); // early exit
         }
 
@@ -363,9 +371,7 @@ public class ServiceConfigurationAdapterTests
         {
             var handler = Substitute.For<IScriptHandler>();
             handler.ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>())
-                .Returns(
-                    Task.FromResult(OperationStatus.Success),
-                    Task.FromResult(OperationStatus.Warning));
+                .Returns(Result.SuccessResult, Result.WarningResult);
 
             var sut = CreateSut(handler, bypassHasChanges: true);
             var config = new SystemConfiguration()
@@ -373,13 +379,14 @@ public class ServiceConfigurationAdapterTests
                 Services =
                 [
                     CreateDetail(Service1, ServiceState.Enabled),
-                    CreateDetail(Service2, ServiceState.Disabled),
-                ],
+                    CreateDetail(Service2, ServiceState.Disabled)
+                ]
             };
 
-            var status = await sut.SetConfiguration(config, CancellationToken.None);
+            var result = await sut.SetConfiguration(config, CancellationToken.None);
 
-            status.Should().Be(OperationStatus.Warning);
+            result.OperationStatus.Should().Be(OperationStatus.Warning);
+            result.Messages.Should().Contain(Result.WarningMessage);
             await handler.Received(2).ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>());
         }
 
@@ -388,7 +395,7 @@ public class ServiceConfigurationAdapterTests
         {
             var handler = Substitute.For<IScriptHandler>();
             handler.ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>())
-                .Returns(Task.FromResult(OperationStatus.Success));
+                .Returns(Result.SuccessResult);
 
             var sut = CreateSut(handler, bypassHasChanges: true);
             var config = new SystemConfiguration()
@@ -396,13 +403,14 @@ public class ServiceConfigurationAdapterTests
                 Services =
                 [
                     CreateDetail(Service1, ServiceState.Enabled),
-                    CreateDetail(Service2, ServiceState.Disabled),
-                ],
+                    CreateDetail(Service2, ServiceState.Disabled)
+                ]
             };
 
-            var status = await sut.SetConfiguration(config, CancellationToken.None);
+            var result = await sut.SetConfiguration(config, CancellationToken.None);
 
-            status.Should().Be(OperationStatus.Success);
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
             await handler.Received(2).ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>());
         }
 
@@ -413,9 +421,10 @@ public class ServiceConfigurationAdapterTests
             var sut = CreateSut(handler, bypassHasChanges: true);
             var config = new SystemConfiguration();
 
-            var status = await sut.SetConfiguration(config, CancellationToken.None);
+            var result = await sut.SetConfiguration(config, CancellationToken.None);
 
-            status.Should().Be(OperationStatus.Success);
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
             await handler.DidNotReceive().ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>());
         }
 
@@ -424,11 +433,12 @@ public class ServiceConfigurationAdapterTests
         {
             var handler = Substitute.For<IScriptHandler>();
             var sut = CreateSut(handler, bypassHasChanges: true);
-            var config = new SystemConfiguration() { Services = null, };
+            var config = new SystemConfiguration() { Services = null };
 
-            var status = await sut.SetConfiguration(config, CancellationToken.None);
+            var result = await sut.SetConfiguration(config, CancellationToken.None);
 
-            status.Should().Be(OperationStatus.Success);
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
             await handler.DidNotReceive().ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>());
         }
 
@@ -438,7 +448,7 @@ public class ServiceConfigurationAdapterTests
             var handler = Substitute.For<IScriptHandler>();
             List<ScriptOptions> captured = [];
             handler.ExecuteSetSystemdUnitStateScript(Arg.Do<ScriptOptions>(captured.Add))
-                .Returns(Task.FromResult(OperationStatus.Success));
+                .Returns(Result.SuccessResult);
 
             var sut = CreateSut(handler, bypassHasChanges: true);
             var config = new SystemConfiguration()
@@ -447,13 +457,15 @@ public class ServiceConfigurationAdapterTests
                 [
                     CreateDetail(Service1, ServiceState.Enabled),
                     CreateDetail(Service2, ServiceState.Disabled),
-                    CreateDetail(Service3, ServiceState.Unknown),
-                ],
+                    CreateDetail(Service3, ServiceState.Unknown)
+                ]
             };
 
-            var status = await sut.SetConfiguration(config, CancellationToken.None);
+            var result = await sut.SetConfiguration(config, CancellationToken.None);
 
-            status.Should().Be(OperationStatus.Success);
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
+
             captured.Should().HaveCount(3).And.SatisfyRespectively(
                 so => so.Options.Should().ContainInOrder(
                     ScriptOptionNames.SetSystemdUnitState.Name,
@@ -477,10 +489,7 @@ public class ServiceConfigurationAdapterTests
         {
             var handler = Substitute.For<IScriptHandler>();
             handler.ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>())
-                .Returns(
-                    Task.FromResult(OperationStatus.Warning),
-                    Task.FromResult(OperationStatus.Warning),
-                    Task.FromResult(OperationStatus.Success));
+                .Returns(Result.WarningResult, Result.WarningResult, Result.SuccessResult);
 
             var sut = CreateSut(handler, bypassHasChanges: true);
             var config = new SystemConfiguration()
@@ -489,13 +498,14 @@ public class ServiceConfigurationAdapterTests
                 [
                     CreateDetail(Service1, ServiceState.Enabled),
                     CreateDetail(Service2, ServiceState.Disabled),
-                    CreateDetail(Service3, ServiceState.Enabled),
-                ],
+                    CreateDetail(Service3, ServiceState.Enabled)
+                ]
             };
 
-            var status = await sut.SetConfiguration(config, CancellationToken.None);
+            var result = await sut.SetConfiguration(config, CancellationToken.None);
 
-            status.Should().Be(OperationStatus.Warning);
+            result.OperationStatus.Should().Be(OperationStatus.Warning);
+            result.Messages.Should().BeEquivalentTo([Result.WarningMessage, Result.WarningMessage]);
             await handler.Received(3).ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>());
         }
     }

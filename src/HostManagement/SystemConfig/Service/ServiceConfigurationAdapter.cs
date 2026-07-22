@@ -1,4 +1,4 @@
-﻿using HostManagement.Scripts;
+using HostManagement.Scripts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.SystemConfig.Contracts;
 
@@ -24,96 +24,77 @@ internal sealed class ServiceConfigurationAdapter(
 {
     private readonly IScriptHandler _scriptHandler = scriptHandler;
 
-    protected internal override async Task<OperationStatus> GetConfiguration(
+    protected internal override async Task<Result> GetConfiguration(
         SystemConfiguration config,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         const char WildcardChar = '*';
-
-        var hasWarning = false;
-        var hasError = false;
 
         var configurableServicesWithoutWildcard = configurableServices
             .Where(service => !service.Contains(WildcardChar))
             .ToList();
 
+        var combinedResult = Result.SuccessResult;
+
         foreach (var name in configurableServicesWithoutWildcard)
         {
             var scriptOptions = new ScriptOptions();
+            scriptOptions.Add(ScriptOptionNames.GetSystemdUnitState.Name, name);
 
-            scriptOptions.Add(
-                ScriptOptionNames.GetSystemdUnitState.Name,
-                name);
-
-            var (status, serviceDetail) = await _scriptHandler
+            var (result, serviceDetail) = await _scriptHandler
                 .ExecuteGetSystemdUnitStateScript(scriptOptions)
                 .ConfigureAwait(false);
 
-            if (status == OperationStatus.Error)
-            {
-                hasError = true;
-                continue;
-            }
+            combinedResult.AddResult(result);
 
-            if (status == OperationStatus.Warning)
-                hasWarning = true;
+            if (result.OperationStatus is OperationStatus.Error)
+                continue;
 
             config.Services ??= [];
             config.Services.Add(serviceDetail);
         }
 
-        if (hasError)
-            return OperationStatus.Error;
-
-        return hasWarning ? OperationStatus.Warning : OperationStatus.Success;
+        return combinedResult;
     }
 
     private protected override bool HasChangesInternal(
         SystemConfiguration currentConfig,
         SystemConfiguration proposedConfig)
     {
-        return !EqualityComparer<ServiceDetail>.Default.SequenceEqual(currentConfig.Services, proposedConfig.Services, service => service.Name);
+        return !EqualityComparer<ServiceDetail>.Default.SequenceEqual(
+            currentConfig.Services,
+            proposedConfig.Services,
+            service => service.Name);
     }
 
-    private protected override async Task<OperationStatus> ApplyConfiguration(
+    private protected override async Task<Result> ApplyConfiguration(
         SystemConfiguration config,
-        CancellationToken cancellationToken = default)
-    {
-        return await ConfigureServices(config.Services).ConfigureAwait(false);
-    }
+        CancellationToken cancellationToken)
+            => await ConfigureServices(config.Services).ConfigureAwait(false);
 
-    private async Task<OperationStatus> ConfigureServices(List<ServiceDetail>? services)
+    private async Task<Result> ConfigureServices(List<ServiceDetail>? services)
     {
-        var hasWarning = false;
+        var combinedResult = Result.SuccessResult;
 
         if (services is not null)
         {
             foreach (var service in services)
             {
-                var status = await SetServiceState(service.Name, service.State).ConfigureAwait(false);
+                combinedResult.AddResult(await SetServiceState(service.Name, service.State).ConfigureAwait(false));
 
-                if (status == OperationStatus.Error)
-                    return OperationStatus.Error;
-
-                if (status == OperationStatus.Warning)
-                    hasWarning = true;
+                if (combinedResult.OperationStatus is OperationStatus.Error)
+                    return combinedResult;
             }
         }
 
-        return hasWarning ? OperationStatus.Warning : OperationStatus.Success;
+        return combinedResult;
     }
 
-    private async Task<OperationStatus> SetServiceState(string serviceName, ServiceState serviceState)
+    private async Task<Result> SetServiceState(string serviceName, ServiceState serviceState)
     {
         var scriptOptions = new ScriptOptions();
-
-        scriptOptions.Add(
-            ScriptOptionNames.SetSystemdUnitState.Name,
-            serviceName);
-
-        scriptOptions.Add(
-            ScriptOptionNames.SetSystemdUnitState.State,
-            serviceState.ToString());
+        scriptOptions.Add(ScriptOptionNames.SetSystemdUnitState.Name, serviceName);
+        scriptOptions.Add(ScriptOptionNames.SetSystemdUnitState.State, serviceState.ToString());
 
         return await _scriptHandler.ExecuteSetSystemdUnitStateScript(scriptOptions).ConfigureAwait(false);
     }

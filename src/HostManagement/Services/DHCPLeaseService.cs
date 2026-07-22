@@ -26,13 +26,11 @@ internal sealed partial class DHCPLeaseService(ILogger logger)
     {
         try
         {
-            var result = new Result();
+            var (result, dhcpLease) = await GetDHCPLease(new ScriptHandler(), interfaceName, cancellationToken)
+                .ConfigureAwait(false);
 
-            var (status, dhcpLease) =
-                await GetDHCPLease(new ScriptHandler(result), interfaceName, cancellationToken);
-
-            if (status == OperationStatus.Error)
-                LogAndReturnGetDHCPLeaseFailed(result.Messages);
+            if (result.OperationStatus is OperationStatus.Error)
+                LogAndReturnGetDHCPLeaseFailed(result.FormattedMessages);
 
             if (dhcpLease.LeaseObtained is null)
                 LogAndReturnGetDHCPLeaseFailed(ServicesResources.DHCPLeaseEmpty);
@@ -69,17 +67,16 @@ internal sealed partial class DHCPLeaseService(ILogger logger)
     /// <param name="interfaceName">The interface name for which the DHCP lease shall be renewed.</param>
     /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <returns><see cref="GetDHCPLeaseInformationResult"/></returns>
-    internal async Task<GetDHCPLeaseInformationResult> RenewDHCPLease(string interfaceName, CancellationToken cancellationToken)
+    internal async Task<GetDHCPLeaseInformationResult> RenewDHCPLease(
+        string interfaceName,
+        CancellationToken cancellationToken)
     {
         try
         {
-            var result = new Result();
+            var (result, dhcpLease) = await RenewDHCPLease(new ScriptHandler(), interfaceName, cancellationToken);
 
-            var (status, dhcpLease) =
-                await RenewDHCPLease(new ScriptHandler(result), interfaceName, cancellationToken);
-
-            if (status == OperationStatus.Error)
-                LogAndReturnRenewDHCPLeaseFailed(result.Messages);
+            if (result.OperationStatus is OperationStatus.Error)
+                LogAndReturnRenewDHCPLeaseFailed(result.FormattedMessages);
 
             if (dhcpLease.LeaseObtained is null)
                 LogAndReturnRenewDHCPLeaseFailed(ServicesResources.DHCPLeaseEmpty);
@@ -110,33 +107,33 @@ internal sealed partial class DHCPLeaseService(ILogger logger)
         }
     }
 
-    private static async Task<(OperationStatus, DHCPLease)> RenewDHCPLease(
+    private static async Task<(Result, DHCPLease)> RenewDHCPLease(
         ScriptHandler scriptHandler,
         string interfaceName,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var status = await scriptHandler.ExecuteIsNetworkInterfaceAvailableScript(interfaceName);
+        var result = await scriptHandler.ExecuteIsNetworkInterfaceAvailableScript(interfaceName).ConfigureAwait(false);
 
-        if (status is OperationStatus.Warning or OperationStatus.Error)
-            return (OperationStatus.Error, DHCPLease.Empty);
+        if (result.OperationStatus is OperationStatus.Warning or OperationStatus.Error)
+            return (result, DHCPLease.Empty);
 
-        status = await scriptHandler.ExecuteRenewDHCPLeaseScript(interfaceName);
+        result.AddResult(await scriptHandler.ExecuteRenewDHCPLeaseScript(interfaceName).ConfigureAwait(false));
 
-        if (status == OperationStatus.Error)
-            return (OperationStatus.Error, DHCPLease.Empty);
+        if (result.OperationStatus is OperationStatus.Error)
+            return (result, DHCPLease.Empty);
 
         return await GetDHCPLeaseWithRetry(scriptHandler, interfaceName, cancellationToken);
     }
 
-    private static async Task<(OperationStatus status, DHCPLease dhcpLease)> GetDHCPLeaseWithRetry(
+    private static async Task<(Result, DHCPLease)> GetDHCPLeaseWithRetry(
         ScriptHandler scriptHandler,
         string interfaceName,
         CancellationToken cancellationToken)
     {
         var retryCount = 3;
-        OperationStatus status;
+        Result result;
         DHCPLease dhcpLease;
 
         do
@@ -144,27 +141,29 @@ internal sealed partial class DHCPLeaseService(ILogger logger)
             cancellationToken.ThrowIfCancellationRequested();
             await Task.Delay(1000, cancellationToken);
 
-            (status, dhcpLease) = await GetDHCPLease(scriptHandler, interfaceName, cancellationToken);
+            (result, dhcpLease) = await GetDHCPLease(scriptHandler, interfaceName, cancellationToken);
             retryCount--;
         }
-        while (IsDHCPLeaseNull(status, dhcpLease) && retryCount > 0);
+        while (IsDHCPLeaseNull(result.OperationStatus, dhcpLease) && retryCount > 0);
 
-        return (status, dhcpLease);
+        return (result, dhcpLease);
     }
 
-    private static async Task<(OperationStatus, DHCPLease)> GetDHCPLease(
+    private static async Task<(Result, DHCPLease)> GetDHCPLease(
         ScriptHandler scriptHandler,
         string interfaceName,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var (status, dhcpLease) = await scriptHandler.ExecuteGetInterfaceIPv4DHCPLeaseScript(interfaceName);
+        var (result, dhcpLease) = await scriptHandler
+            .ExecuteGetInterfaceIPv4DHCPLeaseScript(interfaceName)
+            .ConfigureAwait(false);
 
-        if (status == OperationStatus.Error)
-            return (OperationStatus.Error, DHCPLease.Empty);
+        if (result.OperationStatus is OperationStatus.Error)
+            return (result, DHCPLease.Empty);
 
-        return (OperationStatus.Success, dhcpLease.ToSharedContracts());
+        return (result, dhcpLease.ToSharedContracts());
     }
 
     private static bool IsDHCPLeaseNull(OperationStatus status, DHCPLease dhcpLease)

@@ -1,5 +1,4 @@
-﻿using HostManagement.Shared.Communication.Enums;
-using HostManagement.Shared.Communication.Extensions;
+using HostManagement.Shared.Communication.Enums;
 using HostManagement.SystemConfig.Contracts;
 
 namespace HostManagement.SystemConfig;
@@ -50,23 +49,22 @@ internal abstract class ConfigurationAdapter(bool bypassHasChanges = false, bool
     /// </summary>
     /// <param name="config">The configuration.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns><see cref="OperationStatus"/></returns>
-    protected internal async Task<OperationStatus> SetConfiguration(
+    /// <returns><see cref="Result"/></returns>
+    protected internal async Task<Result> SetConfiguration(
         SystemConfiguration config,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
-        var prepareConfigStatus =
-            await PrepareConfiguration(config, cancellationToken).ConfigureAwait(false);
+        var prepareConfigResult = await PrepareConfiguration(config, cancellationToken).ConfigureAwait(false);
 
-        if (prepareConfigStatus == OperationStatus.Error)
-            return prepareConfigStatus;
+        if (prepareConfigResult.OperationStatus is OperationStatus.Error)
+            return prepareConfigResult;
 
         if (_bypassApplyConfig)
-            return prepareConfigStatus;
+            return prepareConfigResult;
 
-        var applyConfigStatus = await ApplyConfiguration(config, cancellationToken).ConfigureAwait(false);
+        var applyConfigResult = await ApplyConfiguration(config, cancellationToken).ConfigureAwait(false);
 
-        return prepareConfigStatus.GetCombinedStatus(applyConfigStatus);
+        return prepareConfigResult.AddResult(applyConfigResult);
     }
 
     /// <summary>
@@ -74,10 +72,10 @@ internal abstract class ConfigurationAdapter(bool bypassHasChanges = false, bool
     /// </summary>
     /// <param name="config">The current configuration.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns><see cref="OperationStatus"/></returns>
-    protected internal abstract Task<OperationStatus> GetConfiguration(
+    /// <returns><see cref="Result"/></returns>
+    protected internal abstract Task<Result> GetConfiguration(
         SystemConfiguration config,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// Determines if the <paramref name="proposedConfig"/> has changes compared to the
@@ -98,28 +96,24 @@ internal abstract class ConfigurationAdapter(bool bypassHasChanges = false, bool
     /// </remarks>
     /// <param name="config">The configuration.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns><see cref="OperationStatus"/></returns>
-    private protected virtual Task<OperationStatus> PrepareConfiguration(
+    /// <returns><see cref="Result"/></returns>
+    private protected virtual Task<Result> PrepareConfiguration(
         SystemConfiguration config,
-        CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult(OperationStatus.Success);
-    }
+        CancellationToken cancellationToken)
+            => Task.FromResult(Result.SuccessResult);
 
     /// <summary>
-    /// Applies the <paramref name="config"/>, including optionally prepared changes via
+    /// Applies the <paramref name="config"/>, including prepared changes via
     /// <see cref="PrepareConfiguration(SystemConfiguration, CancellationToken)"/>.
     /// </summary>
     /// <remarks>
-    /// If a separate apply phase is needed, override this method.
+    /// If an apply phase is needed, override this method.
     /// </remarks>
     /// <param name="config">The configuration.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns><see cref="OperationStatus"/></returns>
-    private protected virtual Task<OperationStatus> ApplyConfiguration(
+    /// <returns><see cref="Result"/></returns>
+    private protected virtual Task<Result> ApplyConfiguration(
         SystemConfiguration config,
-        CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult(OperationStatus.Success);
-    }
+        CancellationToken cancellationToken)
+            => Task.FromResult(Result.SuccessResult);
 }

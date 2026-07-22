@@ -49,7 +49,7 @@ public class SystemdUnitServiceTests
                 .ExecuteGetSystemdUnitActiveStateScript(Arg.Any<ScriptOptions>())
                 .ThrowsAsync(expectedException);
 
-            var sut = new SystemdUnitService(logger, scriptHandler, new Result(), s_configurableServices);
+            var sut = new SystemdUnitService(logger, scriptHandler, s_configurableServices);
 
             // Act
             var result = await sut.GetSystemdUnitActiveState(ValidUnitName, CancellationToken.None);
@@ -77,9 +77,9 @@ public class SystemdUnitServiceTests
 
             scriptHandler
                 .ExecuteGetSystemdUnitActiveStateScript(Arg.Any<ScriptOptions>())
-                .Returns((OperationStatus.Error, "unknown"));
+                .Returns((Result.ErrorResult, "unknown"));
 
-            var sut = new SystemdUnitService(logger, scriptHandler, new Result(), s_configurableServices);
+            var sut = new SystemdUnitService(logger, scriptHandler, s_configurableServices);
 
             // Act
             var result = await sut.GetSystemdUnitActiveState(ValidUnitName, CancellationToken.None);
@@ -98,7 +98,7 @@ public class SystemdUnitServiceTests
 
             var scriptHandler = Substitute.For<IScriptHandler>();
 
-            var sut = new SystemdUnitService(logger, scriptHandler, new Result(), s_configurableServices);
+            var sut = new SystemdUnitService(logger, scriptHandler, s_configurableServices);
 
             // Act
             using var cts = new CancellationTokenSource();
@@ -125,10 +125,10 @@ public class SystemdUnitServiceTests
             var scriptHandler = Substitute.For<IScriptHandler>();
 
             scriptHandler
-                .ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>())
-                .Returns(OperationStatus.Success);
+                .ExecuteGetSystemdUnitActiveStateScript(Arg.Any<ScriptOptions>())
+                .Returns((Result.SuccessResult, "active"));
 
-            var sut = new SystemdUnitService(logger, scriptHandler, new Result(), s_configurableServices);
+            var sut = new SystemdUnitService(logger, scriptHandler, s_configurableServices);
 
             // Act
             var result = await sut.GetSystemdUnitActiveState(ValidUnitName, CancellationToken.None);
@@ -163,7 +163,7 @@ public class SystemdUnitServiceTests
                 .ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>())
                 .ThrowsAsync(expectedException);
 
-            var sut = new SystemdUnitService(logger, scriptHandler, new Result(), s_configurableServices);
+            var sut = new SystemdUnitService(logger, scriptHandler, s_configurableServices);
 
             // Act
             var result = action switch
@@ -195,7 +195,7 @@ public class SystemdUnitServiceTests
             var logger = Substitute.For<ILogger>();
             var scriptHandler = Substitute.For<IScriptHandler>();
 
-            var sut = new SystemdUnitService(logger, scriptHandler, new Result(), s_configurableServices);
+            var sut = new SystemdUnitService(logger, scriptHandler, s_configurableServices);
 
             // Act
             var result = await sut.StopSystemdUnit(NotAllowedUnitName);
@@ -223,9 +223,9 @@ public class SystemdUnitServiceTests
 
             scriptHandler
                 .ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>())
-                .Returns(OperationStatus.Error);
+                .Returns(Result.ErrorResult);
 
-            var sut = new SystemdUnitService(logger, scriptHandler, new Result(), s_configurableServices);
+            var sut = new SystemdUnitService(logger, scriptHandler, s_configurableServices);
 
             // Act
             var result = action switch
@@ -251,9 +251,9 @@ public class SystemdUnitServiceTests
 
             scriptHandler
                 .ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>())
-                .Returns(OperationStatus.Success);
+                .Returns(Result.SuccessResult);
 
-            var sut = new SystemdUnitService(logger, scriptHandler, new Result(), s_configurableServices);
+            var sut = new SystemdUnitService(logger, scriptHandler, s_configurableServices);
 
             // Act
             var result = action switch

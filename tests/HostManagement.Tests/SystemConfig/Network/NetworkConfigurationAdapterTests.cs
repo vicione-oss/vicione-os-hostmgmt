@@ -1,4 +1,4 @@
-﻿using AwesomeAssertions;
+using AwesomeAssertions;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.SystemConfig.Contracts;
 using HostManagement.SystemConfig.Network;
@@ -39,9 +39,9 @@ public class NetworkConfigurationAdapterTests
                         new()
                         {
                             CommonInformation = new() { Enabled = true, Name = "eth0" },
-                            IPv4 = new(),
-                        },
-                    ],
+                            IPv4 = new()
+                        }
+                    ]
                 }
             };
             var sut = CreateSut(current, handler);
@@ -58,8 +58,8 @@ public class NetworkConfigurationAdapterTests
             {
                 NetworkDNSSettings = new()
                 {
-                    Hostname = "other",
-                },
+                    Hostname = "other"
+                }
             };
             var sut = CreateSut(current, handler);
 
@@ -83,35 +83,46 @@ public class NetworkConfigurationAdapterTests
         [Fact]
         public async Task ShouldApplyNetplan_WhenAnySubAdapterChanged()
         {
-            var handler = Substitute.For<IScriptHandler>();
+            // Arrange
+            var scriptHandler = Substitute.For<IScriptHandler>();
+            scriptHandler.ExecuteSetHostnameScript("new").Returns(Result.SuccessResult);
+            scriptHandler.ExecuteApplyNetplanConfigurationScript().Returns(Result.SuccessResult);
+
             SystemConfiguration current = new();
             SystemConfiguration proposed = new()
             {
                 NetworkDNSSettings = new()
                 {
-                    Hostname = "new", // force change
-                },
+                    Hostname = "new" // force change
+                }
             };
-            var sut = CreateSut(current, handler);
 
-            var status = await sut.SetConfiguration(proposed, CancellationToken.None);
+            var sut = CreateSut(current, scriptHandler);
 
-            status.Should().Be(OperationStatus.Success);
-            await handler.Received(1).ExecuteApplyNetplanConfigurationScript();
+            // Act + Assert
+            var result = await sut.SetConfiguration(proposed, CancellationToken.None);
+
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
+
+            _ = await scriptHandler.Received(1).ExecuteSetHostnameScript("new");
+            await scriptHandler.Received(1).ExecuteApplyNetplanConfigurationScript();
         }
 
         [Fact]
         public async Task ShouldNotApplyNetplan_WhenNoChanges()
         {
             var handler = Substitute.For<IScriptHandler>();
-            handler.ExecuteApplyNetplanConfigurationScript().Returns(Task.FromResult(OperationStatus.Success));
-            SystemConfiguration current = new();
-            SystemConfiguration proposed = new();
+            handler.ExecuteApplyNetplanConfigurationScript().Returns(Result.SuccessResult);
+
+            var current = new SystemConfiguration();
+            var proposed = new SystemConfiguration();
             var sut = CreateSut(current, handler);
 
-            var status = await sut.SetConfiguration(proposed, CancellationToken.None);
+            var result = await sut.SetConfiguration(proposed, CancellationToken.None);
 
-            status.Should().Be(OperationStatus.Success);
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
             await handler.DidNotReceive().ExecuteApplyNetplanConfigurationScript();
         }
     }

@@ -1,4 +1,4 @@
-﻿using AwesomeAssertions;
+using AwesomeAssertions;
 using HostManagement.Scripts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.SystemConfig.Contracts;
@@ -39,7 +39,7 @@ public class ProxyConfigurationAdapterTests
         IScriptHandler handler,
         bool bypassHasChanges = false,
         bool bypassApply = false)
-        => new(current, handler, bypassHasChanges, bypassApply);
+            => new(current, handler, bypassHasChanges, bypassApply);
 
     private static SystemConfiguration CreateSystemConfig(NetworkProxySettings? proxy = null)
         => new() { NetworkProxySettings = proxy };
@@ -50,7 +50,7 @@ public class ProxyConfigurationAdapterTests
         int port,
         string? user = null,
         string? password = null)
-        => new() { Enabled = enabled, Server = server, Port = port, Username = user, Password = password };
+            => new() { Enabled = enabled, Server = server, Port = port, Username = user, Password = password };
 
     public sealed class GetConfiguration
     {
@@ -61,7 +61,7 @@ public class ProxyConfigurationAdapterTests
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteGetNetworkProxySettingsScript()
-                .Returns(Task.FromResult((OperationStatus.Error, new NetworkProxySettings())));
+                .Returns((Result.ErrorResult, new NetworkProxySettings()));
 
             var originalProxySettings = new NetworkProxySettings()
             {
@@ -73,10 +73,11 @@ public class ProxyConfigurationAdapterTests
             var sut = CreateSut(CreateSystemConfig(new()), scriptHandler);
 
             // Act
-            var status = await sut.GetConfiguration(config, CancellationToken.None);
+            var result = await sut.GetConfiguration(config, CancellationToken.None);
 
             // Assert
-            status.Should().Be(OperationStatus.Error);
+            result.OperationStatus.Should().Be(OperationStatus.Error);
+            result.Messages.Should().Contain(Result.ErrorMessage);
             config.NetworkProxySettings.Should().BeSameAs(originalProxySettings);
 
             await scriptHandler.Received(1).ExecuteGetNetworkProxySettingsScript();
@@ -107,16 +108,17 @@ public class ProxyConfigurationAdapterTests
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteGetNetworkProxySettingsScript()
-                .Returns(Task.FromResult((OperationStatus.Success, proxySettings)));
+                .Returns((Result.SuccessResult, proxySettings));
 
             var config = CreateSystemConfig();
             var sut = CreateSut(CreateSystemConfig(new()), scriptHandler);
 
             // Act
-            var status = await sut.GetConfiguration(config, CancellationToken.None);
+            var result = await sut.GetConfiguration(config, CancellationToken.None);
 
             // Assert
-            status.Should().Be(OperationStatus.Success);
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
 
             config.NetworkProxySettings.Should().NotBeNull();
             config.NetworkProxySettings!.HTTPS.Should().NotBeNull();
@@ -145,16 +147,17 @@ public class ProxyConfigurationAdapterTests
             var handler = Substitute.For<IScriptHandler>();
             handler
                 .ExecuteGetNetworkProxySettingsScript()
-                .Returns(Task.FromResult((OperationStatus.Success, proxySettings)));
+                .Returns((Result.SuccessResult, proxySettings));
 
             var config = CreateSystemConfig();
             var sut = CreateSut(CreateSystemConfig(new()), handler);
 
             // Act
-            var status = await sut.GetConfiguration(config, CancellationToken.None);
+            var result = await sut.GetConfiguration(config, CancellationToken.None);
 
             // Assert
-            status.Should().Be(OperationStatus.Success);
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
 
             config.NetworkProxySettings.Should().NotBeNull();
             config.NetworkProxySettings.DoNotProxyList.Should().NotBeNull();
@@ -412,16 +415,24 @@ public class ProxyConfigurationAdapterTests
         {
             // Arrange
             var scriptHandler = Substitute.For<IScriptHandler>();
+            scriptHandler
+                .ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>())
+                .Returns(Result.SuccessResult);
+
             var current = CreateSystemConfig(currentProxySettings);
             var proposed = CreateSystemConfig(proposedProxySettings);
 
             var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
 
             // Act + Assert
-            var status = await sut.SetConfiguration(proposed, CancellationToken.None);
+            var result = await sut.SetConfiguration(proposed, CancellationToken.None);
 
-            status.Should().Be(OperationStatus.Success);
-            await scriptHandler.Received(expectedReceiveCount).ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>());
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
+
+            await scriptHandler
+                .Received(expectedReceiveCount)
+                .ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>());
         }
 
         [Theory]
@@ -433,15 +444,21 @@ public class ProxyConfigurationAdapterTests
         {
             // Arrange
             var scriptHandler = Substitute.For<IScriptHandler>();
+            scriptHandler
+                .ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>())
+                .Returns(Result.SuccessResult);
+
             var current = CreateSystemConfig(currentProxySettings);
             var proposed = CreateSystemConfig(proposedProxySettings);
 
             var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
 
             // Act + Assert
-            var status = await sut.SetConfiguration(proposed, CancellationToken.None);
+            var result = await sut.SetConfiguration(proposed, CancellationToken.None);
 
-            status.Should().Be(OperationStatus.Success);
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
+
             await scriptHandler
                 .Received(expectedReceiveCount)
                 .ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>());
@@ -455,17 +472,18 @@ public class ProxyConfigurationAdapterTests
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteSetNetworkProxySettingsScript(Arg.Do<ScriptOptions>(so => captured = so))
-                .Returns(Task.FromResult(OperationStatus.Success));
+                .Returns(Result.SuccessResult);
 
             var current = CreateSystemConfig(new() { DoNotProxyListEnabled = true, DoNotProxyList = [DoNotProxyItem] });
             var proposed = CreateSystemConfig(new() { DoNotProxyListEnabled = true, DoNotProxyList = [] });
             var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
 
             // Act
-            var status = await sut.SetConfiguration(proposed, CancellationToken.None);
+            var result = await sut.SetConfiguration(proposed, CancellationToken.None);
 
             // Assert
-            status.Should().Be(OperationStatus.Success);
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
 
             captured.Should().NotBeNull();
             captured!.Options.Should().ContainInOrder(
@@ -487,7 +505,7 @@ public class ProxyConfigurationAdapterTests
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteSetNetworkProxySettingsScript(Arg.Do<ScriptOptions>(captured.Add))
-                .Returns(Task.FromResult(OperationStatus.Success));
+                .Returns(Result.SuccessResult);
 
             var current = CreateSystemConfig(new());
             var proposed = CreateSystemConfig(new()
@@ -497,10 +515,12 @@ public class ProxyConfigurationAdapterTests
             var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
 
             // Act
-            var status = await sut.SetConfiguration(proposed, CancellationToken.None);
+            var result = await sut.SetConfiguration(proposed, CancellationToken.None);
 
             // Assert
-            status.Should().Be(OperationStatus.Success);
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
+
             await scriptHandler.Received(1).ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>());
 
             captured.Should().SatisfyRespectively(
@@ -526,7 +546,7 @@ public class ProxyConfigurationAdapterTests
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteSetNetworkProxySettingsScript(Arg.Do<ScriptOptions>(captured.Add))
-                .Returns(Task.FromResult(OperationStatus.Success));
+                .Returns(Result.SuccessResult);
 
             var current = CreateSystemConfig(new());
             var proposed = CreateSystemConfig(new()
@@ -537,10 +557,12 @@ public class ProxyConfigurationAdapterTests
             var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
 
             // Act
-            var status = await sut.SetConfiguration(proposed, CancellationToken.None);
+            var result = await sut.SetConfiguration(proposed, CancellationToken.None);
 
             // Assert
-            status.Should().Be(OperationStatus.Success);
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
+
             await scriptHandler.Received(1).ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>());
 
             captured.Should().SatisfyRespectively(

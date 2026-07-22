@@ -25,20 +25,18 @@ internal sealed class NetworkDNSConfigurationAdapter(
     private readonly SystemConfiguration _currentConfig = currentConfig;
     private readonly IScriptHandler _scriptHandler = scriptHandler;
 
-    protected internal override async Task<OperationStatus> GetConfiguration(
+    protected internal override async Task<Result> GetConfiguration(
         SystemConfiguration config,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
-        var (status, networkDNSSettings) = await _scriptHandler
+        var (result, networkDNSSettings) = await _scriptHandler
             .ExecuteGetNetworkDNSSettingsScript()
             .ConfigureAwait(false);
 
-        if (status == OperationStatus.Error)
-            return OperationStatus.Error;
+        if (result.OperationStatus is not OperationStatus.Error)
+            config.NetworkDNSSettings = networkDNSSettings;
 
-        config.NetworkDNSSettings = networkDNSSettings;
-
-        return OperationStatus.Success;
+        return result;
     }
 
     private protected override bool HasChangesInternal(
@@ -60,41 +58,51 @@ internal sealed class NetworkDNSConfigurationAdapter(
                 proposedConfig.NetworkInterfacesSettings?.NetworkInterfaces);
     }
 
-    private protected override async Task<OperationStatus> PrepareConfiguration(
+    private protected override async Task<Result> PrepareConfiguration(
         SystemConfiguration config,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         var dnsSettings = config.NetworkDNSSettings;
+        var result = Result.SuccessResult;
 
         if (dnsSettings is null)
-            return OperationStatus.Success;
+            return result;
 
-        if (await SetMulticastConfiguration(dnsSettings).ConfigureAwait(false) == OperationStatus.Error)
-            return OperationStatus.Error;
+        result.AddResult(await SetMulticastConfiguration(dnsSettings).ConfigureAwait(false));
 
-        if (await SetStaticHostsConfiguration(dnsSettings.StaticHostsEnabled, dnsSettings.StaticHosts).ConfigureAwait(false) == OperationStatus.Error)
-            return OperationStatus.Error;
+        if (result.OperationStatus is OperationStatus.Error)
+            return result;
 
-        if (await SetDNSConfiguration(dnsSettings).ConfigureAwait(false) == OperationStatus.Error)
-            return OperationStatus.Error;
+        result.AddResult(
+            await SetStaticHostsConfiguration(dnsSettings.StaticHostsEnabled, dnsSettings.StaticHosts)
+                .ConfigureAwait(false));
 
-        if (await SetHostname(dnsSettings.Hostname).ConfigureAwait(false) == OperationStatus.Error)
-            return OperationStatus.Error;
+        if (result.OperationStatus is OperationStatus.Error)
+            return result;
 
-        return OperationStatus.Success;
+        result.AddResult(await SetDNSConfiguration(dnsSettings).ConfigureAwait(false));
+
+        if (result.OperationStatus is OperationStatus.Error)
+            return result;
+
+        return result.AddResult(await SetHostname(dnsSettings.Hostname).ConfigureAwait(false));
     }
 
-    private async Task<OperationStatus> SetMulticastConfiguration(NetworkDNSSettings dnsSettings)
+    private async Task<Result> SetMulticastConfiguration(NetworkDNSSettings dnsSettings)
     {
         if (dnsSettings.MulticastDNSEnabled.HasValue &&
             dnsSettings.MulticastDNSEnabled.Value != _currentConfig.NetworkDNSSettings?.MulticastDNSEnabled)
         {
-            var (status, rawInterfacesString) = await _scriptHandler
+            var combinedResult = Result.SuccessResult;
+
+            var (result, rawInterfacesString) = await _scriptHandler
                 .ExecuteGetNetworkInterfacesScript()
                 .ConfigureAwait(false);
 
-            if (status is OperationStatus.Error)
-                return OperationStatus.Error;
+            combinedResult.AddResult(result);
+
+            if (combinedResult.OperationStatus is OperationStatus.Error)
+                return combinedResult;
 
             var scriptOptions = new ScriptOptions();
 
@@ -106,16 +114,19 @@ internal sealed class NetworkDNSConfigurationAdapter(
                 ScriptOptionNames.NetworkMulticastDNS.Interfaces,
                 rawInterfacesString);
 
-            return await _scriptHandler
+            result = await _scriptHandler
                 .ExecuteSetNetworkMulticastDNSSettingsScript(scriptOptions)
                 .ConfigureAwait(false);
+
+            return combinedResult.AddResult(result);
         }
 
-        return OperationStatus.Success;
+        return Result.SuccessResult;
     }
 
-    private async Task<OperationStatus> SetStaticHostsConfiguration(
-        bool? staticHostsEnabled, List<StaticHostDetail>? staticHosts)
+    private async Task<Result> SetStaticHostsConfiguration(
+        bool? staticHostsEnabled,
+        List<StaticHostDetail>? staticHosts)
     {
         if (staticHostsEnabled.HasValue)
         {
@@ -135,10 +146,10 @@ internal sealed class NetworkDNSConfigurationAdapter(
             return await _scriptHandler.ExecuteSetStaticHostsScript(scriptOptions).ConfigureAwait(false);
         }
 
-        return OperationStatus.Success;
+        return Result.SuccessResult;
     }
 
-    private async Task<OperationStatus> SetDNSConfiguration(NetworkDNSSettings dnsSettings)
+    private async Task<Result> SetDNSConfiguration(NetworkDNSSettings dnsSettings)
     {
         var scriptOptions = new ScriptOptions();
 
@@ -147,26 +158,30 @@ internal sealed class NetworkDNSConfigurationAdapter(
         AddSearchDomainsScriptOptions(scriptOptions, dnsSettings);
 
         if (!scriptOptions.Options.Any())
-            return OperationStatus.Success;
+            return Result.SuccessResult;
 
-        var (status, rawInterfacesString) = await _scriptHandler
+        var combinedResult = Result.SuccessResult;
+
+        var (result, rawInterfacesString) = await _scriptHandler
             .ExecuteGetNetworkInterfacesScript()
             .ConfigureAwait(false);
 
-        if (status is OperationStatus.Error)
-            return OperationStatus.Error;
+        combinedResult.AddResult(result);
+
+        if (combinedResult.OperationStatus is OperationStatus.Error)
+            return combinedResult;
 
         scriptOptions.Add(ScriptOptionNames.NetworkDNS.Interfaces, rawInterfacesString);
 
-        return await _scriptHandler
-            .ExecuteSetNetworkDNSSettingsScript(scriptOptions)
-            .ConfigureAwait(false);
+        result = await _scriptHandler.ExecuteSetNetworkDNSSettingsScript(scriptOptions).ConfigureAwait(false);
+
+        return combinedResult.AddResult(result);
     }
 
-    private async Task<OperationStatus> SetHostname(string? hostname)
+    private async Task<Result> SetHostname(string? hostname)
     {
         if (hostname is null || hostname.Equals(_currentConfig.NetworkDNSSettings?.Hostname))
-            return OperationStatus.Success;
+            return Result.SuccessResult;
 
         return await _scriptHandler.ExecuteSetHostnameScript(hostname).ConfigureAwait(false);
     }

@@ -1,5 +1,4 @@
 using AwesomeAssertions;
-using HostManagement.Scripts.Enums;
 using HostManagement.Services;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Contracts.System;
@@ -40,7 +39,7 @@ public class SystemServiceTests
                 .Returns(_ => throw expectedException);
 
             var expectedMessage = $"{InstallFailedMessage} ('{signedPackage.FilePath}'). {expectedException.Message}";
-            var sut = new SystemService(logger, scriptHandler, new Result(), signatureValidator);
+            var sut = new SystemService(logger, scriptHandler, signatureValidator);
 
             // Act
             var result = await sut.InstallSignedDebianPackage(signedPackage, publicKeys, CancellationToken.None);
@@ -74,7 +73,7 @@ public class SystemServiceTests
             };
 
             var expectedLogMessage = $"Installing signed Debian package was canceled ('{signedPackage.FilePath}').";
-            var sut = new SystemService(logger, scriptHandler, new Result(), signatureValidator);
+            var sut = new SystemService(logger, scriptHandler, signatureValidator);
 
             // Act
             using var cts = new CancellationTokenSource();
@@ -108,7 +107,7 @@ public class SystemServiceTests
             };
 
             var expectedMessage = $"{InstallFailedMessage} ('{signedPackage.FilePath}'). Package signature is invalid.";
-            var sut = new SystemService(logger, scriptHandler, new Result(), signatureValidator);
+            var sut = new SystemService(logger, scriptHandler, signatureValidator);
 
             // Act
             var result = await sut.InstallSignedDebianPackage(signedPackage, ["invalid-public-key"], CancellationToken.None);
@@ -119,11 +118,9 @@ public class SystemServiceTests
         }
 
         [Theory]
-        [InlineData(OperationStatus.Warning, "A script warning.")]
-        [InlineData(OperationStatus.Error, "A script error.")]
-        public async Task ShouldReturnError_WhenPackageInstallIsNotSuccess(
-            OperationStatus operationStatus,
-            string expectedScriptMessage)
+        [InlineData(OperationStatus.Warning)]
+        [InlineData(OperationStatus.Error)]
+        public async Task ShouldReturnError_WhenPackageInstallIsNotSuccess(OperationStatus operationStatus)
         {
             // Arrange
             var logger = GetLoggerSubstitute();
@@ -137,19 +134,16 @@ public class SystemServiceTests
 
             var expectedMessage = $"{InstallFailedMessage} ('{signedPackage.FilePath}').";
 
-            var result = new Result();
+            var expectedResult = operationStatus is OperationStatus.Warning
+                ? Result.WarningResult
+                : Result.ErrorResult;
 
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteInstallDebianPackageScript(Arg.Any<ScriptOptions>())
-                .Returns(Task.FromResult(operationStatus));
+                .Returns(Task.FromResult(expectedResult));
 
-            if (operationStatus is OperationStatus.Warning)
-                result.AddScriptWarning(ScriptIdentifier.InstallDebianPackage, expectedScriptMessage);
-            else
-                result.AddScriptError(ScriptIdentifier.InstallDebianPackage, expectedScriptMessage);
-
-            var sut = new SystemService(logger, scriptHandler, result, signatureValidator);
+            var sut = new SystemService(logger, scriptHandler, signatureValidator);
 
             // Act
             var systemControlResult = await sut.InstallSignedDebianPackage(
@@ -159,7 +153,7 @@ public class SystemServiceTests
 
             // Assert
             systemControlResult.Status.Should().Be(OperationStatus.Error);
-            systemControlResult.Message.Should().StartWith(expectedMessage).And.Contain(expectedScriptMessage);
+            systemControlResult.Message.Should().StartWith(expectedMessage).And.Contain(expectedResult.FormattedMessages);
         }
 
         [Fact]
@@ -178,9 +172,9 @@ public class SystemServiceTests
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteInstallDebianPackageScript(Arg.Any<ScriptOptions>())
-                .Returns(Task.FromResult(OperationStatus.Success));
+                .Returns(Task.FromResult(Result.SuccessResult));
 
-            var sut = new SystemService(logger, scriptHandler, new Result(), signatureValidator);
+            var sut = new SystemService(logger, scriptHandler, signatureValidator);
 
             // Act
             var result = await sut.InstallSignedDebianPackage(signedPackage, ["valid-public-key"], CancellationToken.None);
@@ -206,7 +200,7 @@ public class SystemServiceTests
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler.ExecuteUpdateSystemScript(Arg.Any<ScriptOptions>()).ThrowsAsync(expectedException);
 
-            var sut = new SystemService(logger, scriptHandler, new Result(), GetSignatureValidatorSubstitute());
+            var sut = new SystemService(logger, scriptHandler, GetSignatureValidatorSubstitute());
 
             // Act
             var result = await sut.UpdateSystem(PathToUpdateFile);
@@ -230,35 +224,32 @@ public class SystemServiceTests
         {
             // Arrange
             var logger = GetLoggerSubstitute();
-            var expectedScriptMessage = "A script error.";
-
-            var result = new Result();
-            result.AddScriptError(ScriptIdentifier.UpdateSystem, expectedScriptMessage);
 
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteUpdateSystemScript(Arg.Any<ScriptOptions>())
-                .Returns(Task.FromResult(OperationStatus.Error));
+                .Returns(Task.FromResult(Result.ErrorResult));
 
-            var sut = new SystemService(logger, scriptHandler, result, GetSignatureValidatorSubstitute());
+            var sut = new SystemService(logger, scriptHandler, GetSignatureValidatorSubstitute());
 
             // Act
             var systemControlResult = await sut.UpdateSystem(PathToUpdateFile);
 
             // Assert
+            var expectedLogError = Result.ErrorMessage;
             logger.Received(1).Log(
                 LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o =>
                     o.ToString()!.StartsWith(SystemCouldNotBeUpdatedMessage) &&
-                    o.ToString()!.Contains(expectedScriptMessage)),
+                    o.ToString()!.Contains(expectedLogError)),
                 null,
                 Arg.Any<Func<object, Exception?, string>>());
 
             systemControlResult.Status.Should().Be(OperationStatus.Error);
             systemControlResult.Message.Should()
                 .StartWith(SystemCouldNotBeUpdatedMessage).And
-                .Contain(expectedScriptMessage);
+                .Contain(Result.ErrorMessage);
         }
 
         [Fact]
@@ -268,9 +259,14 @@ public class SystemServiceTests
             var logger = GetLoggerSubstitute();
 
             var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler.ExecuteUpdateSystemScript(Arg.Any<ScriptOptions>()).Returns(Task.FromResult(OperationStatus.Success));
+            scriptHandler
+                .ExecuteUpdateSystemScript(Arg.Any<ScriptOptions>())
+                .Returns(Task.FromResult(Result.SuccessResult));
+            scriptHandler
+                .ExecuteShutdownSystemScript(Arg.Any<ScriptOptions>())
+                .Returns(Task.FromResult(Result.SuccessResult));
 
-            var sut = new SystemService(logger, scriptHandler, new Result(), GetSignatureValidatorSubstitute());
+            var sut = new SystemService(logger, scriptHandler, GetSignatureValidatorSubstitute());
 
             // Act
             var systemControlResult = await sut.UpdateSystem(PathToUpdateFile);
@@ -295,7 +291,7 @@ public class SystemServiceTests
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler.ExecuteResetSystemScript().ThrowsAsync(expectedException);
 
-            var sut = new SystemService(logger, scriptHandler, new Result(), GetSignatureValidatorSubstitute());
+            var sut = new SystemService(logger, scriptHandler, GetSignatureValidatorSubstitute());
 
             // Act
             var result = await sut.ResetSystem();
@@ -319,33 +315,29 @@ public class SystemServiceTests
         {
             // Arrange
             var logger = GetLoggerSubstitute();
-            var expectedScriptMessage = "A script error.";
-
-            var result = new Result();
-            result.AddScriptError(ScriptIdentifier.ResetSystem, expectedScriptMessage);
-
             var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler.ExecuteResetSystemScript().Returns(Task.FromResult(OperationStatus.Error));
+            scriptHandler.ExecuteResetSystemScript().Returns(Task.FromResult(Result.ErrorResult));
 
-            var sut = new SystemService(logger, scriptHandler, result, GetSignatureValidatorSubstitute());
+            var sut = new SystemService(logger, scriptHandler, GetSignatureValidatorSubstitute());
 
             // Act
             var systemControlResult = await sut.ResetSystem();
 
             // Assert
+            var expectedLogError = Result.ErrorMessage;
             logger.Received(1).Log(
                 LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o =>
                     o.ToString()!.StartsWith(SystemCouldNotBeResetMessage) &&
-                    o.ToString()!.Contains(expectedScriptMessage)),
+                    o.ToString()!.Contains(expectedLogError)),
                 null,
                 Arg.Any<Func<object, Exception?, string>>());
 
             systemControlResult.Status.Should().Be(OperationStatus.Error);
             systemControlResult.Message.Should()
                 .StartWith(SystemCouldNotBeResetMessage).And
-                .Contain(expectedScriptMessage);
+                .Contain(Result.ErrorMessage);
         }
 
         [Fact]
@@ -353,38 +345,35 @@ public class SystemServiceTests
         {
             // Arrange
             var logger = GetLoggerSubstitute();
-            var expectedScriptMessage = "A script error clearing proxy settings.";
-
-            var result = new Result();
-            result.AddScriptError(ScriptIdentifier.NetworkProxySettingsSet, expectedScriptMessage);
 
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteResetSystemScript()
-                .Returns(Task.FromResult(OperationStatus.Success));
+                .Returns(Task.FromResult(Result.SuccessResult));
             scriptHandler
                 .ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>())
-                .Returns(Task.FromResult(OperationStatus.Error));
+                .Returns(Task.FromResult(Result.ErrorResult));
 
-            var sut = new SystemService(logger, scriptHandler, result, GetSignatureValidatorSubstitute());
+            var sut = new SystemService(logger, scriptHandler, GetSignatureValidatorSubstitute());
 
             // Act
             var systemControlResult = await sut.ResetSystem();
 
             // Assert
+            var expectedLogError = Result.ErrorMessage;
             logger.Received(1).Log(
                 LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o =>
                     o.ToString()!.StartsWith(SystemCouldNotBeResetMessage) &&
-                    o.ToString()!.Contains(expectedScriptMessage)),
+                    o.ToString()!.Contains(expectedLogError)),
                 null,
                 Arg.Any<Func<object, Exception?, string>>());
 
             systemControlResult.Status.Should().Be(OperationStatus.Error);
             systemControlResult.Message.Should()
                 .StartWith(SystemCouldNotBeResetMessage).And
-                .Contain(expectedScriptMessage);
+                .Contain(Result.ErrorMessage);
         }
 
         [Fact]
@@ -395,12 +384,15 @@ public class SystemServiceTests
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteResetSystemScript()
-                .Returns(Task.FromResult(OperationStatus.Success));
+                .Returns(Task.FromResult(Result.SuccessResult));
             scriptHandler
                 .ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>())
-                .Returns(Task.FromResult(OperationStatus.Success));
+                .Returns(Task.FromResult(Result.SuccessResult));
+            scriptHandler
+                .ExecuteShutdownSystemScript(Arg.Any<ScriptOptions>())
+                .Returns(Task.FromResult(Result.SuccessResult));
 
-            var sut = new SystemService(logger, scriptHandler, new Result(), GetSignatureValidatorSubstitute());
+            var sut = new SystemService(logger, scriptHandler, GetSignatureValidatorSubstitute());
 
             // Act
             var systemControlResult = await sut.ResetSystem();
@@ -430,7 +422,7 @@ public class SystemServiceTests
                 .ExecuteShutdownSystemScript(Arg.Is<ScriptOptions>(so => so.Options.Contains(RestartFlag)))
                 .ThrowsAsync(expectedException);
 
-            var sut = new SystemService(logger, scriptHandler, new Result(), GetSignatureValidatorSubstitute());
+            var sut = new SystemService(logger, scriptHandler, GetSignatureValidatorSubstitute());
 
             // Act
             var result = await sut.RestartSystem();
@@ -454,35 +446,31 @@ public class SystemServiceTests
         {
             // Arrange
             var logger = GetLoggerSubstitute();
-            var expectedScriptMessage = "A script error during system restart.";
-
-            var result = new Result();
-            result.AddScriptError(ScriptIdentifier.ShutdownSystem, expectedScriptMessage);
-
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteShutdownSystemScript(Arg.Is<ScriptOptions>(so => so.Options.Contains(RestartFlag)))
-                .Returns(Task.FromResult(OperationStatus.Error));
+                .Returns(Task.FromResult(Result.ErrorResult));
 
-            var sut = new SystemService(logger, scriptHandler, result, GetSignatureValidatorSubstitute());
+            var sut = new SystemService(logger, scriptHandler, GetSignatureValidatorSubstitute());
 
             // Act
             var systemControlResult = await sut.RestartSystem();
 
             // Assert
+            var expectedLogError = Result.ErrorMessage;
             logger.Received(1).Log(
                 LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o =>
                     o.ToString()!.StartsWith(SystemCouldNotBeRestartedMessage) &&
-                    o.ToString()!.Contains(expectedScriptMessage)),
+                    o.ToString()!.Contains(expectedLogError)),
                 null,
                 Arg.Any<Func<object, Exception?, string>>());
 
             systemControlResult.Status.Should().Be(OperationStatus.Error);
             systemControlResult.Message.Should()
                 .StartWith(SystemCouldNotBeRestartedMessage).And
-                .Contain(expectedScriptMessage);
+                .Contain(Result.ErrorMessage);
         }
 
         [Theory]
@@ -507,9 +495,9 @@ public class SystemServiceTests
                 .ExecuteShutdownSystemScript(Arg.Is<ScriptOptions>(so =>
                     so.Options.Contains(RestartFlag) &&
                     so.Options.Contains(delayFlag)))
-                .Returns(Task.FromResult(OperationStatus.Success));
+                .Returns(Task.FromResult(Result.SuccessResult));
 
-            var sut = new SystemService(logger, scriptHandler, new Result(), GetSignatureValidatorSubstitute());
+            var sut = new SystemService(logger, scriptHandler, GetSignatureValidatorSubstitute());
 
             // Act
             var systemControlResult = await sut.RestartSystem(delayInSecondsMessageContent);
@@ -537,7 +525,7 @@ public class SystemServiceTests
                 .ExecuteShutdownSystemScript(Arg.Is<ScriptOptions>(so => !so.Options.Contains(RestartFlag)))
                 .ThrowsAsync(expectedException);
 
-            var sut = new SystemService(logger, scriptHandler, new Result(), GetSignatureValidatorSubstitute());
+            var sut = new SystemService(logger, scriptHandler, GetSignatureValidatorSubstitute());
 
             // Act
             var result = await sut.ShutdownSystem();
@@ -561,35 +549,31 @@ public class SystemServiceTests
         {
             // Arrange
             var logger = GetLoggerSubstitute();
-            var expectedScriptMessage = "A script error during system shutdown.";
-
-            var result = new Result();
-            result.AddScriptError(ScriptIdentifier.ShutdownSystem, expectedScriptMessage);
-
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteShutdownSystemScript(Arg.Is<ScriptOptions>(so => !so.Options.Contains(RestartFlag)))
-                .Returns(Task.FromResult(OperationStatus.Error));
+                .Returns(Task.FromResult(Result.ErrorResult));
 
-            var sut = new SystemService(logger, scriptHandler, result, GetSignatureValidatorSubstitute());
+            var sut = new SystemService(logger, scriptHandler, GetSignatureValidatorSubstitute());
 
             // Act
             var systemControlResult = await sut.ShutdownSystem();
 
             // Assert
+            var expectedLogError = Result.ErrorMessage;
             logger.Received(1).Log(
                 LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o =>
                     o.ToString()!.StartsWith(SystemCouldNotBeShutDownMessage) &&
-                    o.ToString()!.Contains(expectedScriptMessage)),
+                    o.ToString()!.Contains(expectedLogError)),
                 null,
                 Arg.Any<Func<object, Exception?, string>>());
 
             systemControlResult.Status.Should().Be(OperationStatus.Error);
             systemControlResult.Message.Should()
                 .StartWith(SystemCouldNotBeShutDownMessage).And
-                .Contain(expectedScriptMessage);
+                .Contain(Result.ErrorMessage);
         }
 
         [Theory]
@@ -614,9 +598,9 @@ public class SystemServiceTests
                 .ExecuteShutdownSystemScript(Arg.Is<ScriptOptions>(so =>
                     !so.Options.Contains(RestartFlag) &&
                     so.Options.Contains(delayFlag)))
-                .Returns(Task.FromResult(OperationStatus.Success));
+                .Returns(Task.FromResult(Result.SuccessResult));
 
-            var sut = new SystemService(logger, scriptHandler, new Result(), GetSignatureValidatorSubstitute());
+            var sut = new SystemService(logger, scriptHandler, GetSignatureValidatorSubstitute());
 
             // Act
             var systemControlResult = await sut.ShutdownSystem(delayInSecondsMessageContent);

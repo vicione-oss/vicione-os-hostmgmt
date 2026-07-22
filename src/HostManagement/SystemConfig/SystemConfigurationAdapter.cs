@@ -1,4 +1,4 @@
-﻿using HostManagement.Configuration;
+using HostManagement.Configuration;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.SystemConfig.Contracts;
 using HostManagement.SystemConfig.Network;
@@ -30,7 +30,7 @@ internal sealed class SystemConfigurationAdapter : ConfigurationAdapter
         IScriptHandler scriptHandler,
         bool bypassHasChanges,
         bool bypassApplyConfig)
-        : base(bypassHasChanges, bypassApplyConfig)
+            : base(bypassHasChanges, bypassApplyConfig)
     {
         _currentConfig = currentConfig;
 
@@ -62,53 +62,43 @@ internal sealed class SystemConfigurationAdapter : ConfigurationAdapter
                 bypassApplyConfig));
     }
 
-    protected internal override async Task<OperationStatus> GetConfiguration(
+    protected internal override async Task<Result> GetConfiguration(
         SystemConfiguration config,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
-        var hasWarnings = false;
+        var result = Result.SuccessResult;
 
         foreach (var adapter in _adapters)
         {
-            var operationStatus = await adapter
-                .GetConfiguration(config, cancellationToken)
-                .ConfigureAwait(false);
+            result.AddResult(await adapter.GetConfiguration(config, cancellationToken).ConfigureAwait(false));
 
-            if (operationStatus == OperationStatus.Error)
-                return operationStatus;
-
-            if (operationStatus == OperationStatus.Warning)
-                hasWarnings = true;
+            if (result.OperationStatus is OperationStatus.Error)
+                return result;
         }
 
-        return hasWarnings ? OperationStatus.Warning : OperationStatus.Success;
+        return result;
     }
 
     private protected override bool HasChangesInternal(SystemConfiguration current, SystemConfiguration proposed)
         => current != proposed;
 
-    private protected override async Task<OperationStatus> PrepareConfiguration(
+    private protected override async Task<Result> PrepareConfiguration(
         SystemConfiguration config,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
-        var hasWarnings = false;
+        var result = Result.SuccessResult;
 
         foreach (var adapter in _adapters)
         {
             if (!adapter.HasChanges(_currentConfig, config))
                 continue;
 
-            var operationStatus = await adapter
-                .SetConfiguration(config, cancellationToken)
-                .ConfigureAwait(false);
+            result.AddResult(await adapter.SetConfiguration(config, cancellationToken).ConfigureAwait(false));
 
-            if (operationStatus == OperationStatus.Error)
-                return operationStatus;
-
-            if (operationStatus == OperationStatus.Warning)
-                hasWarnings = true;
+            if (result.OperationStatus is OperationStatus.Error)
+                return result;
         }
 
-        return hasWarnings ? OperationStatus.Warning : OperationStatus.Success;
+        return result;
     }
 }
