@@ -139,12 +139,15 @@ public class NetworkDNSConfigurationAdapterTests
         {
             Hostname = "newhost",
             MulticastDNSEnabled = true,
-            StaticHostsEnabled = true,
-            StaticHosts =
-            [
-                new StaticHostDetail { Hostname = "local1", IPAddress = IPAddress.Parse("10.0.0.1") },
-                new StaticHostDetail { Hostname = "local2", IPAddress = IPAddress.Parse("10.0.0.2") }
-            ],
+            StaticHosts = new StaticHostsSettings()
+            {
+                Enabled = true,
+                Hosts =
+                [
+                    new StaticHostDetail { Hostname = "local1", IPAddress = IPAddress.Parse("10.0.0.1") },
+                    new StaticHostDetail { Hostname = "local2", IPAddress = IPAddress.Parse("10.0.0.2") }
+                ]
+            },
             NameServersEnabled = true,
             NameServers = [IPAddress.Parse("1.1.1.1"), IPAddress.Parse("8.8.8.8")],
             DNSSuffixEnabled = true,
@@ -444,7 +447,7 @@ public class NetworkDNSConfigurationAdapterTests
         public sealed class SetStaticHostsConfiguration
         {
             [Fact]
-            public async Task ShouldNotCallStaticHostsScript_WhenStaticHostsEnabledNull()
+            public async Task ShouldNotCallStaticHostsScript_WhenEnabledNull()
             {
                 // Arrange
                 var scriptHandler = Substitute.For<IScriptHandler>();
@@ -453,8 +456,11 @@ public class NetworkDNSConfigurationAdapterTests
                 {
                     NetworkDNSSettings = new()
                     {
-                        StaticHostsEnabled = null,
-                        StaticHosts = s_proposedDNS.StaticHosts
+                        StaticHosts = new()
+                        {
+                            Enabled = null,
+                            Hosts = s_proposedDNS.StaticHosts!.Hosts
+                        }
                     }
                 };
 
@@ -470,7 +476,7 @@ public class NetworkDNSConfigurationAdapterTests
             }
 
             [Fact]
-            public async Task ShouldCallStaticHostsScript_WhenStaticHostsListNull()
+            public async Task ShouldCallStaticHostsScript_WhenHostsNull()
             {
                 // Arrange
                 ScriptOptions? staticHostsOptionsCaptured = default;
@@ -485,8 +491,11 @@ public class NetworkDNSConfigurationAdapterTests
                 {
                     NetworkDNSSettings = new()
                     {
-                        StaticHostsEnabled = s_proposedDNS.StaticHostsEnabled,
-                        StaticHosts = null
+                        StaticHosts = new()
+                        {
+                            Enabled = s_proposedDNS.StaticHosts!.Enabled,
+                            Hosts = null
+                        }
                     }
                 };
 

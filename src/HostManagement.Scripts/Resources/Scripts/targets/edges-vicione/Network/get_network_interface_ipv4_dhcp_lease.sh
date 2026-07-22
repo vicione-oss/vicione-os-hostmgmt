@@ -4,7 +4,7 @@
 #
 # Get Network Interface IPv4 DHCP Lease Script
 #
-# The script returns 0 if ok or warning, non zero for error.
+# The script returns 0 if ok, non zero for error.
 # ###
 
 set -eEuo pipefail
@@ -218,8 +218,6 @@ main() {
     json_output+="\"IPv4Detail\": ${IP_ADDRESS},"
     json_output+="\"NetworkDNSSettings\":"
     json_output+="{"
-    json_output+="\"StaticHostsEnabled\": false," # Not necessary! Think of another object!
-    json_output+="\"StaticHosts\": [],"           # Not necessary! Think of another object!
     json_output+="\"NameServersEnabled\": ${DNS_NAME_SERVERS_ENABLED},"
     json_output+="\"NameServers\": ${DNS_NAME_SERVERS_JSON},"
     json_output+="\"SearchDomainsEnabled\": ${SEARCH_DOMAINS_ENABLED},"

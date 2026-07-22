@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 
 namespace HostManagement.SystemConfig.Contracts;
 
@@ -6,8 +6,7 @@ internal sealed record NetworkDNSSettings
 {
     public string? Hostname { get; set; }
     public bool? MulticastDNSEnabled { get; set; }
-    public bool? StaticHostsEnabled { get; set; }
-    public List<StaticHostDetail>? StaticHosts { get; set; }
+    public StaticHostsSettings? StaticHosts { get; set; }
     public bool? NameServersEnabled { get; set; }
     public List<IPAddress>? NameServers { get; set; }
     public bool? DNSSuffixEnabled { get; set; }
@@ -20,8 +19,7 @@ internal sealed record NetworkDNSSettings
         HashCode hashCode = new();
         hashCode.Add(Hostname);
         hashCode.Add(MulticastDNSEnabled);
-        hashCode.Add(StaticHostsEnabled);
-        hashCode.AddRange(StaticHosts, EqualityComparer<StaticHostDetail>.Default);
+        hashCode.Add(StaticHosts);
         hashCode.Add(NameServersEnabled);
         hashCode.AddRange(NameServers, EqualityComparer<IPAddress>.Default);
         hashCode.Add(DNSSuffixEnabled);
@@ -35,8 +33,7 @@ internal sealed record NetworkDNSSettings
         other is not null &&
         EqualityComparer<string>.Default.Equals(Hostname, other.Hostname) &&
         EqualityComparer<bool?>.Default.Equals(MulticastDNSEnabled, other.MulticastDNSEnabled) &&
-        EqualityComparer<bool?>.Default.Equals(StaticHostsEnabled, other.StaticHostsEnabled) &&
-        EqualityComparer<StaticHostDetail>.Default.SequenceEqual(StaticHosts, other.StaticHosts) &&
+        EqualityComparer<StaticHostsSettings?>.Default.Equals(StaticHosts, other.StaticHosts) &&
         EqualityComparer<bool?>.Default.Equals(NameServersEnabled, other.NameServersEnabled) &&
         EqualityComparer<IPAddress>.Default.SequenceEqual(NameServers, other.NameServers) &&
         EqualityComparer<bool?>.Default.Equals(DNSSuffixEnabled, other.DNSSuffixEnabled) &&

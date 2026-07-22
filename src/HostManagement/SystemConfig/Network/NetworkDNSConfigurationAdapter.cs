@@ -73,9 +73,7 @@ internal sealed class NetworkDNSConfigurationAdapter(
         if (result.OperationStatus is OperationStatus.Error)
             return result;
 
-        result.AddResult(
-            await SetStaticHostsConfiguration(dnsSettings.StaticHostsEnabled, dnsSettings.StaticHosts)
-                .ConfigureAwait(false));
+        result.AddResult(await SetStaticHostsConfiguration(dnsSettings.StaticHosts).ConfigureAwait(false));
 
         if (result.OperationStatus is OperationStatus.Error)
             return result;
@@ -124,22 +122,23 @@ internal sealed class NetworkDNSConfigurationAdapter(
         return Result.SuccessResult;
     }
 
-    private async Task<Result> SetStaticHostsConfiguration(
-        bool? staticHostsEnabled,
-        List<StaticHostDetail>? staticHosts)
+    private async Task<Result> SetStaticHostsConfiguration(StaticHostsSettings? staticHosts)
     {
-        if (staticHostsEnabled.HasValue)
+        if (staticHosts is null)
+            return Result.SuccessResult;
+
+        if (staticHosts.Enabled.HasValue)
         {
             var scriptOptions = new ScriptOptions();
 
-            scriptOptions.Add(ScriptOptionNames.NetworkDNSStaticHosts.Enabled, staticHostsEnabled.Value);
+            scriptOptions.Add(ScriptOptionNames.NetworkDNSStaticHosts.Enabled, staticHosts.Enabled.Value);
 
-            if (staticHosts is not null)
+            if (staticHosts.Hosts is { } hosts)
             {
-                foreach (var staticHost in staticHosts)
+                foreach (var host in hosts)
                 {
-                    scriptOptions.Add(ScriptOptionNames.NetworkDNSStaticHosts.IPAddress, staticHost.IPAddress);
-                    scriptOptions.Add(ScriptOptionNames.NetworkDNSStaticHosts.Hostname, staticHost.Hostname);
+                    scriptOptions.Add(ScriptOptionNames.NetworkDNSStaticHosts.IPAddress, host.IPAddress);
+                    scriptOptions.Add(ScriptOptionNames.NetworkDNSStaticHosts.Hostname, host.Hostname);
                 }
             }
 

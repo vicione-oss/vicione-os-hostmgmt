@@ -97,13 +97,13 @@ internal static class ContractsTranslator
 
     private static SharedNetwork.NetworkDNSSettings ToSharedContracts(this NetworkDNSSettings intern)
         => new(
-            intern.StaticHosts?.Select(sh => sh.ToSharedContracts()).ToList(),
+            intern.StaticHosts?.Hosts?.Select(host => host.ToSharedContracts()).ToList(),
             intern.NameServers?.ToList(),
             intern.SearchDomains?.ToList())
         {
             Hostname = intern.Hostname ?? string.Empty,
             MulticastDNSEnabled = intern.MulticastDNSEnabled ?? false,
-            StaticHostsEnabled = intern.StaticHostsEnabled ?? false,
+            StaticHostsEnabled = intern.StaticHosts?.Enabled ?? false,
             NameServersEnabled = intern.NameServersEnabled ?? false,
             DNSSuffixEnabled = intern.DNSSuffixEnabled ?? false,
             DNSSuffix = intern.DNSSuffix ?? string.Empty,
@@ -114,7 +114,7 @@ internal static class ContractsTranslator
         => new()
         {
             Hostname = intern.Hostname,
-            IPAddress = intern.IPAddress,
+            IPAddress = intern.IPAddress
         };
 
     private static SharedNetwork.NetworkProxySettings ToSharedContracts(this NetworkProxySettings intern)
@@ -223,14 +223,20 @@ internal static class ContractsTranslator
         {
             Hostname = shared.Hostname,
             MulticastDNSEnabled = shared.MulticastDNSEnabled,
-            StaticHostsEnabled = shared.StaticHostsEnabled,
-            StaticHosts = [.. shared.StaticHosts.Select(sh => sh.ToInternalContracts())],
+            StaticHosts = ToInternalContracts(shared.StaticHostsEnabled, shared.StaticHosts),
             NameServersEnabled = shared.NameServersEnabled,
             NameServers = [.. shared.NameServers],
             DNSSuffixEnabled = shared.DNSSuffixEnabled,
             DNSSuffix = shared.DNSSuffix,
             SearchDomainsEnabled = shared.SearchDomainsEnabled,
             SearchDomains = [.. shared.SearchDomains],
+        };
+
+    private static StaticHostsSettings ToInternalContracts(bool enabled, List<SharedNetwork.StaticHostDetail> hosts)
+        => new()
+        {
+            Enabled = enabled,
+            Hosts = [.. hosts.Select(host => host.ToInternalContracts())]
         };
 
     private static StaticHostDetail ToInternalContracts(this SharedNetwork.StaticHostDetail shared)

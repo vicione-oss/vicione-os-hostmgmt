@@ -77,14 +77,23 @@ internal sealed class V1ToV2SystemConfigurationMigration
         {
             Hostname = source.Hostname,
             MulticastDNSEnabled = source.MulticastDNSEnabled,
-            StaticHostsEnabled = source.StaticHostsEnabled,
-            StaticHosts = source.StaticHosts.MapListOrNull(MigrateStaticHostDetail),
+
+            // StaticHostsEnabled and StaticHosts (the actual list) were grouped into StaticHosts.
+            StaticHosts = source.MapOrNull(MigrateStaticHostsSettings),
+
             NameServersEnabled = source.NameServersEnabled,
             NameServers = source.NameServers.CopyListOrNull(),
             DNSSuffixEnabled = source.DNSSuffixEnabled,
             DNSSuffix = source.DNSSuffix,
             SearchDomainsEnabled = source.SearchDomainsEnabled,
             SearchDomains = source.SearchDomains.CopyListOrNull()
+        };
+
+    private static CurrentContracts.StaticHostsSettings MigrateStaticHostsSettings(V1Contracts.NetworkDNSSettings source)
+        => new()
+        {
+            Enabled = source.StaticHostsEnabled,
+            Hosts = source.StaticHosts.MapListOrNull(MigrateStaticHostDetail)
         };
 
     private static CurrentContracts.StaticHostDetail MigrateStaticHostDetail(V1Contracts.StaticHostDetail source)

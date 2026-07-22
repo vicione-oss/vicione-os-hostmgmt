@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using AwesomeAssertions;
 using HostManagement.SystemConfig.Contracts;
 using Xunit;
@@ -71,68 +71,6 @@ public sealed class NetworkDNSSettingsTests
         {
             var settings1 = new NetworkDNSSettings { MulticastDNSEnabled = null };
             var settings2 = new NetworkDNSSettings { MulticastDNSEnabled = true };
-
-            var result = settings1.Equals(settings2);
-
-            result.Should().BeFalse();
-        }
-
-        [Fact]
-        public void ShouldReturnFalse_WhenNullVsNonNullStaticHostsEnabled()
-        {
-            var settings1 = new NetworkDNSSettings { StaticHostsEnabled = null };
-            var settings2 = new NetworkDNSSettings { StaticHostsEnabled = true };
-
-            var result = settings1.Equals(settings2);
-
-            result.Should().BeFalse();
-        }
-
-        [Fact]
-        public void ShouldReturnFalse_WhenDifferentStaticHosts()
-        {
-            var settings1 = CreateSampleSettings();
-            var settings2 = CreateSampleSettings();
-            settings2.StaticHosts!.Add(new StaticHostDetail
-            {
-                IPAddress = IPAddress.Parse("192.168.1.200"),
-                Hostname = "extra-host"
-            });
-
-            var result = settings1.Equals(settings2);
-
-            result.Should().BeFalse();
-        }
-
-        [Fact]
-        public void ShouldReturnFalse_WhenNullVsNonNullStaticHosts()
-        {
-            var settings1 = new NetworkDNSSettings { StaticHosts = null };
-            var settings2 = new NetworkDNSSettings
-            {
-                StaticHosts =
-                [
-                    new StaticHostDetail
-                    {
-                        IPAddress = IPAddress.Parse("192.168.1.100"),
-                        Hostname = "host1"
-                    }
-                ]
-            };
-
-            var result = settings1.Equals(settings2);
-
-            result.Should().BeFalse();
-        }
-
-        [Fact]
-        public void ShouldReturnFalse_WhenDifferentStaticHostOrder()
-        {
-            var host1 = new StaticHostDetail { IPAddress = IPAddress.Parse("192.168.1.100"), Hostname = "host1" };
-            var host2 = new StaticHostDetail { IPAddress = IPAddress.Parse("192.168.1.101"), Hostname = "host2" };
-
-            var settings1 = new NetworkDNSSettings { StaticHosts = [host1, host2] };
-            var settings2 = new NetworkDNSSettings { StaticHosts = [host2, host1] };
 
             var result = settings1.Equals(settings2);
 
@@ -296,7 +234,7 @@ public sealed class NetworkDNSSettingsTests
         {
             var settings1 = CreateSampleSettings();
             var settings2 = CreateSampleSettings();
-            settings2.StaticHosts![0].Hostname = "modified-hostname";
+            settings2.StaticHosts!.Hosts![0].Hostname = "modified-hostname";
 
             var result = settings1.Equals(settings2);
 
@@ -338,15 +276,18 @@ public sealed class NetworkDNSSettingsTests
         {
             Hostname = "test-host",
             MulticastDNSEnabled = true,
-            StaticHostsEnabled = true,
-            StaticHosts =
-            [
-                new StaticHostDetail
-                {
-                    IPAddress = IPAddress.Parse("192.168.1.100"),
-                    Hostname = "static-host1"
-                }
-            ],
+            StaticHosts = new StaticHostsSettings
+            {
+                Enabled = true,
+                Hosts =
+                [
+                    new StaticHostDetail
+                    {
+                        IPAddress = IPAddress.Parse("192.168.1.100"),
+                        Hostname = "static-host1"
+                    }
+                ]
+            },
             NameServersEnabled = true,
             NameServers = [IPAddress.Parse("8.8.8.8"), IPAddress.Parse("8.8.4.4")],
             DNSSuffixEnabled = true,

@@ -18,6 +18,7 @@ public class SystemConfigurationPersistenceTests
 
     public sealed class LoadPreparationConfiguration : SystemConfigurationPersistenceTests
     {
+        // DO NOT modify!
         private static readonly string s_jsonConfigV1_1_1 =
             """
             {
@@ -118,9 +119,10 @@ public class SystemConfigurationPersistenceTests
             """
             .UseEnvironmentNewLine();
 
+        // Modify if current config changed, e.g. 'Version' should be the current version (currently 2)
         private static readonly SystemConfiguration s_configV1_1_1_AfterMigration = new()
         {
-            Version = 2, // After migration this should be the current version (currently 2)
+            Version = 2,
             NetworkInterfacesSettings = new()
             {
                 NetworkInterfaces =
@@ -178,8 +180,11 @@ public class SystemConfigurationPersistenceTests
             {
                 Hostname = "AE1400-Host-Management",
                 MulticastDNSEnabled = false,
-                StaticHostsEnabled = false,
-                StaticHosts = [],
+                StaticHosts = new()
+                {
+                    Enabled = false,
+                    Hosts = []
+                },
                 NameServersEnabled = true,
                 NameServers = [IPAddress.Parse("192.168.10.10")],
                 DNSSuffixEnabled = false,
@@ -474,19 +479,22 @@ public class SystemConfigurationPersistenceTests
                     DNSSuffixEnabled = true,
                     Hostname = "hostname",
                     MulticastDNSEnabled = true,
+                    StaticHosts = new()
+                    {
+                        Enabled = true,
+                        Hosts =
+                        [
+                            new()
+                            {
+                                Hostname = "statichost",
+                                IPAddress = ipAddress,
+                            },
+                        ]
+                    },
                     NameServers = [ipAddress],
                     NameServersEnabled = true,
                     SearchDomains = ["searchDomain"],
                     SearchDomainsEnabled = true,
-                    StaticHosts =
-                    [
-                        new()
-                        {
-                            Hostname = "statichost",
-                            IPAddress = ipAddress,
-                        },
-                    ],
-                    StaticHostsEnabled = true,
                 },
                 NetworkProxySettings = new()
                 {
@@ -581,13 +589,15 @@ public class SystemConfigurationPersistenceTests
               "NetworkDNSSettings": {
                 "Hostname": "hostname",
                 "MulticastDNSEnabled": true,
-                "StaticHostsEnabled": true,
-                "StaticHosts": [
-                  {
-                    "IPAddress": "120.86.52.18",
-                    "Hostname": "statichost"
-                  }
-                ],
+                "StaticHosts": {
+                  "Enabled": true,
+                  "Hosts": [
+                    {
+                      "IPAddress": "120.86.52.18",
+                      "Hostname": "statichost"
+                    }
+                  ]
+                },
                 "NameServersEnabled": true,
                 "NameServers": [
                   "120.86.52.18"

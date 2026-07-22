@@ -153,11 +153,13 @@ public class V1ToV2SystemConfigurationMigrationTests
             var dnsSettings = result.NetworkDNSSettings;
             dnsSettings.Hostname.Should().Be("test-host");
             dnsSettings.MulticastDNSEnabled.Should().BeTrue();
-            dnsSettings.StaticHostsEnabled.Should().BeTrue();
 
-            var staticHost = dnsSettings.StaticHosts.Should().ContainSingle().Subject;
-            staticHost.IPAddress.Should().Be(IPAddress.Parse("192.168.1.10"));
-            staticHost.Hostname.Should().Be("local-device");
+            dnsSettings.StaticHosts.Should().NotBeNull();
+            dnsSettings.StaticHosts.Enabled.Should().BeTrue();
+
+            var host = dnsSettings.StaticHosts.Hosts.Should().ContainSingle().Subject;
+            host.IPAddress.Should().Be(IPAddress.Parse("192.168.1.10"));
+            host.Hostname.Should().Be("local-device");
 
             dnsSettings.NameServersEnabled.Should().BeTrue();
             dnsSettings.NameServers.Should().ContainSingle().Which.Should().Be(IPAddress.Parse("192.168.1.1"));
