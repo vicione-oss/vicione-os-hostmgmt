@@ -119,10 +119,11 @@ internal static class ContractsTranslator
 
     private static SharedNetwork.NetworkProxySettings ToSharedContracts(this NetworkProxySettings intern)
     {
-        SharedNetwork.NetworkProxySettings networkProxySettings = new(intern.DoNotProxyList?.ToList())
+        SharedNetwork.NetworkProxySettings networkProxySettings = new(intern.NoProxy?.Entries?.ToList())
         {
-            DoNotProxyListEnabled = intern.DoNotProxyListEnabled ?? false,
+            DoNotProxyListEnabled = intern.NoProxy?.Enabled ?? false,
         };
+
         if (intern.FTP is not null)
             networkProxySettings.FTP = intern.FTP.ToSharedContracts();
         if (intern.HTTP is not null)
@@ -133,6 +134,7 @@ internal static class ContractsTranslator
             networkProxySettings.SFTP = intern.SFTP.ToSharedContracts();
         if (intern.SOCKS is not null)
             networkProxySettings.SOCKS = intern.SOCKS.ToSharedContracts();
+
         return networkProxySettings;
     }
 
@@ -237,8 +239,14 @@ internal static class ContractsTranslator
             HTTPS = shared.HTTPS.ToInternalContracts(),
             SFTP = shared.SFTP.ToInternalContracts(),
             SOCKS = shared.SOCKS.ToInternalContracts(),
-            DoNotProxyListEnabled = shared.DoNotProxyListEnabled,
-            DoNotProxyList = [.. shared.DoNotProxyList],
+            NoProxy = ToInternalContracts(shared.DoNotProxyListEnabled, shared.DoNotProxyList)
+        };
+
+    private static NoProxySettings ToInternalContracts(bool doNotProxyListEnabled, List<string> doNotProxyList)
+        => new()
+        {
+            Enabled = doNotProxyListEnabled,
+            Entries = [.. doNotProxyList],
         };
 
     private static NetworkProxyDetail? ToInternalContracts(this SharedNetwork.NetworkProxyDetail shared)

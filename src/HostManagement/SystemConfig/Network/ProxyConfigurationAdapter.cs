@@ -43,15 +43,15 @@ internal sealed class ProxyConfigurationAdapter(
 
         config.NetworkProxySettings = networkProxySettings;
 
-        if (networkProxySettings.DoNotProxyList is not null)
+        if (networkProxySettings.NoProxy?.Entries is { } entries)
         {
-            var modifiedNoProxyList = new List<string>();
+            var modifiedNoProxyEntries = new List<string>();
 
-            foreach (var item in networkProxySettings.DoNotProxyList)
+            foreach (var entry in entries)
             {
-                var modifiedItem = item;
+                var modifiedEntry = entry;
 
-                if (modifiedItem.Contains("%25"))
+                if (modifiedEntry.Contains("%25"))
                 {
                     /*
                      * In URIs or /etc/environment we had to percent-encode '%' as '%25'
@@ -60,16 +60,16 @@ internal sealed class ProxyConfigurationAdapter(
                      * Now we need to reverse this, and remember that an interface could be
                      * named "25". So the zone id marker would have been escaped to "%2525".
                      */
-                    if (modifiedItem.Contains("%2525"))
-                        modifiedItem = modifiedItem.Replace("%2525", "%25");
+                    if (modifiedEntry.Contains("%2525"))
+                        modifiedEntry = modifiedEntry.Replace("%2525", "%25");
                     else
-                        modifiedItem = modifiedItem.Replace("%25", "%");
+                        modifiedEntry = modifiedEntry.Replace("%25", "%");
                 }
 
-                modifiedNoProxyList.Add(modifiedItem);
+                modifiedNoProxyEntries.Add(modifiedEntry);
             }
 
-            config.NetworkProxySettings.DoNotProxyList = modifiedNoProxyList;
+            config.NetworkProxySettings.NoProxy?.Entries = modifiedNoProxyEntries;
         }
 
         return result;
@@ -135,11 +135,7 @@ internal sealed class ProxyConfigurationAdapter(
         }
 
         return combinedResult.AddResult(
-            await SetDoNotProxyList(
-                proposedProxySettings.DoNotProxyListEnabled,
-                proposedProxySettings.DoNotProxyList,
-                currentProxySettings?.DoNotProxyListEnabled,
-                currentProxySettings?.DoNotProxyList)
+            await SetNoProxySettings(proposedProxySettings.NoProxy, currentProxySettings?.NoProxy)
                 .ConfigureAwait(false));
     }
 
@@ -186,20 +182,19 @@ internal sealed class ProxyConfigurationAdapter(
         return scriptOptions;
     }
 
-    private async Task<Result> SetDoNotProxyList(
-        bool? proposedListEnabled,
-        List<string>? proposedList,
-        bool? currentListEnabled,
-        List<string>? currentList)
+    private async Task<Result> SetNoProxySettings(NoProxySettings? proposedNoProxy, NoProxySettings? currentNoProxy)
     {
-        if (proposedListEnabled.HasValue &&
-            proposedList is not null &&
+        if (proposedNoProxy is null)
+            return Result.SuccessResult;
+
+        if (proposedNoProxy.Enabled.HasValue &&
+            proposedNoProxy.Entries is not null &&
             (
-                !EqualityComparer<string>.Default.SequenceEqual(proposedList, currentList) ||
-                !EqualityComparer<bool?>.Default.Equals(proposedListEnabled, currentListEnabled)
+                !EqualityComparer<string>.Default.SequenceEqual(proposedNoProxy.Entries, currentNoProxy?.Entries) ||
+                !EqualityComparer<bool?>.Default.Equals(proposedNoProxy.Enabled, currentNoProxy?.Enabled)
             ))
         {
-            var scriptOptions = GetNoProxyListScriptOptions(proposedList, proposedListEnabled.Value);
+            var scriptOptions = GetNoProxyListScriptOptions(proposedNoProxy.Entries, proposedNoProxy.Enabled.Value);
 
             var result = await _scriptHandler
                 .ExecuteSetNetworkProxySettingsScript(scriptOptions)

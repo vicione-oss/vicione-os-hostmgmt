@@ -31,8 +31,8 @@ public class ProxyConfigurationAdapterTests
     private const string SocksProxy = "socks://proxy";
     private const string SocksProxyChanged = "socks://proxy-changed";
 
-    private const string DoNotProxyItem = "localhost";
-    private const string DoNotProxyItemChanged = "127.0.0.1";
+    private const string NoProxyEntry = "localhost";
+    private const string NoProxyEntryChanged = "127.0.0.1";
 
     private static ProxyConfigurationAdapter CreateSut(
         SystemConfiguration current,
@@ -65,8 +65,11 @@ public class ProxyConfigurationAdapterTests
 
             var originalProxySettings = new NetworkProxySettings()
             {
-                DoNotProxyListEnabled = true,
-                DoNotProxyList = [DoNotProxyItem]
+                NoProxy = new NoProxySettings()
+                {
+                    Enabled = true,
+                    Entries = [NoProxyEntry]
+                }
             };
 
             var config = CreateSystemConfig(originalProxySettings);
@@ -133,15 +136,18 @@ public class ProxyConfigurationAdapterTests
         [InlineData("fe80::/10%2525", "fe80::/10%25")]
         [InlineData("[fe80::/10%25lan1]:8080", "[fe80::/10%lan1]:8080")]
         [InlineData("[fe80::/10%2525]:8080", "[fe80::/10%25]:8080")]
-        public async Task ShouldUnescapeLinkLocalIPv6ZoneIdentifier_ForDoNotProxyListItems(
-            string escapedNoProxyItem,
-            string expectedNoProxyItem)
+        public async Task ShouldUnescapeLinkLocalIPv6ZoneIdentifier_ForNoProxyEntries(
+            string escapedNoProxyEntry,
+            string expectedNoProxyEntry)
         {
             // Arrange
             var proxySettings = new NetworkProxySettings()
             {
-                DoNotProxyListEnabled = true,
-                DoNotProxyList = [escapedNoProxyItem]
+                NoProxy = new NoProxySettings()
+                {
+                    Enabled = true,
+                    Entries = [escapedNoProxyEntry]
+                }
             };
 
             var handler = Substitute.For<IScriptHandler>();
@@ -160,8 +166,9 @@ public class ProxyConfigurationAdapterTests
             result.Messages.Should().BeEmpty();
 
             config.NetworkProxySettings.Should().NotBeNull();
-            config.NetworkProxySettings.DoNotProxyList.Should().NotBeNull();
-            config.NetworkProxySettings.DoNotProxyList.Should().ContainSingle(expectedNoProxyItem);
+            config.NetworkProxySettings.NoProxy.Should().NotBeNull();
+            config.NetworkProxySettings.NoProxy.Entries.Should().NotBeNull();
+            config.NetworkProxySettings.NoProxy.Entries.Should().ContainSingle(expectedNoProxyEntry);
 
             await handler.Received(1).ExecuteGetNetworkProxySettingsScript();
         }
@@ -313,94 +320,61 @@ public class ProxyConfigurationAdapterTests
             }
         }
 
-        internal sealed class NetworkProxyListData : TheoryData<NetworkProxySettings?, NetworkProxySettings, int>
+        internal sealed class NoProxyEntriesData : TheoryData<NetworkProxySettings?, NetworkProxySettings, int>
         {
-            public NetworkProxyListData()
+            public NoProxyEntriesData()
             {
                 var currentProxySettings = new NetworkProxySettings()
                 {
-                    DoNotProxyListEnabled = true,
-                    DoNotProxyList = [DoNotProxyItem]
+                    NoProxy = new() { Enabled = true, Entries = [NoProxyEntry] }
                 };
 
-                // DoNotProxyListEnabled null, DoNotProxyList same
+                // Enabled null, Entries same
                 Add(
                     currentProxySettings,
-                    new()
-                    {
-                        DoNotProxyListEnabled = null,
-                        DoNotProxyList = [DoNotProxyItem]
-                    },
+                    new() { NoProxy = new() { Enabled = null, Entries = [NoProxyEntry] } },
                     0);
 
-                // DoNotProxyListEnabled same, DoNotProxyList == null
+                // Enabled same, Entries == null
                 Add(
                     currentProxySettings,
-                    new()
-                    {
-                        DoNotProxyListEnabled = true,
-                        DoNotProxyList = null
-                    },
+                    new() { NoProxy = new() { Enabled = true, Entries = null } },
                     0);
 
-                // DoNotProxyListEnabled null, DoNotProxyList == null
+                // Enabled null, Entries == null
                 Add(
                     currentProxySettings,
-                    new()
-                    {
-                        DoNotProxyListEnabled = null,
-                        DoNotProxyList = null
-                    },
+                    new() { NoProxy = new() { Enabled = null, Entries = null } },
                     0);
 
-                // DoNotProxyListEnabled same, DoNotProxyList same
+                // Enabled same, Entries same
                 Add(
                     currentProxySettings,
-                    new()
-                    {
-                        DoNotProxyListEnabled = true,
-                        DoNotProxyList = [DoNotProxyItem]
-                    },
+                    new() { NoProxy = new() { Enabled = true, Entries = [NoProxyEntry] } },
                     0);
 
-                // DoNotProxyListEnabled changed, DoNotProxyList changed, currentProxySettings null
+                // Enabled changed, Entries changed, currentProxySettings null
                 Add(
                     null,
-                    new()
-                    {
-                        DoNotProxyListEnabled = false,
-                        DoNotProxyList = [DoNotProxyItemChanged]
-                    },
+                    new() { NoProxy = new() { Enabled = false, Entries = [NoProxyEntryChanged] } },
                     1);
 
-                // DoNotProxyListEnabled changed, DoNotProxyList same
+                // Enabled changed, Entries same
                 Add(
                     currentProxySettings,
-                    new()
-                    {
-                        DoNotProxyListEnabled = false,
-                        DoNotProxyList = [DoNotProxyItem]
-                    },
+                    new() { NoProxy = new() { Enabled = false, Entries = [NoProxyEntry] } },
                     1);
 
-                // DoNotProxyListEnabled same, DoNotProxyList changed
+                // Enabled same, Entries changed
                 Add(
                     currentProxySettings,
-                    new()
-                    {
-                        DoNotProxyListEnabled = true,
-                        DoNotProxyList = [DoNotProxyItemChanged]
-                    },
+                    new() { NoProxy = new() { Enabled = true, Entries = [NoProxyEntryChanged] } },
                     1);
 
-                // DoNotProxyListEnabled changed, DoNotProxyList changed
+                // Enabled changed, Entries changed
                 Add(
                     currentProxySettings,
-                    new()
-                    {
-                        DoNotProxyListEnabled = false,
-                        DoNotProxyList = [DoNotProxyItemChanged]
-                    },
+                    new() { NoProxy = new() { Enabled = false, Entries = [NoProxyEntryChanged] } },
                     1);
             }
         }
@@ -436,8 +410,8 @@ public class ProxyConfigurationAdapterTests
         }
 
         [Theory]
-        [ClassData(typeof(NetworkProxyListData))]
-        internal async Task ShouldOnlyCallScript_WhenDoNotProxySettingsConfigured(
+        [ClassData(typeof(NoProxyEntriesData))]
+        internal async Task ShouldOnlyCallScript_WhenNoProxySettingsConfigured(
             NetworkProxySettings? currentProxySettings,
             NetworkProxySettings proposedProxySettings,
             int expectedReceiveCount)
@@ -465,7 +439,7 @@ public class ProxyConfigurationAdapterTests
         }
 
         [Fact]
-        public async Task ShouldCallScript_WithNonePlaceholderForEmptyDoNotProxyList()
+        public async Task ShouldCallScriptWithNonePlaceholder_WhenEmptyNoProxyEntries()
         {
             // Arrange
             ScriptOptions? captured = null;
@@ -474,8 +448,8 @@ public class ProxyConfigurationAdapterTests
                 .ExecuteSetNetworkProxySettingsScript(Arg.Do<ScriptOptions>(so => captured = so))
                 .Returns(Result.SuccessResult);
 
-            var current = CreateSystemConfig(new() { DoNotProxyListEnabled = true, DoNotProxyList = [DoNotProxyItem] });
-            var proposed = CreateSystemConfig(new() { DoNotProxyListEnabled = true, DoNotProxyList = [] });
+            var current = CreateSystemConfig(new() { NoProxy = new() { Enabled = true, Entries = [NoProxyEntry] } });
+            var proposed = CreateSystemConfig(new() { NoProxy = new() { Enabled = true, Entries = [] } });
             var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
 
             // Act
@@ -537,9 +511,9 @@ public class ProxyConfigurationAdapterTests
         [InlineData("fe80::/10%25", "fe80::/10%2525")]
         [InlineData("[fe80::/10%lan1]:8080", "[fe80::/10%25lan1]:8080")]
         [InlineData("[fe80::/10%25]:8080", "[fe80::/10%2525]:8080")]
-        public async Task ShouldPercentEncodeLinkLocalIPv6ZoneIdentifier_ForNoProxyItem(
-            string noProxyItem,
-            string escapedNoProxyItem)
+        public async Task ShouldPercentEncodeLinkLocalIPv6ZoneIdentifier_ForNoProxyEntry(
+            string noProxyEntry,
+            string escapedNoProxyEntry)
         {
             // Arrange
             List<ScriptOptions> captured = [];
@@ -549,11 +523,7 @@ public class ProxyConfigurationAdapterTests
                 .Returns(Result.SuccessResult);
 
             var current = CreateSystemConfig(new());
-            var proposed = CreateSystemConfig(new()
-            {
-                DoNotProxyListEnabled = true,
-                DoNotProxyList = [noProxyItem]
-            });
+            var proposed = CreateSystemConfig(new() { NoProxy = new() { Enabled = true, Entries = [noProxyEntry] } });
             var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
 
             // Act
@@ -567,7 +537,7 @@ public class ProxyConfigurationAdapterTests
 
             captured.Should().SatisfyRespectively(
                 so => so.Options.Should().ContainInOrder(
-                    ScriptOptionNames.Proxy.NoProxyList, escapedNoProxyItem,
+                    ScriptOptionNames.Proxy.NoProxyList, escapedNoProxyEntry,
                     ScriptOptionNames.Proxy.NoProxyListEnabled, "true"));
         }
     }

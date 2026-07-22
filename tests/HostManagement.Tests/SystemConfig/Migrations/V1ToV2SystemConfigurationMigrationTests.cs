@@ -216,8 +216,9 @@ public class V1ToV2SystemConfigurationMigrationTests
             proxySettings.SFTP.Should().BeNull();
             proxySettings.SOCKS.Should().BeNull();
 
-            proxySettings.DoNotProxyListEnabled.Should().BeTrue();
-            proxySettings.DoNotProxyList.Should().Equal("localhost", "127.0.0.1");
+            proxySettings.NoProxy.Should().NotBeNull();
+            proxySettings.NoProxy.Enabled.Should().BeTrue();
+            proxySettings.NoProxy.Entries.Should().Equal("localhost", "127.0.0.1");
         }
 
         [Fact]

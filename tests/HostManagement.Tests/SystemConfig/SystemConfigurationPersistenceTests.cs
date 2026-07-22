@@ -118,7 +118,7 @@ public class SystemConfigurationPersistenceTests
             """
             .UseEnvironmentNewLine();
 
-        private static readonly SystemConfiguration s_configV1_1_1 = new()
+        private static readonly SystemConfiguration s_configV1_1_1_AfterMigration = new()
         {
             Version = 2, // After migration this should be the current version (currently 2)
             NetworkInterfacesSettings = new()
@@ -209,8 +209,11 @@ public class SystemConfigurationPersistenceTests
                 {
                     Enabled = false
                 },
-                DoNotProxyListEnabled = false,
-                DoNotProxyList = []
+                NoProxy = new()
+                {
+                    Enabled = false,
+                    Entries = []
+                }
             },
             NetworkNTPSettings = new()
             {
@@ -239,7 +242,7 @@ public class SystemConfigurationPersistenceTests
 
         // Config of v1.3.0 is identical to v1.1.1
         private static readonly string s_jsonConfigV1_3_0 = s_jsonConfigV1_1_1;
-        private static readonly SystemConfiguration s_configV1_3_0 = s_configV1_1_1;
+        private static readonly SystemConfiguration s_configV1_3_0_AfterMigration = s_configV1_1_1_AfterMigration;
 
         [Fact]
         public async Task ShouldThrow_WhenLoadingEmptyFile()
@@ -350,7 +353,7 @@ public class SystemConfigurationPersistenceTests
         {
             _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new(s_jsonConfigV1_1_1));
             var result = await _persistence.LoadPreparationConfiguration(CancellationToken.None);
-            result.Should().BeEquivalentTo(s_configV1_1_1);
+            result.Should().BeEquivalentTo(s_configV1_1_1_AfterMigration);
         }
 
         [Fact]
@@ -358,7 +361,7 @@ public class SystemConfigurationPersistenceTests
         {
             _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new(s_jsonConfigV1_3_0));
             var result = await _persistence.LoadPreparationConfiguration(CancellationToken.None);
-            result.Should().BeEquivalentTo(s_configV1_3_0);
+            result.Should().BeEquivalentTo(s_configV1_3_0_AfterMigration);
         }
     }
 
@@ -487,15 +490,13 @@ public class SystemConfigurationPersistenceTests
                 },
                 NetworkProxySettings = new()
                 {
-                    DoNotProxyList = ["InternalProxy"],
-                    DoNotProxyListEnabled = true,
                     FTP = new()
                     {
                         Enabled = true,
                         Password = "ftpPassword",
                         Port = 21,
                         Server = "ftpServer",
-                        Username = "ftpUser",
+                        Username = "ftpUser"
                     },
                     HTTP = new()
                     {
@@ -503,7 +504,7 @@ public class SystemConfigurationPersistenceTests
                         Password = "httpPassword",
                         Port = 80,
                         Server = "httpServer",
-                        Username = "httpUser",
+                        Username = "httpUser"
                     },
                     HTTPS = new()
                     {
@@ -511,7 +512,7 @@ public class SystemConfigurationPersistenceTests
                         Password = "httpsPassword",
                         Port = 443,
                         Server = "httpsServer",
-                        Username = "httpsUser",
+                        Username = "httpsUser"
                     },
                     SFTP = new()
                     {
@@ -519,7 +520,7 @@ public class SystemConfigurationPersistenceTests
                         Password = "sftpPassword",
                         Port = 22,
                         Server = "sftpServer",
-                        Username = "sftpUser",
+                        Username = "sftpUser"
                     },
                     SOCKS = new()
                     {
@@ -527,8 +528,13 @@ public class SystemConfigurationPersistenceTests
                         Password = "socksPassword",
                         Port = 1080,
                         Server = "socksServer",
-                        Username = "socksUser",
+                        Username = "socksUser"
                     },
+                    NoProxy = new()
+                    {
+                        Enabled = true,
+                        Entries = ["InternalProxy"]
+                    }
                 },
                 NetworkNTPSettings = new()
                 {
@@ -629,10 +635,12 @@ public class SystemConfigurationPersistenceTests
                   "Username": "socksUser",
                   "Password": "socksPassword"
                 },
-                "DoNotProxyListEnabled": true,
-                "DoNotProxyList": [
-                  "InternalProxy"
-                ]
+                "NoProxy": {
+                  "Enabled": true,
+                  "Entries": [
+                    "InternalProxy"
+                  ]
+                }
               },
               "NetworkNTPSettings": {
                 "Enabled": true,

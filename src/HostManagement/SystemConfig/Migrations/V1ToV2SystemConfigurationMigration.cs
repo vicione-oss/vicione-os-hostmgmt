@@ -103,8 +103,9 @@ internal sealed class V1ToV2SystemConfigurationMigration
             FTP = source.FTP.MapOrNull(MigrateNetworkProxyDetail),
             SFTP = source.SFTP.MapOrNull(MigrateNetworkProxyDetail),
             SOCKS = source.SOCKS.MapOrNull(MigrateNetworkProxyDetail),
-            DoNotProxyListEnabled = source.DoNotProxyListEnabled,
-            DoNotProxyList = source.DoNotProxyList.CopyListOrNull()
+
+            // DoNotProxyListEnabled and DoNotProxyList were grouped into NoProxy.
+            NoProxy = source.MapOrNull(MigrateNoProxySettings)
         };
 
     private static CurrentContracts.NetworkProxyDetail MigrateNetworkProxyDetail(V1Contracts.NetworkProxyDetail source)
@@ -115,6 +116,13 @@ internal sealed class V1ToV2SystemConfigurationMigration
             Port = source.Port,
             Username = source.Username,
             Password = source.Password
+        };
+
+    private static CurrentContracts.NoProxySettings MigrateNoProxySettings(V1Contracts.NetworkProxySettings source)
+        => new()
+        {
+            Enabled = source.DoNotProxyListEnabled,
+            Entries = source.DoNotProxyList.CopyListOrNull()
         };
 
     private static CurrentContracts.NetworkNTPSettings MigrateNetworkNTPSettings(V1Contracts.NetworkNTPSettings source)
