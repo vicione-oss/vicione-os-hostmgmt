@@ -1,4 +1,4 @@
-﻿using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.SearchDomains;
@@ -6,31 +6,29 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.SearchDo
 /// <summary>
 /// Represents the DNS search domains clear command.
 /// </summary>
-internal sealed class DNSSearchDomainsClearCommand : ConfigCommandBase
+internal sealed class SearchDomainsClearCommand : ConfigCommandBase
 {
     /// <summary>
-    /// Initializes a new <see cref="DNSSearchDomainsClearCommand"/>.
+    /// Initializes a new <see cref="SearchDomainsClearCommand"/>.
     /// </summary>
-    public DNSSearchDomainsClearCommand() : base(
+    public SearchDomainsClearCommand() : base(
         CommandLineStrings_Common.ClearCommandName,
         CommandLineStrings_DNS.DNSSearchDomainsClearCommandDescription)
-    {
-        SetAction((parseResult, cancellationToken) => ClearHandler(cancellationToken));
-    }
+            => SetAction((parseResult, cancellationToken) => ClearHandler(cancellationToken));
 
     private static async Task ClearHandler(CancellationToken cancellationToken)
     {
         if (await GetConfiguration(cancellationToken) is not SystemConfiguration config)
             return;
 
-        if (config.NetworkDNSSettings.SearchDomains.Count == 0)
+        if (config.NetworkDNSSettings.SearchDomains.Domains.Count == 0)
         {
             SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.SearchDomainsNotConfigured);
             return;
         }
 
-        config.NetworkDNSSettings.SearchDomains.Clear();
-        config.NetworkDNSSettings.SearchDomainsEnabled = false;
+        config.NetworkDNSSettings.SearchDomains.Domains.Clear();
+        config.NetworkDNSSettings.SearchDomains.Enabled = false;
 
         if (!await SetConfiguration(config, cancellationToken))
             return;

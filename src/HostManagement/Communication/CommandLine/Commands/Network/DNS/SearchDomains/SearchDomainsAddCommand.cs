@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 
@@ -7,13 +7,13 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.SearchDo
 /// <summary>
 /// Represents the DNS search domains add command.
 /// </summary>
-internal sealed class DNSSearchDomainsAddCommand : ConfigCommandBase
+internal sealed class SearchDomainsAddCommand : ConfigCommandBase
 {
     /// <summary>
-    /// Initializes a new <see cref="DNSSearchDomainsAddCommand"/>.
+    /// Initializes a new <see cref="SearchDomainsAddCommand"/>.
     /// </summary>
     /// <param name="searchDomainsOption">The search domains option.</param>
-    public DNSSearchDomainsAddCommand(Option<string[]> searchDomainsOption) : base(
+    public SearchDomainsAddCommand(Option<string[]> searchDomainsOption) : base(
         CommandLineStrings_Common.AddCommandName,
         CommandLineStrings_DNS.DNSSearchDomainsAddCommandDescription)
     {
@@ -37,13 +37,13 @@ internal sealed class DNSSearchDomainsAddCommand : ConfigCommandBase
 
         foreach (var searchDomain in searchDomains)
         {
-            if (config.NetworkDNSSettings.SearchDomains.Contains(searchDomain))
+            if (config.NetworkDNSSettings.SearchDomains.Domains.Contains(searchDomain))
             {
                 output.WithInformation(CommandLineStrings_DNS.SearchDomainAlreadyDefined, searchDomain);
                 continue;
             }
 
-            config.NetworkDNSSettings.SearchDomains.Add(searchDomain);
+            config.NetworkDNSSettings.SearchDomains.Domains.Add(searchDomain);
             output.With(searchDomain);
 
             hasAddedSearchDomain = true;
@@ -60,7 +60,7 @@ internal sealed class DNSSearchDomainsAddCommand : ConfigCommandBase
 
             output.WithTitle(title);
 
-            if (!config.NetworkDNSSettings.SearchDomainsEnabled)
+            if (!config.NetworkDNSSettings.SearchDomains.Enabled)
                 output.WithWarning(CommandLineStrings_DNS.SearchDomainsCurrentlyDisabled);
         }
 

@@ -1,4 +1,4 @@
-﻿using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.SearchDomains;
@@ -6,36 +6,34 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.SearchDo
 /// <summary>
 /// Represents the DNS search domains enable command.
 /// </summary>
-internal sealed class DNSSearchDomainsEnableCommand : ConfigCommandBase
+internal sealed class SearchDomainsEnableCommand : ConfigCommandBase
 {
     /// <summary>
-    /// Initializes a new <see cref="DNSSearchDomainsEnableCommand"/>.
+    /// Initializes a new <see cref="SearchDomainsEnableCommand"/>.
     /// </summary>
-    public DNSSearchDomainsEnableCommand() : base(
+    public SearchDomainsEnableCommand() : base(
         CommandLineStrings_Common.EnableCommandName,
         CommandLineStrings_DNS.DNSSearchDomainsEnableCommandDescription)
-    {
-        SetAction((parseResult, cancellationToken) => EnableHandler(cancellationToken));
-    }
+            => SetAction((parseResult, cancellationToken) => EnableHandler(cancellationToken));
 
     private static async Task EnableHandler(CancellationToken cancellationToken)
     {
         if (await GetConfiguration(cancellationToken) is not SystemConfiguration config)
             return;
 
-        if (config.NetworkDNSSettings.SearchDomainsEnabled)
+        if (config.NetworkDNSSettings.SearchDomains.Enabled)
         {
             SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.SearchDomainsAlreadyEnabled);
             return;
         }
 
-        if (config.NetworkDNSSettings.SearchDomains.Count == 0)
+        if (config.NetworkDNSSettings.SearchDomains.Domains.Count == 0)
         {
             SimpleOutput.WriteLineError(CommandLineStrings_DNS.SearchDomainsNotConfigured);
             return;
         }
 
-        config.NetworkDNSSettings.SearchDomainsEnabled = true;
+        config.NetworkDNSSettings.SearchDomains.Enabled = true;
 
         if (!await SetConfiguration(config, cancellationToken))
             return;

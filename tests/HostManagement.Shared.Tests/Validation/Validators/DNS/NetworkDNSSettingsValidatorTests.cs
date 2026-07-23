@@ -69,12 +69,15 @@ public class NetworkDNSSettingsValidatorTests
                 Enabled = dnsSuffixEnabled,
                 Suffix = ValidationTestData.PrimarySuffix.FQDN
             },
-            SearchDomainsEnabled = searchDomainsEnabled,
-            SearchDomains =
-            [
-                ValidationTestData.SearchDomain.Simple,
-                ValidationTestData.SearchDomain.FQDN
-            ],
+            SearchDomains = new SearchDomainsSettings()
+            {
+                Enabled = searchDomainsEnabled,
+                Domains =
+                [
+                    ValidationTestData.SearchDomain.Simple,
+                    ValidationTestData.SearchDomain.FQDN
+                ]
+            },
             NameServers = new NameServersSettings()
             {
                 Enabled = nameServersEnabled,

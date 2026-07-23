@@ -178,7 +178,7 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
         else
         {
             AppendOutputForPrimaryDNSSuffix(dnsOutput, indentationLevel + 2, lease.NetworkDNSSettings.PrimaryDNSSuffix);
-            AppendOutputForSearchDomains(dnsOutput, indentationLevel + 2, lease.NetworkDNSSettings);
+            AppendOutputForSearchDomains(dnsOutput, indentationLevel + 2, lease.NetworkDNSSettings.SearchDomains);
             AppendOutputForNameServers(dnsOutput, indentationLevel + 2, lease.NetworkDNSSettings.NameServers);
         }
     }
@@ -192,7 +192,7 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
             .WithTitle(CommandLineStrings_DNS.DNS);
 
         AppendOutputForPrimaryDNSSuffix(dnsOutput, 1, networkDNSSettings.PrimaryDNSSuffix);
-        AppendOutputForSearchDomains(dnsOutput, 1, networkDNSSettings);
+        AppendOutputForSearchDomains(dnsOutput, 1, networkDNSSettings.SearchDomains);
         AppendOutputForNameServers(dnsOutput, 1, networkDNSSettings.NameServers);
     }
 
@@ -214,16 +214,16 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
     private static void AppendOutputForSearchDomains(
         CliComplexOutputBase output,
         int indentationLevel,
-        NetworkDNSSettings networkDNSSettings)
+        SearchDomainsSettings searchDomainsSettings)
     {
         var searchDomainsOutput = output
             .AddListOutput(indentationLevel)
-            .WithTitle(CommandLineStrings_DNS.SearchDomains, networkDNSSettings.SearchDomainsEnabled);
+            .WithTitle(CommandLineStrings_DNS.SearchDomains, searchDomainsSettings.Enabled);
 
-        if (networkDNSSettings.SearchDomains.Count == 0)
+        if (searchDomainsSettings.Domains.Count == 0)
             searchDomainsOutput.With(CliOutputBase.NotSetValue);
         else
-            networkDNSSettings.SearchDomains.ForEach(domain => searchDomainsOutput.With(domain));
+            searchDomainsSettings.Domains.ForEach(domain => searchDomainsOutput.With(domain));
     }
 
     private static void AppendOutputForNameServers(

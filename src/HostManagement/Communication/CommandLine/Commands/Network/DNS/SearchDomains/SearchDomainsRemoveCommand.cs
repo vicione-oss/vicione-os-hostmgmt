@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 
@@ -7,13 +7,13 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.SearchDo
 /// <summary>
 /// Represents the DNS search domains remove command.
 /// </summary>
-internal sealed class DNSSearchDomainsRemoveCommand : ConfigCommandBase
+internal sealed class SearchDomainsRemoveCommand : ConfigCommandBase
 {
     /// <summary>
-    /// Initializes a new <see cref="DNSSearchDomainsRemoveCommand"/>.
+    /// Initializes a new <see cref="SearchDomainsRemoveCommand"/>.
     /// </summary>
     /// <param name="searchDomainsOption">The search domains option.</param>
-    public DNSSearchDomainsRemoveCommand(Option<string[]> searchDomainsOption) : base(
+    public SearchDomainsRemoveCommand(Option<string[]> searchDomainsOption) : base(
         CommandLineStrings_Common.RemoveCommandName,
         CommandLineStrings_DNS.DNSSearchDomainsRemoveCommandDescription)
     {
@@ -37,13 +37,13 @@ internal sealed class DNSSearchDomainsRemoveCommand : ConfigCommandBase
 
         foreach (var searchDomain in searchDomains)
         {
-            if (!config.NetworkDNSSettings.SearchDomains.Contains(searchDomain))
+            if (!config.NetworkDNSSettings.SearchDomains.Domains.Contains(searchDomain))
             {
                 output.WithWarning(CommandLineStrings_DNS.SearchDomainNotFound, searchDomain);
                 continue;
             }
 
-            if (!config.NetworkDNSSettings.SearchDomains.Remove(searchDomain))
+            if (!config.NetworkDNSSettings.SearchDomains.Domains.Remove(searchDomain))
             {
                 output
                     .WithError(CommandLineStrings_DNS.SearchDomainCouldNotBeRemoved, searchDomain)
@@ -59,18 +59,18 @@ internal sealed class DNSSearchDomainsRemoveCommand : ConfigCommandBase
 
         if (hasRemovedSearchDomain)
         {
-            if (config.NetworkDNSSettings.SearchDomainsEnabled)
+            if (config.NetworkDNSSettings.SearchDomains.Enabled)
             {
-                if (config.NetworkDNSSettings.SearchDomains.Count == 0)
+                if (config.NetworkDNSSettings.SearchDomains.Domains.Count == 0)
                 {
-                    config.NetworkDNSSettings.SearchDomainsEnabled = false;
+                    config.NetworkDNSSettings.SearchDomains.Enabled = false;
 
                     output.WithInformation(CommandLineStrings_DNS.SearchDomainsDisabled);
                 }
             }
             else
             {
-                if (config.NetworkDNSSettings.SearchDomains.Count > 0)
+                if (config.NetworkDNSSettings.SearchDomains.Domains.Count > 0)
                 {
                     output.WithWarning(CommandLineStrings_DNS.SearchDomainsCurrentlyDisabled);
                 }

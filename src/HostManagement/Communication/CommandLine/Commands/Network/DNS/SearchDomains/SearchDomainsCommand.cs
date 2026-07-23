@@ -1,11 +1,11 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.SearchDomains;
 
 /// <summary>
 /// Represents the DNS search domains command.
 /// </summary>
-internal sealed class DNSSearchDomainsCommand : Command
+internal sealed class SearchDomainsCommand : Command
 {
     private static readonly Option<string> s_oldSearchDomainOption = new("--old-search-domain", "-o")
     {
@@ -22,19 +22,19 @@ internal sealed class DNSSearchDomainsCommand : Command
     };
 
     /// <summary>
-    /// Initializes a new <see cref="DNSSearchDomainsCommand"/>.
+    /// Initializes a new <see cref="SearchDomainsCommand"/>.
     /// </summary>
-    public DNSSearchDomainsCommand() : base(
+    public SearchDomainsCommand() : base(
         CommandLineStrings_DNS.DNSSearchDomainsCommandName,
         CommandLineStrings_DNS.DNSSearchDomainsCommandDescription)
     {
-        Add(new DNSSearchDomainsEnableCommand());
-        Add(new DNSSearchDomainsDisableCommand());
-        Add(new DNSSearchDomainsListCommand());
-        Add(new DNSSearchDomainsAddCommand(CommonOptions.s_itemsOption));
-        Add(new DNSSearchDomainsRemoveCommand(CommonOptions.s_itemsOption));
-        Add(new DNSSearchDomainsSetCommand(CommonOptions.s_itemsOption));
-        Add(new DNSSearchDomainsClearCommand());
-        Add(new DNSSearchDomainsModifyCommand(s_oldSearchDomainOption, s_newSearchDomainOption));
+        Add(new SearchDomainsEnableCommand());
+        Add(new SearchDomainsDisableCommand());
+        Add(new SearchDomainsListCommand());
+        Add(new SearchDomainsAddCommand(CommonOptions.s_itemsOption));
+        Add(new SearchDomainsRemoveCommand(CommonOptions.s_itemsOption));
+        Add(new SearchDomainsSetCommand(CommonOptions.s_itemsOption));
+        Add(new SearchDomainsClearCommand());
+        Add(new SearchDomainsModifyCommand(s_oldSearchDomainOption, s_newSearchDomainOption));
     }
 }

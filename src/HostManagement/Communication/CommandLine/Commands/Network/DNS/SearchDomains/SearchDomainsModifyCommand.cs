@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 
@@ -7,14 +7,14 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.SearchDo
 /// <summary>
 /// Represents the DNS search domains modify command.
 /// </summary>
-internal sealed class DNSSearchDomainsModifyCommand : ConfigCommandBase
+internal sealed class SearchDomainsModifyCommand : ConfigCommandBase
 {
     /// <summary>
-    /// Initializes a new <see cref="DNSSearchDomainsModifyCommand"/>.
+    /// Initializes a new <see cref="SearchDomainsModifyCommand"/>.
     /// </summary>
     /// <param name="oldSearchDomainOption">The old search domain option.</param>
     /// <param name="newSearchDomainOption">The new search domain option.</param>
-    public DNSSearchDomainsModifyCommand(
+    public SearchDomainsModifyCommand(
         Option<string> oldSearchDomainOption,
         Option<string> newSearchDomainOption)
         : base(
@@ -33,38 +33,35 @@ internal sealed class DNSSearchDomainsModifyCommand : ConfigCommandBase
         });
     }
 
-    private static async Task ModifyHandler(
-        string oldSearchDomain,
-        string newSearchDomain,
-        CancellationToken cancellationToken)
+    private static async Task ModifyHandler(string oldDomain, string newDomain, CancellationToken cancellationToken)
     {
         if (await GetConfiguration(cancellationToken) is not SystemConfiguration config)
             return;
 
-        var searchDomains = config.NetworkDNSSettings.SearchDomains;
+        var domains = config.NetworkDNSSettings.SearchDomains.Domains;
 
-        if (searchDomains.Contains(newSearchDomain))
+        if (domains.Contains(newDomain))
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.SearchDomainAlreadyDefined, newSearchDomain);
+            SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.SearchDomainAlreadyDefined, newDomain);
             return;
         }
 
-        var index = searchDomains.IndexOf(oldSearchDomain);
+        var index = domains.IndexOf(oldDomain);
 
         if (index == -1)
         {
-            SimpleOutput.WriteLineError(CommandLineStrings_DNS.SearchDomainNotFound, oldSearchDomain);
+            SimpleOutput.WriteLineError(CommandLineStrings_DNS.SearchDomainNotFound, oldDomain);
             return;
         }
 
-        searchDomains[index] = newSearchDomain;
+        domains[index] = newDomain;
 
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        if (!config.NetworkDNSSettings.SearchDomainsEnabled)
+        if (!config.NetworkDNSSettings.SearchDomains.Enabled)
             SimpleOutput.WriteLineWarning(CommandLineStrings_DNS.SearchDomainsCurrentlyDisabled);
 
-        SimpleOutput.WriteLine(CommandLineStrings_DNS.SearchDomainModified, oldSearchDomain, newSearchDomain);
+        SimpleOutput.WriteLine(CommandLineStrings_DNS.SearchDomainModified, oldDomain, newDomain);
     }
 }

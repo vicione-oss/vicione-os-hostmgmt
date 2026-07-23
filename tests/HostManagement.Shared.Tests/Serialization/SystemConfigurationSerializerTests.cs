@@ -72,8 +72,11 @@ public class SystemConfigurationSerializerTests
                 Suffix = "dnsSuffix"
 
             },
-            SearchDomainsEnabled = true,
-            SearchDomains = ["searchDomain"]
+            SearchDomains = new()
+            {
+                Enabled = true,
+                Domains = ["searchDomain"]
+            }
         },
         NetworkProxySettings = new()
         {
@@ -192,10 +195,12 @@ public class SystemConfigurationSerializerTests
               "Enabled": true,
               "Suffix": "dnsSuffix"
             },
-            "SearchDomainsEnabled": true,
-            "SearchDomains": [
-              "searchDomain"
-            ]
+            "SearchDomains": {
+              "Enabled": true,
+              "Domains": [
+                "searchDomain"
+              ]
+            }
           },
           "NetworkProxySettings": {
             "FTP": {

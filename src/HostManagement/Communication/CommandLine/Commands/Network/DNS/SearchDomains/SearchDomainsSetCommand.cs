@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 
@@ -7,13 +7,13 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.SearchDo
 /// <summary>
 /// Represents the DNS search domains set command.
 /// </summary>
-internal sealed class DNSSearchDomainsSetCommand : ConfigCommandBase
+internal sealed class SearchDomainsSetCommand : ConfigCommandBase
 {
     /// <summary>
-    /// Initializes a new <see cref="DNSSearchDomainsSetCommand"/>.
+    /// Initializes a new <see cref="SearchDomainsSetCommand"/>.
     /// </summary>
     /// <param name="searchDomainsOption">The search domains option.</param>
-    public DNSSearchDomainsSetCommand(Option<string[]> searchDomainsOption) : base(
+    public SearchDomainsSetCommand(Option<string[]> searchDomainsOption) : base(
         CommandLineStrings_Common.SetCommandName,
         CommandLineStrings_DNS.DNSSearchDomainsSetCommandDescription)
     {
@@ -32,13 +32,13 @@ internal sealed class DNSSearchDomainsSetCommand : ConfigCommandBase
         if (await GetConfiguration(cancellationToken) is not SystemConfiguration config)
             return;
 
-        config.NetworkDNSSettings.SearchDomains.Clear();
+        config.NetworkDNSSettings.SearchDomains.Domains.Clear();
 
         var output = new ListOutput();
 
         foreach (var searchDomain in searchDomains)
         {
-            config.NetworkDNSSettings.SearchDomains.Add(searchDomain);
+            config.NetworkDNSSettings.SearchDomains.Domains.Add(searchDomain);
             output.With(searchDomain);
         }
 
@@ -51,7 +51,7 @@ internal sealed class DNSSearchDomainsSetCommand : ConfigCommandBase
 
         output.WithTitle(title);
 
-        if (!config.NetworkDNSSettings.SearchDomainsEnabled)
+        if (!config.NetworkDNSSettings.SearchDomains.Enabled)
             output.WithWarning(CommandLineStrings_DNS.SearchDomainsCurrentlyDisabled);
 
         output.WriteLine();

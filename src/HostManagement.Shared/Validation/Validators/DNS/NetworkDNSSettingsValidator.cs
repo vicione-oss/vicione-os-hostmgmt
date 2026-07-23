@@ -44,11 +44,11 @@ public sealed class NetworkDNSSettingsValidator : IValidator<NetworkDNSSettings>
                         .ConfigureAwait(false));
             }
 
-            if (dnsSettings.SearchDomainsEnabled)
+            if (dnsSettings.SearchDomains.Enabled)
             {
                 result.AddResult(
                     await new SearchDomainsValidator()
-                        .ValidateAsync(dnsSettings.SearchDomains, cancellationToken)
+                        .ValidateAsync(dnsSettings.SearchDomains.Domains, cancellationToken)
                         .ConfigureAwait(false));
             }
 

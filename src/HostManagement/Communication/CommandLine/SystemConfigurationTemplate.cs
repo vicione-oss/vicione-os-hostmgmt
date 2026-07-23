@@ -107,7 +107,10 @@ internal static class SystemConfigurationTemplate
                 {
                     Suffix = "myCompany.com"
                 },
-                SearchDomains = ["local", "myCompany.com"]
+                SearchDomains = new()
+                {
+                    Domains = ["local", "myCompany.com"]
+                }
             },
             NetworkProxySettings = new()
             {

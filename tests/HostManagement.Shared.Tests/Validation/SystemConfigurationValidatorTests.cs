@@ -82,12 +82,15 @@ public class SystemConfigurationValidatorTests
                     Enabled = true,
                     Suffix = ValidationTestData.PrimarySuffix.FQDN
                 },
-                SearchDomainsEnabled = true,
-                SearchDomains =
-                [
-                    ValidationTestData.SearchDomain.Simple,
-                    ValidationTestData.SearchDomain.FQDN
-                ],
+                SearchDomains = new()
+                {
+                    Enabled = true,
+                    Domains =
+                    [
+                        ValidationTestData.SearchDomain.Simple,
+                        ValidationTestData.SearchDomain.FQDN
+                    ]
+                },
                 NameServers = new()
                 {
                     Enabled = true,

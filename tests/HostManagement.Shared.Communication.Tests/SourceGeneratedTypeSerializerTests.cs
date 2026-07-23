@@ -38,10 +38,12 @@ public class SourceGeneratedTypeSerializerTests
               "Enabled": true,
               "Suffix": "dnsSuffix"
             },
-            "SearchDomainsEnabled": true,
-            "SearchDomains": [
-              "searchDomain"
-            ]
+            "SearchDomains": {
+              "Enabled": true,
+              "Domains": [
+                "searchDomain"
+              ]
+            }
           },
           "IPv4Detail": {
             "IPAddress": "120.86.52.18",
@@ -120,10 +122,12 @@ public class SourceGeneratedTypeSerializerTests
               "Enabled": true,
               "Suffix": "dnsSuffix"
             },
-            "SearchDomainsEnabled": true,
-            "SearchDomains": [
-              "searchDomain"
-            ]
+            "SearchDomains": {
+              "Enabled": true,
+              "Domains": [
+                "searchDomain"
+              ]
+            }
           },
           "NetworkProxySettings": {
             "FTP": {

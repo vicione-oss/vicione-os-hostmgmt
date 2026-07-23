@@ -25,6 +25,6 @@ internal sealed class DNSCommand : Command
         Add(new StaticHostsCommand());
         Add(new NameServersCommand());
         Add(new PrimaryDNSSuffixCommand());
-        Add(new DNSSearchDomainsCommand());
+        Add(new SearchDomainsCommand());
     }
 }

@@ -97,8 +97,7 @@ internal static class ContractsTranslator
 
     private static SharedNetwork.NetworkDNSSettings ToSharedContracts(this NetworkDNSSettings intern)
     {
-        var networkDnsSettings = new SharedNetwork.NetworkDNSSettings(
-            intern.SearchDomains?.Domains?.ToList());
+        var networkDnsSettings = new SharedNetwork.NetworkDNSSettings();
 
         if (intern.Hostname is { } hostname)
             networkDnsSettings.Hostname = hostname;
@@ -115,8 +114,8 @@ internal static class ContractsTranslator
         if (intern.PrimaryDNSSuffix is { } primaryDnsSuffix)
             networkDnsSettings.PrimaryDNSSuffix = primaryDnsSuffix.ToSharedContracts();
 
-        if (intern.SearchDomains?.Enabled is { } searchDomainsEnabled)
-            networkDnsSettings.SearchDomainsEnabled = searchDomainsEnabled;
+        if (intern.SearchDomains is { } searchDomains)
+            networkDnsSettings.SearchDomains = searchDomains.ToSharedContracts();
 
         return networkDnsSettings;
     }
@@ -163,6 +162,18 @@ internal static class ContractsTranslator
             primaryDNSSuffixSettings.Suffix = suffix;
 
         return primaryDNSSuffixSettings;
+    }
+
+    private static SharedNetwork.SearchDomainsSettings ToSharedContracts(this SearchDomainsSettings intern)
+    {
+        var searchDomainsSettings = intern.Domains is { } domains
+            ? new SharedNetwork.SearchDomainsSettings() { Domains = [.. domains] }
+            : new SharedNetwork.SearchDomainsSettings();
+
+        if (intern.Enabled is { } enabled)
+            searchDomainsSettings.Enabled = enabled;
+
+        return searchDomainsSettings;
     }
 
     private static SharedNetwork.NetworkProxySettings ToSharedContracts(this NetworkProxySettings intern)
@@ -274,7 +285,7 @@ internal static class ContractsTranslator
             StaticHosts = shared.StaticHosts.ToInternalContracts(),
             NameServers = shared.NameServers.ToInternalContracts(),
             PrimaryDNSSuffix = shared.PrimaryDNSSuffix.ToInternalContracts(),
-            SearchDomains = ToInternalContracts(shared.SearchDomainsEnabled, shared.SearchDomains)
+            SearchDomains = shared.SearchDomains.ToInternalContracts()
         };
 
     private static StaticHostsSettings ToInternalContracts(this SharedNetwork.StaticHostsSettings shared)
@@ -305,11 +316,11 @@ internal static class ContractsTranslator
             Suffix = shared.Suffix
         };
 
-    private static SearchDomainsSettings ToInternalContracts(bool enabled, List<string> searchDomains)
+    private static SearchDomainsSettings ToInternalContracts(this SharedNetwork.SearchDomainsSettings shared)
         => new()
         {
-            Enabled = enabled,
-            Domains = [.. searchDomains]
+            Enabled = shared.Enabled,
+            Domains = [.. shared.Domains]
         };
 
     private static IPv4Detail ToInternalContracts(this SharedNetwork.IPv4Detail shared)
