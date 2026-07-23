@@ -91,11 +91,14 @@ internal static class SystemConfigurationTemplate
             NetworkDNSSettings = new()
             {
                 Hostname = "hostname",
-                StaticHosts =
-                [
-                    new() { Hostname = "staticHost1", IPAddress = ipv4Template1 },
-                    new() { Hostname = "staticHost2", IPAddress = ipv4Template2 }
-                ],
+                StaticHosts = new()
+                {
+                    Hosts =
+                    [
+                        new() { Hostname = "staticHost1", IPAddress = ipv4Template1 },
+                        new() { Hostname = "staticHost2", IPAddress = ipv4Template2 }
+                    ]
+                },
                 NameServers = [ipv4Template1, ipv4Template2],
                 DNSSuffix = "myCompany.com",
                 SearchDomains = ["local", "myCompany.com"]

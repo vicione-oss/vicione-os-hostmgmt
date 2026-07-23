@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using AwesomeAssertions;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Validation;
@@ -57,12 +57,15 @@ public class NetworkDNSSettingsValidatorTests
             Hostname = ValidationTestData.Hostname.Simple,
             DNSSuffixEnabled = dnsSuffixEnabled,
             DNSSuffix = ValidationTestData.PrimarySuffix.FQDN,
-            StaticHostsEnabled = staticHostsEnabled,
-            StaticHosts =
-            [
-                ValidationTestData.StaticHost.StaticHost1,
-                ValidationTestData.StaticHost.StaticHost2
-            ],
+            StaticHosts = new StaticHostsSettings()
+            {
+                Enabled = staticHostsEnabled,
+                Hosts =
+                [
+                    ValidationTestData.StaticHost.StaticHost1,
+                    ValidationTestData.StaticHost.StaticHost2
+                ]
+            },
             SearchDomainsEnabled = searchDomainsEnabled,
             SearchDomains =
             [

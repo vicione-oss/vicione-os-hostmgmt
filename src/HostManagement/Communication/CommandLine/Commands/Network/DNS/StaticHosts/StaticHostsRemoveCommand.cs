@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using System.Net;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
@@ -9,14 +9,14 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.StaticHo
 /// <summary>
 /// Represents the static hosts remove command.
 /// </summary>
-internal sealed class DNSStaticHostsRemoveCommand : ConfigCommandBase
+internal sealed class StaticHostsRemoveCommand : ConfigCommandBase
 {
     /// <summary>
-    /// Initializes a new <see cref="DNSStaticHostsRemoveCommand"/>.
+    /// Initializes a new <see cref="StaticHostsRemoveCommand"/>.
     /// </summary>
     /// <param name="addressOption">The IP address option.</param>
     /// <param name="hostnameOption">The hostname option.</param>
-    public DNSStaticHostsRemoveCommand(Option<IPAddress> addressOption, Option<string> hostnameOption) : base(
+    public StaticHostsRemoveCommand(Option<IPAddress> addressOption, Option<string> hostnameOption) : base(
         CommandLineStrings_Common.RemoveCommandName,
         CommandLineStrings_DNS.DNSStaticHostsRemoveCommandDescription)
     {
@@ -45,7 +45,7 @@ internal sealed class DNSStaticHostsRemoveCommand : ConfigCommandBase
 
         var output = new TableOutput();
 
-        if (!config.NetworkDNSSettings.StaticHosts.Contains(staticHostToRemove))
+        if (!config.NetworkDNSSettings.StaticHosts.Hosts.Contains(staticHostToRemove))
         {
             output
                 .WithWarning(CommandLineStrings_DNS.StaticHostNotFound, address, hostname)
@@ -54,7 +54,7 @@ internal sealed class DNSStaticHostsRemoveCommand : ConfigCommandBase
             return;
         }
 
-        if (!config.NetworkDNSSettings.StaticHosts.Remove(staticHostToRemove))
+        if (!config.NetworkDNSSettings.StaticHosts.Hosts.Remove(staticHostToRemove))
         {
             output
                 .WithError(CommandLineStrings_DNS.StaticHostCouldNotBeRemoved, address, hostname)
@@ -65,18 +65,18 @@ internal sealed class DNSStaticHostsRemoveCommand : ConfigCommandBase
 
         output.With(address, hostname);
 
-        if (config.NetworkDNSSettings.StaticHostsEnabled)
+        if (config.NetworkDNSSettings.StaticHosts.Enabled)
         {
-            if (config.NetworkDNSSettings.StaticHosts.Count == 0)
+            if (config.NetworkDNSSettings.StaticHosts.Hosts.Count == 0)
             {
-                config.NetworkDNSSettings.StaticHostsEnabled = false;
+                config.NetworkDNSSettings.StaticHosts.Enabled = false;
 
                 output.WithInformation(CommandLineStrings_DNS.StaticHostsDisabled);
             }
         }
         else
         {
-            if (config.NetworkDNSSettings.StaticHosts.Count > 0)
+            if (config.NetworkDNSSettings.StaticHosts.Hosts.Count > 0)
                 output.WithWarning(CommandLineStrings_DNS.StaticHostsCurrentlyDisabled);
         }
 

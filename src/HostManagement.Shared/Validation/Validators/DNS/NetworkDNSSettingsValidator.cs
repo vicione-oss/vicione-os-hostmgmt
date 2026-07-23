@@ -1,4 +1,4 @@
-﻿using HostManagement.Shared.Contracts.Network;
+using HostManagement.Shared.Contracts.Network;
 
 namespace HostManagement.Shared.Validation.Validators.DNS;
 
@@ -36,11 +36,11 @@ public sealed class NetworkDNSSettingsValidator : IValidator<NetworkDNSSettings>
                         .ConfigureAwait(false));
             }
 
-            if (dnsSettings.StaticHostsEnabled)
+            if (dnsSettings.StaticHosts.Enabled)
             {
                 result.AddResult(
                     await new StaticHostsValidator()
-                        .ValidateAsync(dnsSettings.StaticHosts, cancellationToken)
+                        .ValidateAsync(dnsSettings.StaticHosts.Hosts, cancellationToken)
                         .ConfigureAwait(false));
             }
 

@@ -56,6 +56,7 @@ public class SystemConfigurationValidatorTests
         // Arrange
         var systemConfiguration = new SystemConfiguration
         {
+            Version = 2,
             NetworkInterfacesSettings = new()
             {
                 NetworkInterfaces =
@@ -69,12 +70,15 @@ public class SystemConfigurationValidatorTests
                 Hostname = ValidationTestData.Hostname.Simple,
                 DNSSuffixEnabled = true,
                 DNSSuffix = ValidationTestData.PrimarySuffix.FQDN,
-                StaticHostsEnabled = true,
-                StaticHosts =
-                [
-                    ValidationTestData.StaticHost.StaticHost1,
-                    ValidationTestData.StaticHost.StaticHost2
-                ],
+                StaticHosts = new()
+                {
+                    Enabled = true,
+                    Hosts =
+                    [
+                        ValidationTestData.StaticHost.StaticHost1,
+                        ValidationTestData.StaticHost.StaticHost2
+                    ]
+                },
                 SearchDomainsEnabled = true,
                 SearchDomains =
                 [

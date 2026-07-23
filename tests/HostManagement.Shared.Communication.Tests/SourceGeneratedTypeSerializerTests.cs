@@ -19,13 +19,15 @@ public class SourceGeneratedTypeSerializerTests
           "NetworkDNSSettings": {
             "Hostname": "hostname",
             "MulticastDNSEnabled": true,
-            "StaticHostsEnabled": true,
-            "StaticHosts": [
-              {
-                "IPAddress": "120.86.52.18",
-                "Hostname": "statichost"
-              }
-            ],
+            "StaticHosts": {
+              "Enabled": true,
+              "Hosts": [
+                {
+                  "IPAddress": "120.86.52.18",
+                  "Hostname": "statichost"
+                }
+              ]
+            },
             "NameServersEnabled": true,
             "NameServers": [
               "120.86.52.18"
@@ -68,7 +70,7 @@ public class SourceGeneratedTypeSerializerTests
     private const string IndentedSampleSystemConfigurationJson =
         $$"""
         {
-          "Version": 1,
+          "Version": 2,
           "NetworkInterfacesSettings": {
             "NetworkInterfaces": [
               {
@@ -95,13 +97,15 @@ public class SourceGeneratedTypeSerializerTests
           "NetworkDNSSettings": {
             "Hostname": "hostname",
             "MulticastDNSEnabled": true,
-            "StaticHostsEnabled": true,
-            "StaticHosts": [
-              {
-                "IPAddress": "120.86.52.18",
-                "Hostname": "statichost"
-              }
-            ],
+            "StaticHosts": {
+              "Enabled": true,
+              "Hosts": [
+                {
+                  "IPAddress": "120.86.52.18",
+                  "Hostname": "statichost"
+                }
+              ]
+            },
             "NameServersEnabled": true,
             "NameServers": [
               "120.86.52.18"

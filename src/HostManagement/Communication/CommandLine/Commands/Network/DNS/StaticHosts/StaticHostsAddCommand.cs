@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using System.Net;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
@@ -9,14 +9,14 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.StaticHo
 /// <summary>
 /// Represents the static hosts add command.
 /// </summary>
-internal sealed class DNSStaticHostsAddCommand : ConfigCommandBase
+internal sealed class StaticHostsAddCommand : ConfigCommandBase
 {
     /// <summary>
-    /// Initializes a new <see cref="DNSStaticHostsAddCommand"/>.
+    /// Initializes a new <see cref="StaticHostsAddCommand"/>.
     /// </summary>
     /// <param name="addressOption">The IP address option.</param>
     /// <param name="hostnameOption">The hostname option.</param>
-    public DNSStaticHostsAddCommand(Option<IPAddress> addressOption, Option<string> hostnameOption) : base(
+    public StaticHostsAddCommand(Option<IPAddress> addressOption, Option<string> hostnameOption) : base(
         CommandLineStrings_Common.AddCommandName,
         CommandLineStrings_DNS.DNSStaticHostsAddCommandDescription)
     {
@@ -45,7 +45,7 @@ internal sealed class DNSStaticHostsAddCommand : ConfigCommandBase
 
         var output = new TableOutput();
 
-        if (config.NetworkDNSSettings.StaticHosts.Contains(newStaticHost))
+        if (config.NetworkDNSSettings.StaticHosts.Hosts.Contains(newStaticHost))
         {
             output
                 .WithInformation(CommandLineStrings_DNS.StaticHostAlreadyDefined, address, hostname)
@@ -54,7 +54,7 @@ internal sealed class DNSStaticHostsAddCommand : ConfigCommandBase
             return;
         }
 
-        config.NetworkDNSSettings.StaticHosts.Add(newStaticHost);
+        config.NetworkDNSSettings.StaticHosts.Hosts.Add(newStaticHost);
         output.With(address, hostname);
 
         if (!await SetConfiguration(config, cancellationToken))
@@ -62,7 +62,7 @@ internal sealed class DNSStaticHostsAddCommand : ConfigCommandBase
 
         output.WithTitle(CommandLineStrings_DNS.StaticHostAdded);
 
-        if (!config.NetworkDNSSettings.StaticHostsEnabled)
+        if (!config.NetworkDNSSettings.StaticHosts.Enabled)
             output.WithWarning(CommandLineStrings_DNS.StaticHostsCurrentlyDisabled);
 
         output.WriteLine();

@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Commands.Network.DNS.Hostname;
 using HostManagement.Communication.CommandLine.Commands.Network.DNS.Multicast;
 using HostManagement.Communication.CommandLine.Commands.Network.DNS.NameServers;
@@ -22,7 +22,7 @@ internal sealed class DNSCommand : Command
     {
         Add(new DNSHostnameCommand());
         Add(new DNSMulticastCommand());
-        Add(new DNSStaticHostsCommand());
+        Add(new StaticHostsCommand());
         Add(new DNSNameServersCommand());
         Add(new DNSSuffixCommand());
         Add(new DNSSearchDomainsCommand());

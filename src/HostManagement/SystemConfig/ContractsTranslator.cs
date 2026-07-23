@@ -96,19 +96,46 @@ internal static class ContractsTranslator
         };
 
     private static SharedNetwork.NetworkDNSSettings ToSharedContracts(this NetworkDNSSettings intern)
-        => new(
-            intern.StaticHosts?.Hosts?.Select(host => host.ToSharedContracts()).ToList(),
+    {
+        var networkDnsSettings = new SharedNetwork.NetworkDNSSettings(
             intern.NameServers?.ToList(),
-            intern.SearchDomains?.ToList())
-        {
-            Hostname = intern.Hostname ?? string.Empty,
-            MulticastDNSEnabled = intern.MulticastDNSEnabled ?? false,
-            StaticHostsEnabled = intern.StaticHosts?.Enabled ?? false,
-            NameServersEnabled = intern.NameServersEnabled ?? false,
-            DNSSuffixEnabled = intern.DNSSuffixEnabled ?? false,
-            DNSSuffix = intern.DNSSuffix ?? string.Empty,
-            SearchDomainsEnabled = intern.SearchDomainsEnabled ?? false,
-        };
+            intern.SearchDomains?.ToList());
+
+        if (intern.Hostname is { } hostname)
+            networkDnsSettings.Hostname = hostname;
+
+        if (intern.MulticastDNSEnabled is { } multicastEnabled)
+            networkDnsSettings.MulticastDNSEnabled = multicastEnabled;
+
+        if (intern.StaticHosts is { } staticHosts)
+            networkDnsSettings.StaticHosts = staticHosts.ToSharedContracts();
+
+        if (intern.NameServersEnabled is { } nameServersEnabled)
+            networkDnsSettings.NameServersEnabled = nameServersEnabled;
+
+        if (intern.DNSSuffixEnabled is { } dnsSuffixEnabled)
+            networkDnsSettings.DNSSuffixEnabled = dnsSuffixEnabled;
+
+        if (intern.DNSSuffix is { } dnsSuffix)
+            networkDnsSettings.DNSSuffix = dnsSuffix;
+
+        if (intern.SearchDomainsEnabled is { } searchDomainsEnabled)
+            networkDnsSettings.SearchDomainsEnabled = searchDomainsEnabled;
+
+        return networkDnsSettings;
+    }
+
+    private static SharedNetwork.StaticHostsSettings ToSharedContracts(this StaticHostsSettings intern)
+    {
+        var staticHostsSettings = intern.Hosts is { } hosts
+            ? new SharedNetwork.StaticHostsSettings() { Hosts = [.. hosts.Select(host => host.ToSharedContracts())] }
+            : new SharedNetwork.StaticHostsSettings();
+
+        if (intern.Enabled is { } enabled)
+            staticHostsSettings.Enabled = enabled;
+
+        return staticHostsSettings;
+    }
 
     private static SharedNetwork.StaticHostDetail ToSharedContracts(this StaticHostDetail intern)
         => new()
@@ -223,7 +250,7 @@ internal static class ContractsTranslator
         {
             Hostname = shared.Hostname,
             MulticastDNSEnabled = shared.MulticastDNSEnabled,
-            StaticHosts = ToInternalContracts(shared.StaticHostsEnabled, shared.StaticHosts),
+            StaticHosts = shared.StaticHosts.ToInternalContracts(),
             NameServersEnabled = shared.NameServersEnabled,
             NameServers = [.. shared.NameServers],
             DNSSuffixEnabled = shared.DNSSuffixEnabled,
@@ -232,11 +259,11 @@ internal static class ContractsTranslator
             SearchDomains = [.. shared.SearchDomains],
         };
 
-    private static StaticHostsSettings ToInternalContracts(bool enabled, List<SharedNetwork.StaticHostDetail> hosts)
+    private static StaticHostsSettings ToInternalContracts(this SharedNetwork.StaticHostsSettings shared)
         => new()
         {
-            Enabled = enabled,
-            Hosts = [.. hosts.Select(host => host.ToInternalContracts())]
+            Enabled = shared.Enabled,
+            Hosts = [.. shared.Hosts.Select(host => host.ToInternalContracts())]
         };
 
     private static StaticHostDetail ToInternalContracts(this SharedNetwork.StaticHostDetail shared)

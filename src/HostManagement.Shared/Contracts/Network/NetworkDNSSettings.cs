@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text.Json.Serialization;
 using HostManagement.Shared.Extensions;
 
@@ -14,11 +14,9 @@ public sealed record NetworkDNSSettings
     /// </summary>
     [JsonConstructor]
     public NetworkDNSSettings(
-        List<StaticHostDetail>? staticHosts = null,
         List<IPAddress>? nameServers = null,
         List<string>? searchDomains = null)
     {
-        StaticHosts = staticHosts ?? [];
         NameServers = nameServers ?? [];
         SearchDomains = searchDomains ?? [];
     }
@@ -40,14 +38,9 @@ public sealed record NetworkDNSSettings
     public bool MulticastDNSEnabled { get; set; }
 
     /// <summary>
-    /// Determines whether static hosts are enabled.
+    /// The <see cref="StaticHostsSettings"/>.
     /// </summary>
-    public bool StaticHostsEnabled { get; set; }
-
-    /// <summary>
-    /// The list of static host details.
-    /// </summary>
-    public List<StaticHostDetail> StaticHosts { get; init; }
+    public StaticHostsSettings StaticHosts { get; set; } = new();
 
     /// <summary>
     /// Determines whether the DNS name servers are enabled.
@@ -90,8 +83,7 @@ public sealed record NetworkDNSSettings
 
         hashCode.Add(Hostname);
         hashCode.Add(MulticastDNSEnabled);
-        hashCode.Add(StaticHostsEnabled);
-        hashCode.Add(StaticHosts.GetSequenceHashCode());
+        hashCode.Add(StaticHosts);
         hashCode.Add(NameServersEnabled);
         hashCode.Add(NameServers.GetSequenceHashCode());
         hashCode.Add(DNSSuffixEnabled);
@@ -107,8 +99,7 @@ public sealed record NetworkDNSSettings
         other is not null &&
         Hostname.Equals(other.Hostname) &&
         MulticastDNSEnabled.Equals(other.MulticastDNSEnabled) &&
-        StaticHostsEnabled.Equals(other.StaticHostsEnabled) &&
-        StaticHosts.SequenceEqual(other.StaticHosts) &&
+        StaticHosts.Equals(other.StaticHosts) &&
         NameServersEnabled.Equals(other.NameServersEnabled) &&
         NameServers.SequenceEqual(other.NameServers) &&
         DNSSuffixEnabled.Equals(other.DNSSuffixEnabled) &&
