@@ -85,12 +85,15 @@ public class SystemConfigurationValidatorTests
                     ValidationTestData.SearchDomain.Simple,
                     ValidationTestData.SearchDomain.FQDN
                 ],
-                NameServersEnabled = true,
-                NameServers =
-                [
-                    IPAddress.Parse(ValidationTestData.NameServer.IPv4),
-                    IPAddress.Parse(ValidationTestData.NameServer.IPv6)
-                ]
+                NameServers = new()
+                {
+                    Enabled = true,
+                    Addresses =
+                    [
+                        IPAddress.Parse(ValidationTestData.NameServer.IPv4),
+                        IPAddress.Parse(ValidationTestData.NameServer.IPv6)
+                    ]
+                }
             },
             NetworkProxySettings = new NetworkProxySettings() with
             {

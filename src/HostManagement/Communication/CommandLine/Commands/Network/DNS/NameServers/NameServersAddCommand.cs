@@ -1,5 +1,5 @@
-﻿using System.Net;
 using System.CommandLine;
+using System.Net;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 
@@ -8,13 +8,13 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.NameServ
 /// <summary>
 /// Represents the DNS name servers add command.
 /// </summary>
-internal sealed class DNSNameServersAddCommand : ConfigCommandBase
+internal sealed class NameServersAddCommand : ConfigCommandBase
 {
     /// <summary>
-    /// Initializes a new <see cref="DNSNameServersAddCommand"/>.
+    /// Initializes a new <see cref="NameServersAddCommand"/>.
     /// </summary>
     /// <param name="nameServersOption">The name servers option.</param>
-    public DNSNameServersAddCommand(Option<IPAddress[]> nameServersOption) : base(
+    public NameServersAddCommand(Option<IPAddress[]> nameServersOption) : base(
         CommandLineStrings_Common.AddCommandName,
         CommandLineStrings_DNS.DNSNameServersAddCommandDescription)
     {
@@ -28,29 +28,29 @@ internal sealed class DNSNameServersAddCommand : ConfigCommandBase
         });
     }
 
-    private static async Task AddHandler(IPAddress[] nameServers, CancellationToken cancellationToken)
+    private static async Task AddHandler(IPAddress[] addresses, CancellationToken cancellationToken)
     {
         if (await GetConfiguration(cancellationToken) is not SystemConfiguration config)
             return;
 
-        var hasAddedNameServer = false;
+        var hasAddedAddress = false;
         var output = new ListOutput();
 
-        foreach (var nameServer in nameServers)
+        foreach (var address in addresses)
         {
-            if (config.NetworkDNSSettings.NameServers.Contains(nameServer))
+            if (config.NetworkDNSSettings.NameServers.Addresses.Contains(address))
             {
-                output.WithInformation(CommandLineStrings_DNS.NameServerAlreadyDefined, nameServer);
+                output.WithInformation(CommandLineStrings_DNS.NameServerAlreadyDefined, address);
                 continue;
             }
 
-            config.NetworkDNSSettings.NameServers.Add(nameServer);
-            output.With(nameServer);
+            config.NetworkDNSSettings.NameServers.Addresses.Add(address);
+            output.With(address);
 
-            hasAddedNameServer = true;
+            hasAddedAddress = true;
         }
 
-        if (hasAddedNameServer)
+        if (hasAddedAddress)
         {
             if (!await SetConfiguration(config, cancellationToken))
                 return;
@@ -61,7 +61,7 @@ internal sealed class DNSNameServersAddCommand : ConfigCommandBase
 
             output.WithTitle(title);
 
-            if (!config.NetworkDNSSettings.NameServersEnabled)
+            if (!config.NetworkDNSSettings.NameServers.Enabled)
                 output.WithWarning(CommandLineStrings_DNS.NameServersCurrentlyDisabled);
         }
 

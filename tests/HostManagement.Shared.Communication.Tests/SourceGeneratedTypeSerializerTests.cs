@@ -28,10 +28,12 @@ public class SourceGeneratedTypeSerializerTests
                 }
               ]
             },
-            "NameServersEnabled": true,
-            "NameServers": [
-              "120.86.52.18"
-            ],
+            "NameServers": {
+              "Enabled": true,
+              "Addresses": [
+                "120.86.52.18"
+              ]
+            },
             "DNSSuffixEnabled": true,
             "DNSSuffix": "dnsSuffix",
             "SearchDomainsEnabled": true,
@@ -106,10 +108,12 @@ public class SourceGeneratedTypeSerializerTests
                 }
               ]
             },
-            "NameServersEnabled": true,
-            "NameServers": [
-              "120.86.52.18"
-            ],
+            "NameServers": {
+              "Enabled": true,
+              "Addresses": [
+                "120.86.52.18"
+              ]
+            },
             "DNSSuffixEnabled": true,
             "DNSSuffix": "dnsSuffix",
             "SearchDomainsEnabled": true,

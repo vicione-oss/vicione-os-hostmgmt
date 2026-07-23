@@ -1,4 +1,3 @@
-using System.Net;
 using HostManagement.SystemConfig.Contracts;
 using SharedContracts = HostManagement.Shared.Contracts;
 using SharedNetwork = HostManagement.Shared.Contracts.Network;
@@ -99,7 +98,6 @@ internal static class ContractsTranslator
     private static SharedNetwork.NetworkDNSSettings ToSharedContracts(this NetworkDNSSettings intern)
     {
         var networkDnsSettings = new SharedNetwork.NetworkDNSSettings(
-            intern.NameServers?.Addresses?.ToList(),
             intern.SearchDomains?.ToList());
 
         if (intern.Hostname is { } hostname)
@@ -111,8 +109,8 @@ internal static class ContractsTranslator
         if (intern.StaticHosts is { } staticHosts)
             networkDnsSettings.StaticHosts = staticHosts.ToSharedContracts();
 
-        if (intern.NameServers?.Enabled is { } nameServersEnabled)
-            networkDnsSettings.NameServersEnabled = nameServersEnabled;
+        if (intern.NameServers is { } nameServers)
+            networkDnsSettings.NameServers = nameServers.ToSharedContracts();
 
         if (intern.DNSSuffixEnabled is { } dnsSuffixEnabled)
             networkDnsSettings.DNSSuffixEnabled = dnsSuffixEnabled;
@@ -144,6 +142,18 @@ internal static class ContractsTranslator
             Hostname = intern.Hostname,
             IPAddress = intern.IPAddress
         };
+
+    private static SharedNetwork.NameServersSettings ToSharedContracts(this NameServersSettings intern)
+    {
+        var nameServersSettings = intern.Addresses is { } addresses
+            ? new SharedNetwork.NameServersSettings() { Addresses = [.. addresses] }
+            : new SharedNetwork.NameServersSettings();
+
+        if (intern.Enabled is { } enabled)
+            nameServersSettings.Enabled = enabled;
+
+        return nameServersSettings;
+    }
 
     private static SharedNetwork.NetworkProxySettings ToSharedContracts(this NetworkProxySettings intern)
     {
@@ -252,7 +262,7 @@ internal static class ContractsTranslator
             Hostname = shared.Hostname,
             MulticastDNSEnabled = shared.MulticastDNSEnabled,
             StaticHosts = shared.StaticHosts.ToInternalContracts(),
-            NameServers = ToInternalContracts(shared.NameServersEnabled, shared.NameServers),
+            NameServers = shared.NameServers.ToInternalContracts(),
             DNSSuffixEnabled = shared.DNSSuffixEnabled,
             DNSSuffix = shared.DNSSuffix,
             SearchDomainsEnabled = shared.SearchDomainsEnabled,
@@ -273,11 +283,11 @@ internal static class ContractsTranslator
             IPAddress = shared.IPAddress,
         };
 
-    private static NameServersSettings ToInternalContracts(bool enabled, List<IPAddress> servers)
+    private static NameServersSettings ToInternalContracts(this SharedNetwork.NameServersSettings shared)
         => new()
         {
-            Enabled = enabled,
-            Addresses = [.. servers]
+            Enabled = shared.Enabled,
+            Addresses = [.. shared.Addresses]
         };
 
     private static IPv4Detail ToInternalContracts(this SharedNetwork.IPv4Detail shared)

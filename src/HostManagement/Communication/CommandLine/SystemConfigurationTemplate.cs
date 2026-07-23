@@ -99,7 +99,10 @@ internal static class SystemConfigurationTemplate
                         new() { Hostname = "staticHost2", IPAddress = ipv4Template2 }
                     ]
                 },
-                NameServers = [ipv4Template1, ipv4Template2],
+                NameServers = new()
+                {
+                    Addresses = [ipv4Template1, ipv4Template2]
+                },
                 DNSSuffix = "myCompany.com",
                 SearchDomains = ["local", "myCompany.com"]
             },

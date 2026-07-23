@@ -61,8 +61,11 @@ public class SystemConfigurationSerializerTests
                     },
                 ]
             },
-            NameServersEnabled = true,
-            NameServers = [s_ipAddress],
+            NameServers = new()
+            {
+                Enabled = true,
+                Addresses = [s_ipAddress]
+            },
             DNSSuffixEnabled = true,
             DNSSuffix = "dnsSuffix",
             SearchDomainsEnabled = true,
@@ -175,10 +178,12 @@ public class SystemConfigurationSerializerTests
                 }
               ]
             },
-            "NameServersEnabled": true,
-            "NameServers": [
-              "120.86.52.18"
-            ],
+            "NameServers": {
+              "Enabled": true,
+              "Addresses": [
+                "120.86.52.18"
+              ]
+            },
             "DNSSuffixEnabled": true,
             "DNSSuffix": "dnsSuffix",
             "SearchDomainsEnabled": true,

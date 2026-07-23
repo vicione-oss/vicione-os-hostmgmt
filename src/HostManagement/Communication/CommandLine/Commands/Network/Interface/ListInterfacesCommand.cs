@@ -179,7 +179,7 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
         {
             AppendOutputForDNSSuffix(dnsOutput, indentationLevel + 2, lease.NetworkDNSSettings);
             AppendOutputForSearchDomains(dnsOutput, indentationLevel + 2, lease.NetworkDNSSettings);
-            AppendOutputForNameServers(dnsOutput, indentationLevel + 2, lease.NetworkDNSSettings);
+            AppendOutputForNameServers(dnsOutput, indentationLevel + 2, lease.NetworkDNSSettings.NameServers);
         }
     }
 
@@ -193,7 +193,7 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
 
         AppendOutputForDNSSuffix(dnsOutput, 1, networkDNSSettings);
         AppendOutputForSearchDomains(dnsOutput, 1, networkDNSSettings);
-        AppendOutputForNameServers(dnsOutput, 1, networkDNSSettings);
+        AppendOutputForNameServers(dnsOutput, 1, networkDNSSettings.NameServers);
     }
 
     private static void AppendOutputForDNSSuffix(
@@ -229,16 +229,16 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
     private static void AppendOutputForNameServers(
         CliComplexOutputBase output,
         int indentationLevel,
-        NetworkDNSSettings networkDNSSettings)
+        NameServersSettings nameServersSettings)
     {
         var nameServersOutput = output
             .AddListOutput(indentationLevel)
-            .WithTitle(CommandLineStrings_DNS.NameServers, networkDNSSettings.NameServersEnabled);
+            .WithTitle(CommandLineStrings_DNS.NameServers, nameServersSettings.Enabled);
 
-        if (networkDNSSettings.NameServers.Count == 0)
+        if (nameServersSettings.Addresses.Count == 0)
             nameServersOutput.With(CliOutputBase.NotSetValue);
         else
-            networkDNSSettings.NameServers.ForEach(server => nameServersOutput.With(server));
+            nameServersSettings.Addresses.ForEach(address => nameServersOutput.With(address));
     }
 
     private static void AppendOutputForVLAN(

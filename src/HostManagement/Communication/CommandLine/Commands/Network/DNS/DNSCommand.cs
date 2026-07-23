@@ -23,7 +23,7 @@ internal sealed class DNSCommand : Command
         Add(new DNSHostnameCommand());
         Add(new DNSMulticastCommand());
         Add(new StaticHostsCommand());
-        Add(new DNSNameServersCommand());
+        Add(new NameServersCommand());
         Add(new DNSSuffixCommand());
         Add(new DNSSearchDomainsCommand());
     }

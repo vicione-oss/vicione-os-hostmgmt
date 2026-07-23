@@ -72,12 +72,15 @@ public class NetworkDNSSettingsValidatorTests
                 ValidationTestData.SearchDomain.Simple,
                 ValidationTestData.SearchDomain.FQDN
             ],
-            NameServersEnabled = nameServersEnabled,
-            NameServers =
-            [
-                IPAddress.Parse(ValidationTestData.NameServer.IPv4),
-                IPAddress.Parse(ValidationTestData.NameServer.IPv6)
-            ]
+            NameServers = new NameServersSettings()
+            {
+                Enabled = nameServersEnabled,
+                Addresses =
+                [
+                    IPAddress.Parse(ValidationTestData.NameServer.IPv4),
+                    IPAddress.Parse(ValidationTestData.NameServer.IPv6)
+                ]
+            }
         };
 
         // Act

@@ -52,11 +52,11 @@ public sealed class NetworkDNSSettingsValidator : IValidator<NetworkDNSSettings>
                         .ConfigureAwait(false));
             }
 
-            if (dnsSettings.NameServersEnabled)
+            if (dnsSettings.NameServers.Enabled)
             {
                 result.AddResult(
                     await new NameServersValidator()
-                        .ValidateAsync(dnsSettings.NameServers, cancellationToken)
+                        .ValidateAsync(dnsSettings.NameServers.Addresses, cancellationToken)
                         .ConfigureAwait(false));
             }
 
