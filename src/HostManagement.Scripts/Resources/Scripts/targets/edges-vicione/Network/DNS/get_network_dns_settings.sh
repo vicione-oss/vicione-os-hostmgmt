@@ -231,8 +231,12 @@ main() {
     json_output+="  \"Hosts\": [${STATIC_HOSTS_JSON}]"
     json_output+="},"
 
-    json_output+="\"NameServersEnabled\": ${NAMESERVERS_ENABLED},"
-    json_output+="\"NameServers\": [$(IFS=, ; echo "${NAMESERVERS_JSON[*]}")],"
+    json_output+="\"NameServers\":"
+    json_output+="{"
+    json_output+="  \"Enabled\": ${NAMESERVERS_ENABLED},"
+    json_output+="  \"Addresses\": [$(IFS=, ; echo "${NAMESERVERS_JSON[*]}")]"
+    json_output+="},"
+
     json_output+="\"DNSSuffixEnabled\": ${DNS_SUFFIX_ENABLED},"
     json_output+="\"DNSSuffix\": \"${DNS_SUFFIX}\","
     json_output+="\"SearchDomainsEnabled\": ${SEARCH_DOMAINS_ENABLED},"

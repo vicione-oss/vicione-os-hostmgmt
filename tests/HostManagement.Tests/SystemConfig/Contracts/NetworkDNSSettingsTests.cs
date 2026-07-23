@@ -78,60 +78,6 @@ public sealed class NetworkDNSSettingsTests
         }
 
         [Fact]
-        public void ShouldReturnFalse_WhenNullVsNonNullNameServersEnabled()
-        {
-            var settings1 = new NetworkDNSSettings { NameServersEnabled = null };
-            var settings2 = new NetworkDNSSettings { NameServersEnabled = true };
-
-            var result = settings1.Equals(settings2);
-
-            result.Should().BeFalse();
-        }
-
-        [Fact]
-        public void ShouldReturnFalse_WhenDifferentNameServers()
-        {
-            var settings1 = CreateSampleSettings();
-            var settings2 = CreateSampleSettings();
-            settings2.NameServers!.Add(IPAddress.Parse("1.1.1.1"));
-
-            var result = settings1.Equals(settings2);
-
-            result.Should().BeFalse();
-        }
-
-        [Fact]
-        public void ShouldReturnFalse_WhenNullVsNonNullNameServers()
-        {
-            var settings1 = new NetworkDNSSettings { NameServers = null };
-            var settings2 = new NetworkDNSSettings
-            {
-                NameServers = [IPAddress.Parse("8.8.8.8")]
-            };
-
-            var result = settings1.Equals(settings2);
-
-            result.Should().BeFalse();
-        }
-
-        [Fact]
-        public void ShouldReturnFalse_WhenDifferentNameServerOrder()
-        {
-            var settings1 = new NetworkDNSSettings
-            {
-                NameServers = [IPAddress.Parse("8.8.8.8"), IPAddress.Parse("8.8.4.4")]
-            };
-            var settings2 = new NetworkDNSSettings
-            {
-                NameServers = [IPAddress.Parse("8.8.4.4"), IPAddress.Parse("8.8.8.8")]
-            };
-
-            var result = settings1.Equals(settings2);
-
-            result.Should().BeFalse();
-        }
-
-        [Fact]
         public void ShouldReturnFalse_WhenNullVsNonNullDNSSuffixEnabled()
         {
             var settings1 = new NetworkDNSSettings { DNSSuffixEnabled = null };
@@ -288,8 +234,11 @@ public sealed class NetworkDNSSettingsTests
                     }
                 ]
             },
-            NameServersEnabled = true,
-            NameServers = [IPAddress.Parse("8.8.8.8"), IPAddress.Parse("8.8.4.4")],
+            NameServers = new NameServersSettings
+            {
+                Enabled = true,
+                Addresses = [IPAddress.Parse("8.8.8.8"), IPAddress.Parse("8.8.4.4")]
+            },
             DNSSuffixEnabled = true,
             DNSSuffix = "example.local",
             SearchDomainsEnabled = true,

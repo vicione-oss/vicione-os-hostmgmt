@@ -49,8 +49,11 @@ public class NetworkDNSConfigurationAdapterTests
             // Arrange
             var dnsSettings = new NetworkDNSSettings()
             {
-                NameServersEnabled = true,
-                NameServers = [IPAddress.Parse("1.1.1.1")],
+                NameServers = new NameServersSettings()
+                {
+                    Enabled = true,
+                    Addresses = [IPAddress.Parse("1.1.1.1")]
+                },
                 Hostname = "host"
             };
 
@@ -148,8 +151,11 @@ public class NetworkDNSConfigurationAdapterTests
                     new StaticHostDetail { Hostname = "local2", IPAddress = IPAddress.Parse("10.0.0.2") }
                 ]
             },
-            NameServersEnabled = true,
-            NameServers = [IPAddress.Parse("1.1.1.1"), IPAddress.Parse("8.8.8.8")],
+            NameServers = new NameServersSettings()
+            {
+                Enabled = true,
+                Addresses = [IPAddress.Parse("1.1.1.1"), IPAddress.Parse("8.8.8.8")]
+            },
             DNSSuffixEnabled = true,
             DNSSuffix = "intranet",
             SearchDomainsEnabled = true,
@@ -536,12 +542,15 @@ public class NetworkDNSConfigurationAdapterTests
                     NetworkDNSSettings = new()
                     {
                         Hostname = "changed",
-                        NameServersEnabled = enabled,
-                        NameServers = value is null
-                            ? null
-                            : string.IsNullOrWhiteSpace(value)
-                                ? []
-                                : [IPAddress.Parse(value)]
+                        NameServers = new()
+                        {
+                            Enabled = enabled,
+                            Addresses = value is null
+                                ? null
+                                : string.IsNullOrWhiteSpace(value)
+                                    ? []
+                                    : [IPAddress.Parse(value)]
+                        }
                     }
                 };
 

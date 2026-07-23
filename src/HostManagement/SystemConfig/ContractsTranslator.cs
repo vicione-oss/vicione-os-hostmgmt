@@ -1,3 +1,4 @@
+using System.Net;
 using HostManagement.SystemConfig.Contracts;
 using SharedContracts = HostManagement.Shared.Contracts;
 using SharedNetwork = HostManagement.Shared.Contracts.Network;
@@ -98,7 +99,7 @@ internal static class ContractsTranslator
     private static SharedNetwork.NetworkDNSSettings ToSharedContracts(this NetworkDNSSettings intern)
     {
         var networkDnsSettings = new SharedNetwork.NetworkDNSSettings(
-            intern.NameServers?.ToList(),
+            intern.NameServers?.Addresses?.ToList(),
             intern.SearchDomains?.ToList());
 
         if (intern.Hostname is { } hostname)
@@ -110,7 +111,7 @@ internal static class ContractsTranslator
         if (intern.StaticHosts is { } staticHosts)
             networkDnsSettings.StaticHosts = staticHosts.ToSharedContracts();
 
-        if (intern.NameServersEnabled is { } nameServersEnabled)
+        if (intern.NameServers?.Enabled is { } nameServersEnabled)
             networkDnsSettings.NameServersEnabled = nameServersEnabled;
 
         if (intern.DNSSuffixEnabled is { } dnsSuffixEnabled)
@@ -251,8 +252,7 @@ internal static class ContractsTranslator
             Hostname = shared.Hostname,
             MulticastDNSEnabled = shared.MulticastDNSEnabled,
             StaticHosts = shared.StaticHosts.ToInternalContracts(),
-            NameServersEnabled = shared.NameServersEnabled,
-            NameServers = [.. shared.NameServers],
+            NameServers = ToInternalContracts(shared.NameServersEnabled, shared.NameServers),
             DNSSuffixEnabled = shared.DNSSuffixEnabled,
             DNSSuffix = shared.DNSSuffix,
             SearchDomainsEnabled = shared.SearchDomainsEnabled,
@@ -271,6 +271,13 @@ internal static class ContractsTranslator
         {
             Hostname = shared.Hostname,
             IPAddress = shared.IPAddress,
+        };
+
+    private static NameServersSettings ToInternalContracts(bool enabled, List<IPAddress> servers)
+        => new()
+        {
+            Enabled = enabled,
+            Addresses = [.. servers]
         };
 
     private static IPv4Detail ToInternalContracts(this SharedNetwork.IPv4Detail shared)

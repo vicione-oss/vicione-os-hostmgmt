@@ -240,7 +240,7 @@ public class SystemConfigurationTests
     {
         return new SystemConfiguration
         {
-            Version = 1,
+            Version = 2,
             NetworkInterfacesSettings = new NetworkInterfacesSettings
             {
                 NetworkInterfaces =
@@ -273,8 +273,11 @@ public class SystemConfigurationTests
             {
                 Hostname = "test-host",
                 MulticastDNSEnabled = true,
-                NameServersEnabled = true,
-                NameServers = [IPAddress.Parse("8.8.8.8"), IPAddress.Parse("8.8.4.4"),],
+                NameServers = new NameServersSettings
+                {
+                    Enabled = true,
+                    Addresses = [IPAddress.Parse("8.8.8.8"), IPAddress.Parse("8.8.4.4")]
+                }
             },
             NetworkProxySettings = new NetworkProxySettings
             {

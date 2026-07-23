@@ -161,8 +161,9 @@ public class V1ToV2SystemConfigurationMigrationTests
             host.IPAddress.Should().Be(IPAddress.Parse("192.168.1.10"));
             host.Hostname.Should().Be("local-device");
 
-            dnsSettings.NameServersEnabled.Should().BeTrue();
-            dnsSettings.NameServers.Should().ContainSingle().Which.Should().Be(IPAddress.Parse("192.168.1.1"));
+            dnsSettings.NameServers.Should().NotBeNull();
+            dnsSettings.NameServers.Enabled.Should().BeTrue();
+            dnsSettings.NameServers.Addresses.Should().ContainSingle().Which.Should().Be(IPAddress.Parse("192.168.1.1"));
 
             dnsSettings.DNSSuffixEnabled.Should().BeTrue();
             dnsSettings.DNSSuffix.Should().Be("example.local");

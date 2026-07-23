@@ -185,8 +185,11 @@ public class SystemConfigurationPersistenceTests
                     Enabled = false,
                     Hosts = []
                 },
-                NameServersEnabled = true,
-                NameServers = [IPAddress.Parse("192.168.10.10")],
+                NameServers = new()
+                {
+                    Enabled = true,
+                    Addresses = [IPAddress.Parse("192.168.10.10")]
+                },
                 DNSSuffixEnabled = false,
                 DNSSuffix = "",
                 SearchDomainsEnabled = false,
@@ -491,8 +494,11 @@ public class SystemConfigurationPersistenceTests
                             },
                         ]
                     },
-                    NameServers = [ipAddress],
-                    NameServersEnabled = true,
+                    NameServers = new()
+                    {
+                        Enabled = true,
+                        Addresses = [ipAddress]
+                    },
                     SearchDomains = ["searchDomain"],
                     SearchDomainsEnabled = true,
                 },
@@ -598,10 +604,12 @@ public class SystemConfigurationPersistenceTests
                     }
                   ]
                 },
-                "NameServersEnabled": true,
-                "NameServers": [
-                  "120.86.52.18"
-                ],
+                "NameServers": {
+                  "Enabled": true,
+                  "Addresses": [
+                    "120.86.52.18"
+                  ]
+                },
                 "DNSSuffixEnabled": true,
                 "DNSSuffix": "dnsSuffix",
                 "SearchDomainsEnabled": true,

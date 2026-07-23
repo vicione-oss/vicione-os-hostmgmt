@@ -152,7 +152,7 @@ internal sealed class NetworkDNSConfigurationAdapter(
     {
         var scriptOptions = new ScriptOptions();
 
-        AddNameServersScriptOptions(scriptOptions, dnsSettings);
+        AddNameServersScriptOptions(scriptOptions, dnsSettings.NameServers);
         AddSuffixScriptOptions(scriptOptions, dnsSettings);
         AddSearchDomainsScriptOptions(scriptOptions, dnsSettings);
 
@@ -185,12 +185,17 @@ internal sealed class NetworkDNSConfigurationAdapter(
         return await _scriptHandler.ExecuteSetHostnameScript(hostname).ConfigureAwait(false);
     }
 
-    private static void AddNameServersScriptOptions(ScriptOptions scriptOptions, NetworkDNSSettings dnsSettings)
+    private static void AddNameServersScriptOptions(
+        ScriptOptions scriptOptions,
+        NameServersSettings? nameServersSettings)
     {
-        if (dnsSettings.NameServersEnabled.HasValue && dnsSettings.NameServers?.Count > 0)
+        if (nameServersSettings is null)
+            return;
+
+        if (nameServersSettings.Enabled.HasValue && nameServersSettings.Addresses?.Count > 0)
         {
-            scriptOptions.Add(ScriptOptionNames.NetworkDNS.NameServersEnabled, dnsSettings.NameServersEnabled.Value);
-            scriptOptions.Add(ScriptOptionNames.NetworkDNS.NameServers, dnsSettings.NameServers.ToArray());
+            scriptOptions.Add(ScriptOptionNames.NetworkDNS.NameServersEnabled, nameServersSettings.Enabled.Value);
+            scriptOptions.Add(ScriptOptionNames.NetworkDNS.NameServers, nameServersSettings.Addresses.ToArray());
         }
     }
 

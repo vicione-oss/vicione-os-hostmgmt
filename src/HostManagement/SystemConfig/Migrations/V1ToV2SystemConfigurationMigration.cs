@@ -81,8 +81,9 @@ internal sealed class V1ToV2SystemConfigurationMigration
             // StaticHostsEnabled and StaticHosts (the actual list) were grouped into StaticHosts.
             StaticHosts = source.MapOrNull(MigrateStaticHostsSettings),
 
-            NameServersEnabled = source.NameServersEnabled,
-            NameServers = source.NameServers.CopyListOrNull(),
+            // NameServerEnabled and NameServers (the actual list) were grouped into NameServers.
+            NameServers = source.MapOrNull(MigrateNameServersSettings),
+
             DNSSuffixEnabled = source.DNSSuffixEnabled,
             DNSSuffix = source.DNSSuffix,
             SearchDomainsEnabled = source.SearchDomainsEnabled,
@@ -101,6 +102,13 @@ internal sealed class V1ToV2SystemConfigurationMigration
         {
             IPAddress = source.IPAddress,
             Hostname = source.Hostname
+        };
+
+    private static CurrentContracts.NameServersSettings MigrateNameServersSettings(V1Contracts.NetworkDNSSettings source)
+        => new()
+        {
+            Enabled = source.NameServersEnabled,
+            Addresses = source.NameServers.CopyListOrNull()
         };
 
     private static CurrentContracts.NetworkProxySettings MigrateNetworkProxySettings(
