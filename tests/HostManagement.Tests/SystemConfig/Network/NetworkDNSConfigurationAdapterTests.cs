@@ -161,8 +161,11 @@ public class NetworkDNSConfigurationAdapterTests
                 Enabled = true,
                 Suffix = "intranet"
             },
-            SearchDomainsEnabled = true,
-            SearchDomains = ["searchengine", "search.company.com"]
+            SearchDomains = new SearchDomainsSettings()
+            {
+                Enabled = true,
+                Domains = ["searchengine", "search.company.com"]
+            }
         };
 
         private static readonly SystemConfiguration s_proposed = new() { NetworkDNSSettings = s_proposedDNS };
@@ -626,12 +629,15 @@ public class NetworkDNSConfigurationAdapterTests
                     NetworkDNSSettings = new()
                     {
                         Hostname = "changed",
-                        SearchDomainsEnabled = enabled,
-                        SearchDomains = value is null
-                            ? null
-                            : string.IsNullOrWhiteSpace(value)
-                                ? []
-                                : [value]
+                        SearchDomains = new()
+                        {
+                            Enabled = enabled,
+                            Domains = value is null
+                                ? null
+                                : string.IsNullOrWhiteSpace(value)
+                                    ? []
+                                    : [value]
+                        }
                     }
                 };
 

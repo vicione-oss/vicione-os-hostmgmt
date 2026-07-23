@@ -223,8 +223,11 @@ main() {
     json_output+="    \"Enabled\": ${DNS_NAME_SERVERS_ENABLED},"
     json_output+="    \"Addresses\": ${DNS_NAME_SERVERS_JSON}"
     json_output+="  },"
-    json_output+="\"SearchDomainsEnabled\": ${SEARCH_DOMAINS_ENABLED},"
-    json_output+="\"SearchDomains\": ${SEARCH_DOMAINS_JSON}"
+    json_output+="  \"SearchDomains\":"
+    json_output+="  {"
+    json_output+="    \"Enabled\": ${SEARCH_DOMAINS_ENABLED},"
+    json_output+="    \"Domains\": ${SEARCH_DOMAINS_JSON}"
+    json_output+="  }"
     json_output+="}"
     json_output+="}"
 

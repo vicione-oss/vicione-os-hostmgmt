@@ -169,8 +169,9 @@ public class V1ToV2SystemConfigurationMigrationTests
             dnsSettings.PrimaryDNSSuffix.Enabled.Should().BeTrue();
             dnsSettings.PrimaryDNSSuffix.Suffix.Should().Be("example.local");
 
-            dnsSettings.SearchDomainsEnabled.Should().BeTrue();
-            dnsSettings.SearchDomains.Should().ContainSingle().Which.Should().Be("example.local");
+            dnsSettings.SearchDomains.Should().NotBeNull();
+            dnsSettings.SearchDomains.Enabled.Should().BeTrue();
+            dnsSettings.SearchDomains.Domains.Should().ContainSingle().Which.Should().Be("example.local");
         }
 
         [Fact]

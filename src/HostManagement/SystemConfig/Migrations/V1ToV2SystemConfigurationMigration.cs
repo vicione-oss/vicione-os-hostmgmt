@@ -87,8 +87,8 @@ internal sealed class V1ToV2SystemConfigurationMigration
             // DNSSuffixEnabled and DNSSuffix were grouped into PrimaryDNSSuffix.
             PrimaryDNSSuffix = source.MapOrNull(MigratePrimaryDNSSuffixSettings),
 
-            SearchDomainsEnabled = source.SearchDomainsEnabled,
-            SearchDomains = source.SearchDomains.CopyListOrNull()
+            // SearchDomainsEnabled and SearchDomains (the actual list) were grouped into SearchDomains.
+            SearchDomains = source.MapOrNull(MigrateSearchDomainsSettings)
         };
 
     private static CurrentContracts.StaticHostsSettings MigrateStaticHostsSettings(V1Contracts.NetworkDNSSettings source)
@@ -117,6 +117,13 @@ internal sealed class V1ToV2SystemConfigurationMigration
         {
             Enabled = source.DNSSuffixEnabled,
             Suffix = source.DNSSuffix
+        };
+
+    private static CurrentContracts.SearchDomainsSettings MigrateSearchDomainsSettings(V1Contracts.NetworkDNSSettings source)
+        => new()
+        {
+            Enabled = source.SearchDomainsEnabled,
+            Domains = source.SearchDomains.CopyListOrNull()
         };
 
     private static CurrentContracts.NetworkProxySettings MigrateNetworkProxySettings(

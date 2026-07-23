@@ -154,7 +154,7 @@ internal sealed class NetworkDNSConfigurationAdapter(
 
         AddNameServersScriptOptions(scriptOptions, dnsSettings.NameServers);
         AddPrimaryDNSSuffixScriptOptions(scriptOptions, dnsSettings.PrimaryDNSSuffix);
-        AddSearchDomainsScriptOptions(scriptOptions, dnsSettings);
+        AddSearchDomainsScriptOptions(scriptOptions, dnsSettings.SearchDomains);
 
         if (!scriptOptions.Options.Any())
             return Result.SuccessResult;
@@ -213,12 +213,17 @@ internal sealed class NetworkDNSConfigurationAdapter(
         }
     }
 
-    private static void AddSearchDomainsScriptOptions(ScriptOptions scriptOptions, NetworkDNSSettings dnsSettings)
+    private static void AddSearchDomainsScriptOptions(
+        ScriptOptions scriptOptions,
+        SearchDomainsSettings? searchDomainsSettings)
     {
-        if (dnsSettings.SearchDomainsEnabled.HasValue && dnsSettings.SearchDomains?.Count > 0)
+        if (searchDomainsSettings is null)
+            return;
+
+        if (searchDomainsSettings.Enabled.HasValue && searchDomainsSettings.Domains?.Count > 0)
         {
-            scriptOptions.Add(ScriptOptionNames.NetworkDNS.SearchDomainsEnabled, dnsSettings.SearchDomainsEnabled.Value);
-            scriptOptions.Add(ScriptOptionNames.NetworkDNS.SearchDomains, dnsSettings.SearchDomains.ToArray());
+            scriptOptions.Add(ScriptOptionNames.NetworkDNS.SearchDomainsEnabled, searchDomainsSettings.Enabled.Value);
+            scriptOptions.Add(ScriptOptionNames.NetworkDNS.SearchDomains, searchDomainsSettings.Domains.ToArray());
         }
     }
 }

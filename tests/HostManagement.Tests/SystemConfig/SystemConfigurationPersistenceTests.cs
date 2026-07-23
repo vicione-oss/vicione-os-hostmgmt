@@ -195,8 +195,11 @@ public class SystemConfigurationPersistenceTests
                     Enabled = false,
                     Suffix = ""
                 },
-                SearchDomainsEnabled = false,
-                SearchDomains = []
+                SearchDomains = new()
+                {
+                    Enabled = false,
+                    Domains = []
+                }
             },
             NetworkProxySettings = new()
             {
@@ -505,8 +508,11 @@ public class SystemConfigurationPersistenceTests
                         Enabled = true,
                         Suffix = "dnsSuffix"
                     },
-                    SearchDomains = ["searchDomain"],
-                    SearchDomainsEnabled = true,
+                    SearchDomains = new()
+                    {
+                        Enabled = true,
+                        Domains = ["searchDomain"]
+                    }
                 },
                 NetworkProxySettings = new()
                 {
@@ -620,10 +626,12 @@ public class SystemConfigurationPersistenceTests
                   "Enabled": true,
                   "Suffix": "dnsSuffix"
                 },
-                "SearchDomainsEnabled": true,
-                "SearchDomains": [
-                  "searchDomain"
-                ]
+                "SearchDomains": {
+                  "Enabled": true,
+                  "Domains": [
+                    "searchDomain"
+                  ]
+                }
               },
               "NetworkProxySettings": {
                 "FTP": {
