@@ -190,8 +190,11 @@ public class SystemConfigurationPersistenceTests
                     Enabled = true,
                     Addresses = [IPAddress.Parse("192.168.10.10")]
                 },
-                DNSSuffixEnabled = false,
-                DNSSuffix = "",
+                PrimaryDNSSuffix = new()
+                {
+                    Enabled = false,
+                    Suffix = ""
+                },
                 SearchDomainsEnabled = false,
                 SearchDomains = []
             },
@@ -478,8 +481,6 @@ public class SystemConfigurationPersistenceTests
                 },
                 NetworkDNSSettings = new()
                 {
-                    DNSSuffix = "dnsSuffix",
-                    DNSSuffixEnabled = true,
                     Hostname = "hostname",
                     MulticastDNSEnabled = true,
                     StaticHosts = new()
@@ -498,6 +499,11 @@ public class SystemConfigurationPersistenceTests
                     {
                         Enabled = true,
                         Addresses = [ipAddress]
+                    },
+                    PrimaryDNSSuffix = new()
+                    {
+                        Enabled = true,
+                        Suffix = "dnsSuffix"
                     },
                     SearchDomains = ["searchDomain"],
                     SearchDomainsEnabled = true,
@@ -610,8 +616,10 @@ public class SystemConfigurationPersistenceTests
                     "120.86.52.18"
                   ]
                 },
-                "DNSSuffixEnabled": true,
-                "DNSSuffix": "dnsSuffix",
+                "PrimaryDNSSuffix": {
+                  "Enabled": true,
+                  "Suffix": "dnsSuffix"
+                },
                 "SearchDomainsEnabled": true,
                 "SearchDomains": [
                   "searchDomain"

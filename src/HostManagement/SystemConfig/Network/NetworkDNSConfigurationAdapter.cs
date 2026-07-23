@@ -153,7 +153,7 @@ internal sealed class NetworkDNSConfigurationAdapter(
         var scriptOptions = new ScriptOptions();
 
         AddNameServersScriptOptions(scriptOptions, dnsSettings.NameServers);
-        AddSuffixScriptOptions(scriptOptions, dnsSettings);
+        AddPrimaryDNSSuffixScriptOptions(scriptOptions, dnsSettings.PrimaryDNSSuffix);
         AddSearchDomainsScriptOptions(scriptOptions, dnsSettings);
 
         if (!scriptOptions.Options.Any())
@@ -199,12 +199,17 @@ internal sealed class NetworkDNSConfigurationAdapter(
         }
     }
 
-    private static void AddSuffixScriptOptions(ScriptOptions scriptOptions, NetworkDNSSettings dnsSettings)
+    private static void AddPrimaryDNSSuffixScriptOptions(
+        ScriptOptions scriptOptions,
+        PrimaryDNSSuffixSettings? primarySuffixSettings)
     {
-        if (dnsSettings.DNSSuffixEnabled.HasValue && dnsSettings.DNSSuffix is not null)
+        if (primarySuffixSettings is null)
+            return;
+
+        if (primarySuffixSettings.Enabled.HasValue && primarySuffixSettings.Suffix is not null)
         {
-            scriptOptions.Add(ScriptOptionNames.NetworkDNS.DNSSuffixEnabled, dnsSettings.DNSSuffixEnabled.Value);
-            scriptOptions.Add(ScriptOptionNames.NetworkDNS.DNSSuffix, dnsSettings.DNSSuffix);
+            scriptOptions.Add(ScriptOptionNames.NetworkDNS.DNSSuffixEnabled, primarySuffixSettings.Enabled.Value);
+            scriptOptions.Add(ScriptOptionNames.NetworkDNS.DNSSuffix, primarySuffixSettings.Suffix);
         }
     }
 

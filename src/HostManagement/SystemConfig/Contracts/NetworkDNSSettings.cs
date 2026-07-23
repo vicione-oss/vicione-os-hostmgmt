@@ -6,8 +6,7 @@ internal sealed record NetworkDNSSettings
     public bool? MulticastDNSEnabled { get; set; }
     public StaticHostsSettings? StaticHosts { get; set; }
     public NameServersSettings? NameServers { get; set; }
-    public bool? DNSSuffixEnabled { get; set; }
-    public string? DNSSuffix { get; set; }
+    public PrimaryDNSSuffixSettings? PrimaryDNSSuffix { get; set; }
     public bool? SearchDomainsEnabled { get; set; }
     public List<string>? SearchDomains { get; set; }
 
@@ -18,8 +17,7 @@ internal sealed record NetworkDNSSettings
         hashCode.Add(MulticastDNSEnabled);
         hashCode.Add(StaticHosts);
         hashCode.Add(NameServers);
-        hashCode.Add(DNSSuffixEnabled);
-        hashCode.Add(DNSSuffix);
+        hashCode.Add(PrimaryDNSSuffix);
         hashCode.Add(SearchDomainsEnabled);
         hashCode.AddRange(SearchDomains, EqualityComparer<string>.Default);
         return hashCode.ToHashCode();
@@ -31,8 +29,7 @@ internal sealed record NetworkDNSSettings
         EqualityComparer<bool?>.Default.Equals(MulticastDNSEnabled, other.MulticastDNSEnabled) &&
         EqualityComparer<StaticHostsSettings?>.Default.Equals(StaticHosts, other.StaticHosts) &&
         EqualityComparer<NameServersSettings?>.Default.Equals(NameServers, other.NameServers) &&
-        EqualityComparer<bool?>.Default.Equals(DNSSuffixEnabled, other.DNSSuffixEnabled) &&
-        EqualityComparer<string>.Default.Equals(DNSSuffix, other.DNSSuffix) &&
+        EqualityComparer<PrimaryDNSSuffixSettings?>.Default.Equals(PrimaryDNSSuffix, other.PrimaryDNSSuffix) &&
         EqualityComparer<bool?>.Default.Equals(SearchDomainsEnabled, other.SearchDomainsEnabled) &&
         EqualityComparer<string>.Default.SequenceEqual(SearchDomains, other.SearchDomains);
 }

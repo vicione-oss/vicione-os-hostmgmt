@@ -112,10 +112,10 @@ internal static class ContractsTranslator
         if (intern.NameServers is { } nameServers)
             networkDnsSettings.NameServers = nameServers.ToSharedContracts();
 
-        if (intern.DNSSuffixEnabled is { } dnsSuffixEnabled)
+        if (intern.PrimaryDNSSuffix?.Enabled is { } dnsSuffixEnabled)
             networkDnsSettings.DNSSuffixEnabled = dnsSuffixEnabled;
 
-        if (intern.DNSSuffix is { } dnsSuffix)
+        if (intern.PrimaryDNSSuffix?.Suffix is { } dnsSuffix)
             networkDnsSettings.DNSSuffix = dnsSuffix;
 
         if (intern.SearchDomainsEnabled is { } searchDomainsEnabled)
@@ -263,8 +263,7 @@ internal static class ContractsTranslator
             MulticastDNSEnabled = shared.MulticastDNSEnabled,
             StaticHosts = shared.StaticHosts.ToInternalContracts(),
             NameServers = shared.NameServers.ToInternalContracts(),
-            DNSSuffixEnabled = shared.DNSSuffixEnabled,
-            DNSSuffix = shared.DNSSuffix,
+            PrimaryDNSSuffix = ToInternalContracts(shared.DNSSuffixEnabled, shared.DNSSuffix),
             SearchDomainsEnabled = shared.SearchDomainsEnabled,
             SearchDomains = [.. shared.SearchDomains],
         };
@@ -288,6 +287,13 @@ internal static class ContractsTranslator
         {
             Enabled = shared.Enabled,
             Addresses = [.. shared.Addresses]
+        };
+
+    private static PrimaryDNSSuffixSettings ToInternalContracts(bool enabled, string suffix)
+        => new()
+        {
+            Enabled = enabled,
+            Suffix = suffix
         };
 
     private static IPv4Detail ToInternalContracts(this SharedNetwork.IPv4Detail shared)

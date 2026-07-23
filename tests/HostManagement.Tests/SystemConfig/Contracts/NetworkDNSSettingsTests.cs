@@ -78,40 +78,6 @@ public sealed class NetworkDNSSettingsTests
         }
 
         [Fact]
-        public void ShouldReturnFalse_WhenNullVsNonNullDNSSuffixEnabled()
-        {
-            var settings1 = new NetworkDNSSettings { DNSSuffixEnabled = null };
-            var settings2 = new NetworkDNSSettings { DNSSuffixEnabled = true };
-
-            var result = settings1.Equals(settings2);
-
-            result.Should().BeFalse();
-        }
-
-        [Fact]
-        public void ShouldReturnFalse_WhenDifferentDNSSuffix()
-        {
-            var settings1 = CreateSampleSettings();
-            var settings2 = CreateSampleSettings();
-            settings2.DNSSuffix = "different.local";
-
-            var result = settings1.Equals(settings2);
-
-            result.Should().BeFalse();
-        }
-
-        [Fact]
-        public void ShouldReturnFalse_WhenNullVsNonNullDNSSuffix()
-        {
-            var settings1 = new NetworkDNSSettings { DNSSuffix = null };
-            var settings2 = new NetworkDNSSettings { DNSSuffix = "example.local" };
-
-            var result = settings1.Equals(settings2);
-
-            result.Should().BeFalse();
-        }
-
-        [Fact]
         public void ShouldReturnFalse_WhenNullVsNonNullSearchDomainsEnabled()
         {
             var settings1 = new NetworkDNSSettings { SearchDomainsEnabled = null };
@@ -166,7 +132,7 @@ public sealed class NetworkDNSSettingsTests
         }
 
         [Fact]
-        public void ShouldReturnFalse_WhenNull()
+        public void ShouldReturnFalse_WhenNullVsNonNull()
         {
             var settings = CreateSampleSettings();
 
@@ -239,8 +205,11 @@ public sealed class NetworkDNSSettingsTests
                 Enabled = true,
                 Addresses = [IPAddress.Parse("8.8.8.8"), IPAddress.Parse("8.8.4.4")]
             },
-            DNSSuffixEnabled = true,
-            DNSSuffix = "example.local",
+            PrimaryDNSSuffix = new PrimaryDNSSuffixSettings
+            {
+                Enabled = true,
+                Suffix = "example.local"
+            },
             SearchDomainsEnabled = true,
             SearchDomains = ["search1.local", "search2.local"]
         };

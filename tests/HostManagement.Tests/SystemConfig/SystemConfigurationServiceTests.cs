@@ -36,8 +36,11 @@ public class SystemConfigurationServiceTests
             NetworkDNSSettings = new()
             {
                 Hostname = TestHostname,
-                DNSSuffixEnabled = false,
-                DNSSuffix = "company"
+                PrimaryDNSSuffix = new()
+                {
+                    Enabled = false,
+                    Suffix = "company"
+                }
             }
         };
 

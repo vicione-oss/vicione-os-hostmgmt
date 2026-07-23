@@ -156,8 +156,11 @@ public class NetworkDNSConfigurationAdapterTests
                 Enabled = true,
                 Addresses = [IPAddress.Parse("1.1.1.1"), IPAddress.Parse("8.8.8.8")]
             },
-            DNSSuffixEnabled = true,
-            DNSSuffix = "intranet",
+            PrimaryDNSSuffix = new PrimaryDNSSuffixSettings()
+            {
+                Enabled = true,
+                Suffix = "intranet"
+            },
             SearchDomainsEnabled = true,
             SearchDomains = ["searchengine", "search.company.com"]
         };
@@ -583,8 +586,11 @@ public class NetworkDNSConfigurationAdapterTests
                     NetworkDNSSettings = new()
                     {
                         Hostname = "changed",
-                        DNSSuffixEnabled = enabled,
-                        DNSSuffix = value
+                        PrimaryDNSSuffix = new()
+                        {
+                            Enabled = enabled,
+                            Suffix = value
+                        }
                     }
                 };
 

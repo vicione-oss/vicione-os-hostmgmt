@@ -237,8 +237,12 @@ main() {
     json_output+="  \"Addresses\": [$(IFS=, ; echo "${NAMESERVERS_JSON[*]}")]"
     json_output+="},"
 
-    json_output+="\"DNSSuffixEnabled\": ${DNS_SUFFIX_ENABLED},"
-    json_output+="\"DNSSuffix\": \"${DNS_SUFFIX}\","
+    json_output+="\"PrimaryDNSSuffix\":"
+    json_output+="{"
+    json_output+="  \"Enabled\": ${DNS_SUFFIX_ENABLED},"
+    json_output+="  \"Suffix\": \"${DNS_SUFFIX}\""
+    json_output+="},"
+
     json_output+="\"SearchDomainsEnabled\": ${SEARCH_DOMAINS_ENABLED},"
     json_output+="\"SearchDomains\": [$(IFS=, ; echo "${SEARCH_DOMAINS_JSON[*]}")]"
     json_output+="}"
