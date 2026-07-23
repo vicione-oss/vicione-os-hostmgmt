@@ -68,8 +68,6 @@ public class SystemConfigurationValidatorTests
             NetworkDNSSettings = new()
             {
                 Hostname = ValidationTestData.Hostname.Simple,
-                DNSSuffixEnabled = true,
-                DNSSuffix = ValidationTestData.PrimarySuffix.FQDN,
                 StaticHosts = new()
                 {
                     Enabled = true,
@@ -78,6 +76,11 @@ public class SystemConfigurationValidatorTests
                         ValidationTestData.StaticHost.StaticHost1,
                         ValidationTestData.StaticHost.StaticHost2
                     ]
+                },
+                PrimaryDNSSuffix = new()
+                {
+                    Enabled = true,
+                    Suffix = ValidationTestData.PrimarySuffix.FQDN
                 },
                 SearchDomainsEnabled = true,
                 SearchDomains =

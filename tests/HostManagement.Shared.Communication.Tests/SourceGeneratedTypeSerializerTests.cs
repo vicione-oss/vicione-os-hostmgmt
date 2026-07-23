@@ -34,8 +34,10 @@ public class SourceGeneratedTypeSerializerTests
                 "120.86.52.18"
               ]
             },
-            "DNSSuffixEnabled": true,
-            "DNSSuffix": "dnsSuffix",
+            "PrimaryDNSSuffix": {
+              "Enabled": true,
+              "Suffix": "dnsSuffix"
+            },
             "SearchDomainsEnabled": true,
             "SearchDomains": [
               "searchDomain"
@@ -114,8 +116,10 @@ public class SourceGeneratedTypeSerializerTests
                 "120.86.52.18"
               ]
             },
-            "DNSSuffixEnabled": true,
-            "DNSSuffix": "dnsSuffix",
+            "PrimaryDNSSuffix": {
+              "Enabled": true,
+              "Suffix": "dnsSuffix"
+            },
             "SearchDomainsEnabled": true,
             "SearchDomains": [
               "searchDomain"

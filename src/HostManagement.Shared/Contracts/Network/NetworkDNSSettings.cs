@@ -45,14 +45,9 @@ public sealed record NetworkDNSSettings
     public NameServersSettings NameServers { get; set; } = new();
 
     /// <summary>
-    /// Determines whether the primary DNS suffix is enabled.
+    /// The <see cref="PrimaryDNSSuffixSettings"/>.
     /// </summary>
-    public bool DNSSuffixEnabled { get; set; }
-
-    /// <summary>
-    /// The primary DNS suffix.
-    /// </summary>
-    public string DNSSuffix { get; set; } = string.Empty;
+    public PrimaryDNSSuffixSettings PrimaryDNSSuffix { get; set; } = new();
 
     /// <summary>
     /// Determines whether search domains are enabled.
@@ -63,7 +58,7 @@ public sealed record NetworkDNSSettings
     /// The list of DNS search domains.
     /// </summary>
     /// <remarks>
-    /// DNS suffixes excluding the primary DNS suffix (<see cref="DNSSuffix"/>).
+    /// DNS suffixes excluding the primary DNS suffix (<see cref="PrimaryDNSSuffix"/>).
     /// </remarks>
     public List<string> SearchDomains { get; init; }
 
@@ -76,8 +71,7 @@ public sealed record NetworkDNSSettings
         hashCode.Add(MulticastDNSEnabled);
         hashCode.Add(StaticHosts);
         hashCode.Add(NameServers);
-        hashCode.Add(DNSSuffixEnabled);
-        hashCode.Add(DNSSuffix);
+        hashCode.Add(PrimaryDNSSuffix);
         hashCode.Add(SearchDomainsEnabled);
         hashCode.Add(SearchDomains.GetSequenceHashCode());
 
@@ -91,8 +85,7 @@ public sealed record NetworkDNSSettings
         MulticastDNSEnabled.Equals(other.MulticastDNSEnabled) &&
         StaticHosts.Equals(other.StaticHosts) &&
         NameServers.Equals(other.NameServers) &&
-        DNSSuffixEnabled.Equals(other.DNSSuffixEnabled) &&
-        DNSSuffix.Equals(other.DNSSuffix) &&
+        PrimaryDNSSuffix.Equals(other.PrimaryDNSSuffix) &&
         SearchDomainsEnabled.Equals(other.SearchDomainsEnabled) &&
         SearchDomains.SequenceEqual(other.SearchDomains);
 }

@@ -66,8 +66,12 @@ public class SystemConfigurationSerializerTests
                 Enabled = true,
                 Addresses = [s_ipAddress]
             },
-            DNSSuffixEnabled = true,
-            DNSSuffix = "dnsSuffix",
+            PrimaryDNSSuffix = new()
+            {
+                Enabled = true,
+                Suffix = "dnsSuffix"
+
+            },
             SearchDomainsEnabled = true,
             SearchDomains = ["searchDomain"]
         },
@@ -184,8 +188,10 @@ public class SystemConfigurationSerializerTests
                 "120.86.52.18"
               ]
             },
-            "DNSSuffixEnabled": true,
-            "DNSSuffix": "dnsSuffix",
+            "PrimaryDNSSuffix": {
+              "Enabled": true,
+              "Suffix": "dnsSuffix"
+            },
             "SearchDomainsEnabled": true,
             "SearchDomains": [
               "searchDomain"

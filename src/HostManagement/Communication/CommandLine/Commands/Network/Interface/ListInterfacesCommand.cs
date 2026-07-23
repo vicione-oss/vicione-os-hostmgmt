@@ -177,7 +177,7 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
         }
         else
         {
-            AppendOutputForDNSSuffix(dnsOutput, indentationLevel + 2, lease.NetworkDNSSettings);
+            AppendOutputForPrimaryDNSSuffix(dnsOutput, indentationLevel + 2, lease.NetworkDNSSettings.PrimaryDNSSuffix);
             AppendOutputForSearchDomains(dnsOutput, indentationLevel + 2, lease.NetworkDNSSettings);
             AppendOutputForNameServers(dnsOutput, indentationLevel + 2, lease.NetworkDNSSettings.NameServers);
         }
@@ -191,24 +191,24 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
             .AddListOutput()
             .WithTitle(CommandLineStrings_DNS.DNS);
 
-        AppendOutputForDNSSuffix(dnsOutput, 1, networkDNSSettings);
+        AppendOutputForPrimaryDNSSuffix(dnsOutput, 1, networkDNSSettings.PrimaryDNSSuffix);
         AppendOutputForSearchDomains(dnsOutput, 1, networkDNSSettings);
         AppendOutputForNameServers(dnsOutput, 1, networkDNSSettings.NameServers);
     }
 
-    private static void AppendOutputForDNSSuffix(
+    private static void AppendOutputForPrimaryDNSSuffix(
         CliComplexOutputBase output,
         int indentationLevel,
-        NetworkDNSSettings networkDNSSettings)
+        PrimaryDNSSuffixSettings primaryDnsSuffixSettings)
     {
         var dnsSuffixOutput = output
             .AddListOutput(indentationLevel)
-            .WithTitle(CommandLineStrings_DNS.Suffix, networkDNSSettings.DNSSuffixEnabled);
+            .WithTitle(CommandLineStrings_DNS.Suffix, primaryDnsSuffixSettings.Enabled);
 
-        if (string.IsNullOrWhiteSpace(networkDNSSettings.DNSSuffix))
+        if (string.IsNullOrWhiteSpace(primaryDnsSuffixSettings.Suffix))
             dnsSuffixOutput.With(CliOutputBase.NotSetValue);
         else
-            dnsSuffixOutput.With(networkDNSSettings.DNSSuffix);
+            dnsSuffixOutput.With(primaryDnsSuffixSettings.Suffix);
     }
 
     private static void AppendOutputForSearchDomains(

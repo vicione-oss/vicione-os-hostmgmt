@@ -103,7 +103,10 @@ internal static class SystemConfigurationTemplate
                 {
                     Addresses = [ipv4Template1, ipv4Template2]
                 },
-                DNSSuffix = "myCompany.com",
+                PrimaryDNSSuffix = new()
+                {
+                    Suffix = "myCompany.com"
+                },
                 SearchDomains = ["local", "myCompany.com"]
             },
             NetworkProxySettings = new()

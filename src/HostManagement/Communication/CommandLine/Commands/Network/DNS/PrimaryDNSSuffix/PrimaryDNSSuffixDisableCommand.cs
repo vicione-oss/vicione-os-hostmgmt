@@ -1,35 +1,33 @@
-﻿using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 
-namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.Suffix;
+namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.PrimaryDNSSuffix;
 
 /// <summary>
 /// Represents the primary DNS suffix disable command.
 /// </summary>
-internal sealed class DNSSuffixDisableCommand : ConfigCommandBase
+internal sealed class PrimaryDNSSuffixDisableCommand : ConfigCommandBase
 {
     /// <summary>
-    /// Initializes a new <see cref="DNSSuffixDisableCommand"/>.
+    /// Initializes a new <see cref="PrimaryDNSSuffixDisableCommand"/>.
     /// </summary>
-    public DNSSuffixDisableCommand() : base(
+    public PrimaryDNSSuffixDisableCommand() : base(
         CommandLineStrings_Common.DisableCommandName,
         CommandLineStrings_DNS.DNSSuffixDisableCommandDescription)
-    {
-        SetAction((parseResult, cancellationToken) => DisableHandler(cancellationToken));
-    }
+            => SetAction((parseResult, cancellationToken) => DisableHandler(cancellationToken));
 
     private static async Task DisableHandler(CancellationToken cancellationToken)
     {
         if (await GetConfiguration(cancellationToken) is not SystemConfiguration config)
             return;
 
-        if (!config.NetworkDNSSettings.DNSSuffixEnabled)
+        if (!config.NetworkDNSSettings.PrimaryDNSSuffix.Enabled)
         {
             SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.SuffixAlreadyDisabled);
             return;
         }
 
-        config.NetworkDNSSettings.DNSSuffixEnabled = false;
+        config.NetworkDNSSettings.PrimaryDNSSuffix.Enabled = false;
 
         if (!await SetConfiguration(config, cancellationToken))
             return;

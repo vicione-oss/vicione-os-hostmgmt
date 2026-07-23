@@ -55,8 +55,6 @@ public class NetworkDNSSettingsValidatorTests
         var dnsSettings = new NetworkDNSSettings
         {
             Hostname = ValidationTestData.Hostname.Simple,
-            DNSSuffixEnabled = dnsSuffixEnabled,
-            DNSSuffix = ValidationTestData.PrimarySuffix.FQDN,
             StaticHosts = new StaticHostsSettings()
             {
                 Enabled = staticHostsEnabled,
@@ -65,6 +63,11 @@ public class NetworkDNSSettingsValidatorTests
                     ValidationTestData.StaticHost.StaticHost1,
                     ValidationTestData.StaticHost.StaticHost2
                 ]
+            },
+            PrimaryDNSSuffix = new PrimaryDNSSuffixSettings()
+            {
+                Enabled = dnsSuffixEnabled,
+                Suffix = ValidationTestData.PrimarySuffix.FQDN
             },
             SearchDomainsEnabled = searchDomainsEnabled,
             SearchDomains =

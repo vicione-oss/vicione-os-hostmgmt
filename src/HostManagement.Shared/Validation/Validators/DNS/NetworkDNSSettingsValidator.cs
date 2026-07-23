@@ -25,14 +25,14 @@ public sealed class NetworkDNSSettingsValidator : IValidator<NetworkDNSSettings>
 
             result.AddResult(
                 await new HostnameValidator()
-                    .ValidateAsync(dnsSettings.Hostname, dnsSettings.DNSSuffix, cancellationToken)
+                    .ValidateAsync(dnsSettings.Hostname, dnsSettings.PrimaryDNSSuffix.Suffix, cancellationToken)
                     .ConfigureAwait(false));
 
-            if (dnsSettings.DNSSuffixEnabled)
+            if (dnsSettings.PrimaryDNSSuffix.Enabled)
             {
                 result.AddResult(
                     await new DNSSuffixValidator()
-                        .ValidateAsync(dnsSettings.DNSSuffix, dnsSettings.Hostname, cancellationToken)
+                        .ValidateAsync(dnsSettings.PrimaryDNSSuffix.Suffix, dnsSettings.Hostname, cancellationToken)
                         .ConfigureAwait(false));
             }
 
