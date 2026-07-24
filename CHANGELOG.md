@@ -41,6 +41,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved logging for prepare/get/set config from `ServiceRunner` to `SystemConfigurationService` and improved some log messages
 - Simplified debug log for "resources added" in `ResourceManager`
 - Improved XML documentation of `SourceGeneratedTypeSerializer`
+- Shared: Grouped contract properties into objects and renamed "enabled" and "value"
+  - NTP
+    - Renamed `NTPServersEnabled` and `NTPServers` to `Enabled` and `Servers`
+  - Proxy
+    - Grouped `DoNotProxyListEnabled` and `DoNotProxyList` into new `NoProxySettings`
+    - Renamed `DoNotProxyListEnabled` and `DoNotProxyList` to `Enabled` and `Entries`
+  - Static Hosts
+    - Grouped `StaticHostsEnabled` and `StaticHosts` into new `StaticHostsSettings`
+    - Renamed `StaticHostsEnabled` and `StaticHosts` to `Enabled` and `Hosts`
+  - Name Servers
+    - Grouped `NameServersEnabled` and `NameServers` into new `NameServersSettings`
+    - Renamed `NameServersEnabled` and `NameServers` to `Enabled` and `Addresses`
+  - Primary Suffix
+    - Grouped `DNSSuffixEnabled` and `DNSSuffix` into new `PrimaryDNSSuffixSettings`
+    - Renamed `DNSSuffixEnabled` and `DNSSuffix` to `Enabled` and `Suffix`
+  - Search Domains
+    - Grouped `SearchDomainsEnabled` and `SearchDomains` into new `SearchDomainsSettings`
+    - Renamed `SearchDomainsEnabled` and `SearchDomains` to `Enabled` and `Domains`
 
 ### Removed
 
