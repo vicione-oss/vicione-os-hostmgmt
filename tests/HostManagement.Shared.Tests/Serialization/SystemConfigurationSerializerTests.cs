@@ -36,14 +36,14 @@ public class SystemConfigurationSerializerTests
                             new()
                             {
                                 IPAddress = s_ipAddress,
-                                Netmask = s_ipAddress,
+                                Netmask = s_ipAddress
                             }
                         ],
                         VLANEnabled = true,
-                        VLANID = 1,
-                    },
-                },
-            ],
+                        VLANID = 1
+                    }
+                }
+            ]
         },
         NetworkDNSSettings = new()
         {
@@ -57,8 +57,8 @@ public class SystemConfigurationSerializerTests
                     new()
                     {
                         Hostname = "statichost",
-                        IPAddress = s_ipAddress,
-                    },
+                        IPAddress = s_ipAddress
+                    }
                 ]
             },
             NameServers = new()
@@ -129,15 +129,15 @@ public class SystemConfigurationSerializerTests
         NetworkNTPSettings = new()
         {
             Enabled = true,
-            Servers = ["NTPServer"],
+            Servers = ["NTPServer"]
         },
         Services =
         [
             new()
             {
                 Name = "TestService",
-                State = ServiceState.Enabled,
-            },
+                State = ServiceState.Enabled
+            }
         ]
     };
 

@@ -1,8 +1,8 @@
-﻿using AwesomeAssertions;
-using Xunit;
+using AwesomeAssertions;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Service;
 using HostManagement.Shared.Enums;
+using Xunit;
 
 namespace HostManagement.Shared.Tests.Contracts;
 
@@ -12,26 +12,23 @@ public class SystemConfigurationTests
     {
         private static readonly SystemConfiguration s_emptyConfig = new();
 
-        private static readonly SystemConfiguration s_config = new(
-            [
-                CreateService("svc1", ServiceState.Enabled),
-                CreateService("svc2", ServiceState.Enabled)
-            ]);
+        private static readonly SystemConfiguration s_config = new()
+        {
+            Services = [CreateService("svc1", ServiceState.Enabled), CreateService("svc2", ServiceState.Enabled)]
+        };
 
-        private static readonly SystemConfiguration s_configServicesDisabled = new(
-            [
-                CreateService("svc1", ServiceState.Disabled),
-                CreateService("svc2", ServiceState.Disabled)
-            ]);
+        private static readonly SystemConfiguration s_configServicesDisabled = new()
+        {
+            Services = [CreateService("svc1", ServiceState.Disabled), CreateService("svc2", ServiceState.Disabled)]
+        };
 
-        private static readonly SystemConfiguration s_configServicesReversed = new(
-            [
-                CreateService("svc2", ServiceState.Enabled),
-                CreateService("svc1", ServiceState.Enabled)
-            ]);
+        private static readonly SystemConfiguration s_configServicesReversed = new()
+        {
+            Services = [CreateService("svc2", ServiceState.Enabled), CreateService("svc1", ServiceState.Enabled)]
+        };
 
-        private static ServiceDetail CreateService(string name, ServiceState state) =>
-            new() { Name = name, State = state };
+        private static ServiceDetail CreateService(string name, ServiceState state)
+            => new() { Name = name, State = state };
 
         [Fact]
         public void ShouldReturnFalse_WhenOneSystemConfigurationIsNull()

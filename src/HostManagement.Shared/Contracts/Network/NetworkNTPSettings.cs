@@ -9,12 +9,6 @@ namespace HostManagement.Shared.Contracts.Network;
 public sealed record NetworkNTPSettings
 {
     /// <summary>
-    /// Initializes new <see cref="NetworkNTPSettings"/>.
-    /// </summary>
-    [JsonConstructor]
-    public NetworkNTPSettings(List<string>? servers = null) => Servers = servers ?? [];
-
-    /// <summary>
     /// Represents the empty NTP settings.
     /// </summary>
     [JsonIgnore]
@@ -28,7 +22,7 @@ public sealed record NetworkNTPSettings
     /// <summary>
     /// The list of NTP servers (IPv4, IPv6 addresses and DNS host names).
     /// </summary>
-    public List<string> Servers { get; init; }
+    public List<string> Servers { get; init; } = [];
 
     /// <inheritdoc/>
     public override int GetHashCode()

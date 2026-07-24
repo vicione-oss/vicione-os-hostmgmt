@@ -143,10 +143,7 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
         }
     }
 
-    private static void AppendOutputForDHCPLease(
-        CliComplexOutputBase output,
-        int indentationLevel,
-        DHCPLease? lease)
+    private static void AppendOutputForDHCPLease(CliComplexOutputBase output, int indentationLevel, DHCPLease? lease)
     {
         if (lease is null)
         {
@@ -183,9 +180,7 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
         }
     }
 
-    private static void AppendOutputForDNS(
-        CliComplexOutputBase output,
-        NetworkDNSSettings networkDNSSettings)
+    private static void AppendOutputForDNS(CliComplexOutputBase output, NetworkDNSSettings networkDNSSettings)
     {
         var dnsOutput = output
             .AddListOutput()

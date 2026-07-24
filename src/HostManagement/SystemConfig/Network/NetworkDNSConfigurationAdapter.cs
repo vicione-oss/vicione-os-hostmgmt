@@ -62,10 +62,9 @@ internal sealed class NetworkDNSConfigurationAdapter(
         SystemConfiguration config,
         CancellationToken cancellationToken)
     {
-        var dnsSettings = config.NetworkDNSSettings;
         var result = Result.SuccessResult;
 
-        if (dnsSettings is null)
+        if (config.NetworkDNSSettings is not { } dnsSettings)
             return result;
 
         result.AddResult(await SetMulticastConfiguration(dnsSettings).ConfigureAwait(false));

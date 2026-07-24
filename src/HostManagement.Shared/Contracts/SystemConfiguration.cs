@@ -21,12 +21,6 @@ public class SystemConfiguration
     public int Version { get; init; } = 2;
 
     /// <summary>
-    /// Initializes new <see cref="SystemConfiguration"/>.
-    /// </summary>
-    [JsonConstructor]
-    public SystemConfiguration(List<ServiceDetail>? services = null) => Services = services ?? [];
-
-    /// <summary>
     /// The <see cref="NetworkInterfacesSettings"/>.
     /// </summary>
     public NetworkInterfacesSettings NetworkInterfacesSettings { get; set; } = new();
@@ -49,23 +43,28 @@ public class SystemConfiguration
     /// <summary>
     /// The list of managed services.
     /// </summary>
-    public List<ServiceDetail> Services { get; init; }
+    public List<ServiceDetail> Services { get; init; } = [];
 
     /// <inheritdoc/>
-    public override int GetHashCode() =>
-        HashCode.Combine(
-            NetworkInterfacesSettings,
-            NetworkDNSSettings,
-            NetworkProxySettings,
-            NetworkNTPSettings,
-            Services.OrderBy(x => x.Name).GetSequenceHashCode());
+    public override int GetHashCode()
+    {
+        var hashCode = new HashCode();
+
+        hashCode.Add(NetworkInterfacesSettings);
+        hashCode.Add(NetworkDNSSettings);
+        hashCode.Add(NetworkProxySettings);
+        hashCode.Add(NetworkNTPSettings);
+        hashCode.Add(Services.OrderBy(x => x.Name).GetSequenceHashCode());
+
+        return hashCode.ToHashCode();
+    }
 
     /// <inheritdoc/>
-    public bool Equals(SystemConfiguration? other) =>
-        other is not null &&
-        NetworkInterfacesSettings.Equals(other.NetworkInterfacesSettings) &&
-        NetworkDNSSettings.Equals(other.NetworkDNSSettings) &&
-        NetworkProxySettings.Equals(other.NetworkProxySettings) &&
-        NetworkNTPSettings.Equals(other.NetworkNTPSettings) &&
-        Services.OrderBy(x => x.Name).SequenceEqual(other.Services.OrderBy(x => x.Name));
+    public bool Equals(SystemConfiguration? other)
+        => other is not null
+        && NetworkInterfacesSettings.Equals(other.NetworkInterfacesSettings)
+        && NetworkDNSSettings.Equals(other.NetworkDNSSettings)
+        && NetworkProxySettings.Equals(other.NetworkProxySettings)
+        && NetworkNTPSettings.Equals(other.NetworkNTPSettings)
+        && Services.OrderBy(x => x.Name).SequenceEqual(other.Services.OrderBy(x => x.Name));
 }

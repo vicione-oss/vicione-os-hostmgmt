@@ -109,11 +109,10 @@ internal sealed class ProxyConfigurationAdapter(
         SystemConfiguration config,
         CancellationToken cancellationToken)
     {
-        var proposedProxySettings = config.NetworkProxySettings;
-        var currentProxySettings = _current.NetworkProxySettings;
-
-        if (proposedProxySettings is null)
+        if (config.NetworkProxySettings is not { } proposedProxySettings)
             return Result.SuccessResult;
+
+        var currentProxySettings = _current.NetworkProxySettings;
 
         var proxyDetails = new (NetworkProxyDetail? Proposed, NetworkProxyDetail? Current)[]
         {
@@ -143,8 +142,10 @@ internal sealed class ProxyConfigurationAdapter(
         NetworkProxyDetail? proposedProxyDetail,
         NetworkProxyDetail? currentProxyDetail)
     {
-        if (proposedProxyDetail is not null &&
-            !proposedProxyDetail.Equals(new NetworkProxyDetail()) &&
+        if (proposedProxyDetail is null)
+            return Result.SuccessResult;
+
+        if (!proposedProxyDetail.Equals(new NetworkProxyDetail()) &&
             !EqualityComparer<NetworkProxyDetail>.Default.Equals(proposedProxyDetail, currentProxyDetail))
         {
             return await _scriptHandler
@@ -158,7 +159,6 @@ internal sealed class ProxyConfigurationAdapter(
     private static ScriptOptions GetProxyScriptOptions(NetworkProxyDetail proxyDetail)
     {
         var scriptOptions = new ScriptOptions();
-
         scriptOptions.Add(ScriptOptionNames.Proxy.Enabled, proxyDetail.Enabled);
 
         // Make the compiler happy. A validator prevents us from getting here with invalid values for server and port.
