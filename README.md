@@ -11,10 +11,10 @@ The **HostManagement (HM)** project is an AOT-compiled .NET application for Debi
 
 A description of the conceptual ideas and design decisions can be found under: [Concept]
 
-|                                                                                              |                                                                          |                                                                                              |
-| :------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------- | :------------------------------------------------------------------------------------------- |
-| **[Getting Started](#getting-started)** <br> Quick Start / Target Environments               | **[Usage](#usage)** <br> CLI / Service / Environment Variables / Logging | **[Project Structure](#project-structure)** <br> Main Components / Project Structure Details |
-| **[Contributing](#contributing)** <br> Development / Publishing / Toolchain / GitHub Copilot | **[License](#license)** <br> License Status                              |                                                                                              |
+|                                                                                              |                                                                                              |                                                                                        |
+| :------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------- |
+| **[Getting Started](#getting-started)** <br> Quick Start / Target Environments               | **[Usage](#usage)** <br> CLI / Service / Environment Variables / Logging                     | **[Architecture](#architecture)** <br> Request Processing / System Configuration Flows |
+| **[Project Structure](#project-structure)** <br> Main Components / Project Structure Details | **[Contributing](#contributing)** <br> Development / Publishing / Toolchain / GitHub Copilot | **[License](#license)** <br> License Status                                            |
 
 ## Getting Started
 
@@ -175,6 +175,12 @@ Logs can be viewed using the `journalctl` command:
 ```bash
 sudo journalctl -u hostmanagement --output=short-precise
 ```
+
+## Architecture
+
+**HM** processes named-pipe requests through services, configuration adapters and scripts that interact with the underlying operating system.
+
+The request-processing architecture, including script execution and system configuration flows, is documented in [docs/Architecture.md].
 
 ## Project Structure
 
@@ -417,6 +423,7 @@ The full license text is available in [`LICENSE.txt`](./LICENSE.txt).
 [Concept]: docs/Concept.md
 [`copilot-instructions.md`]: .github/copilot-instructions.md
 [DNS Validation]: docs/DNSValidation.md
+[docs/Architecture.md]: docs/Architecture.md
 [docs/EnvironmentVariables.md]: docs/EnvironmentVariables.md
 [docs/HostManagementServiceStartup.md]: docs/HostManagementServiceStartup.md
 [docs/ScriptResponse.md]: docs/ScriptResponse.md
