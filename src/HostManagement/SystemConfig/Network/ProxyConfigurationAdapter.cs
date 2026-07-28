@@ -100,7 +100,7 @@ internal sealed class ProxyConfigurationAdapter(
         SystemConfiguration currentConfig,
         SystemConfiguration proposedConfig)
     {
-        return !EqualityComparer<NetworkProxySettings>.Default.Equals(
+        return SystemConfigurationChangeDetector.HasChanges(
             currentConfig.NetworkProxySettings,
             proposedConfig.NetworkProxySettings);
     }

@@ -61,7 +61,7 @@ internal sealed class ServiceConfigurationAdapter(
         SystemConfiguration currentConfig,
         SystemConfiguration proposedConfig)
     {
-        return !EqualityComparer<ServiceDetail>.Default.SequenceEqual(
+        return SystemConfigurationChangeDetector.HasSequenceChanges(
             currentConfig.Services,
             proposedConfig.Services,
             service => service.Name);

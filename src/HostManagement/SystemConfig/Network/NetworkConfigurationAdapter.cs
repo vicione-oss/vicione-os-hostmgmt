@@ -71,10 +71,10 @@ internal sealed class NetworkConfigurationAdapter : ConfigurationAdapter<SystemC
         SystemConfiguration proposedConfig)
     {
         return
-            !EqualityComparer<NetworkInterfaceDetail>.Default.SequenceEqual(
+            SystemConfigurationChangeDetector.HasSequenceChanges(
                 currentConfig.NetworkInterfacesSettings?.NetworkInterfaces,
                 proposedConfig.NetworkInterfacesSettings?.NetworkInterfaces) ||
-            !EqualityComparer<NetworkDNSSettings>.Default.Equals(
+            SystemConfigurationChangeDetector.HasChanges(
                 currentConfig.NetworkDNSSettings,
                 proposedConfig.NetworkDNSSettings);
     }

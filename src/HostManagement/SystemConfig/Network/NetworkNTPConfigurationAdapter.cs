@@ -41,7 +41,7 @@ internal sealed class NetworkNTPConfigurationAdapter(
         SystemConfiguration currentConfig,
         SystemConfiguration proposedConfig)
     {
-        return !EqualityComparer<NetworkNTPSettings>.Default.Equals(
+        return SystemConfigurationChangeDetector.HasChanges(
             currentConfig.NetworkNTPSettings,
             proposedConfig.NetworkNTPSettings);
     }

@@ -80,7 +80,7 @@ internal sealed class SystemConfigurationAdapter : ConfigurationAdapter
     }
 
     private protected override bool HasChangesInternal(SystemConfiguration current, SystemConfiguration proposed)
-        => current != proposed;
+        => SystemConfigurationChangeDetector.HasChanges(current, proposed);
 
     private protected override async Task<Result> PrepareConfiguration(
         SystemConfiguration config,

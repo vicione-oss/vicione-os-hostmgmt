@@ -90,10 +90,10 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
         // interfaces' yaml file. That is because the DNS script depends on a clean file
         // (meaning no DNS info configured).
         return
-            !EqualityComparer<NetworkInterfaceDetail>.Default.SequenceEqual(
+            SystemConfigurationChangeDetector.HasSequenceChanges(
                 currentConfig.NetworkInterfacesSettings?.NetworkInterfaces,
                 proposedConfig.NetworkInterfacesSettings?.NetworkInterfaces) ||
-            !EqualityComparer<NetworkDNSSettings>.Default.Equals(
+            SystemConfigurationChangeDetector.HasChanges(
                 currentConfig.NetworkDNSSettings,
                 proposedConfig.NetworkDNSSettings);
     }
