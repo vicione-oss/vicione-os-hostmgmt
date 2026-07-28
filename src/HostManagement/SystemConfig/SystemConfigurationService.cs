@@ -182,16 +182,14 @@ internal sealed partial class SystemConfigurationService(
             return SetSystemConfigurationResult.CreateErrorResult(message);
         }
 
-        var internalValidationResult = await SystemConfigurationValidatorInternal
-            .Validate(proposedConfig)
-            .ConfigureAwait(false);
+        var policyValidationResult = SystemConfigurationPolicyValidator.Validate(proposedConfig);
 
-        if (!internalValidationResult.IsValid)
+        if (!policyValidationResult.IsValid)
         {
             var message =
                 SystemConfigResources.SetConfigFailed +
                 Environment.NewLine +
-                internalValidationResult.FormattedMessages;
+                policyValidationResult.FormattedMessages;
 
             SetConfigurationFailedWithMessage(_logger, message);
             return SetSystemConfigurationResult.CreateErrorResult(message);

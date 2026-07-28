@@ -6,7 +6,7 @@ using Xunit;
 
 namespace HostManagement.Tests.SystemConfig.InternalValidation;
 
-public class ServicesValidatorInternalTests
+public class ConfigurableServicesValidatorTests
 {
     public class Validate
     {
@@ -30,7 +30,7 @@ public class ServicesValidatorInternalTests
                 $"'{notAllowedServiceName1}', '{notAllowedServiceName2}'.");
 
             // Act
-            ServicesValidatorInternal.Validate(proposed, configurableServices, validationResult);
+            ConfigurableServicesValidator.Validate(proposed, configurableServices, validationResult);
 
             // Assert
             validationResult.IsValid.Should().BeFalse();
@@ -58,7 +58,7 @@ public class ServicesValidatorInternalTests
                 $"'{wildcardServiceName1}', '{wildcardServiceName2}'.");
 
             // Act
-            ServicesValidatorInternal.Validate(proposed, configurableServices, validationResult);
+            ConfigurableServicesValidator.Validate(proposed, configurableServices, validationResult);
 
             // Assert
             validationResult.IsValid.Should().BeFalse();
@@ -81,7 +81,7 @@ public class ServicesValidatorInternalTests
             var validationResult = new ValidationResult();
 
             // Act
-            ServicesValidatorInternal.Validate(proposed, configurableServices, validationResult);
+            ConfigurableServicesValidator.Validate(proposed, configurableServices, validationResult);
 
             // Assert
             validationResult.IsValid.Should().BeTrue();
