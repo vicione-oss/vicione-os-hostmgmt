@@ -79,7 +79,7 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
         return combinedResult;
     }
 
-    private protected override bool HasChangesInternal(
+    private protected override bool HasConfigurationChanges(
         SystemConfiguration currentConfig,
         SystemConfiguration proposedConfig)
     {

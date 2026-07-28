@@ -39,7 +39,7 @@ internal sealed class NetworkDNSConfigurationAdapter(
         return result;
     }
 
-    private protected override bool HasChangesInternal(
+    private protected override bool HasConfigurationChanges(
         SystemConfiguration currentConfig,
         SystemConfiguration proposedConfig)
     {

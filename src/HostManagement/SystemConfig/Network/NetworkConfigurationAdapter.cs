@@ -66,7 +66,7 @@ internal sealed class NetworkConfigurationAdapter : ConfigurationAdapter<SystemC
         return result;
     }
 
-    private protected override bool HasChangesInternal(
+    private protected override bool HasConfigurationChanges(
         SystemConfiguration currentConfig,
         SystemConfiguration proposedConfig)
     {

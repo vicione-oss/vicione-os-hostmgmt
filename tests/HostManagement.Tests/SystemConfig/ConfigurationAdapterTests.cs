@@ -44,7 +44,7 @@ public class ConfigurationAdapterTests
             return Task.FromResult(Result.SuccessResult);
         }
 
-        private protected override bool HasChangesInternal(
+        private protected override bool HasConfigurationChanges(
             SystemConfiguration currentConfig,
             SystemConfiguration proposedConfig)
                 => !currentConfig.Equals(proposedConfig);

@@ -37,12 +37,12 @@ internal abstract class ConfigurationAdapter(bool bypassHasChanges = false, bool
     private readonly bool _bypassHasChanges = bypassHasChanges;
     private readonly bool _bypassApplyConfig = bypassApplyConfig;
 
-    /// <inheritdoc cref="HasChangesInternal(SystemConfiguration, SystemConfiguration)"/>
+    /// <inheritdoc cref="HasConfigurationChanges(SystemConfiguration, SystemConfiguration)"/>
     /// <remarks>
     /// Can be bypassed via the adapter's constructor (so always returns <see langword="true"/>).
     /// </remarks>
     internal bool HasChanges(SystemConfiguration currentConfig, SystemConfiguration proposedConfig)
-        => _bypassHasChanges || HasChangesInternal(currentConfig, proposedConfig);
+        => _bypassHasChanges || HasConfigurationChanges(currentConfig, proposedConfig);
 
     /// <summary>
     /// Sets a <see cref="SystemConfiguration"/> to the system.
@@ -84,7 +84,7 @@ internal abstract class ConfigurationAdapter(bool bypassHasChanges = false, bool
     /// <param name="currentConfig">The current configuration.</param>
     /// <param name="proposedConfig">The proposed configuration.</param>
     /// <returns><see langword="true"/> if changed, otherwise <see langword="false"/></returns>
-    private protected abstract bool HasChangesInternal(
+    private protected abstract bool HasConfigurationChanges(
         SystemConfiguration currentConfig,
         SystemConfiguration proposedConfig);
 

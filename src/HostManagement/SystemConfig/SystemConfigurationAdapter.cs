@@ -79,7 +79,7 @@ internal sealed class SystemConfigurationAdapter : ConfigurationAdapter
         return result;
     }
 
-    private protected override bool HasChangesInternal(SystemConfiguration current, SystemConfiguration proposed)
+    private protected override bool HasConfigurationChanges(SystemConfiguration current, SystemConfiguration proposed)
         => SystemConfigurationChangeDetector.HasChanges(current, proposed);
 
     private protected override async Task<Result> PrepareConfiguration(
