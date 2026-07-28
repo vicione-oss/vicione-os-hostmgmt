@@ -7,42 +7,42 @@ namespace HostManagement.SystemConfig;
 /// Represents an abstract generic configuration adapter.
 /// </summary>
 /// <typeparam name="TParentConfigurationAdapter">The type of the parent adapter.</typeparam>
-/// <param name="bypassHasChanges">If set to <see langword="true"/> bypasses the check for
-/// changes and returns <see langword="true"/> when
-/// <see cref="ConfigurationAdapter.HasChanges(SystemConfiguration, SystemConfiguration)"/>
-/// is called.</param>
-/// <param name="bypassApplyConfig">If set to <see langword="true"/> bypasses the apply logic,
-/// only preparing the configuration by writing changes to the system when
-/// <see cref="ConfigurationAdapter.SetConfiguration(SystemConfiguration, CancellationToken)"/>
-/// is called.</param>
+/// <param name="bypassHasChanges">If set to <see langword="true"/> bypasses the change check.</param>
+/// <param name="bypassApplyConfig">If set to <see langword="true"/> bypasses the apply logic.</param>
 internal abstract class ConfigurationAdapter<TParentConfigurationAdapter>(
     bool bypassHasChanges = false,
     bool bypassApplyConfig = false)
         : ConfigurationAdapter(bypassHasChanges, bypassApplyConfig)
-        where TParentConfigurationAdapter : ConfigurationAdapter
+            where TParentConfigurationAdapter : ConfigurationAdapter
 {
 }
 
 /// <summary>
 /// Represents an abstract configuration adapter.
 /// </summary>
-/// <param name="bypassHasChanges">If set to <see langword="true"/> bypasses the check for
-/// changes and returns <see langword="true"/> when
-/// <see cref="HasChanges(SystemConfiguration, SystemConfiguration)"/> is called.</param>
-/// <param name="bypassApplyConfig">If set to <see langword="true"/> bypasses the apply logic,
-/// only preparing the configuration by writing changes to the system when
-/// <see cref="SetConfiguration(SystemConfiguration, CancellationToken)"/> is called.</param>
+/// <param name="bypassHasChanges">If set to <see langword="true"/> bypasses the change check.</param>
+/// <param name="bypassApplyConfig">If set to <see langword="true"/> bypasses the apply logic.</param>
 internal abstract class ConfigurationAdapter(bool bypassHasChanges = false, bool bypassApplyConfig = false)
 {
     private readonly bool _bypassHasChanges = bypassHasChanges;
     private readonly bool _bypassApplyConfig = bypassApplyConfig;
 
-    /// <inheritdoc cref="HasChangesInternal(SystemConfiguration, SystemConfiguration)"/>
+    /// <inheritdoc cref="HasConfigurationChanges(SystemConfiguration, SystemConfiguration)"/>
     /// <remarks>
     /// Can be bypassed via the adapter's constructor (so always returns <see langword="true"/>).
     /// </remarks>
     internal bool HasChanges(SystemConfiguration currentConfig, SystemConfiguration proposedConfig)
-        => _bypassHasChanges || HasChangesInternal(currentConfig, proposedConfig);
+        => _bypassHasChanges || HasConfigurationChanges(currentConfig, proposedConfig);
+
+    /// <summary>
+    /// Gets the current <see cref="SystemConfiguration"/> from the system.
+    /// </summary>
+    /// <param name="config">The current configuration.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns><see cref="Result"/></returns>
+    protected internal abstract Task<Result> GetConfiguration(
+        SystemConfiguration config,
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// Sets a <see cref="SystemConfiguration"/> to the system.
@@ -68,23 +68,13 @@ internal abstract class ConfigurationAdapter(bool bypassHasChanges = false, bool
     }
 
     /// <summary>
-    /// Gets the current <see cref="SystemConfiguration"/> from the system.
-    /// </summary>
-    /// <param name="config">The current configuration.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns><see cref="Result"/></returns>
-    protected internal abstract Task<Result> GetConfiguration(
-        SystemConfiguration config,
-        CancellationToken cancellationToken);
-
-    /// <summary>
     /// Determines if the <paramref name="proposedConfig"/> has changes compared to the
     /// <paramref name="currentConfig"/>.
     /// </summary>
     /// <param name="currentConfig">The current configuration.</param>
     /// <param name="proposedConfig">The proposed configuration.</param>
     /// <returns><see langword="true"/> if changed, otherwise <see langword="false"/></returns>
-    private protected abstract bool HasChangesInternal(
+    private protected abstract bool HasConfigurationChanges(
         SystemConfiguration currentConfig,
         SystemConfiguration proposedConfig);
 

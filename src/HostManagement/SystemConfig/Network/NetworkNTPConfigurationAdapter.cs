@@ -37,11 +37,11 @@ internal sealed class NetworkNTPConfigurationAdapter(
         return result;
     }
 
-    private protected override bool HasChangesInternal(
+    private protected override bool HasConfigurationChanges(
         SystemConfiguration currentConfig,
         SystemConfiguration proposedConfig)
     {
-        return !EqualityComparer<NetworkNTPSettings>.Default.Equals(
+        return SystemConfigurationChangeDetector.HasChanges(
             currentConfig.NetworkNTPSettings,
             proposedConfig.NetworkNTPSettings);
     }

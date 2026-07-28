@@ -57,11 +57,11 @@ internal sealed class ServiceConfigurationAdapter(
         return combinedResult;
     }
 
-    private protected override bool HasChangesInternal(
+    private protected override bool HasConfigurationChanges(
         SystemConfiguration currentConfig,
         SystemConfiguration proposedConfig)
     {
-        return !EqualityComparer<ServiceDetail>.Default.SequenceEqual(
+        return SystemConfigurationChangeDetector.HasSequenceChanges(
             currentConfig.Services,
             proposedConfig.Services,
             service => service.Name);

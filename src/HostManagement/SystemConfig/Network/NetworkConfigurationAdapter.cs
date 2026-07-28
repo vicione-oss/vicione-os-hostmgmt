@@ -66,15 +66,15 @@ internal sealed class NetworkConfigurationAdapter : ConfigurationAdapter<SystemC
         return result;
     }
 
-    private protected override bool HasChangesInternal(
+    private protected override bool HasConfigurationChanges(
         SystemConfiguration currentConfig,
         SystemConfiguration proposedConfig)
     {
         return
-            !EqualityComparer<NetworkInterfaceDetail>.Default.SequenceEqual(
+            SystemConfigurationChangeDetector.HasSequenceChanges(
                 currentConfig.NetworkInterfacesSettings?.NetworkInterfaces,
                 proposedConfig.NetworkInterfacesSettings?.NetworkInterfaces) ||
-            !EqualityComparer<NetworkDNSSettings>.Default.Equals(
+            SystemConfigurationChangeDetector.HasChanges(
                 currentConfig.NetworkDNSSettings,
                 proposedConfig.NetworkDNSSettings);
     }

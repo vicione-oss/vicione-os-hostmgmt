@@ -39,7 +39,7 @@ internal sealed class NetworkDNSConfigurationAdapter(
         return result;
     }
 
-    private protected override bool HasChangesInternal(
+    private protected override bool HasConfigurationChanges(
         SystemConfiguration currentConfig,
         SystemConfiguration proposedConfig)
     {
@@ -50,10 +50,10 @@ internal sealed class NetworkDNSConfigurationAdapter(
         // interfaces' yaml file. That is because the DNS script depends on a clean file
         // (meaning no DNS info configured).
         return
-            !EqualityComparer<NetworkDNSSettings>.Default.Equals(
+            SystemConfigurationChangeDetector.HasChanges(
                 currentConfig.NetworkDNSSettings,
                 proposedConfig.NetworkDNSSettings) ||
-            !EqualityComparer<NetworkInterfaceDetail>.Default.SequenceEqual(
+            SystemConfigurationChangeDetector.HasSequenceChanges(
                 currentConfig.NetworkInterfacesSettings?.NetworkInterfaces,
                 proposedConfig.NetworkInterfacesSettings?.NetworkInterfaces);
     }

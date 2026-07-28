@@ -96,11 +96,11 @@ internal sealed class ProxyConfigurationAdapter(
         }
     }
 
-    private protected override bool HasChangesInternal(
+    private protected override bool HasConfigurationChanges(
         SystemConfiguration currentConfig,
         SystemConfiguration proposedConfig)
     {
-        return !EqualityComparer<NetworkProxySettings>.Default.Equals(
+        return SystemConfigurationChangeDetector.HasChanges(
             currentConfig.NetworkProxySettings,
             proposedConfig.NetworkProxySettings);
     }
