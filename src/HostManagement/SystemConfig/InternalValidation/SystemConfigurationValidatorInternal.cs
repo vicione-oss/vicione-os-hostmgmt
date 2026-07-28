@@ -1,6 +1,5 @@
-﻿using HostManagement.Configuration;
+using HostManagement.Configuration;
 using HostManagement.Shared.Contracts;
-using HostManagement.Shared.Validation;
 
 namespace HostManagement.SystemConfig.InternalValidation;
 
@@ -32,8 +31,7 @@ internal static class SystemConfigurationValidatorInternal
             validationResult.AddError(
                 InternalValidationResultMessages.InternalValidationFailed +
                 Environment.NewLine +
-                ex.Message,
-                ErrorCodes.ValidationFailed);
+                ex.Message);
 
             return validationResult;
         }

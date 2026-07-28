@@ -1,7 +1,6 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Text;
 using HostManagement.Shared.Contracts;
-using HostManagement.Shared.Validation;
 
 namespace HostManagement.SystemConfig.InternalValidation;
 
@@ -35,8 +34,7 @@ internal sealed class ServicesValidatorInternal
                 string.Format(
                     CultureInfo.InvariantCulture,
                     CompositeFormat.Parse(InternalValidationResultMessages.ServicesNotAllowed),
-                    invalidServicesString),
-                ErrorCodes.ValidationFailed);
+                    invalidServicesString));
         }
 
         return Task.CompletedTask;
