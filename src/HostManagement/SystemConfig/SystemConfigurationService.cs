@@ -191,7 +191,7 @@ internal sealed partial class SystemConfigurationService(
             var message =
                 SystemConfigResources.SetConfigFailed +
                 Environment.NewLine +
-                internalValidationResult.EntriesString;
+                internalValidationResult.FormattedMessages;
 
             SetConfigurationFailedWithMessage(_logger, message);
             return SetSystemConfigurationResult.CreateErrorResult(message);

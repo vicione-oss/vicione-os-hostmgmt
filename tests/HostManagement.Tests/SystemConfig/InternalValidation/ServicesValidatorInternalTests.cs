@@ -1,9 +1,8 @@
-﻿using AwesomeAssertions;
-using Xunit;
+using AwesomeAssertions;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Enums;
-using HostManagement.Shared.Validation;
 using HostManagement.SystemConfig.InternalValidation;
+using Xunit;
 
 namespace HostManagement.Tests.SystemConfig.InternalValidation;
 
@@ -25,18 +24,18 @@ public class ServicesValidatorInternalTests
             List<string> configurableServices = ["ssh.service", "remoteconnect.service"];
             var validationResult = new ValidationResult();
 
-            var expectedValidationEntry = new ValidationEntry(
-                $"Not allowed configurable services found. Affected services are: " +
-                $"'{notAllowedServiceName1}', '{notAllowedServiceName2}'.",
-                ErrorCodes.ValidationFailed);
+            var expectedValidationMessage = string.Join(
+                ' ',
+                "Not allowed configurable services found. Affected services are:",
+                $"'{notAllowedServiceName1}', '{notAllowedServiceName2}'.");
 
             // Act
             ServicesValidatorInternal.Validate(proposed, configurableServices, validationResult);
 
             // Assert
             validationResult.IsValid.Should().BeFalse();
-            validationResult.Entries.Count.Should().Be(1);
-            validationResult.Entries.Should().Contain(expectedValidationEntry);
+            validationResult.Messages.Count.Should().Be(1);
+            validationResult.Messages.Should().Contain(expectedValidationMessage);
         }
 
         [Fact]
@@ -53,18 +52,18 @@ public class ServicesValidatorInternalTests
             List<string> configurableServices = ["ssh.service", "remoteconnect.service", "wildcard@*.service"];
             var validationResult = new ValidationResult();
 
-            var expectedValidationEntry = new ValidationEntry(
-                $"Not allowed configurable services found. Affected services are: " +
-                $"'{wildcardServiceName1}', '{wildcardServiceName2}'.",
-                ErrorCodes.ValidationFailed);
+            var expectedValidationMessage = string.Join(
+                ' ',
+                "Not allowed configurable services found. Affected services are:",
+                $"'{wildcardServiceName1}', '{wildcardServiceName2}'.");
 
             // Act
             ServicesValidatorInternal.Validate(proposed, configurableServices, validationResult);
 
             // Assert
             validationResult.IsValid.Should().BeFalse();
-            validationResult.Entries.Count.Should().Be(1);
-            validationResult.Entries.Should().Contain(expectedValidationEntry);
+            validationResult.Messages.Count.Should().Be(1);
+            validationResult.Messages.Should().Contain(expectedValidationMessage);
         }
 
         [Fact]
@@ -86,7 +85,7 @@ public class ServicesValidatorInternalTests
 
             // Assert
             validationResult.IsValid.Should().BeTrue();
-            validationResult.Entries.Count.Should().Be(0);
+            validationResult.Messages.Count.Should().Be(0);
         }
     }
 }
