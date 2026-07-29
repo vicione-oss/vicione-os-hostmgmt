@@ -64,7 +64,7 @@ public sealed class RequestHandlerRegistryTests
             };
 
             var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne, [], logger);
-            var expectedMessage = GetRequestFailedBaseMessage(request) + "Topic is null.";
+            var expectedMessage = GetRequestFailedMessage(request, "Topic is null.");
 
             // Act
             var response = await registry.HandleRequestAsync(request, CancellationToken.None);
@@ -91,7 +91,7 @@ public sealed class RequestHandlerRegistryTests
             };
 
             var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne, [], logger);
-            var expectedMessage = GetRequestFailedBaseMessage(request) + "Topic is invalid.";
+            var expectedMessage = GetRequestFailedMessage(request, "Topic is invalid.");
 
             // Act
             var response = await registry.HandleRequestAsync(request, CancellationToken.None);
@@ -118,7 +118,7 @@ public sealed class RequestHandlerRegistryTests
             };
 
             var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne, [], logger);
-            var expectedMessage = GetRequestFailedBaseMessage(request) + "No handler registered.";
+            var expectedMessage = GetRequestFailedMessage(request, "No handler registered.");
 
             // Act
             var response = await registry.HandleRequestAsync(request, CancellationToken.None);
@@ -146,7 +146,7 @@ public sealed class RequestHandlerRegistryTests
             };
 
             var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne, [handler], logger);
-            var expectedMessage = GetRequestFailedBaseMessage(request) + ExceptionMessage;
+            var expectedMessage = GetRequestFailedMessage(request, ExceptionMessage);
 
             // Act
             var response = await registry.HandleRequestAsync(request, CancellationToken.None);
@@ -160,7 +160,7 @@ public sealed class RequestHandlerRegistryTests
         }
 
         [Fact]
-        public async Task ShouldReturnSerializedError_WhenHandlerNotSupportedOnEnvironment()
+        public async Task ShouldReturnSerializedError_WhenTopicNotAvailableOnPlatform()
         {
             // Arrange
             var logger = GetLoggerSubstitute();
@@ -175,7 +175,7 @@ public sealed class RequestHandlerRegistryTests
             };
 
             var registry = new RequestHandlerRegistry(TargetEnvironment.Debian, [handler], logger);
-            var expectedMessage = GetRequestFailedBaseMessage(request) + "Handler not supported on this platform.";
+            var expectedMessage = GetRequestFailedMessage(request, "Topic not available on this platform.");
 
             // Act
             var response = await registry.HandleRequestAsync(request, CancellationToken.None);
@@ -212,7 +212,7 @@ public sealed class RequestHandlerRegistryTests
             };
 
             var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne, [handler], logger);
-            var expectedMessage = GetRequestFailedBaseMessage(request) + "Handler requires a message content.";
+            var expectedMessage = GetRequestFailedMessage(request, "Request requires a message content.");
 
             // Act
             var response = await registry.HandleRequestAsync(request, CancellationToken.None);
@@ -288,8 +288,8 @@ public sealed class RequestHandlerRegistryTests
             handler.WasHandleCalled.Should().BeTrue();
         }
 
-        private static string GetRequestFailedBaseMessage(NamedPipeMessage message)
-            => $"Handle request for topic '{message.Topic}' failed (Conversation ID: {message.ConversationId}). ";
+        private static string GetRequestFailedMessage(NamedPipeMessage message, string error)
+            => $"Handle request for topic '{message.Topic}' failed (Conversation ID: {message.ConversationId}). {error}";
     }
 
     private sealed class FakeHandler(
