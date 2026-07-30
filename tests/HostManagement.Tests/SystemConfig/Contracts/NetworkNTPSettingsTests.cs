@@ -1,4 +1,4 @@
-﻿using AwesomeAssertions;
+using AwesomeAssertions;
 using HostManagement.SystemConfig.Contracts;
 using Xunit;
 
@@ -11,95 +11,119 @@ public class NetworkNTPSettingsTests
         [Fact]
         public void ShouldReturnTrue_WhenIdenticalSettings()
         {
+            // Arrange
             var settings1 = CreateSampleSettings();
             var settings2 = CreateSampleSettings();
 
+            // Act
             var result = settings1.Equals(settings2);
 
+            // Assert
             result.Should().BeTrue();
         }
 
         [Fact]
         public void ShouldReturnTrue_WhenEmptySettings()
         {
+            // Arrange
             var settings1 = new NetworkNTPSettings();
             var settings2 = new NetworkNTPSettings();
 
+            // Act
             var result = settings1.Equals(settings2);
 
+            // Assert
             result.Should().BeTrue();
         }
 
         [Fact]
-        public void ShouldReturnFalse_WhenDifferentNTPServersEnabled()
+        public void ShouldReturnFalse_WhenDifferentEnabled()
         {
+            // Arrange
             var settings1 = CreateSampleSettings();
             var settings2 = CreateSampleSettings();
-            settings2.NTPServersEnabled = !settings1.NTPServersEnabled;
+            settings2.Enabled = !settings1.Enabled;
 
+            // Act
             var result = settings1.Equals(settings2);
 
+            // Assert
             result.Should().BeFalse();
         }
 
         [Fact]
-        public void ShouldReturnFalse_WhenNullVsNonNullNTPServersEnabled()
+        public void ShouldReturnFalse_WhenNullVsNonNullEnabled()
         {
-            var settings1 = new NetworkNTPSettings { NTPServersEnabled = null };
-            var settings2 = new NetworkNTPSettings { NTPServersEnabled = true };
+            // Arrange
+            var settings1 = new NetworkNTPSettings { Enabled = null };
+            var settings2 = new NetworkNTPSettings { Enabled = true };
 
+            // Act
             var result = settings1.Equals(settings2);
 
+            // Assert
             result.Should().BeFalse();
         }
 
         [Fact]
-        public void ShouldReturnFalse_WhenDifferentNTPServers()
+        public void ShouldReturnFalse_WhenDifferentServers()
         {
+            // Arrange
             var settings1 = CreateSampleSettings();
             var settings2 = CreateSampleSettings();
-            settings2.NTPServers!.Add("extra-ntp.example.com");
+            settings2.Servers!.Add("extra-ntp.example.com");
 
+            // Act
             var result = settings1.Equals(settings2);
 
+            // Assert
             result.Should().BeFalse();
         }
 
         [Fact]
-        public void ShouldReturnFalse_WhenNullVsNonNullNTPServers()
+        public void ShouldReturnFalse_WhenNullVsNonNullServers()
         {
-            var settings1 = new NetworkNTPSettings { NTPServers = null };
-            var settings2 = new NetworkNTPSettings { NTPServers = ["ntp.example.com"] };
+            // Arrange
+            var settings1 = new NetworkNTPSettings { Servers = null };
+            var settings2 = new NetworkNTPSettings { Servers = ["ntp.example.com"] };
 
+            // Act
             var result = settings1.Equals(settings2);
 
+            // Assert
             result.Should().BeFalse();
         }
 
         [Fact]
-        public void ShouldReturnFalse_WhenDifferentNTPServerOrder()
+        public void ShouldReturnFalse_WhenDifferentServerOrder()
         {
+            // Arrange
             var settings1 = new NetworkNTPSettings
             {
-                NTPServers = ["ntp1.example.com", "ntp2.example.com"]
+                Servers = ["ntp1.example.com", "ntp2.example.com"]
             };
             var settings2 = new NetworkNTPSettings
             {
-                NTPServers = ["ntp2.example.com", "ntp1.example.com"]
+                Servers = ["ntp2.example.com", "ntp1.example.com"]
             };
 
+            // Act
             var result = settings1.Equals(settings2);
 
+            // Assert
             result.Should().BeFalse();
         }
 
         [Fact]
-        public void ShouldReturnFalse_WhenNull()
+        public void ShouldReturnFalse_WhenNullVsNonNull()
         {
+            // Arrange
             var settings = CreateSampleSettings();
 
+            // Act
             var result = settings.Equals(null);
 
+            // Assert
             result.Should().BeFalse();
         }
     }
@@ -109,25 +133,31 @@ public class NetworkNTPSettingsTests
         [Fact]
         public void ShouldReturnSameHashCode_WhenIdenticalSettings()
         {
+            // Arrange
             var settings1 = CreateSampleSettings();
             var settings2 = CreateSampleSettings();
 
+            // Act
             var hash1 = settings1.GetHashCode();
             var hash2 = settings2.GetHashCode();
 
+            // Assert
             hash1.Should().Be(hash2);
         }
 
         [Fact]
         public void ShouldReturnDifferentHashCode_WhenDifferentSettings()
         {
+            // Arrange
             var settings1 = CreateSampleSettings();
             var settings2 = CreateSampleSettings();
-            settings2.NTPServersEnabled = !settings1.NTPServersEnabled;
+            settings2.Enabled = !settings1.Enabled;
 
+            // Act
             var hash1 = settings1.GetHashCode();
             var hash2 = settings2.GetHashCode();
 
+            // Assert
             hash1.Should().NotBe(hash2);
         }
     }
@@ -136,8 +166,8 @@ public class NetworkNTPSettingsTests
     {
         return new NetworkNTPSettings
         {
-            NTPServersEnabled = true,
-            NTPServers = ["ntp1.example.com", "ntp2.example.com"]
+            Enabled = true,
+            Servers = ["ntp1.example.com", "ntp2.example.com"]
         };
     }
 }

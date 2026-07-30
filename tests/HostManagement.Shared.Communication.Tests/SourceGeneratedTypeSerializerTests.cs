@@ -19,23 +19,31 @@ public class SourceGeneratedTypeSerializerTests
           "NetworkDNSSettings": {
             "Hostname": "hostname",
             "MulticastDNSEnabled": true,
-            "StaticHostsEnabled": true,
-            "StaticHosts": [
-              {
-                "IPAddress": "120.86.52.18",
-                "Hostname": "statichost"
-              }
-            ],
-            "NameServersEnabled": true,
-            "NameServers": [
-              "120.86.52.18"
-            ],
-            "DNSSuffixEnabled": true,
-            "DNSSuffix": "dnsSuffix",
-            "SearchDomainsEnabled": true,
-            "SearchDomains": [
-              "searchDomain"
-            ]
+            "StaticHosts": {
+              "Enabled": true,
+              "Hosts": [
+                {
+                  "IPAddress": "120.86.52.18",
+                  "Hostname": "statichost"
+                }
+              ]
+            },
+            "NameServers": {
+              "Enabled": true,
+              "Addresses": [
+                "120.86.52.18"
+              ]
+            },
+            "PrimaryDNSSuffix": {
+              "Enabled": true,
+              "Suffix": "dnsSuffix"
+            },
+            "SearchDomains": {
+              "Enabled": true,
+              "Domains": [
+                "searchDomain"
+              ]
+            }
           },
           "IPv4Detail": {
             "IPAddress": "120.86.52.18",
@@ -68,7 +76,7 @@ public class SourceGeneratedTypeSerializerTests
     private const string IndentedSampleSystemConfigurationJson =
         $$"""
         {
-          "Version": 1,
+          "Version": 2,
           "NetworkInterfacesSettings": {
             "NetworkInterfaces": [
               {
@@ -95,23 +103,31 @@ public class SourceGeneratedTypeSerializerTests
           "NetworkDNSSettings": {
             "Hostname": "hostname",
             "MulticastDNSEnabled": true,
-            "StaticHostsEnabled": true,
-            "StaticHosts": [
-              {
-                "IPAddress": "120.86.52.18",
-                "Hostname": "statichost"
-              }
-            ],
-            "NameServersEnabled": true,
-            "NameServers": [
-              "120.86.52.18"
-            ],
-            "DNSSuffixEnabled": true,
-            "DNSSuffix": "dnsSuffix",
-            "SearchDomainsEnabled": true,
-            "SearchDomains": [
-              "searchDomain"
-            ]
+            "StaticHosts": {
+              "Enabled": true,
+              "Hosts": [
+                {
+                  "IPAddress": "120.86.52.18",
+                  "Hostname": "statichost"
+                }
+              ]
+            },
+            "NameServers": {
+              "Enabled": true,
+              "Addresses": [
+                "120.86.52.18"
+              ]
+            },
+            "PrimaryDNSSuffix": {
+              "Enabled": true,
+              "Suffix": "dnsSuffix"
+            },
+            "SearchDomains": {
+              "Enabled": true,
+              "Domains": [
+                "searchDomain"
+              ]
+            }
           },
           "NetworkProxySettings": {
             "FTP": {
@@ -149,14 +165,16 @@ public class SourceGeneratedTypeSerializerTests
               "Username": "socksUser",
               "Password": "socksPassword"
             },
-            "DoNotProxyListEnabled": true,
-            "DoNotProxyList": [
-              "InternalProxy"
-            ]
+            "NoProxy": {
+              "Enabled": true,
+              "Entries": [
+                "InternalProxy"
+              ]
+            }
           },
           "NetworkNTPSettings": {
-            "NTPServersEnabled": true,
-            "NTPServers": [
+            "Enabled": true,
+            "Servers": [
               "ptbtime1.ptb.de",
               "ptbtime2.ptb.de",
               "ptbtime3.ptb.de"

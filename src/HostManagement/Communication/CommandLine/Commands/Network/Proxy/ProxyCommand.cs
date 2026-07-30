@@ -1,5 +1,5 @@
-﻿using System.CommandLine;
-using HostManagement.Communication.CommandLine.Commands.Network.Proxy.NoProxyList;
+using System.CommandLine;
+using HostManagement.Communication.CommandLine.Commands.Network.Proxy.NoProxy;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy;
 
@@ -20,6 +20,6 @@ internal sealed class ProxyCommand : Command
         Add(new ProxyTypeCommand(ProxyType.FTP));
         Add(new ProxyTypeCommand(ProxyType.SFTP));
         Add(new ProxyTypeCommand(ProxyType.SOCKS));
-        Add(new NoProxyListCommand());
+        Add(new NoProxyCommand());
     }
 }

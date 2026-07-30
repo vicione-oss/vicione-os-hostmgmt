@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text.Json.Serialization;
 using HostManagement.Shared.Extensions;
 
@@ -9,12 +9,6 @@ namespace HostManagement.Shared.Contracts.Network;
 /// </summary>
 public sealed record IPv4Settings
 {
-    /// <summary>
-    /// Initializes new <see cref="IPv4Settings"/>.
-    /// </summary>
-    [JsonConstructor]
-    public IPv4Settings(List<IPv4Detail>? ipv4Details = null) => IPv4Details = ipv4Details ?? [];
-
     /// <summary>
     /// Represents the empty IPv4 settings.
     /// </summary>
@@ -35,7 +29,7 @@ public sealed record IPv4Settings
     /// <summary>
     /// The list of IPv4 details.
     /// </summary>
-    public List<IPv4Detail> IPv4Details { get; init; }
+    public List<IPv4Detail> IPv4Details { get; init; } = [];
 
     /// <summary>
     /// Determines if VLAN should be enabled.
@@ -67,11 +61,11 @@ public sealed record IPv4Settings
     }
 
     /// <inheritdoc/>
-    public bool Equals(IPv4Settings? other) =>
-        other is not null &&
-        EqualityComparer<IPAddress>.Default.Equals(Gateway, other.Gateway) &&
-        DHCPEnabled == other.DHCPEnabled &&
-        IPv4Details.SequenceEqual(other.IPv4Details) &&
-        VLANEnabled == other.VLANEnabled &&
-        VLANID == other.VLANID;
+    public bool Equals(IPv4Settings? other)
+        => other is not null
+        && EqualityComparer<IPAddress>.Default.Equals(Gateway, other.Gateway)
+        && DHCPEnabled == other.DHCPEnabled
+        && IPv4Details.SequenceEqual(other.IPv4Details)
+        && VLANEnabled == other.VLANEnabled
+        && VLANID == other.VLANID;
 }

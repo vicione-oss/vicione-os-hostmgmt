@@ -74,8 +74,8 @@ main() {
     fi
 
     json_output="{"
-    json_output+="\"NTPServersEnabled\": ${NTP_SERVERS_ENABLED},"
-    json_output+="\"NTPServers\": [$(printf '%s, ' "${ntp_servers[@]}" | sed 's/, $//')]"
+    json_output+="\"Enabled\": ${NTP_SERVERS_ENABLED},"
+    json_output+="\"Servers\": [$(printf '%s, ' "${ntp_servers[@]}" | sed 's/, $//')]"
     json_output+="}"
 
     echo "$json_output"

@@ -1,4 +1,4 @@
-﻿using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.NTP;
@@ -14,28 +14,26 @@ internal sealed class NTPEnableCommand : ConfigCommandBase
     public NTPEnableCommand() : base(
         CommandLineStrings_Common.EnableCommandName,
         CommandLineStrings_NTP.NTPEnableCommandDescription)
-    {
-        SetAction((parseResult, cancellationToken) => EnableHandler(cancellationToken));
-    }
+            => SetAction((parseResult, cancellationToken) => EnableHandler(cancellationToken));
 
     private static async Task EnableHandler(CancellationToken cancellationToken)
     {
         if (await GetConfiguration(cancellationToken) is not SystemConfiguration config)
             return;
 
-        if (config.NetworkNTPSettings.NTPServersEnabled)
+        if (config.NetworkNTPSettings.Enabled)
         {
             SimpleOutput.WriteLineInformation(CommandLineStrings_NTP.ServersAlreadyEnabled);
             return;
         }
 
-        if (config.NetworkNTPSettings.NTPServers.Count == 0)
+        if (config.NetworkNTPSettings.Servers.Count == 0)
         {
             SimpleOutput.WriteLineError(CommandLineStrings_NTP.ServersNotConfigured);
             return;
         }
 
-        config.NetworkNTPSettings.NTPServersEnabled = true;
+        config.NetworkNTPSettings.Enabled = true;
 
         if (!await SetConfiguration(config, cancellationToken))
             return;

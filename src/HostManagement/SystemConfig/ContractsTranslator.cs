@@ -1,4 +1,4 @@
-﻿using HostManagement.SystemConfig.Contracts;
+using HostManagement.SystemConfig.Contracts;
 using SharedContracts = HostManagement.Shared.Contracts;
 using SharedNetwork = HostManagement.Shared.Contracts.Network;
 using SharedService = HostManagement.Shared.Contracts.Service;
@@ -21,71 +21,102 @@ namespace HostManagement.SystemConfig;
 /// </remarks>
 internal static class ContractsTranslator
 {
+    // ToSharedContracts
+
     internal static SharedContracts.SystemConfiguration ToSharedContracts(this SystemConfiguration intern)
     {
-        SharedContracts.SystemConfiguration systemConfiguration = new(intern.Services?.Select(static s => s.ToSharedContracts()).ToList())
-        {
-            Version = intern.Version,
-        };
-        if (intern.NetworkInterfacesSettings is not null)
-            systemConfiguration.NetworkInterfacesSettings = intern.NetworkInterfacesSettings.ToSharedContracts();
-        if (intern.NetworkDNSSettings is not null)
-            systemConfiguration.NetworkDNSSettings = intern.NetworkDNSSettings.ToSharedContracts();
-        if (intern.NetworkProxySettings is not null)
-            systemConfiguration.NetworkProxySettings = intern.NetworkProxySettings.ToSharedContracts();
-        if (intern.NetworkNTPSettings is not null)
-            systemConfiguration.NetworkNTPSettings = intern.NetworkNTPSettings.ToSharedContracts();
+        var systemConfiguration = intern.Services is { } services
+            ? new SharedContracts.SystemConfiguration()
+            {
+                Version = intern.Version,
+                Services = [.. services.Select(static service => service.ToSharedContracts())]
+            }
+            : new SharedContracts.SystemConfiguration()
+            {
+                Version = intern.Version
+            };
+
+        if (intern.NetworkInterfacesSettings is { } interfacesSettings)
+            systemConfiguration.NetworkInterfacesSettings = interfacesSettings.ToSharedContracts();
+
+        if (intern.NetworkDNSSettings is { } dnsSettings)
+            systemConfiguration.NetworkDNSSettings = dnsSettings.ToSharedContracts();
+
+        if (intern.NetworkProxySettings is { } proxySettings)
+            systemConfiguration.NetworkProxySettings = proxySettings.ToSharedContracts();
+
+        if (intern.NetworkNTPSettings is { } ntpSettings)
+            systemConfiguration.NetworkNTPSettings = ntpSettings.ToSharedContracts();
+
         return systemConfiguration;
     }
 
-    internal static SharedNetwork.DHCPLease ToSharedContracts(this DHCPLease intern)
-        => new()
-        {
-            LeaseObtained = intern.LeaseObtained,
-            LeaseExpires = intern.LeaseExpires,
-            Gateway = intern.Gateway,
-            NetworkDNSSettings = intern.NetworkDNSSettings?.ToSharedContracts(),
-            IPv4Detail = intern.IPv4Detail?.ToSharedContracts(),
-        };
-
-    private static SharedService.ServiceDetail ToSharedContracts(this ServiceDetail intern)
-        => new()
-        {
-            Name = intern.Name,
-            State = (Shared.Enums.ServiceState)intern.State,
-        };
-
     private static SharedNetwork.NetworkInterfacesSettings ToSharedContracts(this NetworkInterfacesSettings intern)
-        => new(intern.NetworkInterfaces?.Select(static ni => ni.ToSharedContracts()).ToList());
+    {
+        var networkInterfacesSettings = new SharedNetwork.NetworkInterfacesSettings();
+
+        if (intern.NetworkInterfaces is { } networkInterfaces)
+        {
+            networkInterfacesSettings = networkInterfacesSettings with
+            {
+                NetworkInterfaces = [.. networkInterfaces.Select(static @interface => @interface.ToSharedContracts())]
+            };
+        }
+
+        return networkInterfacesSettings;
+    }
 
     private static SharedNetwork.NetworkInterfaceDetail ToSharedContracts(this NetworkInterfaceDetail intern)
     {
+        var internalCommonInformation = intern.CommonInformation ?? new() { Enabled = false, Name = string.Empty };
+
         return new()
         {
-            CommonInformation = (intern.CommonInformation ?? new() { Name = string.Empty, Enabled = false, }).ToSharedContracts(),
-            IPv4 = intern.IPv4?.ToSharedContracts() ?? new(),
+            CommonInformation = internalCommonInformation.ToSharedContracts(),
+            IPv4 = intern.IPv4?.ToSharedContracts() ?? new()
         };
     }
 
-    private static SharedNetwork.NetworkInterfaceCommonInformation ToSharedContracts(this NetworkInterfaceCommonInformation intern)
+    private static SharedNetwork.NetworkInterfaceCommonInformation ToSharedContracts(
+        this NetworkInterfaceCommonInformation intern)
     {
-        return new()
+        var commonInformation = new SharedNetwork.NetworkInterfaceCommonInformation()
         {
             Enabled = intern.Enabled ?? false,
-            Name = intern.Name,
-            PhysicalAddress = intern.PhysicalAddress ?? string.Empty,
+            Name = intern.Name
         };
+
+        if (intern.PhysicalAddress is { } physicalAddress)
+            commonInformation.PhysicalAddress = physicalAddress;
+
+        return commonInformation;
     }
 
     private static SharedNetwork.IPv4Settings ToSharedContracts(this IPv4Settings intern)
     {
-        return new(intern.IPv4Details?.Select(d => d.ToSharedContracts()).ToList())
+        var ipv4Settings = new SharedNetwork.IPv4Settings
         {
-            Gateway = intern.Gateway,
-            DHCPEnabled = intern.DHCPEnabled ?? false,
-            VLANEnabled = intern.VLANEnabled ?? false,
-            VLANID = intern.VLANID ?? 0,
+            Gateway = intern.Gateway
         };
+
+        if (intern.DHCPEnabled is { } dhcpEnabled)
+            ipv4Settings.DHCPEnabled = dhcpEnabled;
+
+        if (intern.IPv4Details is { } ipv4Details)
+        {
+            ipv4Settings = ipv4Settings with
+            {
+                IPv4Details = [.. ipv4Details.Select(static detail => detail.ToSharedContracts())]
+            };
+        }
+
+        if (intern.VLANEnabled is { } vlanEnabled)
+            ipv4Settings.VLANEnabled = vlanEnabled;
+
+        if (intern.VLANID is { } vlanId)
+            ipv4Settings.VLANID = vlanId;
+
+        return ipv4Settings;
     }
 
     private static SharedNetwork.IPv4Detail ToSharedContracts(this IPv4Detail intern)
@@ -96,43 +127,116 @@ internal static class ContractsTranslator
         };
 
     private static SharedNetwork.NetworkDNSSettings ToSharedContracts(this NetworkDNSSettings intern)
-        => new(
-            intern.StaticHosts?.Select(sh => sh.ToSharedContracts()).ToList(),
-            intern.NameServers?.ToList(),
-            intern.SearchDomains?.ToList())
+    {
+        var networkDnsSettings = new SharedNetwork.NetworkDNSSettings();
+
+        if (intern.Hostname is { } hostname)
+            networkDnsSettings.Hostname = hostname;
+
+        if (intern.MulticastDNSEnabled is { } multicastEnabled)
+            networkDnsSettings.MulticastDNSEnabled = multicastEnabled;
+
+        if (intern.StaticHosts is { } staticHosts)
+            networkDnsSettings.StaticHosts = staticHosts.ToSharedContracts();
+
+        if (intern.NameServers is { } nameServers)
+            networkDnsSettings.NameServers = nameServers.ToSharedContracts();
+
+        if (intern.PrimaryDNSSuffix is { } primaryDnsSuffix)
+            networkDnsSettings.PrimaryDNSSuffix = primaryDnsSuffix.ToSharedContracts();
+
+        if (intern.SearchDomains is { } searchDomains)
+            networkDnsSettings.SearchDomains = searchDomains.ToSharedContracts();
+
+        return networkDnsSettings;
+    }
+
+    private static SharedNetwork.StaticHostsSettings ToSharedContracts(this StaticHostsSettings intern)
+    {
+        var staticHostsSettings = new SharedNetwork.StaticHostsSettings();
+
+        if (intern.Enabled is { } enabled)
+            staticHostsSettings.Enabled = enabled;
+
+        if (intern.Hosts is { } hosts)
         {
-            Hostname = intern.Hostname ?? string.Empty,
-            MulticastDNSEnabled = intern.MulticastDNSEnabled ?? false,
-            StaticHostsEnabled = intern.StaticHostsEnabled ?? false,
-            NameServersEnabled = intern.NameServersEnabled ?? false,
-            DNSSuffixEnabled = intern.DNSSuffixEnabled ?? false,
-            DNSSuffix = intern.DNSSuffix ?? string.Empty,
-            SearchDomainsEnabled = intern.SearchDomainsEnabled ?? false,
-        };
+            staticHostsSettings = staticHostsSettings with
+            {
+                Hosts = [.. hosts.Select(static host => host.ToSharedContracts())]
+            };
+        }
+
+        return staticHostsSettings;
+    }
 
     private static SharedNetwork.StaticHostDetail ToSharedContracts(this StaticHostDetail intern)
         => new()
         {
             Hostname = intern.Hostname,
-            IPAddress = intern.IPAddress,
+            IPAddress = intern.IPAddress
         };
+
+    private static SharedNetwork.NameServersSettings ToSharedContracts(this NameServersSettings intern)
+    {
+        var nameServersSettings = new SharedNetwork.NameServersSettings();
+
+        if (intern.Enabled is { } enabled)
+            nameServersSettings.Enabled = enabled;
+
+        if (intern.Addresses is { } addresses)
+            nameServersSettings = nameServersSettings with { Addresses = [.. addresses] };
+
+        return nameServersSettings;
+    }
+
+    private static SharedNetwork.PrimaryDNSSuffixSettings ToSharedContracts(this PrimaryDNSSuffixSettings intern)
+    {
+        var primaryDNSSuffixSettings = new SharedNetwork.PrimaryDNSSuffixSettings();
+
+        if (intern.Enabled is { } enabled)
+            primaryDNSSuffixSettings.Enabled = enabled;
+
+        if (intern.Suffix is { } suffix)
+            primaryDNSSuffixSettings.Suffix = suffix;
+
+        return primaryDNSSuffixSettings;
+    }
+
+    private static SharedNetwork.SearchDomainsSettings ToSharedContracts(this SearchDomainsSettings intern)
+    {
+        var searchDomainsSettings = new SharedNetwork.SearchDomainsSettings();
+
+        if (intern.Enabled is { } enabled)
+            searchDomainsSettings.Enabled = enabled;
+
+        if (intern.Domains is { } domains)
+            searchDomainsSettings = searchDomainsSettings with { Domains = [.. domains] };
+
+        return searchDomainsSettings;
+    }
 
     private static SharedNetwork.NetworkProxySettings ToSharedContracts(this NetworkProxySettings intern)
     {
-        SharedNetwork.NetworkProxySettings networkProxySettings = new(intern.DoNotProxyList?.ToList())
-        {
-            DoNotProxyListEnabled = intern.DoNotProxyListEnabled ?? false,
-        };
-        if (intern.FTP is not null)
-            networkProxySettings.FTP = intern.FTP.ToSharedContracts();
-        if (intern.HTTP is not null)
-            networkProxySettings.HTTP = intern.HTTP.ToSharedContracts();
-        if (intern.HTTPS is not null)
-            networkProxySettings.HTTPS = intern.HTTPS.ToSharedContracts();
-        if (intern.SFTP is not null)
-            networkProxySettings.SFTP = intern.SFTP.ToSharedContracts();
-        if (intern.SOCKS is not null)
-            networkProxySettings.SOCKS = intern.SOCKS.ToSharedContracts();
+        var networkProxySettings = new SharedNetwork.NetworkProxySettings();
+
+        if (intern.FTP is { } ftp)
+            networkProxySettings.FTP = ftp.ToSharedContracts();
+
+        if (intern.HTTP is { } http)
+            networkProxySettings.HTTP = http.ToSharedContracts();
+
+        if (intern.HTTPS is { } https)
+            networkProxySettings.HTTPS = https.ToSharedContracts();
+
+        if (intern.SFTP is { } sftp)
+            networkProxySettings.SFTP = sftp.ToSharedContracts();
+
+        if (intern.SOCKS is { } socks)
+            networkProxySettings.SOCKS = socks.ToSharedContracts();
+
+        if (intern.NoProxy is { } noProxy)
+            networkProxySettings.NoProxy = noProxy.ToSharedContracts();
+
         return networkProxySettings;
     }
 
@@ -146,27 +250,67 @@ internal static class ContractsTranslator
             Password = intern.Password,
         };
 
+    private static SharedNetwork.NoProxySettings ToSharedContracts(this NoProxySettings intern)
+    {
+        var noProxySettings = new SharedNetwork.NoProxySettings();
+
+        if (intern.Enabled is { } enabled)
+            noProxySettings.Enabled = enabled;
+
+        if (intern.Entries is { } entries)
+            noProxySettings = noProxySettings with { Entries = entries };
+
+        return noProxySettings;
+    }
+
     private static SharedNetwork.NetworkNTPSettings ToSharedContracts(this NetworkNTPSettings intern)
-        => new(intern.NTPServers?.ToList())
+    {
+        var networkNTPSettings = new SharedNetwork.NetworkNTPSettings();
+
+        if (intern.Enabled is { } enabled)
+            networkNTPSettings.Enabled = enabled;
+
+        if (intern.Servers is { } servers)
+            networkNTPSettings = networkNTPSettings with { Servers = servers };
+
+        return networkNTPSettings;
+    }
+
+    private static SharedService.ServiceDetail ToSharedContracts(this ServiceDetail intern)
+        => new()
         {
-            NTPServersEnabled = intern.NTPServersEnabled ?? false,
+            Name = intern.Name,
+            State = (Shared.Enums.ServiceState)intern.State,
         };
+
+    internal static SharedNetwork.DHCPLease ToSharedContracts(this DHCPLease intern)
+        => new()
+        {
+            LeaseObtained = intern.LeaseObtained,
+            LeaseExpires = intern.LeaseExpires,
+            Gateway = intern.Gateway,
+            NetworkDNSSettings = intern.NetworkDNSSettings?.ToSharedContracts(),
+            IPv4Detail = intern.IPv4Detail?.ToSharedContracts(),
+        };
+
+    // ToInternalContracts
 
     internal static SystemConfiguration ToInternalContracts(this SharedContracts.SystemConfiguration shared)
         => new()
         {
+            Version = shared.Version,
             NetworkInterfacesSettings = shared.NetworkInterfacesSettings.ToInternalContracts(),
             NetworkDNSSettings = shared.NetworkDNSSettings.ToInternalContracts(),
             NetworkProxySettings = shared.NetworkProxySettings.ToInternalContracts(),
             NetworkNTPSettings = shared.NetworkNTPSettings.ToInternalContracts(),
-            Services = [.. shared.Services.Select(s => s.ToInternalContracts())],
-            Version = shared.Version,
+            Services = [.. shared.Services.Select(static service => service.ToInternalContracts())]
         };
 
     private static NetworkInterfacesSettings ToInternalContracts(this SharedNetwork.NetworkInterfacesSettings shared)
         => new()
         {
-            NetworkInterfaces = [.. shared.NetworkInterfaces.Select(ni => ni.ToInternalContracts())],
+            NetworkInterfaces =
+                [.. shared.NetworkInterfaces.Select(static @interface => @interface.ToInternalContracts())]
         };
 
     private static NetworkInterfaceDetail ToInternalContracts(this SharedNetwork.NetworkInterfaceDetail shared)
@@ -176,44 +320,23 @@ internal static class ContractsTranslator
             IPv4 = shared.IPv4.ToInternalContracts(),
         };
 
-    private static NetworkInterfaceCommonInformation ToInternalContracts(this SharedNetwork.NetworkInterfaceCommonInformation shared)
-        => new()
-        {
-            Enabled = shared.Enabled,
-            Name = shared.Name,
-            PhysicalAddress = shared.PhysicalAddress,
-        };
+    private static NetworkInterfaceCommonInformation ToInternalContracts(
+        this SharedNetwork.NetworkInterfaceCommonInformation shared)
+            => new()
+            {
+                Enabled = shared.Enabled,
+                Name = shared.Name,
+                PhysicalAddress = shared.PhysicalAddress
+            };
 
     private static IPv4Settings ToInternalContracts(this SharedNetwork.IPv4Settings shared)
         => new()
         {
             Gateway = shared.Gateway,
             DHCPEnabled = shared.DHCPEnabled,
+            IPv4Details = [.. shared.IPv4Details.Select(detail => detail.ToInternalContracts())],
             VLANEnabled = shared.VLANEnabled,
-            VLANID = shared.VLANID,
-            IPv4Details = [.. shared.IPv4Details.Select(d => d.ToInternalContracts())],
-        };
-
-    private static NetworkDNSSettings ToInternalContracts(this SharedNetwork.NetworkDNSSettings shared)
-        => new()
-        {
-            Hostname = shared.Hostname,
-            MulticastDNSEnabled = shared.MulticastDNSEnabled,
-            StaticHostsEnabled = shared.StaticHostsEnabled,
-            StaticHosts = [.. shared.StaticHosts.Select(sh => sh.ToInternalContracts())],
-            NameServersEnabled = shared.NameServersEnabled,
-            NameServers = [.. shared.NameServers],
-            DNSSuffixEnabled = shared.DNSSuffixEnabled,
-            DNSSuffix = shared.DNSSuffix,
-            SearchDomainsEnabled = shared.SearchDomainsEnabled,
-            SearchDomains = [.. shared.SearchDomains],
-        };
-
-    private static StaticHostDetail ToInternalContracts(this SharedNetwork.StaticHostDetail shared)
-        => new()
-        {
-            Hostname = shared.Hostname,
-            IPAddress = shared.IPAddress,
+            VLANID = shared.VLANID
         };
 
     private static IPv4Detail ToInternalContracts(this SharedNetwork.IPv4Detail shared)
@@ -221,6 +344,52 @@ internal static class ContractsTranslator
         {
             IPAddress = shared.IPAddress,
             Netmask = shared.Netmask
+        };
+
+    private static NetworkDNSSettings ToInternalContracts(this SharedNetwork.NetworkDNSSettings shared)
+        => new()
+        {
+            Hostname = shared.Hostname,
+            MulticastDNSEnabled = shared.MulticastDNSEnabled,
+            StaticHosts = shared.StaticHosts.ToInternalContracts(),
+            NameServers = shared.NameServers.ToInternalContracts(),
+            PrimaryDNSSuffix = shared.PrimaryDNSSuffix.ToInternalContracts(),
+            SearchDomains = shared.SearchDomains.ToInternalContracts()
+        };
+
+    private static StaticHostsSettings ToInternalContracts(this SharedNetwork.StaticHostsSettings shared)
+        => new()
+        {
+            Enabled = shared.Enabled,
+            Hosts = [.. shared.Hosts.Select(host => host.ToInternalContracts())]
+        };
+
+    private static StaticHostDetail ToInternalContracts(this SharedNetwork.StaticHostDetail shared)
+        => new()
+        {
+            Hostname = shared.Hostname,
+            IPAddress = shared.IPAddress
+        };
+
+    private static NameServersSettings ToInternalContracts(this SharedNetwork.NameServersSettings shared)
+        => new()
+        {
+            Enabled = shared.Enabled,
+            Addresses = [.. shared.Addresses]
+        };
+
+    private static PrimaryDNSSuffixSettings ToInternalContracts(this SharedNetwork.PrimaryDNSSuffixSettings shared)
+        => new()
+        {
+            Enabled = shared.Enabled,
+            Suffix = shared.Suffix
+        };
+
+    private static SearchDomainsSettings ToInternalContracts(this SharedNetwork.SearchDomainsSettings shared)
+        => new()
+        {
+            Enabled = shared.Enabled,
+            Domains = [.. shared.Domains]
         };
 
     private static NetworkProxySettings ToInternalContracts(this SharedNetwork.NetworkProxySettings shared)
@@ -231,8 +400,7 @@ internal static class ContractsTranslator
             HTTPS = shared.HTTPS.ToInternalContracts(),
             SFTP = shared.SFTP.ToInternalContracts(),
             SOCKS = shared.SOCKS.ToInternalContracts(),
-            DoNotProxyListEnabled = shared.DoNotProxyListEnabled,
-            DoNotProxyList = [.. shared.DoNotProxyList],
+            NoProxy = shared.NoProxy.ToInternalContracts()
         };
 
     private static NetworkProxyDetail? ToInternalContracts(this SharedNetwork.NetworkProxyDetail shared)
@@ -243,21 +411,28 @@ internal static class ContractsTranslator
             Server = shared.Server,
             Port = shared.Port,
             Username = shared.Username,
-            Password = shared.Password,
+            Password = shared.Password
         };
     }
+
+    private static NoProxySettings ToInternalContracts(this SharedNetwork.NoProxySettings shared)
+        => new()
+        {
+            Enabled = shared.Enabled,
+            Entries = [.. shared.Entries]
+        };
 
     private static NetworkNTPSettings ToInternalContracts(this SharedNetwork.NetworkNTPSettings shared)
         => new()
         {
-            NTPServersEnabled = shared.NTPServersEnabled,
-            NTPServers = [.. shared.NTPServers]
+            Enabled = shared.Enabled,
+            Servers = [.. shared.Servers]
         };
 
     private static ServiceDetail ToInternalContracts(this SharedService.ServiceDetail shared)
         => new()
         {
             Name = shared.Name,
-            State = (ServiceState)shared.State,
+            State = (ServiceState)shared.State
         };
 }

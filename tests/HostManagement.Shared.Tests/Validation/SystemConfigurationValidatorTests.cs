@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using AwesomeAssertions;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
@@ -56,6 +56,7 @@ public class SystemConfigurationValidatorTests
         // Arrange
         var systemConfiguration = new SystemConfiguration
         {
+            Version = 2,
             NetworkInterfacesSettings = new()
             {
                 NetworkInterfaces =
@@ -67,47 +68,62 @@ public class SystemConfigurationValidatorTests
             NetworkDNSSettings = new()
             {
                 Hostname = ValidationTestData.Hostname.Simple,
-                DNSSuffixEnabled = true,
-                DNSSuffix = ValidationTestData.PrimarySuffix.FQDN,
-                StaticHostsEnabled = true,
-                StaticHosts =
-                [
-                    ValidationTestData.StaticHost.StaticHost1,
-                    ValidationTestData.StaticHost.StaticHost2
-                ],
-                SearchDomainsEnabled = true,
-                SearchDomains =
-                [
-                    ValidationTestData.SearchDomain.Simple,
-                    ValidationTestData.SearchDomain.FQDN
-                ],
-                NameServersEnabled = true,
-                NameServers =
-                [
-                    IPAddress.Parse(ValidationTestData.NameServer.IPv4),
-                    IPAddress.Parse(ValidationTestData.NameServer.IPv6)
-                ]
+                StaticHosts = new()
+                {
+                    Enabled = true,
+                    Hosts =
+                    [
+                        ValidationTestData.StaticHost.StaticHost1,
+                        ValidationTestData.StaticHost.StaticHost2
+                    ]
+                },
+                PrimaryDNSSuffix = new()
+                {
+                    Enabled = true,
+                    Suffix = ValidationTestData.PrimarySuffix.FQDN
+                },
+                SearchDomains = new()
+                {
+                    Enabled = true,
+                    Domains =
+                    [
+                        ValidationTestData.SearchDomain.Simple,
+                        ValidationTestData.SearchDomain.FQDN
+                    ]
+                },
+                NameServers = new()
+                {
+                    Enabled = true,
+                    Addresses =
+                    [
+                        IPAddress.Parse(ValidationTestData.NameServer.IPv4),
+                        IPAddress.Parse(ValidationTestData.NameServer.IPv6)
+                    ]
+                }
             },
             NetworkProxySettings = new NetworkProxySettings() with
             {
                 HTTP = ValidationTestData.Proxy.HTTP,
-                DoNotProxyListEnabled = true,
-                DoNotProxyList =
-                [
-                    ValidationTestData.NoProxyItem.IPv4,
-                    ValidationTestData.NoProxyItem.IPv4Port,
-                    ValidationTestData.NoProxyItem.IPv6,
-                    ValidationTestData.NoProxyItem.IPv6Port,
-                    ValidationTestData.NoProxyItem.IPv6LinkLocal,
-                    ValidationTestData.NoProxyItem.IPv6LinkLocalPort,
-                    ValidationTestData.NoProxyItem.Simple,
-                    ValidationTestData.NoProxyItem.FQDN
-                ]
+                NoProxy = new NoProxySettings()
+                {
+                    Enabled = true,
+                    Entries =
+                    [
+                        ValidationTestData.NoProxyItem.IPv4,
+                        ValidationTestData.NoProxyItem.IPv4Port,
+                        ValidationTestData.NoProxyItem.IPv6,
+                        ValidationTestData.NoProxyItem.IPv6Port,
+                        ValidationTestData.NoProxyItem.IPv6LinkLocal,
+                        ValidationTestData.NoProxyItem.IPv6LinkLocalPort,
+                        ValidationTestData.NoProxyItem.Simple,
+                        ValidationTestData.NoProxyItem.FQDN
+                    ]
+                }
             },
             NetworkNTPSettings = new()
             {
-                NTPServersEnabled = true,
-                NTPServers =
+                Enabled = true,
+                Servers =
                 [
                     ValidationTestData.NTPServer.IPv4,
                     ValidationTestData.NTPServer.FQDN

@@ -1,10 +1,10 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Commands.Network.DNS.Hostname;
 using HostManagement.Communication.CommandLine.Commands.Network.DNS.Multicast;
 using HostManagement.Communication.CommandLine.Commands.Network.DNS.NameServers;
+using HostManagement.Communication.CommandLine.Commands.Network.DNS.PrimaryDNSSuffix;
 using HostManagement.Communication.CommandLine.Commands.Network.DNS.SearchDomains;
 using HostManagement.Communication.CommandLine.Commands.Network.DNS.StaticHosts;
-using HostManagement.Communication.CommandLine.Commands.Network.DNS.Suffix;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS;
 
@@ -22,9 +22,9 @@ internal sealed class DNSCommand : Command
     {
         Add(new DNSHostnameCommand());
         Add(new DNSMulticastCommand());
-        Add(new DNSStaticHostsCommand());
-        Add(new DNSNameServersCommand());
-        Add(new DNSSuffixCommand());
-        Add(new DNSSearchDomainsCommand());
+        Add(new StaticHostsCommand());
+        Add(new NameServersCommand());
+        Add(new PrimaryDNSSuffixCommand());
+        Add(new SearchDomainsCommand());
     }
 }

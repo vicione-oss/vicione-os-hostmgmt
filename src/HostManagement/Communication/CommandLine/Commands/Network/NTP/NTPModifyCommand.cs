@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 
@@ -30,38 +30,35 @@ internal sealed class NTPModifyCommand : ConfigCommandBase
         });
     }
 
-    private static async Task ModifyHandler(
-        string oldNTPServer,
-        string newNTPServer,
-        CancellationToken cancellationToken)
+    private static async Task ModifyHandler(string oldServer, string newServer, CancellationToken cancellationToken)
     {
         if (await GetConfiguration(cancellationToken) is not SystemConfiguration config)
             return;
 
-        var ntpServers = config.NetworkNTPSettings.NTPServers;
+        var servers = config.NetworkNTPSettings.Servers;
 
-        if (ntpServers.Contains(newNTPServer))
+        if (servers.Contains(newServer))
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_NTP.ServerAlreadyDefined, newNTPServer);
+            SimpleOutput.WriteLineInformation(CommandLineStrings_NTP.ServerAlreadyDefined, newServer);
             return;
         }
 
-        var index = ntpServers.IndexOf(oldNTPServer);
+        var index = servers.IndexOf(oldServer);
 
         if (index == -1)
         {
-            SimpleOutput.WriteLineError(CommandLineStrings_NTP.ServerNotFound, oldNTPServer);
+            SimpleOutput.WriteLineError(CommandLineStrings_NTP.ServerNotFound, oldServer);
             return;
         }
 
-        ntpServers[index] = newNTPServer;
+        servers[index] = newServer;
 
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        if (!config.NetworkNTPSettings.NTPServersEnabled)
+        if (!config.NetworkNTPSettings.Enabled)
             SimpleOutput.WriteLineWarning(CommandLineStrings_NTP.ServersCurrentlyDisabled);
 
-        SimpleOutput.WriteLine(CommandLineStrings_NTP.ServerModified, oldNTPServer, newNTPServer);
+        SimpleOutput.WriteLine(CommandLineStrings_NTP.ServerModified, oldServer, newServer);
     }
 }

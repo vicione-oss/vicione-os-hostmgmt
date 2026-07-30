@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 
@@ -27,34 +27,34 @@ internal sealed class NTPAddCommand : ConfigCommandBase
         });
     }
 
-    private static async Task AddHandler(string[] ntpServers, CancellationToken cancellationToken)
+    private static async Task AddHandler(string[] servers, CancellationToken cancellationToken)
     {
         if (await GetConfiguration(cancellationToken) is not SystemConfiguration config)
             return;
 
-        var hasAddedNtpServer = false;
+        var hasAddedServer = false;
         var output = new ListOutput();
 
-        foreach (var ntpServer in ntpServers)
+        foreach (var server in servers)
         {
-            if (config.NetworkNTPSettings.NTPServers.Contains(ntpServer))
+            if (config.NetworkNTPSettings.Servers.Contains(server))
             {
-                output.WithInformation(CommandLineStrings_NTP.ServerAlreadyDefined, ntpServer);
+                output.WithInformation(CommandLineStrings_NTP.ServerAlreadyDefined, server);
                 continue;
             }
 
-            config.NetworkNTPSettings.NTPServers.Add(ntpServer);
-            output.With(ntpServer);
+            config.NetworkNTPSettings.Servers.Add(server);
+            output.With(server);
 
-            hasAddedNtpServer = true;
+            hasAddedServer = true;
         }
 
-        if (hasAddedNtpServer)
+        if (hasAddedServer)
         {
             if (!await SetConfiguration(config, cancellationToken))
                 return;
 
-            if (!config.NetworkNTPSettings.NTPServersEnabled)
+            if (!config.NetworkNTPSettings.Enabled)
                 output.WithWarning(CommandLineStrings_NTP.ServersCurrentlyDisabled);
 
             var title = output.ItemCount == 1

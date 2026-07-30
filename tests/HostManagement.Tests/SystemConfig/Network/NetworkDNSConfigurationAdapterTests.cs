@@ -49,8 +49,11 @@ public class NetworkDNSConfigurationAdapterTests
             // Arrange
             var dnsSettings = new NetworkDNSSettings()
             {
-                NameServersEnabled = true,
-                NameServers = [IPAddress.Parse("1.1.1.1")],
+                NameServers = new NameServersSettings()
+                {
+                    Enabled = true,
+                    Addresses = [IPAddress.Parse("1.1.1.1")]
+                },
                 Hostname = "host"
             };
 
@@ -139,18 +142,30 @@ public class NetworkDNSConfigurationAdapterTests
         {
             Hostname = "newhost",
             MulticastDNSEnabled = true,
-            StaticHostsEnabled = true,
-            StaticHosts =
-            [
-                new StaticHostDetail { Hostname = "local1", IPAddress = IPAddress.Parse("10.0.0.1") },
-                new StaticHostDetail { Hostname = "local2", IPAddress = IPAddress.Parse("10.0.0.2") }
-            ],
-            NameServersEnabled = true,
-            NameServers = [IPAddress.Parse("1.1.1.1"), IPAddress.Parse("8.8.8.8")],
-            DNSSuffixEnabled = true,
-            DNSSuffix = "intranet",
-            SearchDomainsEnabled = true,
-            SearchDomains = ["searchengine", "search.company.com"]
+            StaticHosts = new StaticHostsSettings()
+            {
+                Enabled = true,
+                Hosts =
+                [
+                    new StaticHostDetail { Hostname = "local1", IPAddress = IPAddress.Parse("10.0.0.1") },
+                    new StaticHostDetail { Hostname = "local2", IPAddress = IPAddress.Parse("10.0.0.2") }
+                ]
+            },
+            NameServers = new NameServersSettings()
+            {
+                Enabled = true,
+                Addresses = [IPAddress.Parse("1.1.1.1"), IPAddress.Parse("8.8.8.8")]
+            },
+            PrimaryDNSSuffix = new PrimaryDNSSuffixSettings()
+            {
+                Enabled = true,
+                Suffix = "intranet"
+            },
+            SearchDomains = new SearchDomainsSettings()
+            {
+                Enabled = true,
+                Domains = ["searchengine", "search.company.com"]
+            }
         };
 
         private static readonly SystemConfiguration s_proposed = new() { NetworkDNSSettings = s_proposedDNS };
@@ -444,7 +459,7 @@ public class NetworkDNSConfigurationAdapterTests
         public sealed class SetStaticHostsConfiguration
         {
             [Fact]
-            public async Task ShouldNotCallStaticHostsScript_WhenStaticHostsEnabledNull()
+            public async Task ShouldNotCallStaticHostsScript_WhenEnabledNull()
             {
                 // Arrange
                 var scriptHandler = Substitute.For<IScriptHandler>();
@@ -453,8 +468,11 @@ public class NetworkDNSConfigurationAdapterTests
                 {
                     NetworkDNSSettings = new()
                     {
-                        StaticHostsEnabled = null,
-                        StaticHosts = s_proposedDNS.StaticHosts
+                        StaticHosts = new()
+                        {
+                            Enabled = null,
+                            Hosts = s_proposedDNS.StaticHosts!.Hosts
+                        }
                     }
                 };
 
@@ -470,7 +488,7 @@ public class NetworkDNSConfigurationAdapterTests
             }
 
             [Fact]
-            public async Task ShouldCallStaticHostsScript_WhenStaticHostsListNull()
+            public async Task ShouldCallStaticHostsScript_WhenHostsNull()
             {
                 // Arrange
                 ScriptOptions? staticHostsOptionsCaptured = default;
@@ -485,8 +503,11 @@ public class NetworkDNSConfigurationAdapterTests
                 {
                     NetworkDNSSettings = new()
                     {
-                        StaticHostsEnabled = s_proposedDNS.StaticHostsEnabled,
-                        StaticHosts = null
+                        StaticHosts = new()
+                        {
+                            Enabled = s_proposedDNS.StaticHosts!.Enabled,
+                            Hosts = null
+                        }
                     }
                 };
 
@@ -527,12 +548,15 @@ public class NetworkDNSConfigurationAdapterTests
                     NetworkDNSSettings = new()
                     {
                         Hostname = "changed",
-                        NameServersEnabled = enabled,
-                        NameServers = value is null
-                            ? null
-                            : string.IsNullOrWhiteSpace(value)
-                                ? []
-                                : [IPAddress.Parse(value)]
+                        NameServers = new()
+                        {
+                            Enabled = enabled,
+                            Addresses = value is null
+                                ? null
+                                : string.IsNullOrWhiteSpace(value)
+                                    ? []
+                                    : [IPAddress.Parse(value)]
+                        }
                     }
                 };
 
@@ -565,8 +589,11 @@ public class NetworkDNSConfigurationAdapterTests
                     NetworkDNSSettings = new()
                     {
                         Hostname = "changed",
-                        DNSSuffixEnabled = enabled,
-                        DNSSuffix = value
+                        PrimaryDNSSuffix = new()
+                        {
+                            Enabled = enabled,
+                            Suffix = value
+                        }
                     }
                 };
 
@@ -602,12 +629,15 @@ public class NetworkDNSConfigurationAdapterTests
                     NetworkDNSSettings = new()
                     {
                         Hostname = "changed",
-                        SearchDomainsEnabled = enabled,
-                        SearchDomains = value is null
-                            ? null
-                            : string.IsNullOrWhiteSpace(value)
-                                ? []
-                                : [value]
+                        SearchDomains = new()
+                        {
+                            Enabled = enabled,
+                            Domains = value is null
+                                ? null
+                                : string.IsNullOrWhiteSpace(value)
+                                    ? []
+                                    : [value]
+                        }
                     }
                 };
 

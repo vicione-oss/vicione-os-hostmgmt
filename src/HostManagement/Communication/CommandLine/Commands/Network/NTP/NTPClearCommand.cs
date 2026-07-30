@@ -1,4 +1,4 @@
-﻿using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.NTP;
@@ -14,23 +14,21 @@ internal sealed class NTPClearCommand : ConfigCommandBase
     public NTPClearCommand() : base(
         CommandLineStrings_Common.ClearCommandName,
         CommandLineStrings_NTP.NTPClearCommandDescription)
-    {
-        SetAction((parseResult, cancellationToken) => ClearHandler(cancellationToken));
-    }
+            => SetAction((parseResult, cancellationToken) => ClearHandler(cancellationToken));
 
     private static async Task ClearHandler(CancellationToken cancellationToken)
     {
         if (await GetConfiguration(cancellationToken) is not SystemConfiguration config)
             return;
 
-        if (config.NetworkNTPSettings.NTPServers.Count == 0)
+        if (config.NetworkNTPSettings.Servers.Count == 0)
         {
             SimpleOutput.WriteLineInformation(CommandLineStrings_NTP.ServersNotConfigured);
             return;
         }
 
-        config.NetworkNTPSettings.NTPServers.Clear();
-        config.NetworkNTPSettings.NTPServersEnabled = false;
+        config.NetworkNTPSettings.Servers.Clear();
+        config.NetworkNTPSettings.Enabled = false;
 
         if (!await SetConfiguration(config, cancellationToken))
             return;

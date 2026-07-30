@@ -1,4 +1,4 @@
-﻿using HostManagement.Shared.Contracts.Network;
+using HostManagement.Shared.Contracts.Network;
 
 namespace HostManagement.Shared.Validation.Validators.Proxy;
 
@@ -52,11 +52,11 @@ public sealed class NetworkProxySettingsValidator
                     .ValidateAsync(proxySettings.SOCKS, ProxyType.SOCKS, cancellationToken)
                     .ConfigureAwait(false));
 
-            if (proxySettings.DoNotProxyListEnabled)
+            if (proxySettings.NoProxy.Enabled)
             {
                 result.AddResult(
                     await new NoProxyListValidator()
-                        .ValidateAsync(proxySettings.DoNotProxyList, interfaces, cancellationToken)
+                        .ValidateAsync(proxySettings.NoProxy.Entries, interfaces, cancellationToken)
                         .ConfigureAwait(false));
             }
 

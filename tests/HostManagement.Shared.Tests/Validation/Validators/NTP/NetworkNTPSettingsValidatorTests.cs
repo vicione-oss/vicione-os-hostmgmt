@@ -1,4 +1,4 @@
-﻿using AwesomeAssertions;
+using AwesomeAssertions;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.NTP;
@@ -31,20 +31,13 @@ public class NetworkNTPSettingsValidatorTests
     [InlineData(false, ValidationTestData.NTPServer.InvalidIPv6, true)]
     [InlineData(true, ValidationTestData.NTPServer.InvalidIPv6, false)]
     [InlineData(true, ValidationTestData.NTPServer.FQDN, true)]
-    public async Task ShouldReturnValidationResult_WhenValidateAsyncCalled(
-        bool ntpServersEnabled,
-        string ntpServer,
-        bool isValid)
+    public async Task ShouldReturnValidationResult_WhenValidateAsyncCalled(bool enabled, string server, bool isValid)
     {
         // Arrange
         var ntpSettings = new NetworkNTPSettings
         {
-            NTPServersEnabled = ntpServersEnabled,
-            NTPServers =
-            [
-                ValidationTestData.NTPServer.IPv4,
-                ntpServer
-            ]
+            Enabled = enabled,
+            Servers = [ValidationTestData.NTPServer.IPv4, server]
         };
 
         // Act

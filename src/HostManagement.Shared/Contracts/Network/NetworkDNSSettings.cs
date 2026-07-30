@@ -1,6 +1,4 @@
-﻿using System.Net;
 using System.Text.Json.Serialization;
-using HostManagement.Shared.Extensions;
 
 namespace HostManagement.Shared.Contracts.Network;
 
@@ -9,20 +7,6 @@ namespace HostManagement.Shared.Contracts.Network;
 /// </summary>
 public sealed record NetworkDNSSettings
 {
-    /// <summary>
-    /// Initializes new <see cref="NetworkDNSSettings"/>.
-    /// </summary>
-    [JsonConstructor]
-    public NetworkDNSSettings(
-        List<StaticHostDetail>? staticHosts = null,
-        List<IPAddress>? nameServers = null,
-        List<string>? searchDomains = null)
-    {
-        StaticHosts = staticHosts ?? [];
-        NameServers = nameServers ?? [];
-        SearchDomains = searchDomains ?? [];
-    }
-
     /// <summary>
     /// Represents the empty DNS settings.
     /// </summary>
@@ -40,79 +24,22 @@ public sealed record NetworkDNSSettings
     public bool MulticastDNSEnabled { get; set; }
 
     /// <summary>
-    /// Determines whether static hosts are enabled.
+    /// The <see cref="StaticHostsSettings"/>.
     /// </summary>
-    public bool StaticHostsEnabled { get; set; }
+    public StaticHostsSettings StaticHosts { get; set; } = new();
 
     /// <summary>
-    /// The list of static host details.
+    /// The <see cref="NameServersSettings"/>.
     /// </summary>
-    public List<StaticHostDetail> StaticHosts { get; init; }
+    public NameServersSettings NameServers { get; set; } = new();
 
     /// <summary>
-    /// Determines whether the DNS name servers are enabled.
+    /// The <see cref="PrimaryDNSSuffixSettings"/>.
     /// </summary>
-    public bool NameServersEnabled { get; set; }
+    public PrimaryDNSSuffixSettings PrimaryDNSSuffix { get; set; } = new();
 
     /// <summary>
-    /// The list of DNS name servers (IPv4 and IPv6 addresses).
+    /// The <see cref="SearchDomainsSettings"/>.
     /// </summary>
-    [JsonConverter(typeof(IPAddressListConverter))]
-    public List<IPAddress> NameServers { get; init; }
-
-    /// <summary>
-    /// Determines whether the primary DNS suffix is enabled.
-    /// </summary>
-    public bool DNSSuffixEnabled { get; set; }
-
-    /// <summary>
-    /// The primary DNS suffix.
-    /// </summary>
-    public string DNSSuffix { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Determines whether search domains are enabled.
-    /// </summary>
-    public bool SearchDomainsEnabled { get; set; }
-
-    /// <summary>
-    /// The list of DNS search domains.
-    /// </summary>
-    /// <remarks>
-    /// DNS suffixes excluding the primary DNS suffix (<see cref="DNSSuffix"/>).
-    /// </remarks>
-    public List<string> SearchDomains { get; init; }
-
-    /// <inheritdoc/>
-    public override int GetHashCode()
-    {
-        var hashCode = new HashCode();
-
-        hashCode.Add(Hostname);
-        hashCode.Add(MulticastDNSEnabled);
-        hashCode.Add(StaticHostsEnabled);
-        hashCode.Add(StaticHosts.GetSequenceHashCode());
-        hashCode.Add(NameServersEnabled);
-        hashCode.Add(NameServers.GetSequenceHashCode());
-        hashCode.Add(DNSSuffixEnabled);
-        hashCode.Add(DNSSuffix);
-        hashCode.Add(SearchDomainsEnabled);
-        hashCode.Add(SearchDomains.GetSequenceHashCode());
-
-        return hashCode.ToHashCode();
-    }
-
-    /// <inheritdoc/>
-    public bool Equals(NetworkDNSSettings? other) =>
-        other is not null &&
-        Hostname.Equals(other.Hostname) &&
-        MulticastDNSEnabled.Equals(other.MulticastDNSEnabled) &&
-        StaticHostsEnabled.Equals(other.StaticHostsEnabled) &&
-        StaticHosts.SequenceEqual(other.StaticHosts) &&
-        NameServersEnabled.Equals(other.NameServersEnabled) &&
-        NameServers.SequenceEqual(other.NameServers) &&
-        DNSSuffixEnabled.Equals(other.DNSSuffixEnabled) &&
-        DNSSuffix.Equals(other.DNSSuffix) &&
-        SearchDomainsEnabled.Equals(other.SearchDomainsEnabled) &&
-        SearchDomains.SequenceEqual(other.SearchDomains);
+    public SearchDomainsSettings SearchDomains { get; set; } = new();
 }

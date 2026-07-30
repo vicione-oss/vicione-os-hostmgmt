@@ -16,7 +16,6 @@ internal sealed class V1ToV2SystemConfigurationMigration
     : SystemConfigurationMigration<V1Contracts.SystemConfiguration, CurrentContracts.SystemConfiguration>
 {
     public override int SourceVersion => 1;
-
     public override int TargetVersion => 2;
 
     protected override CurrentContracts.SystemConfiguration Migrate(V1Contracts.SystemConfiguration source)
@@ -32,35 +31,37 @@ internal sealed class V1ToV2SystemConfigurationMigration
 
     private static CurrentContracts.NetworkInterfacesSettings MigrateNetworkInterfacesSettings(
         V1Contracts.NetworkInterfacesSettings source)
-        => new()
-        {
-            NetworkInterfaces = source.NetworkInterfaces.MapListOrNull(MigrateNetworkInterfaceDetail)
-        };
+            => new()
+            {
+                NetworkInterfaces = source.NetworkInterfaces.MapListOrNull(MigrateNetworkInterfaceDetail)
+            };
 
     private static CurrentContracts.NetworkInterfaceDetail MigrateNetworkInterfaceDetail(
         V1Contracts.NetworkInterfaceDetail source)
-        => new()
-        {
-            CommonInformation = source.CommonInformation.MapOrNull(MigrateNetworkInterfaceCommonInformation),
-            IPv4 = source.IPv4.MapOrNull(MigrateIPv4Settings)
-        };
+            => new()
+            {
+                CommonInformation = source.CommonInformation.MapOrNull(MigrateNetworkInterfaceCommonInformation),
+                IPv4 = source.IPv4.MapOrNull(MigrateIPv4Settings)
+            };
 
     private static CurrentContracts.NetworkInterfaceCommonInformation MigrateNetworkInterfaceCommonInformation(
         V1Contracts.NetworkInterfaceCommonInformation source)
-        => new()
-        {
-            Name = source.Name,
-            Enabled = source.Enabled,
-            PhysicalAddress = source.PhysicalAddress
-        };
+            => new()
+            {
+                Name = source.Name,
+                Enabled = source.Enabled,
+                PhysicalAddress = source.PhysicalAddress
+            };
 
     private static CurrentContracts.IPv4Settings MigrateIPv4Settings(V1Contracts.IPv4Settings source)
         => new()
         {
             Gateway = source.Gateway,
             DHCPEnabled = source.DHCPEnabled,
+
             // DHCPLease was removed in version 2 and was not persisted previously either.
             IPv4Details = source.IPv4Details.MapListOrNull(MigrateIPv4Detail),
+
             VLANEnabled = source.VLANEnabled,
             VLANID = source.VLANID
         };
@@ -77,15 +78,27 @@ internal sealed class V1ToV2SystemConfigurationMigration
         {
             Hostname = source.Hostname,
             MulticastDNSEnabled = source.MulticastDNSEnabled,
-            StaticHostsEnabled = source.StaticHostsEnabled,
-            StaticHosts = source.StaticHosts.MapListOrNull(MigrateStaticHostDetail),
-            NameServersEnabled = source.NameServersEnabled,
-            NameServers = source.NameServers.CopyListOrNull(),
-            DNSSuffixEnabled = source.DNSSuffixEnabled,
-            DNSSuffix = source.DNSSuffix,
-            SearchDomainsEnabled = source.SearchDomainsEnabled,
-            SearchDomains = source.SearchDomains.CopyListOrNull()
+
+            // StaticHostsEnabled and StaticHosts (the actual list) were grouped into StaticHosts.
+            StaticHosts = source.MapOrNull(MigrateStaticHostsSettings),
+
+            // NameServerEnabled and NameServers (the actual list) were grouped into NameServers.
+            NameServers = source.MapOrNull(MigrateNameServersSettings),
+
+            // DNSSuffixEnabled and DNSSuffix were grouped into PrimaryDNSSuffix.
+            PrimaryDNSSuffix = source.MapOrNull(MigratePrimaryDNSSuffixSettings),
+
+            // SearchDomainsEnabled and SearchDomains (the actual list) were grouped into SearchDomains.
+            SearchDomains = source.MapOrNull(MigrateSearchDomainsSettings)
         };
+
+    private static CurrentContracts.StaticHostsSettings MigrateStaticHostsSettings(
+        V1Contracts.NetworkDNSSettings source)
+            => new()
+            {
+                Enabled = source.StaticHostsEnabled,
+                Hosts = source.StaticHosts.MapListOrNull(MigrateStaticHostDetail)
+            };
 
     private static CurrentContracts.StaticHostDetail MigrateStaticHostDetail(V1Contracts.StaticHostDetail source)
         => new()
@@ -94,42 +107,76 @@ internal sealed class V1ToV2SystemConfigurationMigration
             Hostname = source.Hostname
         };
 
+    private static CurrentContracts.NameServersSettings MigrateNameServersSettings(
+        V1Contracts.NetworkDNSSettings source)
+            => new()
+            {
+                Enabled = source.NameServersEnabled,
+                Addresses = source.NameServers.CopyListOrNull()
+            };
+
+    private static CurrentContracts.PrimaryDNSSuffixSettings MigratePrimaryDNSSuffixSettings(
+        V1Contracts.NetworkDNSSettings source)
+            => new()
+            {
+                Enabled = source.DNSSuffixEnabled,
+                Suffix = source.DNSSuffix
+            };
+
+    private static CurrentContracts.SearchDomainsSettings MigrateSearchDomainsSettings(
+        V1Contracts.NetworkDNSSettings source)
+            => new()
+            {
+                Enabled = source.SearchDomainsEnabled,
+                Domains = source.SearchDomains.CopyListOrNull()
+            };
+
     private static CurrentContracts.NetworkProxySettings MigrateNetworkProxySettings(
         V1Contracts.NetworkProxySettings source)
-        => new()
-        {
-            HTTP = source.HTTP.MapOrNull(MigrateNetworkProxyDetail),
-            HTTPS = source.HTTPS.MapOrNull(MigrateNetworkProxyDetail),
-            FTP = source.FTP.MapOrNull(MigrateNetworkProxyDetail),
-            SFTP = source.SFTP.MapOrNull(MigrateNetworkProxyDetail),
-            SOCKS = source.SOCKS.MapOrNull(MigrateNetworkProxyDetail),
-            DoNotProxyListEnabled = source.DoNotProxyListEnabled,
-            DoNotProxyList = source.DoNotProxyList.CopyListOrNull()
-        };
+            => new()
+            {
+                HTTP = source.HTTP.MapOrNull(MigrateNetworkProxyDetail),
+                HTTPS = source.HTTPS.MapOrNull(MigrateNetworkProxyDetail),
+                FTP = source.FTP.MapOrNull(MigrateNetworkProxyDetail),
+                SFTP = source.SFTP.MapOrNull(MigrateNetworkProxyDetail),
+                SOCKS = source.SOCKS.MapOrNull(MigrateNetworkProxyDetail),
 
-    private static CurrentContracts.NetworkProxyDetail MigrateNetworkProxyDetail(V1Contracts.NetworkProxyDetail source)
+                // DoNotProxyListEnabled and DoNotProxyList were grouped into NoProxy.
+                NoProxy = source.MapOrNull(MigrateNoProxySettings)
+            };
+
+    private static CurrentContracts.NetworkProxyDetail MigrateNetworkProxyDetail(
+        V1Contracts.NetworkProxyDetail source)
+            => new()
+            {
+                Enabled = source.Enabled,
+                Server = source.Server,
+                Port = source.Port,
+                Username = source.Username,
+                Password = source.Password
+            };
+
+    private static CurrentContracts.NoProxySettings MigrateNoProxySettings(V1Contracts.NetworkProxySettings source)
         => new()
         {
-            Enabled = source.Enabled,
-            Server = source.Server,
-            Port = source.Port,
-            Username = source.Username,
-            Password = source.Password
+            Enabled = source.DoNotProxyListEnabled,
+            Entries = source.DoNotProxyList.CopyListOrNull()
         };
 
     private static CurrentContracts.NetworkNTPSettings MigrateNetworkNTPSettings(V1Contracts.NetworkNTPSettings source)
         => new()
         {
-            // FallbackNTPServers was removed in version 2 and was not persisted previously either.
-            NTPServersEnabled = source.NTPServersEnabled,
-            NTPServers = source.NTPServers.CopyListOrNull()
+            // FallbackNTPServers were removed and also not persisted previously.
+
+            Enabled = source.NTPServersEnabled,
+            Servers = source.NTPServers.CopyListOrNull()
         };
 
     private static CurrentContracts.ServiceDetail MigrateServiceDetail(V1Contracts.ServiceDetail source)
         => new()
         {
             Name = source.Name,
-            State = MigrateServiceState(source.State),
+            State = MigrateServiceState(source.State)
         };
 
     private static CurrentContracts.ServiceState MigrateServiceState(V1Contracts.ServiceState source)

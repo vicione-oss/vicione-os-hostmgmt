@@ -91,14 +91,26 @@ internal static class SystemConfigurationTemplate
             NetworkDNSSettings = new()
             {
                 Hostname = "hostname",
-                StaticHosts =
-                [
-                    new() { Hostname = "staticHost1", IPAddress = ipv4Template1 },
-                    new() { Hostname = "staticHost2", IPAddress = ipv4Template2 }
-                ],
-                NameServers = [ipv4Template1, ipv4Template2],
-                DNSSuffix = "myCompany.com",
-                SearchDomains = ["local", "myCompany.com"]
+                StaticHosts = new()
+                {
+                    Hosts =
+                    [
+                        new() { Hostname = "staticHost1", IPAddress = ipv4Template1 },
+                        new() { Hostname = "staticHost2", IPAddress = ipv4Template2 }
+                    ]
+                },
+                NameServers = new()
+                {
+                    Addresses = [ipv4Template1, ipv4Template2]
+                },
+                PrimaryDNSSuffix = new()
+                {
+                    Suffix = "myCompany.com"
+                },
+                SearchDomains = new()
+                {
+                    Domains = ["local", "myCompany.com"]
+                }
             },
             NetworkProxySettings = new()
             {
@@ -131,11 +143,14 @@ internal static class SystemConfigurationTemplate
                     Server = "socks://proxy.example.com",
                     Port = 1080
                 },
-                DoNotProxyList = ["company.com", "192.168.178.42"]
+                NoProxy = new()
+                {
+                    Entries = ["company.com", "192.168.178.42"]
+                }
             },
             NetworkNTPSettings = new()
             {
-                NTPServers = ["ptbtime1.ptb.de", "ptbtime2.ptb.de"]
+                Servers = ["ptbtime1.ptb.de", "ptbtime2.ptb.de"]
             },
             Services =
             [

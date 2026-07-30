@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using AwesomeAssertions;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Validation;
@@ -55,26 +55,38 @@ public class NetworkDNSSettingsValidatorTests
         var dnsSettings = new NetworkDNSSettings
         {
             Hostname = ValidationTestData.Hostname.Simple,
-            DNSSuffixEnabled = dnsSuffixEnabled,
-            DNSSuffix = ValidationTestData.PrimarySuffix.FQDN,
-            StaticHostsEnabled = staticHostsEnabled,
-            StaticHosts =
-            [
-                ValidationTestData.StaticHost.StaticHost1,
-                ValidationTestData.StaticHost.StaticHost2
-            ],
-            SearchDomainsEnabled = searchDomainsEnabled,
-            SearchDomains =
-            [
-                ValidationTestData.SearchDomain.Simple,
-                ValidationTestData.SearchDomain.FQDN
-            ],
-            NameServersEnabled = nameServersEnabled,
-            NameServers =
-            [
-                IPAddress.Parse(ValidationTestData.NameServer.IPv4),
-                IPAddress.Parse(ValidationTestData.NameServer.IPv6)
-            ]
+            StaticHosts = new StaticHostsSettings()
+            {
+                Enabled = staticHostsEnabled,
+                Hosts =
+                [
+                    ValidationTestData.StaticHost.StaticHost1,
+                    ValidationTestData.StaticHost.StaticHost2
+                ]
+            },
+            PrimaryDNSSuffix = new PrimaryDNSSuffixSettings()
+            {
+                Enabled = dnsSuffixEnabled,
+                Suffix = ValidationTestData.PrimarySuffix.FQDN
+            },
+            SearchDomains = new SearchDomainsSettings()
+            {
+                Enabled = searchDomainsEnabled,
+                Domains =
+                [
+                    ValidationTestData.SearchDomain.Simple,
+                    ValidationTestData.SearchDomain.FQDN
+                ]
+            },
+            NameServers = new NameServersSettings()
+            {
+                Enabled = nameServersEnabled,
+                Addresses =
+                [
+                    IPAddress.Parse(ValidationTestData.NameServer.IPv4),
+                    IPAddress.Parse(ValidationTestData.NameServer.IPv6)
+                ]
+            }
         };
 
         // Act

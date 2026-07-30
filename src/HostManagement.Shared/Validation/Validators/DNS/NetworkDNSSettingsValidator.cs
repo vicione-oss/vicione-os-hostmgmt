@@ -1,4 +1,4 @@
-﻿using HostManagement.Shared.Contracts.Network;
+using HostManagement.Shared.Contracts.Network;
 
 namespace HostManagement.Shared.Validation.Validators.DNS;
 
@@ -25,38 +25,38 @@ public sealed class NetworkDNSSettingsValidator : IValidator<NetworkDNSSettings>
 
             result.AddResult(
                 await new HostnameValidator()
-                    .ValidateAsync(dnsSettings.Hostname, dnsSettings.DNSSuffix, cancellationToken)
+                    .ValidateAsync(dnsSettings.Hostname, dnsSettings.PrimaryDNSSuffix.Suffix, cancellationToken)
                     .ConfigureAwait(false));
 
-            if (dnsSettings.DNSSuffixEnabled)
+            if (dnsSettings.PrimaryDNSSuffix.Enabled)
             {
                 result.AddResult(
                     await new DNSSuffixValidator()
-                        .ValidateAsync(dnsSettings.DNSSuffix, dnsSettings.Hostname, cancellationToken)
+                        .ValidateAsync(dnsSettings.PrimaryDNSSuffix.Suffix, dnsSettings.Hostname, cancellationToken)
                         .ConfigureAwait(false));
             }
 
-            if (dnsSettings.StaticHostsEnabled)
+            if (dnsSettings.StaticHosts.Enabled)
             {
                 result.AddResult(
                     await new StaticHostsValidator()
-                        .ValidateAsync(dnsSettings.StaticHosts, cancellationToken)
+                        .ValidateAsync(dnsSettings.StaticHosts.Hosts, cancellationToken)
                         .ConfigureAwait(false));
             }
 
-            if (dnsSettings.SearchDomainsEnabled)
+            if (dnsSettings.SearchDomains.Enabled)
             {
                 result.AddResult(
                     await new SearchDomainsValidator()
-                        .ValidateAsync(dnsSettings.SearchDomains, cancellationToken)
+                        .ValidateAsync(dnsSettings.SearchDomains.Domains, cancellationToken)
                         .ConfigureAwait(false));
             }
 
-            if (dnsSettings.NameServersEnabled)
+            if (dnsSettings.NameServers.Enabled)
             {
                 result.AddResult(
                     await new NameServersValidator()
-                        .ValidateAsync(dnsSettings.NameServers, cancellationToken)
+                        .ValidateAsync(dnsSettings.NameServers.Addresses, cancellationToken)
                         .ConfigureAwait(false));
             }
 

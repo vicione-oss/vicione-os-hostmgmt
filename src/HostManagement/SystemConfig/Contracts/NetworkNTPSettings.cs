@@ -1,22 +1,22 @@
-﻿namespace HostManagement.SystemConfig.Contracts;
+namespace HostManagement.SystemConfig.Contracts;
 
 internal sealed record NetworkNTPSettings
 {
-    public bool? NTPServersEnabled { get; set; }
-    public List<string>? NTPServers { get; set; } = [];
+    public bool? Enabled { get; set; }
+    public List<string>? Servers { get; set; } = [];
 
     public override int GetHashCode()
     {
-        HashCode hashCode = new();
+        var hashCode = new HashCode();
 
-        hashCode.Add(NTPServersEnabled);
-        hashCode.AddRange(NTPServers, EqualityComparer<string>.Default);
+        hashCode.Add(Enabled);
+        hashCode.AddRange(Servers, EqualityComparer<string>.Default);
 
         return hashCode.ToHashCode();
     }
 
-    public bool Equals(NetworkNTPSettings? other) =>
-        other is not null &&
-        EqualityComparer<bool?>.Default.Equals(NTPServersEnabled, other.NTPServersEnabled) &&
-        EqualityComparer<string>.Default.SequenceEqual(NTPServers, other.NTPServers);
+    public bool Equals(NetworkNTPSettings? other)
+        => other is not null
+        && EqualityComparer<bool?>.Default.Equals(Enabled, other.Enabled)
+        && EqualityComparer<string>.Default.SequenceEqual(Servers, other.Servers);
 }

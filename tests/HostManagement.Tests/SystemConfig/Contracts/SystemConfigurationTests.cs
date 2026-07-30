@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using AwesomeAssertions;
 using HostManagement.SystemConfig.Contracts;
 using Xunit;
@@ -125,7 +125,7 @@ public class SystemConfigurationTests
             var config1 = new SystemConfiguration { NetworkNTPSettings = null };
             var config2 = new SystemConfiguration
             {
-                NetworkNTPSettings = new NetworkNTPSettings { NTPServersEnabled = true }
+                NetworkNTPSettings = new NetworkNTPSettings { Enabled = true }
             };
 
             var result = config1.Equals(config2);
@@ -138,7 +138,7 @@ public class SystemConfigurationTests
         {
             var config1 = CreateSampleConfiguration();
             var config2 = CreateSampleConfiguration();
-            config2.NetworkNTPSettings!.NTPServersEnabled = true;
+            config2.NetworkNTPSettings!.Enabled = true;
 
             var result = config1.Equals(config2);
 
@@ -240,7 +240,7 @@ public class SystemConfigurationTests
     {
         return new SystemConfiguration
         {
-            Version = 1,
+            Version = 2,
             NetworkInterfacesSettings = new NetworkInterfacesSettings
             {
                 NetworkInterfaces =
@@ -273,8 +273,11 @@ public class SystemConfigurationTests
             {
                 Hostname = "test-host",
                 MulticastDNSEnabled = true,
-                NameServersEnabled = true,
-                NameServers = [IPAddress.Parse("8.8.8.8"), IPAddress.Parse("8.8.4.4"),],
+                NameServers = new NameServersSettings
+                {
+                    Enabled = true,
+                    Addresses = [IPAddress.Parse("8.8.8.8"), IPAddress.Parse("8.8.4.4")]
+                }
             },
             NetworkProxySettings = new NetworkProxySettings
             {
@@ -283,8 +286,8 @@ public class SystemConfigurationTests
             },
             NetworkNTPSettings = new NetworkNTPSettings
             {
-                NTPServersEnabled = false,
-                NTPServers = ["pool.ntp.org",],
+                Enabled = false,
+                Servers = ["pool.ntp.org",],
             },
             Services =
             [

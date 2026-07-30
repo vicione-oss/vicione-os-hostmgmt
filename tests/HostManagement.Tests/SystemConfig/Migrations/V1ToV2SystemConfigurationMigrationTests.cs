@@ -153,20 +153,25 @@ public class V1ToV2SystemConfigurationMigrationTests
             var dnsSettings = result.NetworkDNSSettings;
             dnsSettings.Hostname.Should().Be("test-host");
             dnsSettings.MulticastDNSEnabled.Should().BeTrue();
-            dnsSettings.StaticHostsEnabled.Should().BeTrue();
 
-            var staticHost = dnsSettings.StaticHosts.Should().ContainSingle().Subject;
-            staticHost.IPAddress.Should().Be(IPAddress.Parse("192.168.1.10"));
-            staticHost.Hostname.Should().Be("local-device");
+            dnsSettings.StaticHosts.Should().NotBeNull();
+            dnsSettings.StaticHosts.Enabled.Should().BeTrue();
 
-            dnsSettings.NameServersEnabled.Should().BeTrue();
-            dnsSettings.NameServers.Should().ContainSingle().Which.Should().Be(IPAddress.Parse("192.168.1.1"));
+            var host = dnsSettings.StaticHosts.Hosts.Should().ContainSingle().Subject;
+            host.IPAddress.Should().Be(IPAddress.Parse("192.168.1.10"));
+            host.Hostname.Should().Be("local-device");
 
-            dnsSettings.DNSSuffixEnabled.Should().BeTrue();
-            dnsSettings.DNSSuffix.Should().Be("example.local");
+            dnsSettings.NameServers.Should().NotBeNull();
+            dnsSettings.NameServers.Enabled.Should().BeTrue();
+            dnsSettings.NameServers.Addresses.Should().ContainSingle().Which.Should().Be(IPAddress.Parse("192.168.1.1"));
 
-            dnsSettings.SearchDomainsEnabled.Should().BeTrue();
-            dnsSettings.SearchDomains.Should().ContainSingle().Which.Should().Be("example.local");
+            dnsSettings.PrimaryDNSSuffix.Should().NotBeNull();
+            dnsSettings.PrimaryDNSSuffix.Enabled.Should().BeTrue();
+            dnsSettings.PrimaryDNSSuffix.Suffix.Should().Be("example.local");
+
+            dnsSettings.SearchDomains.Should().NotBeNull();
+            dnsSettings.SearchDomains.Enabled.Should().BeTrue();
+            dnsSettings.SearchDomains.Domains.Should().ContainSingle().Which.Should().Be("example.local");
         }
 
         [Fact]
@@ -216,8 +221,9 @@ public class V1ToV2SystemConfigurationMigrationTests
             proxySettings.SFTP.Should().BeNull();
             proxySettings.SOCKS.Should().BeNull();
 
-            proxySettings.DoNotProxyListEnabled.Should().BeTrue();
-            proxySettings.DoNotProxyList.Should().Equal("localhost", "127.0.0.1");
+            proxySettings.NoProxy.Should().NotBeNull();
+            proxySettings.NoProxy.Enabled.Should().BeTrue();
+            proxySettings.NoProxy.Entries.Should().Equal("localhost", "127.0.0.1");
         }
 
         [Fact]
@@ -250,8 +256,8 @@ public class V1ToV2SystemConfigurationMigrationTests
             result.Should().NotBeNull();
             result.NetworkNTPSettings.Should().NotBeNull();
 
-            result.NetworkNTPSettings.NTPServersEnabled.Should().BeTrue();
-            result.NetworkNTPSettings.NTPServers.Should().Equal("time.example.local", "192.168.1.20");
+            result.NetworkNTPSettings.Enabled.Should().BeTrue();
+            result.NetworkNTPSettings.Servers.Should().Equal("time.example.local", "192.168.1.20");
         }
 
         [Fact]

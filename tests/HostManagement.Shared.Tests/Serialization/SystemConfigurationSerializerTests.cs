@@ -14,7 +14,7 @@ public class SystemConfigurationSerializerTests
     private static readonly IPAddress s_ipAddress = IPAddress.Parse("120.86.52.18");
     private static readonly SystemConfiguration s_sampleSystemConfiguration = new()
     {
-        Version = 1,
+        Version = 2,
         NetworkInterfacesSettings = new()
         {
             NetworkInterfaces =
@@ -36,34 +36,47 @@ public class SystemConfigurationSerializerTests
                             new()
                             {
                                 IPAddress = s_ipAddress,
-                                Netmask = s_ipAddress,
+                                Netmask = s_ipAddress
                             }
                         ],
                         VLANEnabled = true,
-                        VLANID = 1,
-                    },
-                },
-            ],
+                        VLANID = 1
+                    }
+                }
+            ]
         },
         NetworkDNSSettings = new()
         {
             Hostname = "hostname",
             MulticastDNSEnabled = true,
-            StaticHostsEnabled = true,
-            StaticHosts =
-            [
-                new()
-                {
-                    Hostname = "statichost",
-                    IPAddress = s_ipAddress,
-                },
-            ],
-            NameServersEnabled = true,
-            NameServers = [s_ipAddress],
-            DNSSuffixEnabled = true,
-            DNSSuffix = "dnsSuffix",
-            SearchDomainsEnabled = true,
-            SearchDomains = ["searchDomain"]
+            StaticHosts = new()
+            {
+                Enabled = true,
+                Hosts =
+                [
+                    new()
+                    {
+                        Hostname = "statichost",
+                        IPAddress = s_ipAddress
+                    }
+                ]
+            },
+            NameServers = new()
+            {
+                Enabled = true,
+                Addresses = [s_ipAddress]
+            },
+            PrimaryDNSSuffix = new()
+            {
+                Enabled = true,
+                Suffix = "dnsSuffix"
+
+            },
+            SearchDomains = new()
+            {
+                Enabled = true,
+                Domains = ["searchDomain"]
+            }
         },
         NetworkProxySettings = new()
         {
@@ -73,7 +86,7 @@ public class SystemConfigurationSerializerTests
                 Password = "httpPassword",
                 Port = 80,
                 Server = "httpServer",
-                Username = "httpUser",
+                Username = "httpUser"
             },
             HTTPS = new()
             {
@@ -81,7 +94,7 @@ public class SystemConfigurationSerializerTests
                 Password = "httpsPassword",
                 Port = 443,
                 Server = "httpsServer",
-                Username = "httpsUser",
+                Username = "httpsUser"
             },
             FTP = new()
             {
@@ -89,7 +102,7 @@ public class SystemConfigurationSerializerTests
                 Password = "ftpPassword",
                 Port = 21,
                 Server = "ftpServer",
-                Username = "ftpUser",
+                Username = "ftpUser"
             },
             SFTP = new()
             {
@@ -97,7 +110,7 @@ public class SystemConfigurationSerializerTests
                 Password = "sftpPassword",
                 Port = 22,
                 Server = "sftpServer",
-                Username = "sftpUser",
+                Username = "sftpUser"
             },
             SOCKS = new()
             {
@@ -105,23 +118,26 @@ public class SystemConfigurationSerializerTests
                 Password = "socksPassword",
                 Port = 1080,
                 Server = "socksServer",
-                Username = "socksUser",
+                Username = "socksUser"
             },
-            DoNotProxyListEnabled = true,
-            DoNotProxyList = ["InternalProxy"]
+            NoProxy = new()
+            {
+                Enabled = true,
+                Entries = ["InternalProxy"]
+            }
         },
         NetworkNTPSettings = new()
         {
-            NTPServersEnabled = true,
-            NTPServers = ["NTPServer"],
+            Enabled = true,
+            Servers = ["NTPServer"]
         },
         Services =
         [
             new()
             {
                 Name = "TestService",
-                State = ServiceState.Enabled,
-            },
+                State = ServiceState.Enabled
+            }
         ]
     };
 
@@ -133,7 +149,7 @@ public class SystemConfigurationSerializerTests
         var sampleJsonWithIndentation =
         """
         {
-          "Version": 1,
+          "Version": 2,
           "NetworkInterfacesSettings": {
             "NetworkInterfaces": [
               {
@@ -160,23 +176,31 @@ public class SystemConfigurationSerializerTests
           "NetworkDNSSettings": {
             "Hostname": "hostname",
             "MulticastDNSEnabled": true,
-            "StaticHostsEnabled": true,
-            "StaticHosts": [
-              {
-                "IPAddress": "120.86.52.18",
-                "Hostname": "statichost"
-              }
-            ],
-            "NameServersEnabled": true,
-            "NameServers": [
-              "120.86.52.18"
-            ],
-            "DNSSuffixEnabled": true,
-            "DNSSuffix": "dnsSuffix",
-            "SearchDomainsEnabled": true,
-            "SearchDomains": [
-              "searchDomain"
-            ]
+            "StaticHosts": {
+              "Enabled": true,
+              "Hosts": [
+                {
+                  "IPAddress": "120.86.52.18",
+                  "Hostname": "statichost"
+                }
+              ]
+            },
+            "NameServers": {
+              "Enabled": true,
+              "Addresses": [
+                "120.86.52.18"
+              ]
+            },
+            "PrimaryDNSSuffix": {
+              "Enabled": true,
+              "Suffix": "dnsSuffix"
+            },
+            "SearchDomains": {
+              "Enabled": true,
+              "Domains": [
+                "searchDomain"
+              ]
+            }
           },
           "NetworkProxySettings": {
             "FTP": {
@@ -214,14 +238,16 @@ public class SystemConfigurationSerializerTests
               "Username": "socksUser",
               "Password": "socksPassword"
             },
-            "DoNotProxyListEnabled": true,
-            "DoNotProxyList": [
-              "InternalProxy"
-            ]
+            "NoProxy": {
+              "Enabled": true,
+              "Entries": [
+                "InternalProxy"
+              ]
+            }
           },
           "NetworkNTPSettings": {
-            "NTPServersEnabled": true,
-            "NTPServers": [
+            "Enabled": true,
+            "Servers": [
               "NTPServer"
             ]
           },

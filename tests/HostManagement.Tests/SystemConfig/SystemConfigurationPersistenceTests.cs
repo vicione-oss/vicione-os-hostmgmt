@@ -18,6 +18,7 @@ public class SystemConfigurationPersistenceTests
 
     public sealed class LoadPreparationConfiguration : SystemConfigurationPersistenceTests
     {
+        // DO NOT modify!
         private static readonly string s_jsonConfigV1_1_1 =
             """
             {
@@ -118,9 +119,10 @@ public class SystemConfigurationPersistenceTests
             """
             .UseEnvironmentNewLine();
 
-        private static readonly SystemConfiguration s_configV1_1_1 = new()
+        // Modify if current config changed, e.g. 'Version' should be the current version (currently 2)
+        private static readonly SystemConfiguration s_configV1_1_1_AfterMigration = new()
         {
-            Version = 2, // After migration this should be the current version (currently 2)
+            Version = 2,
             NetworkInterfacesSettings = new()
             {
                 NetworkInterfaces =
@@ -178,14 +180,26 @@ public class SystemConfigurationPersistenceTests
             {
                 Hostname = "AE1400-Host-Management",
                 MulticastDNSEnabled = false,
-                StaticHostsEnabled = false,
-                StaticHosts = [],
-                NameServersEnabled = true,
-                NameServers = [IPAddress.Parse("192.168.10.10")],
-                DNSSuffixEnabled = false,
-                DNSSuffix = "",
-                SearchDomainsEnabled = false,
-                SearchDomains = []
+                StaticHosts = new()
+                {
+                    Enabled = false,
+                    Hosts = []
+                },
+                NameServers = new()
+                {
+                    Enabled = true,
+                    Addresses = [IPAddress.Parse("192.168.10.10")]
+                },
+                PrimaryDNSSuffix = new()
+                {
+                    Enabled = false,
+                    Suffix = ""
+                },
+                SearchDomains = new()
+                {
+                    Enabled = false,
+                    Domains = []
+                }
             },
             NetworkProxySettings = new()
             {
@@ -209,13 +223,16 @@ public class SystemConfigurationPersistenceTests
                 {
                     Enabled = false
                 },
-                DoNotProxyListEnabled = false,
-                DoNotProxyList = []
+                NoProxy = new()
+                {
+                    Enabled = false,
+                    Entries = []
+                }
             },
             NetworkNTPSettings = new()
             {
-                NTPServersEnabled = false,
-                NTPServers = []
+                Enabled = false,
+                Servers = []
             },
             Services =
             [
@@ -239,7 +256,7 @@ public class SystemConfigurationPersistenceTests
 
         // Config of v1.3.0 is identical to v1.1.1
         private static readonly string s_jsonConfigV1_3_0 = s_jsonConfigV1_1_1;
-        private static readonly SystemConfiguration s_configV1_3_0 = s_configV1_1_1;
+        private static readonly SystemConfiguration s_configV1_3_0_AfterMigration = s_configV1_1_1_AfterMigration;
 
         [Fact]
         public async Task ShouldThrow_WhenLoadingEmptyFile()
@@ -350,7 +367,7 @@ public class SystemConfigurationPersistenceTests
         {
             _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new(s_jsonConfigV1_1_1));
             var result = await _persistence.LoadPreparationConfiguration(CancellationToken.None);
-            result.Should().BeEquivalentTo(s_configV1_1_1);
+            result.Should().BeEquivalentTo(s_configV1_1_1_AfterMigration);
         }
 
         [Fact]
@@ -358,7 +375,7 @@ public class SystemConfigurationPersistenceTests
         {
             _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new(s_jsonConfigV1_3_0));
             var result = await _persistence.LoadPreparationConfiguration(CancellationToken.None);
-            result.Should().BeEquivalentTo(s_configV1_3_0);
+            result.Should().BeEquivalentTo(s_configV1_3_0_AfterMigration);
         }
     }
 
@@ -467,35 +484,45 @@ public class SystemConfigurationPersistenceTests
                 },
                 NetworkDNSSettings = new()
                 {
-                    DNSSuffix = "dnsSuffix",
-                    DNSSuffixEnabled = true,
                     Hostname = "hostname",
                     MulticastDNSEnabled = true,
-                    NameServers = [ipAddress],
-                    NameServersEnabled = true,
-                    SearchDomains = ["searchDomain"],
-                    SearchDomainsEnabled = true,
-                    StaticHosts =
-                    [
-                        new()
-                        {
-                            Hostname = "statichost",
-                            IPAddress = ipAddress,
-                        },
-                    ],
-                    StaticHostsEnabled = true,
+                    StaticHosts = new()
+                    {
+                        Enabled = true,
+                        Hosts =
+                        [
+                            new()
+                            {
+                                Hostname = "statichost",
+                                IPAddress = ipAddress,
+                            },
+                        ]
+                    },
+                    NameServers = new()
+                    {
+                        Enabled = true,
+                        Addresses = [ipAddress]
+                    },
+                    PrimaryDNSSuffix = new()
+                    {
+                        Enabled = true,
+                        Suffix = "dnsSuffix"
+                    },
+                    SearchDomains = new()
+                    {
+                        Enabled = true,
+                        Domains = ["searchDomain"]
+                    }
                 },
                 NetworkProxySettings = new()
                 {
-                    DoNotProxyList = ["InternalProxy"],
-                    DoNotProxyListEnabled = true,
                     FTP = new()
                     {
                         Enabled = true,
                         Password = "ftpPassword",
                         Port = 21,
                         Server = "ftpServer",
-                        Username = "ftpUser",
+                        Username = "ftpUser"
                     },
                     HTTP = new()
                     {
@@ -503,7 +530,7 @@ public class SystemConfigurationPersistenceTests
                         Password = "httpPassword",
                         Port = 80,
                         Server = "httpServer",
-                        Username = "httpUser",
+                        Username = "httpUser"
                     },
                     HTTPS = new()
                     {
@@ -511,7 +538,7 @@ public class SystemConfigurationPersistenceTests
                         Password = "httpsPassword",
                         Port = 443,
                         Server = "httpsServer",
-                        Username = "httpsUser",
+                        Username = "httpsUser"
                     },
                     SFTP = new()
                     {
@@ -519,7 +546,7 @@ public class SystemConfigurationPersistenceTests
                         Password = "sftpPassword",
                         Port = 22,
                         Server = "sftpServer",
-                        Username = "sftpUser",
+                        Username = "sftpUser"
                     },
                     SOCKS = new()
                     {
@@ -527,13 +554,18 @@ public class SystemConfigurationPersistenceTests
                         Password = "socksPassword",
                         Port = 1080,
                         Server = "socksServer",
-                        Username = "socksUser",
+                        Username = "socksUser"
                     },
+                    NoProxy = new()
+                    {
+                        Enabled = true,
+                        Entries = ["InternalProxy"]
+                    }
                 },
                 NetworkNTPSettings = new()
                 {
-                    NTPServersEnabled = true,
-                    NTPServers = ["NTPServer"],
+                    Enabled = true,
+                    Servers = ["NTPServer"]
                 },
                 Services =
                 [
@@ -575,23 +607,31 @@ public class SystemConfigurationPersistenceTests
               "NetworkDNSSettings": {
                 "Hostname": "hostname",
                 "MulticastDNSEnabled": true,
-                "StaticHostsEnabled": true,
-                "StaticHosts": [
-                  {
-                    "IPAddress": "120.86.52.18",
-                    "Hostname": "statichost"
-                  }
-                ],
-                "NameServersEnabled": true,
-                "NameServers": [
-                  "120.86.52.18"
-                ],
-                "DNSSuffixEnabled": true,
-                "DNSSuffix": "dnsSuffix",
-                "SearchDomainsEnabled": true,
-                "SearchDomains": [
-                  "searchDomain"
-                ]
+                "StaticHosts": {
+                  "Enabled": true,
+                  "Hosts": [
+                    {
+                      "IPAddress": "120.86.52.18",
+                      "Hostname": "statichost"
+                    }
+                  ]
+                },
+                "NameServers": {
+                  "Enabled": true,
+                  "Addresses": [
+                    "120.86.52.18"
+                  ]
+                },
+                "PrimaryDNSSuffix": {
+                  "Enabled": true,
+                  "Suffix": "dnsSuffix"
+                },
+                "SearchDomains": {
+                  "Enabled": true,
+                  "Domains": [
+                    "searchDomain"
+                  ]
+                }
               },
               "NetworkProxySettings": {
                 "FTP": {
@@ -629,14 +669,16 @@ public class SystemConfigurationPersistenceTests
                   "Username": "socksUser",
                   "Password": "socksPassword"
                 },
-                "DoNotProxyListEnabled": true,
-                "DoNotProxyList": [
-                  "InternalProxy"
-                ]
+                "NoProxy": {
+                  "Enabled": true,
+                  "Entries": [
+                    "InternalProxy"
+                  ]
+                }
               },
               "NetworkNTPSettings": {
-                "NTPServersEnabled": true,
-                "NTPServers": [
+                "Enabled": true,
+                "Servers": [
                   "NTPServer"
                 ]
               },

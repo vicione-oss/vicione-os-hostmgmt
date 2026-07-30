@@ -4,7 +4,7 @@
 #
 # Get Network DNS Settings Script
 #
-# The script returns 0 if ok or warning, non zero for error.
+# The script returns 0 if ok, non zero for error.
 # ###
 
 set -eEuo pipefail
@@ -224,14 +224,31 @@ main() {
     json_output="{"
     json_output+="\"Hostname\": \"${HOSTNAME}\","
     json_output+="\"MulticastDNSEnabled\": ${MULTICAST_DNS_ENABLED},"
-    json_output+="\"StaticHostsEnabled\": ${STATIC_HOSTS_ENABLED},"
-    json_output+="\"StaticHosts\": [${STATIC_HOSTS_JSON}],"
-    json_output+="\"NameServersEnabled\": ${NAMESERVERS_ENABLED},"
-    json_output+="\"NameServers\": [$(IFS=, ; echo "${NAMESERVERS_JSON[*]}")],"
-    json_output+="\"DNSSuffixEnabled\": ${DNS_SUFFIX_ENABLED},"
-    json_output+="\"DNSSuffix\": \"${DNS_SUFFIX}\","
-    json_output+="\"SearchDomainsEnabled\": ${SEARCH_DOMAINS_ENABLED},"
-    json_output+="\"SearchDomains\": [$(IFS=, ; echo "${SEARCH_DOMAINS_JSON[*]}")]"
+
+    json_output+="\"StaticHosts\":"
+    json_output+="{"
+    json_output+="  \"Enabled\": ${STATIC_HOSTS_ENABLED},"
+    json_output+="  \"Hosts\": [${STATIC_HOSTS_JSON}]"
+    json_output+="},"
+
+    json_output+="\"NameServers\":"
+    json_output+="{"
+    json_output+="  \"Enabled\": ${NAMESERVERS_ENABLED},"
+    json_output+="  \"Addresses\": [$(IFS=, ; echo "${NAMESERVERS_JSON[*]}")]"
+    json_output+="},"
+
+    json_output+="\"PrimaryDNSSuffix\":"
+    json_output+="{"
+    json_output+="  \"Enabled\": ${DNS_SUFFIX_ENABLED},"
+    json_output+="  \"Suffix\": \"${DNS_SUFFIX}\""
+    json_output+="},"
+
+    json_output+="\"SearchDomains\":"
+    json_output+="{"
+    json_output+="  \"Enabled\": ${SEARCH_DOMAINS_ENABLED},"
+    json_output+="  \"Domains\": [$(IFS=, ; echo "${SEARCH_DOMAINS_JSON[*]}")]"
+    json_output+="}"
+
     json_output+="}"
 
     echo "$json_output"

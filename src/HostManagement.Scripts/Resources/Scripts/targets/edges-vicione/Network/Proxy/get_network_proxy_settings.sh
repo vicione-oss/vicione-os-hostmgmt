@@ -4,7 +4,7 @@
 #
 # Get Network Proxy Settings Script
 #
-# The script returns 0 if ok or warning, non zero for error.
+# The script returns 0 if ok, non zero for error.
 # ###
 
 set -eEuo pipefail
@@ -85,11 +85,10 @@ main() {
         no_proxy_enabled="true"
     fi
 
-    # Add the DoNotProxyListEnabled state to the JSON output
-    json_output+="\"DoNotProxyListEnabled\": ${no_proxy_enabled},"
-
-    # Add the no_proxy list to the JSON output
-    json_output+="\"DoNotProxyList\": ["
+    # Add NoProxySettings JSON output
+    json_output+="\"NoProxy\": {"
+    json_output+="  \"Enabled\": ${no_proxy_enabled},"
+    json_output+="  \"Entries\": ["
 
     if [[ -n "$no_proxy_list" ]]; then
         for host in $no_proxy_list; do
@@ -99,7 +98,7 @@ main() {
 
     # Remove the trailing comma, if any, and close the JSON object
     json_output="${json_output%,}"
-    json_output+="]}"
+    json_output+="]}}"
 
     echo -e "$json_output"
 }
