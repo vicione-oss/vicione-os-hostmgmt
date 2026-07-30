@@ -20,9 +20,8 @@ internal static partial class ServiceRunner
 {
     private static readonly ILogger s_logger = new ConsoleLogger(EnvironmentVariables.LogLevel.Value);
     private static readonly FileSystem s_fileSystem = new();
-    private static readonly SystemConfigurationPersistence s_systemConfigurationPersistence = new(s_fileSystem);
     private static readonly SystemConfigurationService s_configurationService = new(
-        s_systemConfigurationPersistence,
+        new SystemConfigurationPersistence(s_fileSystem),
         new ScriptHandler(),
         s_logger);
 
@@ -44,21 +43,19 @@ internal static partial class ServiceRunner
             if (!TryInitializeService())
                 return 0;
 
-            if (EnvironmentVariables.Environment.Value is TargetEnvironment.EdgeSViciOne)
-            {
-                // 'PrepareConfiguration' should only be called on supported target environments, like 'edges-vicione'.
-                // However, if it is called on a not supported environment, like 'debian' or 'unknown',
-                // prepare configuration will not be executed.
+            if (EnvironmentVariables.Environment.Value is not TargetEnvironment.EdgeSViciOne)
+                return 0;
 
-                var status = await s_configurationService
-                    .PrepareConfigurationOnDeviceStartup(CancellationToken.None)
-                    .ConfigureAwait(false);
+            // 'PrepareConfiguration' should only be called on supported target environments, like 'edges-vicione'.
+            // However, if it is called on a not supported environment, like 'debian' or 'unknown',
+            // prepare configuration will not be executed.
 
-                if (status == OperationStatus.Warning)
-                    return 0;
+            var status = await s_configurationService
+                .PrepareConfigurationOnDeviceStartup(CancellationToken.None)
+                .ConfigureAwait(false);
 
-                await CreateSetConfigFlag();
-            }
+            if (status is OperationStatus.Success)
+                await CreateSetConfigFlag().ConfigureAwait(false);
 
             return 0;
         }
@@ -83,7 +80,7 @@ internal static partial class ServiceRunner
         {
             using ConsoleLifetime lifetime = new(s_logger);
 
-            if (await IsServiceAlreadyRunning(lifetime.Token))
+            if (await IsServiceAlreadyRunning(lifetime.Token).ConfigureAwait(false))
                 return 1;
 
             if (!TryInitializeService())
@@ -93,7 +90,8 @@ internal static partial class ServiceRunner
             {
                 DeleteSetConfigFlag();
 
-                var configResult = await s_configurationService.GetConfigurationOnDeviceStartup(lifetime.Token)
+                var configResult = await s_configurationService
+                    .GetConfigurationOnDeviceStartup(lifetime.Token)
                     .ConfigureAwait(false);
 
                 if (configResult.Configuration is SystemConfiguration jsonConfig)
@@ -107,7 +105,7 @@ internal static partial class ServiceRunner
                 }
             }
 
-            await StartNamedPipeServer(lifetime.Token);
+            await StartNamedPipeServer(lifetime.Token).ConfigureAwait(false);
             return 0;
         }
         catch (Exception ex)
@@ -130,8 +128,8 @@ internal static partial class ServiceRunner
                 // Testing purposes
                 registry.RegisterHandler(new EchoRequestHandler(pipeServer, s_logger));
 #endif
-                await pipeServer.SetExecutePermission();
-                await pipeServer.SetOwnership();
+                await pipeServer.SetExecutePermission().ConfigureAwait(false);
+                await pipeServer.SetOwnership().ConfigureAwait(false);
                 await pipeServer.WaitForConnection(cancellationToken).ConfigureAwait(false);
                 await pipeServer.WaitForRemotePipeClose(cancellationToken).ConfigureAwait(false);
             }
@@ -144,7 +142,7 @@ internal static partial class ServiceRunner
     {
         if (!s_fileSystem.File.Exists(s_setConfigFlag))
         {
-            await s_fileSystem.File.Create(s_setConfigFlag).DisposeAsync();
+            await s_fileSystem.File.Create(s_setConfigFlag).DisposeAsync().ConfigureAwait(false);
             CreateSetConfigFlag(s_logger, s_setConfigFlag);
         }
     }
@@ -159,42 +157,32 @@ internal static partial class ServiceRunner
     {
         if (EnvironmentVariables.HasInvalidVariables)
         {
-            EnvironmentVariablesInvalid(
-                s_logger,
-                Environment.NewLine +
-                string.Join(Environment.NewLine, EnvironmentVariables.InvalidVariables));
-
+            EnvironmentVariablesInvalid(s_logger, EnvironmentVariables.FormattedInvalidVariables);
             return false;
         }
 
         var environmentString = EnvironmentVariables.Environment.Value.ToEnvironmentString();
-        var resourceDeployDirectory = EnvironmentVariables.ResourceDeployDirectory.Value;
+        var deployDirectory = EnvironmentVariables.ResourceDeployDirectory.Value;
 
         CurrentTargetEnvironment(s_logger, environmentString);
 
-        var resourceManagerInstance = ResourceManager.Initialize(
-            s_logger,
-            s_fileSystem,
-            resourceDeployDirectory,
-            environmentString);
+        var resourceManager = ResourceManager.Initialize(s_logger, s_fileSystem, deployDirectory, environmentString);
+        _ = ScriptRunner.Initialize(deployDirectory);
 
-        ScriptRunner.Initialize(resourceDeployDirectory);
-
-        return resourceManagerInstance.DeployScripts();
+        return resourceManager.DeployScripts();
     }
 
     private static async Task<bool> IsServiceAlreadyRunning(CancellationToken cancellationToken)
     {
         const string ServiceName = "hostmanagement";
         const string ServiceNameAndDaemonFlag = $"{ServiceName} --daemon";
-        const string PgrepCommand = $"pgrep {ServiceName} -a";
 
         using var process = new Process
         {
             StartInfo = new ProcessStartInfo
             {
-                FileName = @"/bin/bash",
-                ArgumentList = { "-c", PgrepCommand },
+                FileName = "pgrep",
+                ArgumentList = { "-a", ServiceName },
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
@@ -205,23 +193,28 @@ internal static partial class ServiceRunner
 
         process.Start();
 
-        await process.WaitForExitAsync(cancellationToken);
+        var standardOutputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
+        var standardErrorTask = process.StandardError.ReadToEndAsync(cancellationToken);
+        var waitForExitTask = process.WaitForExitAsync(cancellationToken);
 
-        var output = await process.StandardOutput.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
-        var error = await process.StandardError.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
+        await Task
+            .WhenAll(standardOutputTask, standardErrorTask, waitForExitTask)
+            .ConfigureAwait(false);
+
+        var standardOutput = (await standardOutputTask.ConfigureAwait(false)).TrimEnd();
+        var standardError = (await standardErrorTask.ConfigureAwait(false)).TrimEnd();
 
         if (process.ExitCode != 0)
         {
-            CouldNotDetermineServiceAlreadyRunning(s_logger, error);
-
             // Assume a service is already running
+            CouldNotDetermineServiceAlreadyRunning(s_logger, standardError);
             return true;
         }
 
-        if (string.IsNullOrWhiteSpace(output))
+        if (string.IsNullOrWhiteSpace(standardOutput))
             return false;
 
-        var serviceProcesses = output
+        var serviceProcesses = standardOutput
             .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
             .Where(pidAndCommandLine => pidAndCommandLine.Contains(ServiceNameAndDaemonFlag))
             .ToList();
