@@ -4,36 +4,34 @@ using HostManagement.Shared.Contracts;
 namespace HostManagement.SystemConfig.InternalValidation;
 
 /// <summary>
-/// Represents the internal validator for a <see cref="SystemConfiguration"/> object.
+/// Validates a <see cref="SystemConfiguration"/> against HostManagement-specific policies.
 /// </summary>
-internal static class SystemConfigurationValidatorInternal
+internal static class SystemConfigurationPolicyValidator
 {
     /// <summary>
-    /// Internally validates the <paramref name="proposed"/> <see cref="SystemConfiguration"/>.
+    /// Validates the <paramref name="proposed"/> <see cref="SystemConfiguration"/> against HostManagement-specific policies.
     /// </summary>
     /// <param name="proposed">The proposed <see cref="SystemConfiguration"/>.</param>
     /// <returns><see cref="ValidationResult"/></returns>
-    public static async Task<ValidationResult> Validate(SystemConfiguration proposed)
+    internal static ValidationResult Validate(SystemConfiguration proposed)
     {
-        var validationResult = new ValidationResult();
+        var result = new ValidationResult();
 
         try
         {
-            await ServicesValidatorInternal.Validate(
+            ConfigurableServicesValidator.Validate(
                 proposed,
                 EnvironmentVariables.ConfigurableServices.Value,
-                validationResult);
-
-            return validationResult;
+                result);
         }
         catch (Exception ex)
         {
-            validationResult.AddError(
+            result.AddError(
                 InternalValidationResultMessages.InternalValidationFailed +
                 Environment.NewLine +
                 ex.Message);
-
-            return validationResult;
         }
+
+        return result;
     }
 }
