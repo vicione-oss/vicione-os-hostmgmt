@@ -77,8 +77,11 @@ public class SystemConfigurationServiceTests
                                     Netmask = IPAddress.Parse("255.255.255.0")
                                 }
                             ],
-                            VLANEnabled = true,
-                            VLANID = 100
+                        },
+                        VLAN = new()
+                        {
+                            Enabled = true,
+                            ID = 100
                         }
                     }
                 ]
@@ -1036,20 +1039,23 @@ public class SystemConfigurationServiceTests
                 ));
 
             context.ScriptHandler
-                .ExecuteGetInterfaceIPv4SettingsScript(Arg.Any<string>())
-                .Returns((Result.SuccessResult, new()
-                {
-                    DHCPEnabled = true,
-                    Gateway = IPAddress.Parse("10.10.10.1"),
-                    IPv4Details =
-                    [
-                        new()
-                        {
-                            IPAddress = IPAddress.Parse("10.10.10.2"),
-                            Netmask = IPAddress.Parse("255.255.255.0")
-                        }
-                    ]
-                }));
+                .ExecuteGetInterfaceSettingsScript(Arg.Any<string>())
+                .Returns((
+                    Result.SuccessResult,
+                    new()
+                    {
+                        DHCPEnabled = true,
+                        Gateway = IPAddress.Parse("10.10.10.1"),
+                        IPv4Details =
+                        [
+                            new()
+                            {
+                                IPAddress = IPAddress.Parse("10.10.10.2"),
+                                Netmask = IPAddress.Parse("255.255.255.0")
+                            }
+                        ]
+                    },
+                    new()));
 
             // Act
             var result = await context.Sut.ResetNetworkInterface(Lan1, CancellationToken.None);
@@ -1204,7 +1210,7 @@ public class SystemConfigurationServiceTests
             ScriptHandler.ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>()).Returns(Result.SuccessResult);
             ScriptHandler.ExecuteGetNetworkInterfacesScript().ReturnsForAnyArgs((Result.SuccessResult, RawInterfacesString));
             ScriptHandler.ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs((Result.SuccessResult, []));
-            ScriptHandler.ExecuteGetInterfaceIPv4SettingsScript(Arg.Any<string>()).ReturnsForAnyArgs((Result.SuccessResult, new()));
+            ScriptHandler.ExecuteGetInterfaceSettingsScript(Arg.Any<string>()).ReturnsForAnyArgs((Result.SuccessResult, new(), new()));
             ScriptHandler.ExecuteGetInterfaceIPv4DHCPLeaseScript(Arg.Any<string>()).ReturnsForAnyArgs((Result.SuccessResult, new()));
             ScriptHandler.ExecuteGetNetworkDNSSettingsScript().ReturnsForAnyArgs((Result.SuccessResult, new() { Hostname = TestHostname }));
             ScriptHandler.ExecuteGetNetworkProxySettingsScript().ReturnsForAnyArgs((Result.SuccessResult, new()));

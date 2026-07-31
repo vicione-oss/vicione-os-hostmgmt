@@ -650,31 +650,36 @@ internal sealed partial class SystemConfigurationService(
 
         var defaultIpv4 = defaultInterface.IPv4;
 
-        if (defaultIpv4 is null)
-            return;
-
-        if (defaultIpv4.DHCPEnabled.HasValue)
-            currentInterface.IPv4.DHCPEnabled = defaultIpv4.DHCPEnabled.Value;
-
-        if (defaultIpv4.Gateway is not null)
-            currentInterface.IPv4.Gateway = defaultIpv4.Gateway;
-
-        if (defaultIpv4.IPv4Details is not null)
+        if (defaultIpv4 is not null)
         {
-            currentInterface.IPv4.IPv4Details.Clear();
-            currentInterface.IPv4.IPv4Details.AddRange(
-                defaultIpv4.IPv4Details.Select(static detail => new IPv4Detail
-                {
-                    IPAddress = detail.IPAddress,
-                    Netmask = detail.Netmask,
-                }));
+            if (defaultIpv4.DHCPEnabled.HasValue)
+                currentInterface.IPv4.DHCPEnabled = defaultIpv4.DHCPEnabled.Value;
+
+            if (defaultIpv4.Gateway is not null)
+                currentInterface.IPv4.Gateway = defaultIpv4.Gateway;
+
+            if (defaultIpv4.IPv4Details is not null)
+            {
+                currentInterface.IPv4.IPv4Details.Clear();
+                currentInterface.IPv4.IPv4Details.AddRange(
+                    defaultIpv4.IPv4Details.Select(static detail => new IPv4Detail
+                    {
+                        IPAddress = detail.IPAddress,
+                        Netmask = detail.Netmask,
+                    }));
+            }
         }
 
-        if (defaultIpv4.VLANEnabled.HasValue)
-            currentInterface.IPv4.VLANEnabled = defaultIpv4.VLANEnabled.Value;
+        var defaultVlan = defaultInterface.VLAN;
 
-        if (defaultIpv4.VLANID.HasValue)
-            currentInterface.IPv4.VLANID = defaultIpv4.VLANID.Value;
+        if (defaultVlan is not null)
+        {
+            if (defaultVlan.Enabled.HasValue)
+                currentInterface.VLAN.Enabled = defaultVlan.Enabled.Value;
+
+            if (defaultVlan.ID.HasValue)
+                currentInterface.VLAN.ID = defaultVlan.ID.Value;
+        }
     }
 
     private async Task<Result> PersistConfiguration(

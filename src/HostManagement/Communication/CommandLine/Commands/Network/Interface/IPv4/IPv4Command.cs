@@ -1,8 +1,7 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Commands.Network.Interface.IPv4.DHCP;
 using HostManagement.Communication.CommandLine.Commands.Network.Interface.IPv4.Gateway;
 using HostManagement.Communication.CommandLine.Commands.Network.Interface.IPv4.IP;
-using HostManagement.Communication.CommandLine.Commands.Network.Interface.IPv4.VLAN;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Interface.IPv4;
 
@@ -21,6 +20,5 @@ internal sealed class IPv4Command : Command
         Add(new DHCPCommand());
         Add(new IPCommand());
         Add(new GatewayCommand());
-        Add(new VLANCommand());
     }
 }

@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using AwesomeAssertions;
 using HostManagement.SystemConfig.Contracts;
 using Xunit;
@@ -53,7 +53,8 @@ public class NetworkInterfacesSettingsTests
                     new NetworkInterfaceDetail
                     {
                         CommonInformation = new NetworkInterfaceCommonInformation { Enabled = true, Name = "eth0" },
-                        IPv4 = new IPv4Settings()
+                        IPv4 = new IPv4Settings(),
+                        VLAN = new VLANSettings()
                     }
                 ]
             };
@@ -71,7 +72,8 @@ public class NetworkInterfacesSettingsTests
             settings2.NetworkInterfaces!.Add(new NetworkInterfaceDetail
             {
                 CommonInformation = new NetworkInterfaceCommonInformation { Enabled = true, Name = "eth1" },
-                IPv4 = new IPv4Settings()
+                IPv4 = new IPv4Settings(),
+                VLAN = new VLANSettings()
             });
 
             var result = settings1.Equals(settings2);
@@ -85,12 +87,14 @@ public class NetworkInterfacesSettingsTests
             var interface1 = new NetworkInterfaceDetail
             {
                 CommonInformation = new NetworkInterfaceCommonInformation { Enabled = true, Name = "eth0" },
-                IPv4 = new IPv4Settings()
+                IPv4 = new IPv4Settings(),
+                VLAN = new VLANSettings()
             };
             var interface2 = new NetworkInterfaceDetail
             {
                 CommonInformation = new NetworkInterfaceCommonInformation { Enabled = true, Name = "eth1" },
-                IPv4 = new IPv4Settings()
+                IPv4 = new IPv4Settings(),
+                VLAN = new VLANSettings()
             };
 
             var settings1 = new NetworkInterfacesSettings
@@ -135,6 +139,54 @@ public class NetworkInterfacesSettingsTests
             var settings1 = CreateSampleSettings();
             var settings2 = CreateSampleSettings();
             settings2.NetworkInterfaces![0].IPv4!.Gateway = IPAddress.Parse("10.0.0.1");
+
+            var result = settings1.Equals(settings2);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public void ShouldReturnFalse_WhenDifferentVLANEnabled()
+        {
+            var settings1 = CreateSampleSettings();
+            var settings2 = CreateSampleSettings();
+            settings2.NetworkInterfaces![0].VLAN!.Enabled = !settings1.NetworkInterfaces![0].VLAN!.Enabled;
+
+            var result = settings1.Equals(settings2);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public void ShouldReturnFalse_WhenNullVsNonNullVLANEnabled()
+        {
+            var settings1 = CreateSampleSettings();
+            var settings2 = CreateSampleSettings();
+            settings2.NetworkInterfaces![0].VLAN!.Enabled = null;
+
+            var result = settings1.Equals(settings2);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public void ShouldReturnFalse_WhenDifferentVLANID()
+        {
+            var settings1 = CreateSampleSettings();
+            var settings2 = CreateSampleSettings();
+            settings2.NetworkInterfaces![0].VLAN!.ID = 200;
+
+            var result = settings1.Equals(settings2);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public void ShouldReturnFalse_WhenNullVsNonNullVLANID()
+        {
+            var settings1 = CreateSampleSettings();
+            var settings2 = CreateSampleSettings();
+            settings2.NetworkInterfaces![0].VLAN!.ID = null;
 
             var result = settings1.Equals(settings2);
 
@@ -195,6 +247,11 @@ public class NetworkInterfacesSettingsTests
                                 Netmask = IPAddress.Parse("255.255.255.0")
                             }
                         ]
+                    },
+                    VLAN = new VLANSettings
+                    {
+                        Enabled = true,
+                        ID = 100
                     }
                 }
             ]

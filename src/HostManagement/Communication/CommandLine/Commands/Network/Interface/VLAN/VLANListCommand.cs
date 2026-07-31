@@ -1,7 +1,7 @@
-﻿using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 
-namespace HostManagement.Communication.CommandLine.Commands.Network.Interface.IPv4.VLAN;
+namespace HostManagement.Communication.CommandLine.Commands.Network.Interface.VLAN;
 
 /// <summary>
 /// Represents the VLAN list command.
@@ -14,9 +14,7 @@ internal sealed class VLANListCommand : ConfigCommandBase
     public VLANListCommand() : base(
         CommandLineStrings_Common.ListCommandName,
         CommandLineStrings_NetworkInterfaces.VLANListCommandDescription)
-    {
-        SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
-    }
+            => SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
 
     private static async Task ListHandler(CancellationToken cancellationToken)
     {
@@ -27,14 +25,14 @@ internal sealed class VLANListCommand : ConfigCommandBase
 
         foreach (var @interface in config.NetworkInterfacesSettings.NetworkInterfaces)
         {
-            var vlanId = @interface.IPv4.VLANID.Equals(0)
+            var vlanId = @interface.VLAN.ID.Equals(0)
                 ? CliOutputBase.NotSetValue
-                : @interface.IPv4.VLANID.ToString();
+                : @interface.VLAN.ID.ToString();
 
             output.With(
                 @interface.CommonInformation.Name,
                 new(CommandLineStrings_NetworkInterfaces.VLANID, vlanId),
-                @interface.IPv4.VLANEnabled);
+                @interface.VLAN.Enabled);
         }
 
         output.WriteLine();

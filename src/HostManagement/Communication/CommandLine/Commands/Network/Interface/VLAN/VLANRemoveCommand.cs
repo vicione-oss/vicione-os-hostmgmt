@@ -1,10 +1,10 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Extensions;
 
-namespace HostManagement.Communication.CommandLine.Commands.Network.Interface.IPv4.VLAN;
+namespace HostManagement.Communication.CommandLine.Commands.Network.Interface.VLAN;
 
 /// <summary>
 /// Represents the VLAN remove command.
@@ -40,16 +40,16 @@ internal sealed class VLANRemoveCommand : ConfigCommandBase
             return;
         }
 
-        if (interfaceToConfigure.IPv4.VLANID.Equals(0))
+        if (interfaceToConfigure.VLAN.ID.Equals(0))
         {
             SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.VLANNotConfigured, interfaceName);
             return;
         }
 
-        var vlanIdToRemove = interfaceToConfigure.IPv4.VLANID;
-        var wasVlanEnabled = interfaceToConfigure.IPv4.VLANEnabled;
-        interfaceToConfigure.IPv4.VLANID = 0;
-        interfaceToConfigure.IPv4.VLANEnabled = false;
+        var vlanIdToRemove = interfaceToConfigure.VLAN.ID;
+        var wasVlanEnabled = interfaceToConfigure.VLAN.Enabled;
+        interfaceToConfigure.VLAN.ID = 0;
+        interfaceToConfigure.VLAN.Enabled = false;
 
         if (!await SetConfiguration(config, cancellationToken))
             return;

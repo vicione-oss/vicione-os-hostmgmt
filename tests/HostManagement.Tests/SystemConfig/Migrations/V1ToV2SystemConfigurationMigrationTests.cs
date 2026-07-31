@@ -105,8 +105,9 @@ public class V1ToV2SystemConfigurationMigrationTests
             ipv4Details.IPAddress.Should().Be(IPAddress.Parse("192.168.60.3"));
             ipv4Details.Netmask.Should().Be(IPAddress.Parse("255.255.0.0"));
 
-            networkInterface.IPv4.VLANEnabled.Should().BeTrue();
-            networkInterface.IPv4.VLANID.Should().Be(100);
+            networkInterface.VLAN.Should().NotBeNull();
+            networkInterface.VLAN.Enabled.Should().BeTrue();
+            networkInterface.VLAN.ID.Should().Be(100);
         }
 
         [Fact]

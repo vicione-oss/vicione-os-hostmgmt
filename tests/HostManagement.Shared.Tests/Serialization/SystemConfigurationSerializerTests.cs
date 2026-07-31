@@ -38,9 +38,12 @@ public class SystemConfigurationSerializerTests
                                 IPAddress = s_ipAddress,
                                 Netmask = s_ipAddress
                             }
-                        ],
-                        VLANEnabled = true,
-                        VLANID = 1
+                        ]
+                    },
+                    VLAN = new()
+                    {
+                        Enabled = true,
+                        ID = 1
                     }
                 }
             ]
@@ -166,9 +169,11 @@ public class SystemConfigurationSerializerTests
                       "IPAddress": "120.86.52.18",
                       "Netmask": "120.86.52.18"
                     }
-                  ],
-                  "VLANEnabled": true,
-                  "VLANID": 1
+                  ]
+                },
+                "VLAN": {
+                  "Enabled": true,
+                  "ID": 1
                 }
               }
             ]

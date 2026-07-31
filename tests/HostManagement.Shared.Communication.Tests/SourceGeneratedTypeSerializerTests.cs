@@ -93,9 +93,11 @@ public class SourceGeneratedTypeSerializerTests
                       "IPAddress": "120.86.52.18",
                       "Netmask": "120.86.52.18"
                     }
-                  ],
-                  "VLANEnabled": true,
-                  "VLANID": 1
+                  ]
+                },
+                "VLAN": {
+                  "Enabled": true,
+                  "ID": 1
                 }
               }
             ]

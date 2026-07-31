@@ -250,12 +250,12 @@ public class ResourceManagerTests
                     // Network
                     "apply_netplan_configuration",
                     "get_network_interface_ipv4_dhcp_lease",
-                    "get_network_interface_ipv4_settings",
+                    "get_network_interface_settings",
                     "get_network_interfaces_common_information",
                     "get_network_status_information",
                     "get_original_physical_address",
                     "renew_dhcp_lease",
-                    "set_network_interface_ipv4_settings",
+                    "set_network_interface_settings",
 
                     // Network > DNS
                     "get_network_dns_settings",

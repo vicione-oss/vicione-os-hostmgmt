@@ -69,11 +69,11 @@ internal interface IScriptHandler
     Task<(Result, string)> ExecuteGetOriginalPhysicalAddressScript(string interfaceName);
 
     /// <summary>
-    /// Executes the script to get IPv4 settings of a network interface.
+    /// Executes the script to get settings of a network interface.
     /// </summary>
     /// <param name="interfaceName">The interface name.</param>
     /// <returns><see cref="Result"/> and <see cref="IPv4Settings"/> of the network interface.</returns>
-    Task<(Result, IPv4Settings)> ExecuteGetInterfaceIPv4SettingsScript(string interfaceName);
+    Task<(Result, IPv4Settings, VLANSettings)> ExecuteGetInterfaceSettingsScript(string interfaceName);
 
     /// <summary>
     /// Executes the script to set IPv4 settings of a network interface.
