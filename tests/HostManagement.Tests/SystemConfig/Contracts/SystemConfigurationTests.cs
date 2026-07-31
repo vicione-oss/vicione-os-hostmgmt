@@ -32,16 +32,20 @@ public class SystemConfigurationTests
         }
 
         [Fact]
-        public void ShouldReturnFalse_WhenNullVsNonNullNetworkInterfacesSettings()
+        public void ShouldReturnFalse_WhenNullVsNonNull()
         {
-            var config1 = new SystemConfiguration { NetworkInterfacesSettings = null };
-            var config2 = new SystemConfiguration
-            {
-                NetworkInterfacesSettings = new NetworkInterfacesSettings
-                {
-                    NetworkInterfaces = []
-                }
-            };
+            var config = CreateSampleConfiguration();
+
+            var result = config.Equals(null);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public void ShouldReturnFalse_WhenNullVsNonNullNetworkInterfaces()
+        {
+            var config1 = new SystemConfiguration { NetworkInterfaces = null };
+            var config2 = new SystemConfiguration { NetworkInterfaces = [] };
 
             var result = config1.Equals(config2);
 
@@ -49,11 +53,11 @@ public class SystemConfigurationTests
         }
 
         [Fact]
-        public void ShouldReturnFalse_WhenDifferentNetworkInterfacesSettings()
+        public void ShouldReturnFalse_WhenDifferentNetworkInterfaces()
         {
             var config1 = CreateSampleConfiguration();
             var config2 = CreateSampleConfiguration();
-            config2.NetworkInterfacesSettings!.NetworkInterfaces!.Add(new NetworkInterfaceDetail
+            config2.NetworkInterfaces!.Add(new NetworkInterfaceDetail
             {
                 CommonInformation = new NetworkInterfaceCommonInformation { Enabled = true, Name = "eth2" },
                 IPv4 = new IPv4Settings()
@@ -62,6 +66,136 @@ public class SystemConfigurationTests
             var result = config1.Equals(config2);
 
             result.Should().BeFalse();
+        }
+
+        [Fact]
+        public void ShouldReturnFalse_WhenDifferentNumberOfNetworkInterfaces()
+        {
+            var config1 = CreateSampleConfiguration();
+            var config2 = CreateSampleConfiguration();
+            config2.NetworkInterfaces!.Add(new NetworkInterfaceDetail
+            {
+                CommonInformation = new NetworkInterfaceCommonInformation { Enabled = true, Name = "eth1" },
+                IPv4 = new IPv4Settings(),
+                VLAN = new VLANSettings()
+            });
+
+            var result = config1.Equals(config2);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public void ShouldReturnFalse_WhenDifferentNetworkInterfaceOrder()
+        {
+            var interface1 = new NetworkInterfaceDetail
+            {
+                CommonInformation = new NetworkInterfaceCommonInformation { Enabled = true, Name = "eth0" },
+                IPv4 = new IPv4Settings(),
+                VLAN = new VLANSettings()
+            };
+            var interface2 = new NetworkInterfaceDetail
+            {
+                CommonInformation = new NetworkInterfaceCommonInformation { Enabled = true, Name = "eth1" },
+                IPv4 = new IPv4Settings(),
+                VLAN = new VLANSettings()
+            };
+
+            var config1 = CreateSampleConfiguration();
+            config1.NetworkInterfaces = [interface1, interface2];
+
+            var config2 = CreateSampleConfiguration();
+            config2.NetworkInterfaces = [interface2, interface1];
+
+            var result = config1.Equals(config2);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public void ShouldReturnFalse_WhenDifferentNetworkInterfaceProperties()
+        {
+            var config1 = CreateSampleConfiguration();
+            var config2 = CreateSampleConfiguration();
+            config2.NetworkInterfaces![0].CommonInformation!.Name = "different-name";
+
+            var result = config1.Equals(config2);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public void ShouldReturnFalse_WhenNestedIPv4Differences()
+        {
+            var config1 = CreateSampleConfiguration();
+            var config2 = CreateSampleConfiguration();
+            config2.NetworkInterfaces![0].IPv4!.Gateway = IPAddress.Parse("10.0.0.1");
+
+            var result = config1.Equals(config2);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public void ShouldReturnFalse_WhenDifferentVLANEnabled()
+        {
+            var config1 = CreateSampleConfiguration();
+            var config2 = CreateSampleConfiguration();
+            config2.NetworkInterfaces![0].VLAN!.Enabled = !config1.NetworkInterfaces![0].VLAN!.Enabled;
+
+            var result = config1.Equals(config2);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public void ShouldReturnFalse_WhenNullVsNonNullVLANEnabled()
+        {
+            var config1 = CreateSampleConfiguration();
+            var config2 = CreateSampleConfiguration();
+            config2.NetworkInterfaces![0].VLAN!.Enabled = null;
+
+            var result = config1.Equals(config2);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public void ShouldReturnFalse_WhenDifferentVLANID()
+        {
+            var config1 = CreateSampleConfiguration();
+            var config2 = CreateSampleConfiguration();
+            config2.NetworkInterfaces![0].VLAN!.ID = 200;
+
+            var result = config1.Equals(config2);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public void ShouldReturnFalse_WhenNullVsNonNullVLANID()
+        {
+            var config1 = CreateSampleConfiguration();
+            var config2 = CreateSampleConfiguration();
+            config2.NetworkInterfaces![0].VLAN!.ID = null;
+
+            var result = config1.Equals(config2);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public void ShouldReturnTrue_WhenBothNetworkInterfacesNull()
+        {
+            var config1 = CreateSampleConfiguration();
+            var config2 = CreateSampleConfiguration();
+
+            config1.NetworkInterfaces = null;
+            config2.NetworkInterfaces = null;
+
+            var result = config1.Equals(config2);
+
+            result.Should().BeTrue();
         }
 
         [Fact]
@@ -172,16 +306,6 @@ public class SystemConfigurationTests
         }
 
         [Fact]
-        public void ShouldReturnFalse_WhenNull()
-        {
-            var config = CreateSampleConfiguration();
-
-            var result = config.Equals(null);
-
-            result.Should().BeFalse();
-        }
-
-        [Fact]
         public void ShouldReturnTrue_WhenServicesInDifferentOrder()
         {
             var config1 = new SystemConfiguration
@@ -241,34 +365,36 @@ public class SystemConfigurationTests
         return new SystemConfiguration
         {
             Version = 2,
-            NetworkInterfacesSettings = new NetworkInterfacesSettings
-            {
-                NetworkInterfaces =
-                [
-                    new NetworkInterfaceDetail
+            NetworkInterfaces =
+            [
+                new NetworkInterfaceDetail
+                {
+                    CommonInformation = new NetworkInterfaceCommonInformation
                     {
-                        CommonInformation = new NetworkInterfaceCommonInformation
-                        {
-                            Enabled = true,
-                            Name = "eth0",
-                            PhysicalAddress = "00:11:22:33:44:55",
-                        },
-                        IPv4 = new IPv4Settings
-                        {
-                            Gateway = IPAddress.Parse("192.168.1.1"),
-                            DHCPEnabled = false,
-                            IPv4Details =
-                            [
-                                new IPv4Detail
-                                {
-                                    IPAddress = IPAddress.Parse("192.168.1.100"),
-                                    Netmask = IPAddress.Parse("255.255.255.0"),
-                                },
-                            ],
-                        },
+                        Enabled = true,
+                        Name = "eth0",
+                        PhysicalAddress = "00:11:22:33:44:55",
                     },
-                ],
-            },
+                    IPv4 = new IPv4Settings
+                    {
+                        Gateway = IPAddress.Parse("192.168.1.1"),
+                        DHCPEnabled = false,
+                        IPv4Details =
+                        [
+                            new IPv4Detail
+                            {
+                                IPAddress = IPAddress.Parse("192.168.1.100"),
+                                Netmask = IPAddress.Parse("255.255.255.0"),
+                            },
+                        ],
+                    },
+                    VLAN = new VLANSettings
+                    {
+                        Enabled = true,
+                        ID = 100
+                    }
+                },
+            ],
             NetworkDNSSettings = new NetworkDNSSettings
             {
                 Hostname = "test-host",

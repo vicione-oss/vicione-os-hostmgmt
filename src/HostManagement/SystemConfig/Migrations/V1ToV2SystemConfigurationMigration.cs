@@ -22,19 +22,15 @@ internal sealed class V1ToV2SystemConfigurationMigration
         => new()
         {
             Version = TargetVersion,
-            NetworkInterfacesSettings = source.NetworkInterfacesSettings.MapOrNull(MigrateNetworkInterfacesSettings),
+
+            // NetworkInterfacesSettings was replaced with direct list of interfaces
+            NetworkInterfaces = source.NetworkInterfacesSettings?.NetworkInterfaces.MapListOrNull(MigrateNetworkInterfaceDetail),
+
             NetworkDNSSettings = source.NetworkDNSSettings.MapOrNull(MigrateNetworkDNSSettings),
             NetworkProxySettings = source.NetworkProxySettings.MapOrNull(MigrateNetworkProxySettings),
             NetworkNTPSettings = source.NetworkNTPSettings.MapOrNull(MigrateNetworkNTPSettings),
             Services = source.Services.MapListOrNull(MigrateServiceDetail)
         };
-
-    private static CurrentContracts.NetworkInterfacesSettings MigrateNetworkInterfacesSettings(
-        V1Contracts.NetworkInterfacesSettings source)
-            => new()
-            {
-                NetworkInterfaces = source.NetworkInterfaces.MapListOrNull(MigrateNetworkInterfaceDetail)
-            };
 
     private static CurrentContracts.NetworkInterfaceDetail MigrateNetworkInterfaceDetail(
         V1Contracts.NetworkInterfaceDetail source)

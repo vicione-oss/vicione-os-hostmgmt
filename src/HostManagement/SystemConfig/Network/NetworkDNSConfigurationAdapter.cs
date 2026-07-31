@@ -54,8 +54,8 @@ internal sealed class NetworkDNSConfigurationAdapter(
                 currentConfig.NetworkDNSSettings,
                 proposedConfig.NetworkDNSSettings) ||
             SystemConfigurationChangeDetector.HasSequenceChanges(
-                currentConfig.NetworkInterfacesSettings?.NetworkInterfaces,
-                proposedConfig.NetworkInterfacesSettings?.NetworkInterfaces);
+                currentConfig.NetworkInterfaces,
+                proposedConfig.NetworkInterfaces);
     }
 
     private protected override async Task<Result> PrepareConfiguration(

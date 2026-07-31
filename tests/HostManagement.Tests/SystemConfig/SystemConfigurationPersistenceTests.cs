@@ -123,65 +123,62 @@ public class SystemConfigurationPersistenceTests
         private static readonly SystemConfiguration s_configV1_1_1_AfterMigration = new()
         {
             Version = 2,
-            NetworkInterfacesSettings = new()
-            {
-                NetworkInterfaces =
-                [
-                    new()
+            NetworkInterfaces =
+            [
+                new()
+                {
+                    CommonInformation = new()
                     {
-                        CommonInformation = new()
-                        {
-                            Enabled = true,
-                            Name = "lan1",
-                            PhysicalAddress = "00:02:01:ac:52:33"
-                        },
-                        IPv4 = new()
-                        {
-                            Gateway = IPAddress.Parse("192.168.1.1"),
-                            DHCPEnabled = false,
-                            IPv4Details =
-                            [
-                                new()
-                                {
-                                    IPAddress = IPAddress.Parse("192.168.60.3"),
-                                    Netmask = IPAddress.Parse("255.255.0.0")
-                                }
-                            ],
-                        },
-                        VLAN = new()
-                        {
-                            Enabled = false,
-                            ID = 0
-                        }
+                        Enabled = true,
+                        Name = "lan1",
+                        PhysicalAddress = "00:02:01:ac:52:33"
                     },
-                    new()
+                    IPv4 = new()
                     {
-                        CommonInformation = new()
-                        {
-                            Enabled = true,
-                            Name = "lan2",
-                            PhysicalAddress = "00:02:01:ac:52:34"
-                        },
-                        IPv4 = new()
-                        {
-                            DHCPEnabled = false,
-                            IPv4Details =
-                            [
-                                new()
-                                {
-                                    IPAddress = IPAddress.Parse("192.168.0.100"),
-                                    Netmask = IPAddress.Parse("255.255.255.0")
-                                }
-                            ],
-                        },
-                        VLAN = new()
-                        {
-                            Enabled = false,
-                            ID = 0
-                        }
+                        Gateway = IPAddress.Parse("192.168.1.1"),
+                        DHCPEnabled = false,
+                        IPv4Details =
+                        [
+                            new()
+                            {
+                                IPAddress = IPAddress.Parse("192.168.60.3"),
+                                Netmask = IPAddress.Parse("255.255.0.0")
+                            }
+                        ],
+                    },
+                    VLAN = new()
+                    {
+                        Enabled = false,
+                        ID = 0
                     }
-                ]
-            },
+                },
+                new()
+                {
+                    CommonInformation = new()
+                    {
+                        Enabled = true,
+                        Name = "lan2",
+                        PhysicalAddress = "00:02:01:ac:52:34"
+                    },
+                    IPv4 = new()
+                    {
+                        DHCPEnabled = false,
+                        IPv4Details =
+                        [
+                            new()
+                            {
+                                IPAddress = IPAddress.Parse("192.168.0.100"),
+                                Netmask = IPAddress.Parse("255.255.255.0")
+                            }
+                        ],
+                    },
+                    VLAN = new()
+                    {
+                        Enabled = false,
+                        ID = 0
+                    }
+                }
+            ],
             NetworkDNSSettings = new()
             {
                 Hostname = "AE1400-Host-Management",
@@ -327,34 +324,32 @@ public class SystemConfigurationPersistenceTests
                 """
                 {
                     "Version": 2,
-                    "NetworkInterfacesSettings": {
-                        "NetworkInterfaces": [
-                            {
-                                "CommonInformation": {
-                                    "Enabled": true,
-                                    "Name": "lan1"
-                                },
-                                "IPv4": {
-                                    "DHCPEnabled": true
-                                }
+                    "NetworkInterfaces": [
+                        {
+                            "CommonInformation": {
+                                "Enabled": true,
+                                "Name": "lan1"
                             },
-                            {
-                                "CommonInformation": {
-                                    "Enabled": true,
-                                    "Name": "lan2"
-                                },
-                                "IPv4": {
-                                    "DHCPEnabled": false,
-                                    "IPv4Details": [
-                                        {
-                                            "IPAddress": "192.168.0.100",
-                                            "Netmask": "255.255.255.0"
-                                        }
-                                    ]
-                                }
+                            "IPv4": {
+                                "DHCPEnabled": true
                             }
-                        ]
-                    },
+                        },
+                        {
+                            "CommonInformation": {
+                                "Enabled": true,
+                                "Name": "lan2"
+                            },
+                            "IPv4": {
+                                "DHCPEnabled": false,
+                                "IPv4Details": [
+                                    {
+                                        "IPAddress": "192.168.0.100",
+                                        "Netmask": "255.255.255.0"
+                                    }
+                                ]
+                            }
+                        }
+                    ],
                     "NetworkDNSSettings": {
                         "Hostname": "%%hostname%%"
                     }
@@ -458,39 +453,36 @@ public class SystemConfigurationPersistenceTests
             SystemConfiguration systemConfiguration = new()
             {
                 Version = 2,
-                NetworkInterfacesSettings = new()
-                {
-                    NetworkInterfaces =
-                    [
-                        new()
+                NetworkInterfaces =
+                [
+                    new()
+                    {
+                        CommonInformation = new()
                         {
-                            CommonInformation = new()
-                            {
-                                Enabled = true,
-                                Name = "lan1",
-                                PhysicalAddress = "01:23:45:67:89:AB"
-                            },
-                            IPv4 = new()
-                            {
-                                DHCPEnabled = true,
-                                Gateway = ipAddress,
-                                IPv4Details =
-                                [
-                                    new()
-                                    {
-                                        IPAddress = ipAddress,
-                                        Netmask = ipAddress
-                                    }
-                                ]
-                            },
-                            VLAN = new()
-                            {
-                                Enabled = true,
-                                ID = 1
-                            }
+                            Enabled = true,
+                            Name = "lan1",
+                            PhysicalAddress = "01:23:45:67:89:AB"
+                        },
+                        IPv4 = new()
+                        {
+                            DHCPEnabled = true,
+                            Gateway = ipAddress,
+                            IPv4Details =
+                            [
+                                new()
+                                {
+                                    IPAddress = ipAddress,
+                                    Netmask = ipAddress
+                                }
+                            ]
+                        },
+                        VLAN = new()
+                        {
+                            Enabled = true,
+                            ID = 1
                         }
-                    ]
-                },
+                    }
+                ],
                 NetworkDNSSettings = new()
                 {
                     Hostname = "hostname",
@@ -590,31 +582,29 @@ public class SystemConfigurationPersistenceTests
             """
             {
               "Version": 2,
-              "NetworkInterfacesSettings": {
-                "NetworkInterfaces": [
-                  {
-                    "CommonInformation": {
-                      "Name": "lan1",
-                      "Enabled": true,
-                      "PhysicalAddress": "01:23:45:67:89:AB"
-                    },
-                    "IPv4": {
-                      "Gateway": "120.86.52.18",
-                      "DHCPEnabled": true,
-                      "IPv4Details": [
-                        {
-                          "IPAddress": "120.86.52.18",
-                          "Netmask": "120.86.52.18"
-                        }
-                      ]
-                    },
-                    "VLAN": {
-                      "Enabled": true,
-                      "ID": 1
-                    }
+              "NetworkInterfaces": [
+                {
+                  "CommonInformation": {
+                    "Name": "lan1",
+                    "Enabled": true,
+                    "PhysicalAddress": "01:23:45:67:89:AB"
+                  },
+                  "IPv4": {
+                    "Gateway": "120.86.52.18",
+                    "DHCPEnabled": true,
+                    "IPv4Details": [
+                      {
+                        "IPAddress": "120.86.52.18",
+                        "Netmask": "120.86.52.18"
+                      }
+                    ]
+                  },
+                  "VLAN": {
+                    "Enabled": true,
+                    "ID": 1
                   }
-                ]
-              },
+                }
+              ],
               "NetworkDNSSettings": {
                 "Hostname": "hostname",
                 "MulticastDNSEnabled": true,

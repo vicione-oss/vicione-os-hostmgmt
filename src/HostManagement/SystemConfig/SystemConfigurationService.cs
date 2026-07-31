@@ -259,7 +259,6 @@ internal sealed partial class SystemConfigurationService(
                 .ConfigureAwait(false);
 
             var defaultInterface = defaultConfig
-                .NetworkInterfacesSettings?
                 .NetworkInterfaces?
                 .FirstOrDefault(@interface => string.Equals(
                     @interface.CommonInformation?.Name,

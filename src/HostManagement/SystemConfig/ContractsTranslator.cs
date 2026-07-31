@@ -36,8 +36,14 @@ internal static class ContractsTranslator
                 Version = intern.Version
             };
 
-        if (intern.NetworkInterfacesSettings is { } interfacesSettings)
-            systemConfiguration.NetworkInterfacesSettings = interfacesSettings.ToSharedContracts();
+
+        if (intern.NetworkInterfaces is { } interfaces)
+        {
+            systemConfiguration.NetworkInterfacesSettings = new SharedNetwork.NetworkInterfacesSettings()
+            {
+                NetworkInterfaces = [.. interfaces.Select(static interfaceDetail => interfaceDetail.ToSharedContracts())]
+            };
+        }
 
         if (intern.NetworkDNSSettings is { } dnsSettings)
             systemConfiguration.NetworkDNSSettings = dnsSettings.ToSharedContracts();
@@ -49,21 +55,6 @@ internal static class ContractsTranslator
             systemConfiguration.NetworkNTPSettings = ntpSettings.ToSharedContracts();
 
         return systemConfiguration;
-    }
-
-    private static SharedNetwork.NetworkInterfacesSettings ToSharedContracts(this NetworkInterfacesSettings intern)
-    {
-        var networkInterfacesSettings = new SharedNetwork.NetworkInterfacesSettings();
-
-        if (intern.NetworkInterfaces is { } networkInterfaces)
-        {
-            networkInterfacesSettings = networkInterfacesSettings with
-            {
-                NetworkInterfaces = [.. networkInterfaces.Select(static @interface => @interface.ToSharedContracts())]
-            };
-        }
-
-        return networkInterfacesSettings;
     }
 
     private static SharedNetwork.NetworkInterfaceDetail ToSharedContracts(this NetworkInterfaceDetail intern)
@@ -307,18 +298,14 @@ internal static class ContractsTranslator
         => new()
         {
             Version = shared.Version,
-            NetworkInterfacesSettings = shared.NetworkInterfacesSettings.ToInternalContracts(),
+
+            NetworkInterfaces = [.. shared.NetworkInterfacesSettings.NetworkInterfaces.Select(
+                static @interface => @interface.ToInternalContracts())],
+
             NetworkDNSSettings = shared.NetworkDNSSettings.ToInternalContracts(),
             NetworkProxySettings = shared.NetworkProxySettings.ToInternalContracts(),
             NetworkNTPSettings = shared.NetworkNTPSettings.ToInternalContracts(),
             Services = [.. shared.Services.Select(static service => service.ToInternalContracts())]
-        };
-
-    private static NetworkInterfacesSettings ToInternalContracts(this SharedNetwork.NetworkInterfacesSettings shared)
-        => new()
-        {
-            NetworkInterfaces =
-                [.. shared.NetworkInterfaces.Select(static @interface => @interface.ToInternalContracts())]
         };
 
     private static NetworkInterfaceDetail ToInternalContracts(this SharedNetwork.NetworkInterfaceDetail shared)

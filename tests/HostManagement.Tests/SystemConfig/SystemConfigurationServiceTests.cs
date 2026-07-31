@@ -53,39 +53,36 @@ public class SystemConfigurationServiceTests
         {
             Version = 2,
             NetworkDNSSettings = new() { Hostname = TestHostname },
-            NetworkInterfacesSettings = new()
-            {
-                NetworkInterfaces =
-                [
-                    new()
+            NetworkInterfaces =
+            [
+                new()
+                {
+                    CommonInformation = new()
                     {
-                        CommonInformation = new()
-                        {
-                            Name = interfaceName,
-                            Enabled = enabled,
-                            PhysicalAddress = physicalAddress
-                        },
-                        IPv4 = new()
-                        {
-                            DHCPEnabled = dhcpEnabled,
-                            Gateway = IPAddress.Parse("192.168.1.1"),
-                            IPv4Details =
-                            [
-                                new()
-                                {
-                                    IPAddress = IPAddress.Parse("192.168.1.2"),
-                                    Netmask = IPAddress.Parse("255.255.255.0")
-                                }
-                            ],
-                        },
-                        VLAN = new()
-                        {
-                            Enabled = true,
-                            ID = 100
-                        }
+                        Name = interfaceName,
+                        Enabled = enabled,
+                        PhysicalAddress = physicalAddress
+                    },
+                    IPv4 = new()
+                    {
+                        DHCPEnabled = dhcpEnabled,
+                        Gateway = IPAddress.Parse("192.168.1.1"),
+                        IPv4Details =
+                        [
+                            new()
+                            {
+                                IPAddress = IPAddress.Parse("192.168.1.2"),
+                                Netmask = IPAddress.Parse("255.255.255.0")
+                            }
+                        ],
+                    },
+                    VLAN = new()
+                    {
+                        Enabled = true,
+                        ID = 100
                     }
-                ]
-            }
+                }
+            ]
         };
 
     private static SystemConfiguration CreateSharedConfig() => new()
@@ -1066,12 +1063,12 @@ public class SystemConfigurationServiceTests
 
             await context.Persistence.Received(1).SaveUserConfiguration(
                 Arg.Is<InternalSystemConfiguration>(static config =>
-                    config.NetworkInterfacesSettings!.NetworkInterfaces![0].CommonInformation!.Enabled == false &&
-                    config.NetworkInterfacesSettings!.NetworkInterfaces![0].CommonInformation!.PhysicalAddress == "aa:bb:cc:dd:ee:ff" &&
-                    config.NetworkInterfacesSettings!.NetworkInterfaces![0].IPv4!.DHCPEnabled == false &&
-                    config.NetworkInterfacesSettings!.NetworkInterfaces![0].IPv4!.Gateway!.ToString() == "192.168.1.1" &&
-                    config.NetworkInterfacesSettings!.NetworkInterfaces![0].IPv4!.IPv4Details![0].IPAddress!.ToString() == "192.168.1.2" &&
-                    config.NetworkInterfacesSettings!.NetworkInterfaces![0].IPv4!.IPv4Details![0].Netmask!.ToString() == "255.255.255.0"),
+                    config.NetworkInterfaces![0].CommonInformation!.Enabled == false &&
+                    config.NetworkInterfaces![0].CommonInformation!.PhysicalAddress == "aa:bb:cc:dd:ee:ff" &&
+                    config.NetworkInterfaces![0].IPv4!.DHCPEnabled == false &&
+                    config.NetworkInterfaces![0].IPv4!.Gateway!.ToString() == "192.168.1.1" &&
+                    config.NetworkInterfaces![0].IPv4!.IPv4Details![0].IPAddress!.ToString() == "192.168.1.2" &&
+                    config.NetworkInterfaces![0].IPv4!.IPv4Details![0].Netmask!.ToString() == "255.255.255.0"),
                 Arg.Any<CancellationToken>());
         }
     }

@@ -72,8 +72,8 @@ internal sealed class NetworkConfigurationAdapter : ConfigurationAdapter<SystemC
     {
         return
             SystemConfigurationChangeDetector.HasSequenceChanges(
-                currentConfig.NetworkInterfacesSettings?.NetworkInterfaces,
-                proposedConfig.NetworkInterfacesSettings?.NetworkInterfaces) ||
+                currentConfig.NetworkInterfaces,
+                proposedConfig.NetworkInterfaces) ||
             SystemConfigurationChangeDetector.HasChanges(
                 currentConfig.NetworkDNSSettings,
                 proposedConfig.NetworkDNSSettings);
