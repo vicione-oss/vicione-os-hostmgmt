@@ -13,6 +13,12 @@ namespace HostManagement.Communication.NamedPipes.RequestHandlers;
 /// </summary>
 internal sealed partial class RequestHandlerRegistry
 {
+    private const string MessageContentRequired = "Request requires a message content.";
+    private const string NoHandlerRegistered = "No handler registered.";
+    private const string TopicInvalid = "Topic is invalid.";
+    private const string TopicNotAvailable = "Topic not available on this platform.";
+    private const string TopicNull = "Topic is null.";
+
     private static readonly List<string> s_validTopics = [.. Topics.GetAllTopics()];
     private static readonly List<string> s_topicsWithRequiredContent = [.. Topics.GetTopicsWithRequiredContent()];
 
@@ -66,7 +72,7 @@ internal sealed partial class RequestHandlerRegistry
 
         if (topic is null)
         {
-            var errorMessage = GetRequestFailedBaseMessage(message) + "Topic is null.";
+            var errorMessage = GetRequestFailedMessage(message, TopicNull);
 
             HandleRequestFailedWithMessage(_logger, errorMessage);
             return message.CreateDefaultResponse(errorMessage);
@@ -74,7 +80,7 @@ internal sealed partial class RequestHandlerRegistry
 
         if (IsTopicInvalid(topic))
         {
-            var errorMessage = GetRequestFailedBaseMessage(message) + "Topic is invalid.";
+            var errorMessage = GetRequestFailedMessage(message, TopicInvalid);
 
             HandleRequestFailedWithMessage(_logger, errorMessage);
             return message.CreateDefaultResponse(errorMessage);
@@ -82,7 +88,7 @@ internal sealed partial class RequestHandlerRegistry
 
         if (!_handlers.TryGetValue(topic, out var handler))
         {
-            var errorMessage = GetRequestFailedBaseMessage(message) + "No handler registered.";
+            var errorMessage = GetRequestFailedMessage(message, NoHandlerRegistered);
 
             HandleRequestFailedWithMessage(_logger, errorMessage);
             return message.CreateDefaultResponse(errorMessage);
@@ -90,24 +96,20 @@ internal sealed partial class RequestHandlerRegistry
 
         try
         {
-            if (!IsHandlerSupported(handler))
+            if (!IsTopicAvailableOnPlatform(topic))
             {
-                var errorMessage = GetRequestFailedBaseMessage(message) + "Handler not supported on this platform.";
+                var errorMessage = GetRequestFailedMessage(message, TopicNotAvailable);
 
                 HandleRequestFailedWithMessage(_logger, errorMessage);
-
-                return message.CreateResponse(
-                    JsonSerializer.Serialize(handler.CreateErrorInstance(errorMessage), handler.JsonTypeInfo));
+                return CreateErrorResponse(message, handler, errorMessage);
             }
 
-            if (IsRequiredContentMissing(topic, content))
+            if (IsRequiredContentForTopicMissing(topic, content))
             {
-                var errorMessage = GetRequestFailedBaseMessage(message) + "Handler requires a message content.";
+                var errorMessage = GetRequestFailedMessage(message, MessageContentRequired);
 
                 HandleRequestFailedWithMessage(_logger, errorMessage);
-
-                return message.CreateResponse(
-                    JsonSerializer.Serialize(handler.CreateErrorInstance(errorMessage), handler.JsonTypeInfo));
+                return CreateErrorResponse(message, handler, errorMessage);
             }
 
             var response = await handler.HandleAsync(content, cancellationToken).ConfigureAwait(false);
@@ -116,22 +118,18 @@ internal sealed partial class RequestHandlerRegistry
         }
         catch (OperationCanceledException)
         {
-            var warningMessage =
-                $"Handle request for topic '{topic}' canceled (Conversation ID: {message.ConversationId}).";
+            var warningMessage = GetRequestCanceledMessage(message);
 
             HandleRequestForTopicCanceled(_logger, warningMessage);
             return message.CreateDefaultResponse(warningMessage);
         }
         catch (Exception ex)
         {
-            var errorMessage = GetRequestFailedBaseMessage(message) + ex.Message;
+            var errorMessage = GetRequestFailedMessage(message, ex.Message);
 
             HandleRequestFailedWithException(_logger, errorMessage, ex);
             return message.CreateDefaultResponse(errorMessage);
         }
-
-        static string GetRequestFailedBaseMessage(NamedPipeMessage message)
-            => $"Handle request for topic '{message.Topic}' failed (Conversation ID: {message.ConversationId}). ";
     }
 
     /// <summary>
@@ -144,15 +142,25 @@ internal sealed partial class RequestHandlerRegistry
             RequestHandlerForTopicAlreadyRegistered(_logger, handler.Topic);
     }
 
-    private static bool IsRequiredContentMissing(string topic, string content)
+    private static NamedPipeMessage CreateErrorResponse(NamedPipeMessage message, IRequestHandler handler, string error)
+    {
+        var responseContent = JsonSerializer.Serialize(handler.CreateErrorInstance(error), handler.JsonTypeInfo);
+        return message.CreateResponse(responseContent);
+    }
+
+    private static string GetRequestCanceledMessage(NamedPipeMessage message)
+        => $"Handle request for topic '{message.Topic}' canceled (Conversation ID: {message.ConversationId}).";
+
+    private static string GetRequestFailedMessage(NamedPipeMessage message, string error)
+        => $"Handle request for topic '{message.Topic}' failed (Conversation ID: {message.ConversationId}). {error}";
+
+    private static bool IsRequiredContentForTopicMissing(string topic, string content)
         => s_topicsWithRequiredContent.Contains(topic) && string.IsNullOrWhiteSpace(content);
 
     private static bool IsTopicInvalid(string topic) => !s_validTopics.Contains(topic);
 
-    private bool IsHandlerSupported(IRequestHandler handler)
+    private bool IsTopicAvailableOnPlatform(string topic)
     {
-        var topic = handler.Topic;
-
 #if DEBUG
         // Testing purposes
         if (topic is Topics.Echo)

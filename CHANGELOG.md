@@ -59,6 +59,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Search Domains
     - Grouped `SearchDomainsEnabled` and `SearchDomains` into new `SearchDomainsSettings`
     - Renamed `SearchDomainsEnabled` and `SearchDomains` to `Enabled` and `Domains`
+- Improved named pipe response message for
+  - unavailable topic on platform
+  - missing request message content
 
 ### Removed
 
