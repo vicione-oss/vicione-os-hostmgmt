@@ -1,4 +1,4 @@
-﻿using HostManagement.Shared.Contracts;
+using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Validation.Validators;
 using HostManagement.Shared.Validation.Validators.DNS;
 using HostManagement.Shared.Validation.Validators.NetworkInterfaces;
@@ -29,8 +29,8 @@ public sealed class SystemConfigurationValidator : IValidator<SystemConfiguratio
             cancellationToken.ThrowIfCancellationRequested();
 
             result.AddResult(
-                await new NetworkInterfacesSettingsValidator()
-                    .ValidateAsync(configuration.NetworkInterfacesSettings, cancellationToken)
+                await new NetworkInterfacesValidator()
+                    .ValidateAsync(configuration.NetworkInterfaces, cancellationToken)
                     .ConfigureAwait(false));
 
             result.AddResult(
@@ -42,7 +42,7 @@ public sealed class SystemConfigurationValidator : IValidator<SystemConfiguratio
                 await new NetworkProxySettingsValidator()
                     .ValidateAsync(
                         configuration.NetworkProxySettings,
-                        configuration.NetworkInterfacesSettings.NetworkInterfaces,
+                        configuration.NetworkInterfaces,
                         cancellationToken)
                     .ConfigureAwait(false));
 

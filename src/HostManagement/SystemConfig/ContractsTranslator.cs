@@ -25,24 +25,12 @@ internal static class ContractsTranslator
 
     internal static SharedContracts.SystemConfiguration ToSharedContracts(this SystemConfiguration intern)
     {
-        var systemConfiguration = intern.Services is { } services
-            ? new SharedContracts.SystemConfiguration()
-            {
-                Version = intern.Version,
-                Services = [.. services.Select(static service => service.ToSharedContracts())]
-            }
-            : new SharedContracts.SystemConfiguration()
-            {
-                Version = intern.Version
-            };
-
+        var systemConfiguration = new SharedContracts.SystemConfiguration { Version = intern.Version };
 
         if (intern.NetworkInterfaces is { } interfaces)
         {
-            systemConfiguration.NetworkInterfacesSettings = new SharedNetwork.NetworkInterfacesSettings()
-            {
-                NetworkInterfaces = [.. interfaces.Select(static interfaceDetail => interfaceDetail.ToSharedContracts())]
-            };
+            systemConfiguration.NetworkInterfaces.AddRange(
+                interfaces.Select(static @interface => @interface.ToSharedContracts()));
         }
 
         if (intern.NetworkDNSSettings is { } dnsSettings)
@@ -53,6 +41,12 @@ internal static class ContractsTranslator
 
         if (intern.NetworkNTPSettings is { } ntpSettings)
             systemConfiguration.NetworkNTPSettings = ntpSettings.ToSharedContracts();
+
+        if (intern.Services is { } services)
+        {
+            systemConfiguration.Services.AddRange(
+                services.Select(static service => service.ToSharedContracts()));
+        }
 
         return systemConfiguration;
     }
@@ -299,7 +293,7 @@ internal static class ContractsTranslator
         {
             Version = shared.Version,
 
-            NetworkInterfaces = [.. shared.NetworkInterfacesSettings.NetworkInterfaces.Select(
+            NetworkInterfaces = [.. shared.NetworkInterfaces.Select(
                 static @interface => @interface.ToInternalContracts())],
 
             NetworkDNSSettings = shared.NetworkDNSSettings.ToInternalContracts(),

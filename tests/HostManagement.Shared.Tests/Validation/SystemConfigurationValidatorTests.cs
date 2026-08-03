@@ -57,14 +57,11 @@ public class SystemConfigurationValidatorTests
         var systemConfiguration = new SystemConfiguration
         {
             Version = 2,
-            NetworkInterfacesSettings = new()
-            {
-                NetworkInterfaces =
-                [
-                    ValidationTestData.Interface.Static,
-                    ValidationTestData.Interface.DHCP
-                ]
-            },
+            NetworkInterfaces =
+            [
+                ValidationTestData.Interface.Static,
+                ValidationTestData.Interface.DHCP
+            ],
             NetworkDNSSettings = new()
             {
                 Hostname = ValidationTestData.Hostname.Simple,

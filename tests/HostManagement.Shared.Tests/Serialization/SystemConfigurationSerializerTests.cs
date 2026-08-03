@@ -15,39 +15,36 @@ public class SystemConfigurationSerializerTests
     private static readonly SystemConfiguration s_sampleSystemConfiguration = new()
     {
         Version = 2,
-        NetworkInterfacesSettings = new()
-        {
-            NetworkInterfaces =
-            [
-                new()
+        NetworkInterfaces =
+        [
+            new()
+            {
+                CommonInformation = new()
                 {
-                    CommonInformation = new()
-                    {
-                        Enabled = true,
-                        Name = "lan1",
-                        PhysicalAddress = "01:23:45:67:89:AB"
-                    },
-                    IPv4 = new()
-                    {
-                        Gateway = s_ipAddress,
-                        DHCPEnabled = true,
-                        IPv4Details =
-                        [
-                            new()
-                            {
-                                IPAddress = s_ipAddress,
-                                Netmask = s_ipAddress
-                            }
-                        ]
-                    },
-                    VLAN = new()
-                    {
-                        Enabled = true,
-                        ID = 1
-                    }
+                    Enabled = true,
+                    Name = "lan1",
+                    PhysicalAddress = "01:23:45:67:89:AB"
+                },
+                IPv4 = new()
+                {
+                    Gateway = s_ipAddress,
+                    DHCPEnabled = true,
+                    IPv4Details =
+                    [
+                        new()
+                        {
+                            IPAddress = s_ipAddress,
+                            Netmask = s_ipAddress
+                        }
+                    ]
+                },
+                VLAN = new()
+                {
+                    Enabled = true,
+                    ID = 1
                 }
-            ]
-        },
+            }
+        ],
         NetworkDNSSettings = new()
         {
             Hostname = "hostname",
@@ -153,31 +150,29 @@ public class SystemConfigurationSerializerTests
         """
         {
           "Version": 2,
-          "NetworkInterfacesSettings": {
-            "NetworkInterfaces": [
-              {
-                "CommonInformation": {
-                  "Enabled": true,
-                  "Name": "lan1",
-                  "PhysicalAddress": "01:23:45:67:89:AB"
-                },
-                "IPv4": {
-                  "Gateway": "120.86.52.18",
-                  "DHCPEnabled": true,
-                  "IPv4Details": [
-                    {
-                      "IPAddress": "120.86.52.18",
-                      "Netmask": "120.86.52.18"
-                    }
-                  ]
-                },
-                "VLAN": {
-                  "Enabled": true,
-                  "ID": 1
-                }
+          "NetworkInterfaces": [
+            {
+              "CommonInformation": {
+                "Enabled": true,
+                "Name": "lan1",
+                "PhysicalAddress": "01:23:45:67:89:AB"
+              },
+              "IPv4": {
+                "Gateway": "120.86.52.18",
+                "DHCPEnabled": true,
+                "IPv4Details": [
+                  {
+                    "IPAddress": "120.86.52.18",
+                    "Netmask": "120.86.52.18"
+                  }
+                ]
+              },
+              "VLAN": {
+                "Enabled": true,
+                "ID": 1
               }
-            ]
-          },
+            }
+          ],
           "NetworkDNSSettings": {
             "Hostname": "hostname",
             "MulticastDNSEnabled": true,

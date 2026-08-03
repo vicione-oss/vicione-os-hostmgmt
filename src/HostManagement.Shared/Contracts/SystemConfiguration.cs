@@ -21,9 +21,9 @@ public class SystemConfiguration
     public int Version { get; init; } = 2;
 
     /// <summary>
-    /// The <see cref="NetworkInterfacesSettings"/>.
+    /// The list of network interfaces.
     /// </summary>
-    public NetworkInterfacesSettings NetworkInterfacesSettings { get; set; } = new();
+    public List<NetworkInterfaceDetail> NetworkInterfaces { get; init; } = [];
 
     /// <summary>
     /// The <see cref="NetworkDNSSettings"/>.
@@ -50,7 +50,7 @@ public class SystemConfiguration
     {
         var hashCode = new HashCode();
 
-        hashCode.Add(NetworkInterfacesSettings);
+        hashCode.Add(NetworkInterfaces.GetSequenceHashCode());
         hashCode.Add(NetworkDNSSettings);
         hashCode.Add(NetworkProxySettings);
         hashCode.Add(NetworkNTPSettings);
@@ -62,7 +62,7 @@ public class SystemConfiguration
     /// <inheritdoc/>
     public bool Equals(SystemConfiguration? other)
         => other is not null
-        && NetworkInterfacesSettings.Equals(other.NetworkInterfacesSettings)
+        && NetworkInterfaces.SequenceEqual(other.NetworkInterfaces)
         && NetworkDNSSettings.Equals(other.NetworkDNSSettings)
         && NetworkProxySettings.Equals(other.NetworkProxySettings)
         && NetworkNTPSettings.Equals(other.NetworkNTPSettings)

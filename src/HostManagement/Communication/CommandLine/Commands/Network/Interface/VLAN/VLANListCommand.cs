@@ -23,7 +23,7 @@ internal sealed class VLANListCommand : ConfigCommandBase
 
         var output = new PropertyListOutput().WithTitle(CommandLineStrings_NetworkInterfaces.Interfaces);
 
-        foreach (var @interface in config.NetworkInterfacesSettings.NetworkInterfaces)
+        foreach (var @interface in config.NetworkInterfaces)
         {
             var vlanId = @interface.VLAN.ID.Equals(0)
                 ? CliOutputBase.NotSetValue

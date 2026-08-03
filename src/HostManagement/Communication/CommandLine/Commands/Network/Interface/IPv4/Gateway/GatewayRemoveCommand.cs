@@ -1,4 +1,4 @@
-﻿using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Interface.IPv4.Gateway;
@@ -23,7 +23,7 @@ internal sealed class GatewayRemoveCommand : ConfigCommandBase
         if (await GetConfiguration(cancellationToken) is not SystemConfiguration config)
             return;
 
-        var interfaceToConfigure = config.NetworkInterfacesSettings.NetworkInterfaces
+        var interfaceToConfigure = config.NetworkInterfaces
             .FirstOrDefault(interfaceDetail => interfaceDetail.IPv4.Gateway is not null);
 
         if (interfaceToConfigure is null)

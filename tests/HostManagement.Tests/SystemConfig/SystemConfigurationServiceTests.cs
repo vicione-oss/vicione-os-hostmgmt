@@ -97,24 +97,21 @@ public class SystemConfigurationServiceTests
                 Suffix = "company"
             }
         },
-        NetworkInterfacesSettings = new()
-        {
-            NetworkInterfaces =
-            [
-                new()
+        NetworkInterfaces =
+        [
+            new()
+            {
+                CommonInformation = new()
                 {
-                    CommonInformation = new()
-                    {
-                        Name = Lan1,
-                        Enabled = true
-                    },
-                    IPv4 = new()
-                    {
-                        DHCPEnabled = true
-                    }
+                    Name = Lan1,
+                    Enabled = true
+                },
+                IPv4 = new()
+                {
+                    DHCPEnabled = true
                 }
-            ]
-        }
+            }
+        ]
     };
 
     public sealed class GetConfiguration : SystemConfigurationServiceTests
@@ -713,7 +710,7 @@ public class SystemConfigurationServiceTests
             // Arrange
             var context = new SystemConfigurationServiceContext();
             var proposedConfig = CreateSharedConfig();
-            proposedConfig.NetworkInterfacesSettings.NetworkInterfaces.Clear();
+            proposedConfig.NetworkInterfaces.Clear();
 
             var message = "ValidationFailed: No network interfaces specified.";
 
