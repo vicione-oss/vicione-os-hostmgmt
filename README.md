@@ -70,7 +70,7 @@ Currently the functionality is limited to managing systemd units only.
 
 The dependencies are:
 
-* `wget` (licensed under GPL-3.0)
+* `procps` (`pgrep`; licensed under GPL-2.0-or-later)
 
 #### EdgeS ViciOne (edges-vicione)
 
@@ -79,7 +79,7 @@ Offers the complete functionality needed to be able to work with the ViciOne Sui
 The dependencies are:
 
 * `netplan` (all network managers except `systemd-networkd` must be disabled; licensed under GPL-3.0)
-* `wget` (licensed under GPL-3.0)
+* `procps` (`pgrep`; licensed under GPL-2.0-or-later)
 * `fw_printenv` (internal tool without license)
 * `systemd`
   * `systemd-networkd` enabled

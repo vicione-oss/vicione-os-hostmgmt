@@ -123,6 +123,11 @@ public static class EnvironmentVariables
     /// </summary>
     public static IReadOnlyCollection<string> InvalidVariables => s_invalidVariables.AsReadOnly();
 
+    /// <summary>
+    /// A string of all invalid variables joined with <see cref="Environment.NewLine"/>.
+    /// </summary>
+    public static string FormattedInvalidVariables => string.Join(System.Environment.NewLine, InvalidVariables);
+
     private static EnvironmentVariable<T> Create<T>(string key, T defaultValue, bool isIndexed = false)
         where T : notnull
         => SetAndValidate(
