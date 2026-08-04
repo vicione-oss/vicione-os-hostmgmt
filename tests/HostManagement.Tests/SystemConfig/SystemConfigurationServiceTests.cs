@@ -1,6 +1,7 @@
 using System.Net;
 using AwesomeAssertions;
 using HostManagement.Configuration;
+using HostManagement.Shared.Capabilities;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Contracts;
 using HostManagement.SystemConfig;
@@ -1194,6 +1195,7 @@ public class SystemConfigurationServiceTests
         internal IPersistence Persistence { get; } = Substitute.For<IPersistence>();
         internal IScriptHandler ScriptHandler { get; } = Substitute.For<IScriptHandler>();
         internal ILogger Logger { get; } = Substitute.For<ILogger>();
+        internal SupportedSettings SupportedSettings { get; } = new();
         internal SystemConfigurationService Sut { get; }
 
         internal SystemConfigurationServiceContext()
@@ -1219,7 +1221,23 @@ public class SystemConfigurationServiceTests
             ScriptHandler.ExecuteSetNetworkNTPSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(Result.SuccessResult);
             ScriptHandler.ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(Result.SuccessResult);
             ScriptHandler.ExecuteApplyNetplanConfigurationScript().ReturnsForAnyArgs(Result.SuccessResult);
-            Sut = new(Persistence, ScriptHandler, Logger);
+
+            SupportedSettings.NetworkInterfaces.Capability = CapabilityStatus.Enabled;
+            SupportedSettings.NetworkInterfaces.NetworkInterfaceDetail.IPv4.Capability = CapabilityStatus.Enabled;
+            SupportedSettings.NetworkInterfaces.NetworkInterfaceDetail.VLAN.Capability = CapabilityStatus.Enabled;
+
+            SupportedSettings.DNS.Hostname.Capability = CapabilityStatus.Enabled;
+            SupportedSettings.DNS.MulticastDNS.Capability = CapabilityStatus.Enabled;
+            SupportedSettings.DNS.StaticHosts.Capability = CapabilityStatus.Enabled;
+            SupportedSettings.DNS.NameServers.Capability = CapabilityStatus.Enabled;
+            SupportedSettings.DNS.PrimaryDNSSuffix.Capability = CapabilityStatus.Enabled;
+            SupportedSettings.DNS.SearchDomains.Capability = CapabilityStatus.Enabled;
+
+            SupportedSettings.Proxy.Capability = CapabilityStatus.Enabled;
+            SupportedSettings.NTP.Capability = CapabilityStatus.Enabled;
+            SupportedSettings.Services.Capability = CapabilityStatus.Enabled;
+
+            Sut = new(Persistence, ScriptHandler, Logger, SupportedSettings);
 
             Environment.SetEnvironmentVariable("CONFIGURABLE_SERVICES", ServiceName);
             Environment.SetEnvironmentVariable("SYSTEM_CONFIGURATION_DIRECTORY", "/mnt/persistent/hostmanagement");

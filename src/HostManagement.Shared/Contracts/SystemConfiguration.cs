@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using HostManagement.Shared.Capabilities;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Contracts.Service;
 using HostManagement.Shared.Extensions;
@@ -23,26 +24,31 @@ public class SystemConfiguration : IEquatable<SystemConfiguration>
     /// <summary>
     /// The list of network interfaces.
     /// </summary>
+    [SupportedSetting]
     public List<NetworkInterfaceDetail> NetworkInterfaces { get; init; } = [];
 
     /// <summary>
     /// The <see cref="NetworkDNSSettings"/>.
     /// </summary>
+    [SupportedSetting("DNS")]
     public NetworkDNSSettings NetworkDNSSettings { get; set; } = new();
 
     /// <summary>
     /// The <see cref="NetworkProxySettings"/>.
     /// </summary>
+    [SupportedSetting("Proxy")]
     public NetworkProxySettings NetworkProxySettings { get; set; } = new();
 
     /// <summary>
     /// The <see cref="NetworkNTPSettings"/>.
     /// </summary>
+    [SupportedSetting("NTP")]
     public NetworkNTPSettings NetworkNTPSettings { get; set; } = new();
 
     /// <summary>
     /// The list of managed services.
     /// </summary>
+    [SupportedSetting]
     public List<ServiceDetail> Services { get; init; } = [];
 
     /// <inheritdoc/>

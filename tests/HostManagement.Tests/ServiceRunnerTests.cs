@@ -3,7 +3,9 @@ using System.Reflection;
 using AwesomeAssertions;
 using HostManagement.Communication.NamedPipes.RequestHandlers;
 using HostManagement.Services;
+using HostManagement.Shared.Capabilities;
 using HostManagement.Shared.Communication;
+using HostManagement.Shared.Communication.Capabilities;
 using HostManagement.SystemConfig;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -53,6 +55,7 @@ public sealed class ServiceRunnerTests
             // Act
             var registry = CreateRequestHandlerRegistry(
                 capabilitiesService,
+                new SupportedCapabilities(),
                 configurationService);
 
             // Assert
@@ -70,6 +73,7 @@ public sealed class ServiceRunnerTests
 
             var registry = CreateRequestHandlerRegistry(
                 capabilitiesService,
+                new SupportedCapabilities(),
                 expectedConfigurationService);
 
             // Act
@@ -85,6 +89,7 @@ public sealed class ServiceRunnerTests
 
         private static RequestHandlerRegistry CreateRequestHandlerRegistry(
             SupportedCapabilitiesService capabilitiesService,
+            SupportedCapabilities supportedCapabilities,
             SystemConfigurationService configurationService)
         {
             var initializationContextType = typeof(ServiceRunner)
@@ -96,13 +101,13 @@ public sealed class ServiceRunnerTests
                 .GetConstructor(
                     BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
                     binder: null,
-                    [typeof(SupportedCapabilitiesService), typeof(SystemConfigurationService)],
+                    [typeof(SupportedCapabilitiesService), typeof(SupportedCapabilities), typeof(SystemConfigurationService)],
                     modifiers: null);
 
             initializationContextConstructor.Should().NotBeNull();
 
             var initializationContext = initializationContextConstructor
-                .Invoke([capabilitiesService, configurationService]);
+                .Invoke([capabilitiesService, supportedCapabilities, configurationService]);
 
             var getRequestHandlerRegistryMethod = typeof(ServiceRunner).GetMethod(
                 "GetRequestHandlerRegistry",
@@ -121,7 +126,11 @@ public sealed class ServiceRunnerTests
             => new(Substitute.For<IFileSystem>(), Substitute.For<ILogger>());
 
         private static SystemConfigurationService CreateSystemConfigurationService()
-            => new(Substitute.For<IPersistence>(), Substitute.For<IScriptHandler>(), Substitute.For<ILogger>());
+            => new(
+                Substitute.For<IPersistence>(),
+                Substitute.For<IScriptHandler>(),
+                Substitute.For<ILogger>(),
+                new SupportedSettings());
 
         private static void ShouldReferenceConfigurationService(
             IRequestHandler handler,

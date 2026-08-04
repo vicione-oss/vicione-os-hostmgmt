@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using HostManagement.Configuration;
+using HostManagement.Shared.Capabilities;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Contracts;
@@ -19,14 +20,17 @@ namespace HostManagement.SystemConfig;
 /// <param name="persistence">The persistence to load and save configurations.</param>
 /// <param name="scriptHandler">A script handler to execute scripts.</param>
 /// <param name="logger">An <see cref="ILogger"/> implementation.</param>
+/// <param name="supportedSettings">The supported settings.</param>
 internal sealed partial class SystemConfigurationService(
     IPersistence persistence,
     IScriptHandler scriptHandler,
-    ILogger logger)
+    ILogger logger,
+    SupportedSettings supportedSettings)
 {
     private readonly IPersistence _persistence = persistence;
     private readonly IScriptHandler _scriptHandler = scriptHandler;
     private readonly ILogger _logger = logger;
+    private readonly SupportedSettings _supportedSettings = supportedSettings;
 
     /// <summary>
     /// Prepares the system by writing changes of the '<c>SystemConfiguration.json</c>' or
@@ -167,8 +171,9 @@ internal sealed partial class SystemConfigurationService(
             return SetSystemConfigurationResult.CreateErrorResult(message);
         }
 
-        var validationMessage = await ValidateConfigurationChangeAsync(proposedConfig, cancellationToken)
-            .ConfigureAwait(false);
+        var validationMessage =
+            await ValidateConfigurationChangeAsync(configResult.Configuration, proposedConfig, cancellationToken)
+                .ConfigureAwait(false);
 
         if (validationMessage is not null)
         {
@@ -193,6 +198,7 @@ internal sealed partial class SystemConfigurationService(
     }
 
     private async Task<string?> ValidateConfigurationChangeAsync(
+        SystemConfiguration currentConfig,
         SystemConfiguration proposedConfig,
         CancellationToken cancellationToken)
     {
@@ -207,6 +213,12 @@ internal sealed partial class SystemConfigurationService(
 
         if (!policyValidationResult.IsValid)
             return policyValidationResult.FormattedMessages;
+
+        var supportedSettingsValidationResult = SupportedSettingsValidator
+            .Validate(currentConfig, proposedConfig, _supportedSettings);
+
+        if (!supportedSettingsValidationResult.IsValid)
+            return supportedSettingsValidationResult.FormattedMessages;
 
         return null;
     }
