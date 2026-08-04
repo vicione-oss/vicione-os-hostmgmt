@@ -3,7 +3,9 @@ using System.Text.Json.Serialization.Metadata;
 using AwesomeAssertions;
 using HostManagement.Communication.NamedPipes.RequestHandlers;
 using HostManagement.Configuration;
+using HostManagement.Shared.Capabilities;
 using HostManagement.Shared.Communication;
+using HostManagement.Shared.Communication.Capabilities;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using Microsoft.Extensions.Logging;
@@ -17,6 +19,34 @@ public sealed class RequestHandlerRegistryTests
     private const string ExceptionMessage = "Unit-Test-Error";
     private static readonly JsonTypeInfo<GetNetworkStatusInformationResult> s_networkStatusJsonTypeInfo =
         SourceGenerationContext.Default.GetNetworkStatusInformationResult;
+
+    private static RequestHandlerRegistry CreateSut(
+        TargetEnvironment targetEnvironment,
+        IEnumerable<IRequestHandler> handlers,
+        ILogger logger,
+        CapabilityStatus capability = CapabilityStatus.Enabled,
+        Action<SupportedTopics>? configureSupport = null)
+    {
+        var supportedTopics = new SupportedTopics
+        {
+            InstallSignedDebianPackage = capability,
+            ResetNetworkInterface = capability,
+            RenewDHCPLease = capability,
+
+            StartService = capability,
+            StopService = capability,
+            RestartService = capability,
+
+            ShutdownSystem = capability,
+            RestartSystem = capability,
+            ResetSystem = capability,
+            UpdateSystem = capability
+        };
+
+        configureSupport?.Invoke(supportedTopics);
+
+        return new(targetEnvironment, supportedTopics, handlers, logger);
+    }
 
     public class RegisterHandler
     {
@@ -32,10 +62,7 @@ public sealed class RequestHandlerRegistryTests
             var expectedLogMessage = $"Request handler for topic '{duplicateTopic}' is already registered.";
 
             // Act
-            var registry = new RequestHandlerRegistry(
-                TargetEnvironment.EdgeSViciOne,
-                [handler1, handler2],
-                logger);
+            var registry = CreateSut(TargetEnvironment.EdgeSViciOne, [handler1, handler2], logger);
 
             // Assert
             logger.Received(1).Log(
@@ -63,7 +90,7 @@ public sealed class RequestHandlerRegistryTests
                 Content = "lan1"
             };
 
-            var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne, [], logger);
+            var registry = CreateSut(TargetEnvironment.EdgeSViciOne, [], logger);
             var expectedMessage = GetRequestFailedMessage(request, "Topic is null.");
 
             // Act
@@ -90,7 +117,7 @@ public sealed class RequestHandlerRegistryTests
                 Content = "lan1"
             };
 
-            var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne, [], logger);
+            var registry = CreateSut(TargetEnvironment.EdgeSViciOne, [], logger);
             var expectedMessage = GetRequestFailedMessage(request, "Topic is invalid.");
 
             // Act
@@ -117,7 +144,7 @@ public sealed class RequestHandlerRegistryTests
                 Content = "lan1"
             };
 
-            var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne, [], logger);
+            var registry = CreateSut(TargetEnvironment.EdgeSViciOne, [], logger);
             var expectedMessage = GetRequestFailedMessage(request, "No handler registered.");
 
             // Act
@@ -145,7 +172,7 @@ public sealed class RequestHandlerRegistryTests
                 Content = "lan1"
             };
 
-            var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne, [handler], logger);
+            var registry = CreateSut(TargetEnvironment.EdgeSViciOne, [handler], logger);
             var expectedMessage = GetRequestFailedMessage(request, ExceptionMessage);
 
             // Act
@@ -174,7 +201,7 @@ public sealed class RequestHandlerRegistryTests
                 Content = "lan1"
             };
 
-            var registry = new RequestHandlerRegistry(TargetEnvironment.Debian, [handler], logger);
+            var registry = CreateSut(TargetEnvironment.Debian, [handler], logger);
             var expectedMessage = GetRequestFailedMessage(request, "Topic not available on this platform.");
 
             // Act
@@ -211,7 +238,7 @@ public sealed class RequestHandlerRegistryTests
                 Content = content!
             };
 
-            var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne, [handler], logger);
+            var registry = CreateSut(TargetEnvironment.EdgeSViciOne, [handler], logger);
             var expectedMessage = GetRequestFailedMessage(request, "Request requires a message content.");
 
             // Act
@@ -230,6 +257,77 @@ public sealed class RequestHandlerRegistryTests
             result.Message.Should().Contain(expectedMessage);
         }
 
+        [Theory]
+        [InlineData(Topics.InstallSignedDebianPackage)]
+        [InlineData(Topics.ResetNetworkInterface)]
+        [InlineData(Topics.RenewDHCPLease)]
+        [InlineData(Topics.StartService)]
+        [InlineData(Topics.StopService)]
+        [InlineData(Topics.RestartService)]
+        [InlineData(Topics.ShutdownSystem)]
+        [InlineData(Topics.RestartSystem)]
+        [InlineData(Topics.ResetSystem)]
+        [InlineData(Topics.UpdateSystem)]
+        public async Task ShouldReturnSerializedError_WhenTopicCapabilityDisabled(string topic)
+        {
+            // Arrange
+            var logger = GetLoggerSubstitute();
+            var handler = new FakeHandler(topic, handleResult: "handled");
+
+            var request = new NamedPipeMessage
+            {
+                Topic = topic,
+                Type = MessageType.Request,
+                Content = "lan1"
+            };
+
+            var registry = CreateSut(
+                TargetEnvironment.EdgeSViciOne,
+                [handler],
+                logger,
+                configureSupport: support => DisableTopicCapability(support, topic));
+
+            var expectedMessage = GetRequestFailedMessage(
+                request,
+                "Topic cannot be used because its capability is disabled.");
+
+            // Act
+            var response = await registry.HandleRequestAsync(request, CancellationToken.None);
+
+            // Assert
+            AssertLogReceived(logger, LogLevel.Error, expectedMessage);
+
+            response.Should().NotBeNull();
+            response.Content.Should().Contain(expectedMessage.Replace("'", "\\u0027"));
+
+            handler.WasHandleCalled.Should().BeFalse();
+        }
+
+        private static void DisableTopicCapability(SupportedTopics supportedTopics, string topic)
+        {
+            switch (topic)
+            {
+                case Topics.InstallSignedDebianPackage: supportedTopics.InstallSignedDebianPackage = CapabilityStatus.Disabled; break;
+                case Topics.ResetNetworkInterface: supportedTopics.ResetNetworkInterface = CapabilityStatus.Disabled; break;
+                case Topics.RenewDHCPLease: supportedTopics.RenewDHCPLease = CapabilityStatus.Disabled; break;
+
+                case Topics.StartService: supportedTopics.StartService = CapabilityStatus.Disabled; break;
+                case Topics.StopService: supportedTopics.StopService = CapabilityStatus.Disabled; break;
+                case Topics.RestartService: supportedTopics.RestartService = CapabilityStatus.Disabled; break;
+
+                case Topics.ShutdownSystem: supportedTopics.ShutdownSystem = CapabilityStatus.Disabled; break;
+                case Topics.RestartSystem: supportedTopics.RestartSystem = CapabilityStatus.Disabled; break;
+                case Topics.ResetSystem: supportedTopics.ResetSystem = CapabilityStatus.Disabled; break;
+                case Topics.UpdateSystem: supportedTopics.UpdateSystem = CapabilityStatus.Disabled; break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(
+                        nameof(topic),
+                        topic,
+                        "No capability mapping is defined for the topic.");
+            }
+        }
+
         [Fact]
         public async Task ShouldReturnDefaultResponse_WhenCanceled()
         {
@@ -245,7 +343,7 @@ public sealed class RequestHandlerRegistryTests
                 Content = "lan1"
             };
 
-            var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne, [handler], logger);
+            var registry = CreateSut(TargetEnvironment.EdgeSViciOne, [handler], logger);
             var expectedMessage =
                 $"Handle request for topic '{request.Topic}' canceled (Conversation ID: {request.ConversationId}).";
 
@@ -277,7 +375,7 @@ public sealed class RequestHandlerRegistryTests
                 Content = "lan1"
             };
 
-            var registry = new RequestHandlerRegistry(TargetEnvironment.EdgeSViciOne, [handler], logger);
+            var registry = CreateSut(TargetEnvironment.EdgeSViciOne, [handler], logger);
 
             // Act
             var response = await registry.HandleRequestAsync(request, CancellationToken.None);

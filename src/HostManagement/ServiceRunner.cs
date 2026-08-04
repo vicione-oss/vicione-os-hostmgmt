@@ -272,7 +272,11 @@ internal static partial class ServiceRunner
             .. GetSystemRequestHandlers()
         ];
 
-        return new RequestHandlerRegistry(EnvironmentVariables.Environment.Value, handlers, s_logger);
+        return new RequestHandlerRegistry(
+            EnvironmentVariables.Environment.Value,
+            initializationContext.SupportedCapabilities.Topics,
+            handlers,
+            s_logger);
 
 
         static IEnumerable<IRequestHandler> GetServiceRequestHandlers()
