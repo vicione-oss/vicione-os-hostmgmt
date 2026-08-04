@@ -30,7 +30,7 @@ public sealed record NetworkNTPSettings
         var hashCode = new HashCode();
 
         hashCode.Add(Enabled);
-        hashCode.Add(Servers.GetSequenceHashCode());
+        hashCode.AddRange(Servers);
 
         return hashCode.ToHashCode();
     }

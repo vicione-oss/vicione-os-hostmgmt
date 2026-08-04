@@ -1,3 +1,5 @@
+using HostManagement.Shared.Extensions;
+
 namespace HostManagement.SystemConfig.Contracts;
 
 internal sealed record NetworkNTPSettings
@@ -10,7 +12,7 @@ internal sealed record NetworkNTPSettings
         var hashCode = new HashCode();
 
         hashCode.Add(Enabled);
-        hashCode.AddRange(Servers, EqualityComparer<string>.Default);
+        hashCode.AddRange(Servers);
 
         return hashCode.ToHashCode();
     }

@@ -1,4 +1,6 @@
-﻿namespace HostManagement.SystemConfig.Contracts;
+using HostManagement.Shared.Extensions;
+
+namespace HostManagement.SystemConfig.Contracts;
 
 internal sealed record StaticHostsSettings
 {
@@ -10,7 +12,7 @@ internal sealed record StaticHostsSettings
         var hashCode = new HashCode();
 
         hashCode.Add(Enabled);
-        hashCode.AddRange(Hosts, EqualityComparer<StaticHostDetail>.Default);
+        hashCode.AddRange(Hosts);
 
         return hashCode.ToHashCode();
     }

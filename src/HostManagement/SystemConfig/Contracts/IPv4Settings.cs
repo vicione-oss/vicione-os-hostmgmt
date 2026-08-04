@@ -1,4 +1,5 @@
 using System.Net;
+using HostManagement.Shared.Extensions;
 
 namespace HostManagement.SystemConfig.Contracts;
 
@@ -14,7 +15,7 @@ internal sealed record IPv4Settings
 
         hashCode.Add(Gateway);
         hashCode.Add(DHCPEnabled);
-        hashCode.AddRange(IPv4Details, EqualityComparer<IPv4Detail>.Default);
+        hashCode.AddRange(IPv4Details);
 
         return hashCode.ToHashCode();
     }

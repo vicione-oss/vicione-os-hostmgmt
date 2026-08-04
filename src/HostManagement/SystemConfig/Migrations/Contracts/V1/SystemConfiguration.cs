@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using HostManagement.Shared.Extensions;
 
 namespace HostManagement.SystemConfig.Migrations.Contracts.V1;
 

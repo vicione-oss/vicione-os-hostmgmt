@@ -23,7 +23,7 @@ public sealed record StaticHostsSettings
         var hashCode = new HashCode();
 
         hashCode.Add(Enabled);
-        hashCode.Add(Hosts.GetSequenceHashCode());
+        hashCode.AddRange(Hosts);
 
         return hashCode.ToHashCode();
     }

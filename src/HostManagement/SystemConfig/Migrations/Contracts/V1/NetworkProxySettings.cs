@@ -1,3 +1,5 @@
+using HostManagement.Shared.Extensions;
+
 namespace HostManagement.SystemConfig.Migrations.Contracts.V1;
 
 internal sealed record NetworkProxySettings

@@ -1,4 +1,5 @@
 using System.Net;
+using HostManagement.Shared.Extensions;
 
 namespace HostManagement.SystemConfig.Contracts;
 
@@ -12,7 +13,7 @@ internal sealed record NameServersSettings
         var hashCode = new HashCode();
 
         hashCode.Add(Enabled);
-        hashCode.AddRange(Addresses, EqualityComparer<IPAddress>.Default);
+        hashCode.AddRange(Addresses);
 
         return hashCode.ToHashCode();
     }
