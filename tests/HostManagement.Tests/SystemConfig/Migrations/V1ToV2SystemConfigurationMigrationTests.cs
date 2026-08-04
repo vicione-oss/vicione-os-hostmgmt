@@ -41,7 +41,7 @@ public class V1ToV2SystemConfigurationMigrationTests
             // Assert
             result.Should().NotBeNull();
             result.Version.Should().Be(2);
-            result.NetworkInterfacesSettings.Should().BeNull();
+            result.NetworkInterfaces.Should().BeNull();
             result.NetworkDNSSettings.Should().BeNull();
             result.NetworkProxySettings.Should().BeNull();
             result.NetworkNTPSettings.Should().BeNull();
@@ -89,9 +89,9 @@ public class V1ToV2SystemConfigurationMigrationTests
 
             // Assert
             result.Should().NotBeNull();
-            result.NetworkInterfacesSettings.Should().NotBeNull();
+            result.NetworkInterfaces.Should().NotBeNull();
 
-            var networkInterface = result.NetworkInterfacesSettings.NetworkInterfaces.Should().ContainSingle().Subject;
+            var networkInterface = result.NetworkInterfaces.Should().ContainSingle().Subject;
             networkInterface.CommonInformation.Should().NotBeNull();
             networkInterface.CommonInformation.Name.Should().Be("lan1");
             networkInterface.CommonInformation.Enabled.Should().BeTrue();

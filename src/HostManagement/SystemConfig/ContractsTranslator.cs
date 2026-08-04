@@ -25,19 +25,13 @@ internal static class ContractsTranslator
 
     internal static SharedContracts.SystemConfiguration ToSharedContracts(this SystemConfiguration intern)
     {
-        var systemConfiguration = intern.Services is { } services
-            ? new SharedContracts.SystemConfiguration()
-            {
-                Version = intern.Version,
-                Services = [.. services.Select(static service => service.ToSharedContracts())]
-            }
-            : new SharedContracts.SystemConfiguration()
-            {
-                Version = intern.Version
-            };
+        var systemConfiguration = new SharedContracts.SystemConfiguration { Version = intern.Version };
 
-        if (intern.NetworkInterfacesSettings is { } interfacesSettings)
-            systemConfiguration.NetworkInterfacesSettings = interfacesSettings.ToSharedContracts();
+        if (intern.NetworkInterfaces is { } interfaces)
+        {
+            systemConfiguration.NetworkInterfaces.AddRange(
+                interfaces.Select(static @interface => @interface.ToSharedContracts()));
+        }
 
         if (intern.NetworkDNSSettings is { } dnsSettings)
             systemConfiguration.NetworkDNSSettings = dnsSettings.ToSharedContracts();
@@ -48,22 +42,13 @@ internal static class ContractsTranslator
         if (intern.NetworkNTPSettings is { } ntpSettings)
             systemConfiguration.NetworkNTPSettings = ntpSettings.ToSharedContracts();
 
-        return systemConfiguration;
-    }
-
-    private static SharedNetwork.NetworkInterfacesSettings ToSharedContracts(this NetworkInterfacesSettings intern)
-    {
-        var networkInterfacesSettings = new SharedNetwork.NetworkInterfacesSettings();
-
-        if (intern.NetworkInterfaces is { } networkInterfaces)
+        if (intern.Services is { } services)
         {
-            networkInterfacesSettings = networkInterfacesSettings with
-            {
-                NetworkInterfaces = [.. networkInterfaces.Select(static @interface => @interface.ToSharedContracts())]
-            };
+            systemConfiguration.Services.AddRange(
+                services.Select(static service => service.ToSharedContracts()));
         }
 
-        return networkInterfacesSettings;
+        return systemConfiguration;
     }
 
     private static SharedNetwork.NetworkInterfaceDetail ToSharedContracts(this NetworkInterfaceDetail intern)
@@ -307,18 +292,14 @@ internal static class ContractsTranslator
         => new()
         {
             Version = shared.Version,
-            NetworkInterfacesSettings = shared.NetworkInterfacesSettings.ToInternalContracts(),
+
+            NetworkInterfaces = [.. shared.NetworkInterfaces.Select(
+                static @interface => @interface.ToInternalContracts())],
+
             NetworkDNSSettings = shared.NetworkDNSSettings.ToInternalContracts(),
             NetworkProxySettings = shared.NetworkProxySettings.ToInternalContracts(),
             NetworkNTPSettings = shared.NetworkNTPSettings.ToInternalContracts(),
             Services = [.. shared.Services.Select(static service => service.ToInternalContracts())]
-        };
-
-    private static NetworkInterfacesSettings ToInternalContracts(this SharedNetwork.NetworkInterfacesSettings shared)
-        => new()
-        {
-            NetworkInterfaces =
-                [.. shared.NetworkInterfaces.Select(static @interface => @interface.ToInternalContracts())]
         };
 
     private static NetworkInterfaceDetail ToInternalContracts(this SharedNetwork.NetworkInterfaceDetail shared)

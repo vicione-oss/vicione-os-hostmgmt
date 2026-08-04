@@ -73,10 +73,7 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
             });
         }
 
-        config.NetworkInterfacesSettings = new NetworkInterfacesSettings()
-        {
-            NetworkInterfaces = networkInterfaces
-        };
+        config.NetworkInterfaces = networkInterfaces;
 
         return combinedResult;
     }
@@ -93,8 +90,8 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
         // (meaning no DNS info configured).
         return
             SystemConfigurationChangeDetector.HasSequenceChanges(
-                currentConfig.NetworkInterfacesSettings?.NetworkInterfaces,
-                proposedConfig.NetworkInterfacesSettings?.NetworkInterfaces) ||
+                currentConfig.NetworkInterfaces,
+                proposedConfig.NetworkInterfaces) ||
             SystemConfigurationChangeDetector.HasChanges(
                 currentConfig.NetworkDNSSettings,
                 proposedConfig.NetworkDNSSettings);
@@ -104,15 +101,15 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
         SystemConfiguration config,
         CancellationToken cancellationToken)
     {
-        if (config.NetworkInterfacesSettings?.NetworkInterfaces is null ||
-            config.NetworkInterfacesSettings.NetworkInterfaces.Count < 1)
+        if (config.NetworkInterfaces is null ||
+            config.NetworkInterfaces.Count < 1)
         {
             return Result.SuccessResult;
         }
 
         var combinedResult = Result.SuccessResult;
 
-        foreach (var proposedInterface in config.NetworkInterfacesSettings.NetworkInterfaces)
+        foreach (var proposedInterface in config.NetworkInterfaces)
         {
             var interfaceName = proposedInterface.CommonInformation?.Name ?? string.Empty;
 

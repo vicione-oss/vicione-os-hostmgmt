@@ -77,31 +77,29 @@ public class SourceGeneratedTypeSerializerTests
         $$"""
         {
           "Version": 2,
-          "NetworkInterfacesSettings": {
-            "NetworkInterfaces": [
-              {
-                "CommonInformation": {
-                  "Enabled": true,
-                  "Name": "lan1",
-                  "PhysicalAddress": "01:23:45:67:89:AB"
-                },
-                "IPv4": {
-                  "Gateway": "120.86.52.18",
-                  "DHCPEnabled": true,
-                  "IPv4Details": [
-                    {
-                      "IPAddress": "120.86.52.18",
-                      "Netmask": "120.86.52.18"
-                    }
-                  ]
-                },
-                "VLAN": {
-                  "Enabled": true,
-                  "ID": 1
-                }
+          "NetworkInterfaces": [
+            {
+              "CommonInformation": {
+                "Enabled": true,
+                "Name": "lan1",
+                "PhysicalAddress": "01:23:45:67:89:AB"
+              },
+              "IPv4": {
+                "Gateway": "120.86.52.18",
+                "DHCPEnabled": true,
+                "IPv4Details": [
+                  {
+                    "IPAddress": "120.86.52.18",
+                    "Netmask": "120.86.52.18"
+                  }
+                ]
+              },
+              "VLAN": {
+                "Enabled": true,
+                "ID": 1
               }
-            ]
-          },
+            }
+          ],
           "NetworkDNSSettings": {
             "Hostname": "hostname",
             "MulticastDNSEnabled": true,

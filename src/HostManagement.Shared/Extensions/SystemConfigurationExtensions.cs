@@ -1,4 +1,4 @@
-﻿using HostManagement.Shared.Contracts;
+using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 
 namespace HostManagement.Shared.Extensions;
@@ -15,6 +15,6 @@ public static class SystemConfigurationExtensions
     /// <param name="interfaceName">The interface name.</param>
     /// <returns><see cref="NetworkInterfaceDetail"/> or <see langword="null"/> if not found</returns>
     public static NetworkInterfaceDetail? GetNetworkInterface(this SystemConfiguration config, string interfaceName)
-        => config.NetworkInterfacesSettings.NetworkInterfaces
-            .FirstOrDefault(@interface => @interface.CommonInformation.Name.Equals(interfaceName));
+        => config.NetworkInterfaces.FirstOrDefault(@interface
+            => @interface.CommonInformation.Name.Equals(interfaceName));
 }

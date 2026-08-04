@@ -93,17 +93,14 @@ public class NetworkDNSConfigurationAdapterTests
             var current = new SystemConfiguration();
             var proposed = new SystemConfiguration()
             {
-                NetworkInterfacesSettings = new()
-                {
-                    NetworkInterfaces =
-                    [
-                        new()
-                        {
-                            CommonInformation = new() { Enabled = true, Name = "lan1" },
-                            IPv4 = new()
-                        }
-                    ]
-                }
+                NetworkInterfaces =
+                [
+                    new()
+                    {
+                        CommonInformation = new() { Enabled = true, Name = "lan1" },
+                        IPv4 = new()
+                    }
+                ]
             };
 
             // Act + Assert

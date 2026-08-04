@@ -135,9 +135,9 @@ public class NetworkInterfacesConfigurationAdapterTests
             else
                 result.Messages.Should().BeEmpty();
 
-            config.NetworkInterfacesSettings.Should().NotBeNull();
+            config.NetworkInterfaces.Should().NotBeNull();
 
-            var networkInterface = config.NetworkInterfacesSettings.NetworkInterfaces.Should().ContainSingle().Subject;
+            var networkInterface = config.NetworkInterfaces.Should().ContainSingle().Subject;
             networkInterface.CommonInformation.Should().NotBeNull();
             networkInterface.CommonInformation.Name.Should().Be(Lan1);
             networkInterface.IPv4.Should().NotBeNull();
@@ -167,17 +167,15 @@ public class NetworkInterfacesConfigurationAdapterTests
             var current = new SystemConfiguration();
             var proposed = new SystemConfiguration()
             {
-                NetworkInterfacesSettings = new()
-                {
-                    NetworkInterfaces =
-                    [
-                        new()
-                        {
-                            CommonInformation = CreateCommonInformation(Lan1),
-                            IPv4 = new()
-                        }
-                    ]
-                }
+                NetworkInterfaces =
+                [
+                    new()
+                    {
+                        CommonInformation = CreateCommonInformation(Lan1),
+                        IPv4 = new(),
+                        VLAN = new()
+                    }
+                ]
             };
 
             sut.HasChanges(current, proposed).Should().BeTrue();
@@ -235,17 +233,15 @@ public class NetworkInterfacesConfigurationAdapterTests
 
             var config = new SystemConfiguration()
             {
-                NetworkInterfacesSettings = new()
-                {
-                    NetworkInterfaces =
-                    [
-                        new()
-                        {
-                            CommonInformation = CreateCommonInformation(Lan1),
-                            IPv4 = new()
-                        }
-                    ]
-                }
+                NetworkInterfaces =
+                [
+                    new()
+                    {
+                        CommonInformation = CreateCommonInformation(Lan1),
+                        IPv4 = new(),
+                        VLAN = new()
+                    }
+                ]
             };
 
             // Act + Assert
@@ -274,17 +270,15 @@ public class NetworkInterfacesConfigurationAdapterTests
 
             var config = new SystemConfiguration()
             {
-                NetworkInterfacesSettings = new()
-                {
-                    NetworkInterfaces =
-                    [
-                        new()
-                        {
-                            CommonInformation = CreateCommonInformation(Lan1),
-                            IPv4 = new()
-                        }
-                    ]
-                }
+                NetworkInterfaces =
+                [
+                    new()
+                    {
+                        CommonInformation = CreateCommonInformation(Lan1),
+                        IPv4 = new(),
+                        VLAN = new()
+                    }
+                ]
             };
 
             // Act + Assert
@@ -312,39 +306,36 @@ public class NetworkInterfacesConfigurationAdapterTests
 
             var config = new SystemConfiguration()
             {
-                NetworkInterfacesSettings = new()
-                {
-                    NetworkInterfaces =
-                    [
-                        new()
+                NetworkInterfaces =
+                [
+                    new()
+                    {
+                        CommonInformation = new()
                         {
-                            CommonInformation = new()
-                            {
-                                Enabled = false,
-                                Name = Lan1,
-                                PhysicalAddress = "00:11:22:33:44:55"
-                            },
-                            IPv4 = new()
-                            {
-                                DHCPEnabled = true,
-                                Gateway = IPAddress.Parse("192.168.0.1"),
-                                IPv4Details =
-                                [
-                                    new()
-                                    {
-                                        IPAddress = IPAddress.Parse("192.168.0.10"),
-                                        Netmask = IPAddress.Parse("255.255.255.0")
-                                    }
-                                ]
-                            },
-                            VLAN = new()
-                            {
-                                Enabled = true,
-                                ID = 100
-                            }
+                            Enabled = false,
+                            Name = Lan1,
+                            PhysicalAddress = "00:11:22:33:44:55"
+                        },
+                        IPv4 = new()
+                        {
+                            DHCPEnabled = true,
+                            Gateway = IPAddress.Parse("192.168.0.1"),
+                            IPv4Details =
+                            [
+                                new()
+                                {
+                                    IPAddress = IPAddress.Parse("192.168.0.10"),
+                                    Netmask = IPAddress.Parse("255.255.255.0")
+                                }
+                            ]
+                        },
+                        VLAN = new()
+                        {
+                            Enabled = true,
+                            ID = 100
                         }
-                    ]
-                }
+                    }
+                ]
             };
 
             // Act

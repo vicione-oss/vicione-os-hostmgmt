@@ -1,4 +1,4 @@
-﻿using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Interface.IPv4.DHCP;
@@ -25,7 +25,7 @@ internal sealed class DHCPListCommand : ConfigCommandBase
 
         var output = new PropertyListOutput().WithTitle(CommandLineStrings_NetworkInterfaces.Interfaces);
 
-        foreach (var @interface in config.NetworkInterfacesSettings.NetworkInterfaces)
+        foreach (var @interface in config.NetworkInterfaces)
         {
             var dhcpEnabledString = @interface.IPv4.DHCPEnabled
                 ? CommandLineStrings_Common.enabled

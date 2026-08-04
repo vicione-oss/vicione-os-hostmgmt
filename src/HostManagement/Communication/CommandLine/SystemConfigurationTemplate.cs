@@ -52,42 +52,39 @@ internal static class SystemConfigurationTemplate
         return new SystemConfiguration
         {
             Version = 2,
-            NetworkInterfacesSettings = new()
-            {
-                NetworkInterfaces =
-                [
-                    new()
+            NetworkInterfaces =
+            [
+                new()
+                {
+                    CommonInformation = new()
                     {
-                        CommonInformation = new()
-                        {
-                            Enabled = true,
-                            Name = "interface1",
-                            PhysicalAddress = "00:00:00:00:00:01"
-                        },
-                        IPv4 = new()
-                        {
-                            DHCPEnabled = true
-                        }
+                        Enabled = true,
+                        Name = "interface1",
+                        PhysicalAddress = "00:00:00:00:00:01"
                     },
-                    new()
+                    IPv4 = new()
                     {
-                        CommonInformation = new()
-                        {
-                            Enabled = true,
-                            Name = "interface2",
-                            PhysicalAddress = "00:00:00:00:00:02"
-                        },
-                        IPv4 = new()
-                        {
-                            IPv4Details =
-                            [
-                                new() { IPAddress = ipv4Template1, Netmask = ipv4Template1 },
-                                new() { IPAddress = ipv4Template2, Netmask = ipv4Template2 }
-                            ]
-                        }
+                        DHCPEnabled = true
                     }
-                ]
-            },
+                },
+                new()
+                {
+                    CommonInformation = new()
+                    {
+                        Enabled = true,
+                        Name = "interface2",
+                        PhysicalAddress = "00:00:00:00:00:02"
+                    },
+                    IPv4 = new()
+                    {
+                        IPv4Details =
+                        [
+                            new() { IPAddress = ipv4Template1, Netmask = ipv4Template1 },
+                            new() { IPAddress = ipv4Template2, Netmask = ipv4Template2 }
+                        ]
+                    }
+                }
+            ],
             NetworkDNSSettings = new()
             {
                 Hostname = "hostname",

@@ -32,17 +32,14 @@ public class NetworkConfigurationAdapterTests
             SystemConfiguration current = new();
             SystemConfiguration proposed = new()
             {
-                NetworkInterfacesSettings = new()
-                {
-                    NetworkInterfaces =
-                    [
-                        new()
-                        {
-                            CommonInformation = new() { Enabled = true, Name = "eth0" },
-                            IPv4 = new()
-                        }
-                    ]
-                }
+                NetworkInterfaces =
+                [
+                    new()
+                    {
+                        CommonInformation = new() { Enabled = true, Name = "eth0" },
+                        IPv4 = new()
+                    }
+                ]
             };
             var sut = CreateSut(current, handler);
 

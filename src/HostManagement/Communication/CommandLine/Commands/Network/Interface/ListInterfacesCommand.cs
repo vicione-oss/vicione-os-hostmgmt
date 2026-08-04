@@ -40,7 +40,7 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
         if (await GetConfiguration(cancellationToken) is not SystemConfiguration config)
             return;
 
-        if (config.NetworkInterfacesSettings.NetworkInterfaces.Count == 0)
+        if (config.NetworkInterfaces.Count == 0)
         {
             SimpleOutput.WriteLine(CommandLineStrings_NetworkInterfaces.InterfacesNotFound);
             return;
@@ -49,7 +49,7 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
         var output = new ListOutput();
         output.WithTitle(CommandLineStrings_NetworkInterfaces.Interfaces);
 
-        foreach (var networkInterface in config.NetworkInterfacesSettings.NetworkInterfaces)
+        foreach (var networkInterface in config.NetworkInterfaces)
         {
             var listOutput = output
                 .AddListOutput(1)
