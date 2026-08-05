@@ -1,3 +1,5 @@
+using HostManagement.Shared.Extensions;
+
 namespace HostManagement.SystemConfig.Contracts;
 
 internal sealed record NoProxySettings
@@ -10,7 +12,7 @@ internal sealed record NoProxySettings
         var hashCode = new HashCode();
 
         hashCode.Add(Enabled);
-        hashCode.AddRange(Entries, EqualityComparer<string>.Default);
+        hashCode.AddRange(Entries);
 
         return hashCode.ToHashCode();
     }

@@ -26,7 +26,7 @@ public sealed record SearchDomainsSettings
         var hashCode = new HashCode();
 
         hashCode.Add(Enabled);
-        hashCode.Add(Domains.GetSequenceHashCode());
+        hashCode.AddRange(Domains);
 
         return hashCode.ToHashCode();
     }

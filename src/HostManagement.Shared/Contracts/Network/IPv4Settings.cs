@@ -38,7 +38,7 @@ public sealed record IPv4Settings
 
         hashCode.Add(Gateway);
         hashCode.Add(DHCPEnabled);
-        hashCode.Add(IPv4Details.GetSequenceHashCode());
+        hashCode.AddRange(IPv4Details);
 
         return hashCode.ToHashCode();
     }

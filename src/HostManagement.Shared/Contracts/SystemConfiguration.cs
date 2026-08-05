@@ -50,11 +50,11 @@ public class SystemConfiguration
     {
         var hashCode = new HashCode();
 
-        hashCode.Add(NetworkInterfaces.GetSequenceHashCode());
+        hashCode.AddRange(NetworkInterfaces);
         hashCode.Add(NetworkDNSSettings);
         hashCode.Add(NetworkProxySettings);
         hashCode.Add(NetworkNTPSettings);
-        hashCode.Add(Services.OrderBy(x => x.Name).GetSequenceHashCode());
+        hashCode.AddRange(Services, order: service => service.Name);
 
         return hashCode.ToHashCode();
     }

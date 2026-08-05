@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using HostManagement.Shared.Extensions;
 using HostManagement.SystemConfig.Migrations;
 
 namespace HostManagement.SystemConfig.Contracts;
@@ -38,11 +39,11 @@ internal class SystemConfiguration : ISystemConfigurationContract
     {
         var hashCode = new HashCode();
 
-        hashCode.AddRange(NetworkInterfaces, EqualityComparer<NetworkInterfaceDetail>.Default);
+        hashCode.AddRange(NetworkInterfaces);
         hashCode.Add(NetworkDNSSettings);
         hashCode.Add(NetworkProxySettings);
         hashCode.Add(NetworkNTPSettings);
-        hashCode.AddRange(Services, EqualityComparer<ServiceDetail>.Default, x => x.Name);
+        hashCode.AddRange(Services, order: service => service.Name);
 
         return hashCode.ToHashCode();
     }

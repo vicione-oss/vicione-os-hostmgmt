@@ -40,7 +40,7 @@ public sealed record NoProxySettings
         var hashCode = new HashCode();
 
         hashCode.Add(Enabled);
-        hashCode.Add(Entries.GetSequenceHashCode());
+        hashCode.AddRange(Entries);
 
         return hashCode.ToHashCode();
     }

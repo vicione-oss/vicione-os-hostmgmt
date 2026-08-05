@@ -1,3 +1,5 @@
+using HostManagement.Shared.Extensions;
+
 namespace HostManagement.SystemConfig.Contracts;
 
 internal sealed record SearchDomainsSettings
@@ -10,7 +12,7 @@ internal sealed record SearchDomainsSettings
         var hashCode = new HashCode();
 
         hashCode.Add(Enabled);
-        hashCode.AddRange(Domains, EqualityComparer<string>.Default);
+        hashCode.AddRange(Domains);
 
         return hashCode.ToHashCode();
     }

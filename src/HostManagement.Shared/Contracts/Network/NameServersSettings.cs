@@ -26,7 +26,7 @@ public sealed record NameServersSettings
         var hashCode = new HashCode();
 
         hashCode.Add(Enabled);
-        hashCode.Add(Addresses.GetSequenceHashCode());
+        hashCode.AddRange(Addresses);
 
         return hashCode.ToHashCode();
     }
