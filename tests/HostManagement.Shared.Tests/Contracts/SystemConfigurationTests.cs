@@ -8,6 +8,39 @@ namespace HostManagement.Shared.Tests.Contracts;
 
 public class SystemConfigurationTests
 {
+    public class EqualsMethod
+    {
+        [Fact]
+        public void ShouldReturnTrue_WhenEqualConfigurationsComparedAsObjects()
+        {
+            // Arrange
+            object currentConfig = new SystemConfiguration();
+            object proposedConfig = new SystemConfiguration();
+
+            // Act
+            var result = currentConfig.Equals(proposedConfig);
+
+            // Assert
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public void ShouldReturnTrue_WhenEqualConfigurationsComparedByDefaultComparer()
+        {
+            // Arrange
+            var currentConfig = new SystemConfiguration();
+            var proposedConfig = new SystemConfiguration();
+
+            // Act
+            var result = EqualityComparer<SystemConfiguration>.Default.Equals(
+                currentConfig,
+                proposedConfig);
+
+            // Assert
+            result.Should().BeTrue();
+        }
+    }
+
     public class ServicesProperty
     {
         private static readonly SystemConfiguration s_emptyConfig = new();

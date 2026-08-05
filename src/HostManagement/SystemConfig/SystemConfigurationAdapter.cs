@@ -12,7 +12,7 @@ namespace HostManagement.SystemConfig;
 internal sealed class SystemConfigurationAdapter : ConfigurationAdapter
 {
     private readonly SystemConfiguration _currentConfig;
-    private readonly List<ConfigurationAdapter<SystemConfigurationAdapter>> _adapters = [];
+    private readonly IReadOnlyList<ConfigurationAdapter<SystemConfigurationAdapter>> _adapters = [];
 
     /// <summary>
     /// Initializes a new <see cref="SystemConfigurationAdapter"/>.
@@ -30,36 +30,54 @@ internal sealed class SystemConfigurationAdapter : ConfigurationAdapter
         IScriptHandler scriptHandler,
         bool bypassHasChanges,
         bool bypassApplyConfig)
-            : base(bypassHasChanges, bypassApplyConfig)
+            : this(
+                currentConfig,
+                [
+                    new NetworkConfigurationAdapter(
+                        currentConfig,
+                        scriptHandler,
+                        bypassHasChanges,
+                        bypassApplyConfig),
+                    new ProxyConfigurationAdapter(
+                        currentConfig,
+                        scriptHandler,
+                        bypassHasChanges,
+                        bypassApplyConfig),
+                    new NetworkNTPConfigurationAdapter(
+                        scriptHandler,
+                        bypassHasChanges,
+                        bypassApplyConfig),
+                    new ServiceConfigurationAdapter(
+                        scriptHandler,
+                        EnvironmentVariables.ConfigurableServices.Value,
+                        bypassHasChanges,
+                        bypassApplyConfig)
+                ],
+                bypassHasChanges,
+                bypassApplyConfig)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new <see cref="SystemConfigurationAdapter"/> with the specified child adapters.
+    /// </summary>
+    /// <param name="currentConfig">The current system configuration.</param>
+    /// <param name="adapters">The child configuration adapters.</param>
+    /// <param name="bypassHasChanges">
+    /// <inheritdoc cref="ConfigurationAdapter(bool, bool)" path="/param[@name='bypassHasChanges']"/>
+    /// </param>
+    /// <param name="bypassApplyConfig">
+    /// <inheritdoc cref="ConfigurationAdapter(bool, bool)" path="/param[@name='bypassApplyConfig']"/>
+    /// </param>
+    internal SystemConfigurationAdapter(
+        SystemConfiguration currentConfig,
+        IReadOnlyList<ConfigurationAdapter<SystemConfigurationAdapter>> adapters,
+        bool bypassHasChanges,
+        bool bypassApplyConfig)
+        : base(bypassHasChanges, bypassApplyConfig)
     {
         _currentConfig = currentConfig;
-
-        _adapters.Add(
-            new NetworkConfigurationAdapter(
-                currentConfig,
-                scriptHandler,
-                bypassHasChanges,
-                bypassApplyConfig));
-
-        _adapters.Add(
-            new ProxyConfigurationAdapter(
-                currentConfig,
-                scriptHandler,
-                bypassHasChanges,
-                bypassApplyConfig));
-
-        _adapters.Add(
-            new NetworkNTPConfigurationAdapter(
-                scriptHandler,
-                bypassHasChanges,
-                bypassApplyConfig));
-
-        _adapters.Add(
-            new ServiceConfigurationAdapter(
-                scriptHandler,
-                EnvironmentVariables.ConfigurableServices.Value,
-                bypassHasChanges,
-                bypassApplyConfig));
+        _adapters = adapters;
     }
 
     protected internal override async Task<Result> GetConfiguration(

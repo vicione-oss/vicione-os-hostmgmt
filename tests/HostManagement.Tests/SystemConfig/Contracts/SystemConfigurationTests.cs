@@ -10,6 +10,34 @@ public class SystemConfigurationTests
     public sealed class EqualsMethod
     {
         [Fact]
+        public void ShouldReturnTrue_WhenEqualConfigurationsComparedAsObjects()
+        {
+            // Arrange
+            var config1 = CreateSampleConfiguration();
+            var config2 = CreateSampleConfiguration();
+
+            // Act
+            var result = object.Equals(config1, config2);
+
+            // Assert
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public void ShouldReturnTrue_WhenEqualConfigurationsComparedByDefaultComparer()
+        {
+            // Arrange
+            var config1 = CreateSampleConfiguration();
+            var config2 = CreateSampleConfiguration();
+
+            // Act
+            var result = EqualityComparer<SystemConfiguration>.Default.Equals(config1, config2);
+
+            // Assert
+            result.Should().BeTrue();
+        }
+
+        [Fact]
         public void ShouldReturnTrue_WhenIdenticalObjects()
         {
             var config1 = CreateSampleConfiguration();
