@@ -61,7 +61,7 @@ internal sealed class ScriptHandler : IScriptHandler
             ScriptIdentifier.NetworkInterfaceSettingsGet,
             interfaceName);
 
-    public async Task<Result> ExecuteSetInterfaceIPv4SettingsScript(ScriptOptions scriptOptions)
+    public async Task<Result> ExecuteSetInterfaceSettingsScript(ScriptOptions scriptOptions)
         => await ExecuteScript(ScriptIdentifier.NetworkInterfaceSettingsSet, scriptOptions.Options);
 
     public async Task<(Result, DHCPLease)> ExecuteGetInterfaceIPv4DHCPLeaseScript(string interfaceName)

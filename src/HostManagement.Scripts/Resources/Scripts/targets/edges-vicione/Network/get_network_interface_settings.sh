@@ -4,7 +4,7 @@
 #
 # Get Network Interface Settings Script
 #
-# The script returns 0 if ok or warning, non zero for error.
+# The script returns 0 if ok, non zero for error.
 # ###
 
 set -eEuo pipefail
