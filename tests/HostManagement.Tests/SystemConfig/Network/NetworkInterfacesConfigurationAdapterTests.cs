@@ -249,11 +249,11 @@ public class NetworkInterfacesConfigurationAdapterTests
             result.OperationStatus.Should().Be(OperationStatus.Error);
             result.Messages.Should().Contain(expectedMessage);
 
-            _ = await scriptHandler.DidNotReceive().ExecuteSetInterfaceIPv4SettingsScript(Arg.Any<ScriptOptions>());
+            _ = await scriptHandler.DidNotReceive().ExecuteSetInterfaceSettingsScript(Arg.Any<ScriptOptions>());
         }
 
         [Fact]
-        public async Task ShouldReturnError_WhenSetInterfaceIPv4ScriptFails()
+        public async Task ShouldReturnError_WhenSetInterfaceSettingsScriptFails()
         {
             // Arrange
             var scriptHandler = Substitute.For<IScriptHandler>();
@@ -263,7 +263,7 @@ public class NetworkInterfacesConfigurationAdapterTests
                 .Returns(Result.SuccessResult);
 
             scriptHandler
-                .ExecuteSetInterfaceIPv4SettingsScript(Arg.Any<ScriptOptions>())
+                .ExecuteSetInterfaceSettingsScript(Arg.Any<ScriptOptions>())
                 .Returns(Result.ErrorResult);
 
             var sut = CreateSut(scriptHandler, bypassHasChanges: true);
@@ -288,7 +288,7 @@ public class NetworkInterfacesConfigurationAdapterTests
         }
 
         [Fact]
-        public async Task ShouldSetIPv4Settings_WhenCalled()
+        public async Task ShouldSetInterfaceSettings_WhenCalled()
         {
             // Arrange
             ScriptOptions? captured = default;
@@ -299,7 +299,7 @@ public class NetworkInterfacesConfigurationAdapterTests
                 .Returns(Result.SuccessResult);
 
             scriptHandler
-                .ExecuteSetInterfaceIPv4SettingsScript(Arg.Do<ScriptOptions>(so => captured = so))
+                .ExecuteSetInterfaceSettingsScript(Arg.Do<ScriptOptions>(so => captured = so))
                 .Returns(Result.SuccessResult);
 
             var sut = CreateSut(scriptHandler, bypassHasChanges: true);
@@ -345,7 +345,7 @@ public class NetworkInterfacesConfigurationAdapterTests
             result.OperationStatus.Should().Be(OperationStatus.Success);
             result.Messages.Should().BeEmpty();
 
-            await scriptHandler.Received(1).ExecuteSetInterfaceIPv4SettingsScript(Arg.Any<ScriptOptions>());
+            await scriptHandler.Received(1).ExecuteSetInterfaceSettingsScript(Arg.Any<ScriptOptions>());
 
             captured.Should().NotBeNull();
             captured!.Options.Should().ContainInOrder(

@@ -76,11 +76,11 @@ internal interface IScriptHandler
     Task<(Result, IPv4Settings, VLANSettings)> ExecuteGetInterfaceSettingsScript(string interfaceName);
 
     /// <summary>
-    /// Executes the script to set IPv4 settings of a network interface.
+    /// Executes the script to set settings of a network interface.
     /// </summary>
     /// <param name="scriptOptions">The script options to execute the script.</param>
     /// <returns><see cref="Result"/></returns>
-    Task<Result> ExecuteSetInterfaceIPv4SettingsScript(ScriptOptions scriptOptions);
+    Task<Result> ExecuteSetInterfaceSettingsScript(ScriptOptions scriptOptions);
 
     /// <summary>
     /// Executes the script to get IPv4 DHCP lease information of a network interface.

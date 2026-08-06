@@ -138,7 +138,7 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
             AddIPv4ScriptOptions(scriptOptions, proposedInterface.IPv4);
 
             combinedResult.AddResult(
-                await _scriptHandler.ExecuteSetInterfaceIPv4SettingsScript(scriptOptions)
+                await _scriptHandler.ExecuteSetInterfaceSettingsScript(scriptOptions)
                     .ConfigureAwait(false));
 
             if (combinedResult.OperationStatus is OperationStatus.Error)
