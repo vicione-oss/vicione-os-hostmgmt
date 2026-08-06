@@ -12,7 +12,7 @@ namespace HostManagement.Shared.Contracts;
 /// This namespace defines the public API contract for external consumers of the HostManagement system.
 /// These DTOs represent the stable, publicly-exposed interface for configuration and status information.
 /// </remarks>
-public class SystemConfiguration
+public class SystemConfiguration : IEquatable<SystemConfiguration>
 {
     /// <summary>
     /// The version of the system configuration.
@@ -58,6 +58,9 @@ public class SystemConfiguration
 
         return hashCode.ToHashCode();
     }
+
+    /// <inheritdoc/>
+    public override bool Equals(object? obj) => obj is SystemConfiguration other && Equals(other);
 
     /// <inheritdoc/>
     public bool Equals(SystemConfiguration? other)

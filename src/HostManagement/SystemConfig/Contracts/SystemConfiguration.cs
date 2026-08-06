@@ -20,7 +20,7 @@ namespace HostManagement.SystemConfig.Contracts;
 /// <item><description>Require mapping via <see cref="SystemConfig.ContractsTranslator"/> before being exposed to the public API</description></item>
 /// </list>
 /// </remarks>
-internal class SystemConfiguration : ISystemConfigurationContract
+internal class SystemConfiguration : IEquatable<SystemConfiguration>, ISystemConfigurationContract
 {
     /// <summary>
     /// The current version of the system configuration contract.
@@ -47,6 +47,8 @@ internal class SystemConfiguration : ISystemConfigurationContract
 
         return hashCode.ToHashCode();
     }
+
+    public override bool Equals(object? obj) => obj is SystemConfiguration other && Equals(other);
 
     public bool Equals(SystemConfiguration? other)
         => other is not null

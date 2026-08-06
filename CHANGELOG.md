@@ -92,6 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed potential overwrite of an already invalid validation result, when adding an information message, resulting in a valid result.
 - Fixed potential overwrite of an error status of a result, when adding a warning message, resulting in a warning status.
 - Fixed `HashCodeExtensions` not passing `HashCode` by reference
+- Fixed value equality for shared and internal `SystemConfiguration` contracts, when using object or default equality comparisons
 
 ## [1.3.0] - 2026-03-23
 
