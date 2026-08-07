@@ -743,6 +743,45 @@ public class PipeServerTests
         }
 
         [Fact]
+        public async Task ShouldSendEventOnlyToOtherClients_WhenRequestingClientExcluded()
+        {
+            // Arrange
+            await using var context = new ConnectedPipeServerContext(
+                new TestNotifyHandler(excludeRequestingClient: true));
+
+            using var otherClient = new FakePipeStreamWrapper();
+            PipeServerTestAccessors.AddActiveConnection(context.Server, otherClient);
+
+            var request = CreatePipeMessageRequest(RequestTopic, RequestContent);
+            var expectedResponseContent = CreateEchoResponseContent(RequestContent);
+
+            // Act
+            await using (var scope = new QueueProcessingScope(context.Server))
+            {
+                await EnqueueAndDrain(context.Server, request, context.Client);
+            }
+
+            // Assert
+            context.Client.TryDequeueSent(out var response).Should().BeTrue();
+            AssertExpectedNamedPipeResponse(
+                response,
+                request.Topic,
+                request.ConversationId,
+                expectedResponseContent);
+
+            context.Client.TryDequeueSent(out _).Should().BeFalse();
+
+            otherClient.TryDequeueSent(out var pipeEvent).Should().BeTrue();
+            AssertExpectedNamedPipeEvent(
+                pipeEvent,
+                EventTopic,
+                Guid.Empty,
+                EventContent);
+
+            otherClient.TryDequeueSent(out _).Should().BeFalse();
+        }
+
+        [Fact]
         public async Task ShouldSendErrorResponse_WhenRequestHasInvalidTopic()
         {
             // Arrange
@@ -1290,7 +1329,8 @@ public class PipeServerTests
             => Task.FromResult(CreateEchoResponseContent(messageContent));
     }
 
-    private sealed class TestNotifyHandler : IRequestHandler, INotifyPublishEventRequested
+    private sealed class TestNotifyHandler(bool excludeRequestingClient = false)
+        : IRequestHandler, INotifyPublishEventRequested
     {
         public event EventHandler<PublishEventRequestedEventArgs>? PublishEventRequested;
 
@@ -1302,7 +1342,7 @@ public class PipeServerTests
         {
             PublishEventRequested?.Invoke(
                 this,
-                new PublishEventRequestedEventArgs(EventTopic, EventContent));
+                new PublishEventRequestedEventArgs(EventTopic, EventContent, excludeRequestingClient));
 
             return Task.FromResult(CreateEchoResponseContent(messageContent));
         }

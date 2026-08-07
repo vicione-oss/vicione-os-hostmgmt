@@ -191,6 +191,9 @@ internal sealed class Program
     {
         try
         {
+            var registry = new CallbackHandlerRegistry();
+            registry.RegisterHandler(new SystemConfigurationChangedCallbackHandler());
+
             await using var client = new PipeClient(PipeName, s_logger);
             _ = await client.TryConnectAsync();
 
@@ -211,6 +214,7 @@ internal sealed class Program
         {
             var registry = new CallbackHandlerRegistry();
             registry.RegisterHandler(new TestCallbackHandler());
+            registry.RegisterHandler(new SystemConfigurationChangedCallbackHandler());
 
             await using var client = new PipeClient(PipeName, s_logger, registry);
 

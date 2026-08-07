@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization.Metadata;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
+using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Communication.Serialization;
 using HostManagement.Shared.Serialization;
 using HostManagement.SystemConfig;
@@ -12,8 +13,11 @@ namespace HostManagement.Communication.NamedPipe.RequestHandlers;
 /// </summary>
 /// <param name="configurationService">The system configuration service.</param>
 internal sealed class SetSystemConfigurationRequestHandler(SystemConfigurationService configurationService)
-    : RequestHandler<SetSystemConfigurationResult>
+    : RequestHandler<SetSystemConfigurationResult>, INotifyPublishEventRequested
 {
+    /// <inheritdoc/>
+    public event EventHandler<PublishEventRequestedEventArgs>? PublishEventRequested;
+
     /// <summary>
     /// The topic of the <see cref="SetSystemConfigurationRequestHandler"/>.
     /// </summary>
@@ -35,6 +39,18 @@ internal sealed class SetSystemConfigurationRequestHandler(SystemConfigurationSe
             .SetConfiguration(configToApply, shouldPersistConfiguration: true, cancellationToken)
             .ConfigureAwait(false);
 
-        return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
+        var serializedResult = SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
+
+        if (result.Status != OperationStatus.Error)
+        {
+            PublishEventRequested?.Invoke(
+                this,
+                new PublishEventRequestedEventArgs(
+                    EventTopics.SystemConfigurationChanged,
+                    messageContent,
+                    ExcludeRequestingClient: true));
+        }
+
+        return serializedResult;
     }
 }

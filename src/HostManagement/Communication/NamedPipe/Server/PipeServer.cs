@@ -67,6 +67,8 @@ internal sealed partial class PipeServer : IPipeServer
     private int _degradedListenerCount;
     private int _disposeCount;
 
+    private IPipeStreamWrapper? _requestingConnection;
+
     /// <summary>
     /// Initializes a new <see cref="PipeServer"/>.
     /// </summary>
@@ -239,7 +241,18 @@ internal sealed partial class PipeServer : IPipeServer
     }
 
     private void OnHandlerPublishEventRequested(object? sender, PublishEventRequestedEventArgs args)
-        => _ = PublishEvent(args.Topic, args.Content, _internalCancellationSource.Token);
+    {
+        var excludedConnection = args.ExcludeRequestingClient
+            ? _requestingConnection
+            : null;
+
+        EnqueueEventForActiveConnections(
+            args.Topic,
+            args.Content,
+            EnqueueMode.Normal,
+            _internalCancellationSource.Token,
+            excludedConnection);
+    }
 
     private async Task ProcessQueueAsync(CancellationToken cancellationToken)
     {
@@ -318,16 +331,25 @@ internal sealed partial class PipeServer : IPipeServer
 
         async Task ProcessRequest(NamedPipeMessage message, IPipeStreamWrapper pipeWrapper)
         {
-            var pipeResponse = await _requestHandlerRegistry
-                .HandleRequestAsync(message, cancellationToken)
-                .ConfigureAwait(false);
+            _requestingConnection = pipeWrapper;
 
-            await pipeWrapper
-                .SendMessageAsync(pipeResponse, cancellationToken)
-                .ConfigureAwait(false);
+            try
+            {
+                var pipeResponse = await _requestHandlerRegistry
+                    .HandleRequestAsync(message, cancellationToken)
+                    .ConfigureAwait(false);
 
-            ResponseSent(_logger, pipeResponse.Topic, pipeResponse.ConversationId);
-            ResponseContentWas(_logger, pipeResponse.ConversationId, pipeResponse.Content);
+                await pipeWrapper
+                    .SendMessageAsync(pipeResponse, cancellationToken)
+                    .ConfigureAwait(false);
+
+                ResponseSent(_logger, pipeResponse.Topic, pipeResponse.ConversationId);
+                ResponseContentWas(_logger, pipeResponse.ConversationId, pipeResponse.Content);
+            }
+            finally
+            {
+                _requestingConnection = null;
+            }
         }
 
         async Task SendEvent(NamedPipeMessage pipeEvent, IPipeStreamWrapper pipeWrapper)
@@ -659,7 +681,8 @@ internal sealed partial class PipeServer : IPipeServer
         string topic,
         string content,
         EnqueueMode enqueueMode,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IPipeStreamWrapper? excludedConnection = null)
     {
         var eventMessage = new NamedPipeMessage()
         {
@@ -679,8 +702,12 @@ internal sealed partial class PipeServer : IPipeServer
         // Enqueue the event for all currently connected clients
         foreach (var pipeStreamWrapper in wrappers)
         {
-            if (!pipeStreamWrapper.IsConnected || cancellationToken.IsCancellationRequested)
+            if (ReferenceEquals(pipeStreamWrapper, excludedConnection) ||
+                !pipeStreamWrapper.IsConnected ||
+                cancellationToken.IsCancellationRequested)
+            {
                 continue;
+            }
 
             EnqueueMessageCore(MessageQueueItem.AsServerMessage(eventMessage, pipeStreamWrapper), enqueueMode);
         }
