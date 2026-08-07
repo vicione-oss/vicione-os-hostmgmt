@@ -1226,6 +1226,7 @@ public class SystemConfigurationServiceTests
             SupportedSettings.NetworkInterfaces.NetworkInterfaceDetail.IPv4.Capability = CapabilityStatus.Enabled;
             SupportedSettings.NetworkInterfaces.NetworkInterfaceDetail.VLAN.Capability = CapabilityStatus.Enabled;
 
+            SupportedSettings.DNS.Capability = CapabilityStatus.Enabled;
             SupportedSettings.DNS.Hostname.Capability = CapabilityStatus.Enabled;
             SupportedSettings.DNS.MulticastDNS.Capability = CapabilityStatus.Enabled;
             SupportedSettings.DNS.StaticHosts.Capability = CapabilityStatus.Enabled;

@@ -10,7 +10,7 @@ internal sealed class NetworkConfigurationAdapter : ConfigurationAdapter<SystemC
 {
     private readonly SystemConfiguration _currentConfig;
     private readonly IScriptHandler _scriptHandler;
-    private readonly List<ConfigurationAdapter<NetworkConfigurationAdapter>> _adapters = [];
+    private readonly IReadOnlyList<ConfigurationAdapter<NetworkConfigurationAdapter>> _adapters = [];
 
     private bool _isNetplanApplyRequired;
 
@@ -30,23 +30,48 @@ internal sealed class NetworkConfigurationAdapter : ConfigurationAdapter<SystemC
         IScriptHandler scriptHandler,
         bool bypassHasChanges,
         bool bypassApplyConfig)
-            : base(bypassHasChanges, bypassApplyConfig)
+            : this(
+                currentConfig,
+                scriptHandler,
+                [
+                    new NetworkInterfacesConfigurationAdapter(
+                        scriptHandler,
+                        bypassHasChanges,
+                        bypassApplyConfig),
+                    new NetworkDNSConfigurationAdapter(
+                        currentConfig,
+                        scriptHandler,
+                        bypassHasChanges,
+                        bypassApplyConfig)
+                ],
+                bypassHasChanges,
+                bypassApplyConfig)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new <see cref="NetworkConfigurationAdapter"/> with the specified child adapters.
+    /// </summary>
+    /// <param name="currentConfig">The current system configuration.</param>
+    /// <param name="scriptHandler">An <see cref="IScriptHandler"/> implementation.</param>
+    /// <param name="adapters">The child configuration adapters.</param>
+    /// <param name="bypassHasChanges">
+    /// <inheritdoc cref="ConfigurationAdapter(bool, bool)" path="/param[@name='bypassHasChanges']"/>
+    /// </param>
+    /// <param name="bypassApplyConfig">
+    /// <inheritdoc cref="ConfigurationAdapter(bool, bool)" path="/param[@name='bypassApplyConfig']"/>
+    /// </param>
+    internal NetworkConfigurationAdapter(
+        SystemConfiguration currentConfig,
+        IScriptHandler scriptHandler,
+        IReadOnlyList<ConfigurationAdapter<NetworkConfigurationAdapter>> adapters,
+        bool bypassHasChanges,
+        bool bypassApplyConfig)
+        : base(bypassHasChanges, bypassApplyConfig)
     {
         _currentConfig = currentConfig;
         _scriptHandler = scriptHandler;
-
-        _adapters.Add(
-            new NetworkInterfacesConfigurationAdapter(
-                scriptHandler,
-                bypassHasChanges,
-                bypassApplyConfig));
-
-        _adapters.Add(
-            new NetworkDNSConfigurationAdapter(
-                currentConfig,
-                scriptHandler,
-                bypassHasChanges,
-                bypassApplyConfig));
+        _adapters = adapters;
     }
 
     protected internal override async Task<Result> GetConfiguration(

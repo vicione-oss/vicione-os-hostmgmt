@@ -101,15 +101,12 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
         SystemConfiguration config,
         CancellationToken cancellationToken)
     {
-        if (config.NetworkInterfaces is null ||
-            config.NetworkInterfaces.Count < 1)
-        {
+        if (config.NetworkInterfaces is not { } networkInterfaces || networkInterfaces.Count < 1)
             return Result.SuccessResult;
-        }
 
         var combinedResult = Result.SuccessResult;
 
-        foreach (var proposedInterface in config.NetworkInterfaces)
+        foreach (var proposedInterface in networkInterfaces)
         {
             var interfaceName = proposedInterface.CommonInformation?.Name ?? string.Empty;
 
@@ -153,16 +150,16 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
         if (vlanSettings is null)
             return;
 
-        if (vlanSettings.Enabled.HasValue && vlanSettings.ID.HasValue)
+        if (vlanSettings.Enabled is not bool enabled ||
+            !enabled ||
+            vlanSettings.ID is not int id)
         {
-            if (vlanSettings.Enabled.Value)
-            {
-                // TODO Remove "if check" around Enabled and ID script options when implemented and uncomment
-                // scriptOptions.Add(ScriptOptionNames.Network.VLANEnabled, vlanSettings.Enabled.Value);
-
-                scriptOptions.Add(ScriptOptionNames.Network.VLANID, vlanSettings.ID.Value);
-            }
+            return;
         }
+
+        // TODO Uncomment when VLAN enabled functionality is implemented
+        // scriptOptions.Add(ScriptOptionNames.Network.VLANEnabled, vlanSettings.Enabled.Value);
+        scriptOptions.Add(ScriptOptionNames.Network.VLANID, id);
     }
 
     private static void AddInterfaceNameScriptOption(ScriptOptions scriptOptions, string interfaceName)
@@ -181,35 +178,39 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
 
     private static void AddInterfaceEnabledScriptOption(ScriptOptions scriptOptions, bool? enabled)
     {
-        if (enabled.HasValue)
-            scriptOptions.Add(ScriptOptionNames.Network.Enabled, enabled.Value);
+        if (enabled is not bool interfaceEnabled)
+            return;
+
+        scriptOptions.Add(ScriptOptionNames.Network.Enabled, interfaceEnabled);
     }
 
     private static void AddIPv4ScriptOptions(ScriptOptions scriptOptions, IPv4Settings? ipv4Settings)
     {
-        if (ipv4Settings is not null && ipv4Settings.DHCPEnabled.HasValue)
+        if (ipv4Settings is not { } ipv4)
+            return;
+
+        if (ipv4.DHCPEnabled is not bool dhcpEnabled)
+            return;
+
+        scriptOptions.Add(ScriptOptionNames.Network.DHCPEnabled, dhcpEnabled);
+
+        for (var i = 0; i < ipv4Settings.IPv4Details?.Count; i++)
         {
-            scriptOptions.Add(ScriptOptionNames.Network.DHCPEnabled, ipv4Settings.DHCPEnabled.Value);
+            scriptOptions.Add(
+                ScriptOptionNames.Network.IPAddress,
+                IPUtilities.ConvertToCIDR(
+                    ipv4Settings.IPv4Details[i].IPAddress,
+                    ipv4Settings.IPv4Details[i].Netmask));
 
-            for (var i = 0; i < ipv4Settings.IPv4Details?.Count; i++)
-            {
-                scriptOptions.Add(
-                    ScriptOptionNames.Network.IPAddress,
-                    IPUtilities.ConvertToCIDR(
-                        ipv4Settings.IPv4Details[i].IPAddress,
-                        ipv4Settings.IPv4Details[i].Netmask));
+            if (i != 0)
+                continue;
 
-                if (i == 0 &&
-                    ipv4Settings.Gateway is not null)
-                {
-                    scriptOptions.Add(ScriptOptionNames.Network.Gateway, ipv4Settings.Gateway);
-                }
-            }
+            if (ipv4Settings.Gateway is { } gateway)
+                scriptOptions.Add(ScriptOptionNames.Network.Gateway, gateway);
         }
     }
 
-    private async Task<(Result, IPv4Settings?, VLANSettings?)> GetInterfaceIPv4AndVLANSettings(
-        string interfaceName)
+    private async Task<(Result, IPv4Settings?, VLANSettings?)> GetInterfaceIPv4AndVLANSettings(string interfaceName)
     {
         var (result, ipv4, vlan) = await _scriptHandler
             .ExecuteGetInterfaceSettingsScript(interfaceName)

@@ -70,24 +70,21 @@ internal sealed class ServiceConfigurationAdapter(
     private protected override async Task<Result> ApplyConfiguration(
         SystemConfiguration config,
         CancellationToken cancellationToken)
-            => await ConfigureServices(config.Services).ConfigureAwait(false);
-
-    private async Task<Result> ConfigureServices(List<ServiceDetail>? services)
     {
-        var combinedResult = Result.SuccessResult;
+        if (config.Services is not { } services)
+            return Result.SuccessResult;
 
-        if (services is not null)
+        var result = Result.SuccessResult;
+
+        foreach (var service in services)
         {
-            foreach (var service in services)
-            {
-                combinedResult.AddResult(await SetServiceState(service.Name, service.State).ConfigureAwait(false));
+            result.AddResult(await SetServiceState(service.Name, service.State).ConfigureAwait(false));
 
-                if (combinedResult.OperationStatus is OperationStatus.Error)
-                    return combinedResult;
-            }
+            if (result.OperationStatus is OperationStatus.Error)
+                return result;
         }
 
-        return combinedResult;
+        return result;
     }
 
     private async Task<Result> SetServiceState(string serviceName, ServiceState serviceState)

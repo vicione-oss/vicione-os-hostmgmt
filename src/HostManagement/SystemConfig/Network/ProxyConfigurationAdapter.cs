@@ -86,13 +86,14 @@ internal sealed class ProxyConfigurationAdapter(
 
         static void UnescapeNetworkProxyDetailAuthentication(NetworkProxyDetail? networkProxyDetail)
         {
-            if (networkProxyDetail is not null &&
-                networkProxyDetail.Username is not null &&
-                networkProxyDetail.Password is not null)
-            {
-                networkProxyDetail.Username = Uri.UnescapeDataString(networkProxyDetail.Username);
-                networkProxyDetail.Password = Uri.UnescapeDataString(networkProxyDetail.Password);
-            }
+            if (networkProxyDetail is not { } proxyDetail)
+                return;
+
+            if (proxyDetail.Username is null || proxyDetail.Password is null)
+                return;
+
+            proxyDetail.Username = Uri.UnescapeDataString(proxyDetail.Username);
+            proxyDetail.Password = Uri.UnescapeDataString(proxyDetail.Password);
         }
     }
 
@@ -145,15 +146,15 @@ internal sealed class ProxyConfigurationAdapter(
         if (proposedProxyDetail is null)
             return Result.SuccessResult;
 
-        if (!proposedProxyDetail.Equals(new NetworkProxyDetail()) &&
-            !EqualityComparer<NetworkProxyDetail>.Default.Equals(proposedProxyDetail, currentProxyDetail))
-        {
-            return await _scriptHandler
-                .ExecuteSetNetworkProxySettingsScript(GetProxyScriptOptions(proposedProxyDetail))
-                .ConfigureAwait(false);
-        }
+        if (proposedProxyDetail.Equals(new NetworkProxyDetail()))
+            return Result.SuccessResult;
 
-        return Result.SuccessResult;
+        if (proposedProxyDetail.Equals(currentProxyDetail))
+            return Result.SuccessResult;
+
+        return await _scriptHandler
+            .ExecuteSetNetworkProxySettingsScript(GetProxyScriptOptions(proposedProxyDetail))
+            .ConfigureAwait(false);
     }
 
     private static ScriptOptions GetProxyScriptOptions(NetworkProxyDetail proxyDetail)
@@ -187,24 +188,21 @@ internal sealed class ProxyConfigurationAdapter(
         if (proposedNoProxy is null)
             return Result.SuccessResult;
 
-        if (proposedNoProxy.Enabled.HasValue &&
-            proposedNoProxy.Entries is not null &&
-            (
-                !EqualityComparer<string>.Default.SequenceEqual(proposedNoProxy.Entries, currentNoProxy?.Entries) ||
-                !EqualityComparer<bool?>.Default.Equals(proposedNoProxy.Enabled, currentNoProxy?.Enabled)
-            ))
+        if (proposedNoProxy.Enabled is not bool enabled)
+            return Result.SuccessResult;
+
+        if (proposedNoProxy.Entries is not { } entries)
+            return Result.SuccessResult;
+
+        if (EqualityComparer<string>.Default.SequenceEqual(entries, currentNoProxy?.Entries) &&
+            EqualityComparer<bool?>.Default.Equals(enabled, currentNoProxy?.Enabled))
         {
-            var scriptOptions = GetNoProxyListScriptOptions(proposedNoProxy.Entries, proposedNoProxy.Enabled.Value);
-
-            var result = await _scriptHandler
-                .ExecuteSetNetworkProxySettingsScript(scriptOptions)
-                .ConfigureAwait(false);
-
-            if (result.OperationStatus is OperationStatus.Error)
-                return result;
+            return Result.SuccessResult;
         }
 
-        return Result.SuccessResult;
+        var scriptOptions = GetNoProxyListScriptOptions(proposedNoProxy.Entries, proposedNoProxy.Enabled.Value);
+
+        return await _scriptHandler.ExecuteSetNetworkProxySettingsScript(scriptOptions).ConfigureAwait(false);
     }
 
     private static ScriptOptions GetNoProxyListScriptOptions(List<string> noProxyList, bool noProxyListEnabled)
@@ -260,9 +258,7 @@ internal sealed class ProxyConfigurationAdapter(
         return noProxyListStringBuilder.ToString().TrimEnd(',');
     }
 
-    private static bool HasItemZoneIdentifier(ReadOnlySpan<char> noProxyItem)
-        => noProxyItem.Contains('%');
+    private static bool HasItemZoneIdentifier(ReadOnlySpan<char> noProxyItem) => noProxyItem.Contains('%');
 
-    private static bool HasItemPort(ReadOnlySpan<char> noProxyItem)
-        => noProxyItem.StartsWith('[');
+    private static bool HasItemPort(ReadOnlySpan<char> noProxyItem) => noProxyItem.StartsWith('[');
 }

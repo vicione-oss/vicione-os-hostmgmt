@@ -9,17 +9,17 @@ using Xunit;
 
 namespace HostManagement.Tests.SystemConfig.Network;
 
-public class NetworkDNSConfigurationAdapterTests
+public sealed class NetworkDNSConfigurationAdapterTests
 {
     private const string RawInterfacesString =
         "lan1            UP             00:50:56:36:6d:33 <BROADCAST,MULTICAST,UP,LOWER_UP>";
 
     private static NetworkDNSConfigurationAdapter CreateSut(
         SystemConfiguration current,
-        IScriptHandler scriptHandler,
+        IScriptHandler handler,
         bool bypassHasChanges = false,
         bool bypassApply = false)
-            => new(current, scriptHandler, bypassHasChanges, bypassApply);
+           => new(current, handler, bypassHasChanges, bypassApply);
 
     public sealed class GetConfiguration
     {
@@ -27,24 +27,25 @@ public class NetworkDNSConfigurationAdapterTests
         public async Task ShouldReturnError_WhenScriptFails()
         {
             // Arrange
-            var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler.ExecuteGetNetworkDNSSettingsScript().Returns((Result.ErrorResult, new()));
+            var handler = Substitute.For<IScriptHandler>();
+            handler.ExecuteGetNetworkDNSSettingsScript().Returns((Result.ErrorResult, new()));
 
             var current = new SystemConfiguration();
             var config = new SystemConfiguration();
             var dnsSettings = config.NetworkDNSSettings;
-            var sut = CreateSut(current, scriptHandler);
+            var sut = CreateSut(current, handler);
 
-            // Act + Assert
+            // Act
             var result = await sut.GetConfiguration(config, CancellationToken.None);
 
+            // Assert
             result.OperationStatus.Should().Be(OperationStatus.Error);
             result.Messages.Should().Contain(Result.ErrorMessage);
             config.NetworkDNSSettings.Should().BeSameAs(dnsSettings);
         }
 
         [Fact]
-        public async Task ShouldPopulate_WhenSuccess()
+        public async Task ShouldPopulateSettings_WhenScriptSucceeds()
         {
             // Arrange
             var dnsSettings = new NetworkDNSSettings()
@@ -57,16 +58,17 @@ public class NetworkDNSConfigurationAdapterTests
                 Hostname = "host"
             };
 
-            var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler.ExecuteGetNetworkDNSSettingsScript().Returns((Result.SuccessResult, dnsSettings));
+            var handler = Substitute.For<IScriptHandler>();
+            handler.ExecuteGetNetworkDNSSettingsScript().Returns((Result.SuccessResult, dnsSettings));
 
             var current = new SystemConfiguration();
             var config = new SystemConfiguration();
-            var sut = CreateSut(current, scriptHandler);
+            var sut = CreateSut(current, handler);
 
-            // Act + Assert
+            // Act
             var result = await sut.GetConfiguration(config, CancellationToken.None);
 
+            // Assert
             result.OperationStatus.Should().Be(OperationStatus.Success);
             config.NetworkDNSSettings.Should().Be(dnsSettings);
         }
@@ -75,21 +77,26 @@ public class NetworkDNSConfigurationAdapterTests
     public sealed class HasChanges
     {
         [Fact]
-        public void ShouldBeFalse_WhenEqual()
+        public void ShouldReturnFalse_WhenConfigurationsEqual()
         {
-            var scriptHandler = Substitute.For<IScriptHandler>();
+            // Arrange
+            var handler = Substitute.For<IScriptHandler>();
             var current = new SystemConfiguration();
             var proposed = new SystemConfiguration();
-            var sut = CreateSut(current, scriptHandler);
+            var sut = CreateSut(current, handler);
 
-            sut.HasChanges(current, proposed).Should().BeFalse();
+            // Act
+            var result = sut.HasChanges(current, proposed);
+
+            // Assert
+            result.Should().BeFalse();
         }
 
         [Fact]
-        public void ShouldBeTrue_WhenInterfacesDifferent()
+        public void ShouldReturnTrue_WhenNetworkInterfacesDiffer()
         {
             // Arrange
-            var scriptHandler = Substitute.For<IScriptHandler>();
+            var handler = Substitute.For<IScriptHandler>();
             var current = new SystemConfiguration();
             var proposed = new SystemConfiguration()
             {
@@ -103,33 +110,45 @@ public class NetworkDNSConfigurationAdapterTests
                 ]
             };
 
-            // Act + Assert
-            var sut = CreateSut(current, scriptHandler);
-            sut.HasChanges(current, proposed).Should().BeTrue();
+            var sut = CreateSut(current, handler);
+
+            // Act
+            var result = sut.HasChanges(current, proposed);
+
+            // Assert
+            result.Should().BeTrue();
         }
 
         [Fact]
-        public void ShouldBeTrue_WhenDNSDifferent()
+        public void ShouldReturnTrue_WhenNetworkDNSSettingsDiffer()
         {
             // Arrange
-            var scriptHandler = Substitute.For<IScriptHandler>();
+            var handler = Substitute.For<IScriptHandler>();
             var current = new SystemConfiguration();
             var proposed = new SystemConfiguration() { NetworkDNSSettings = new() { Hostname = "new" } };
+            var sut = CreateSut(current, handler);
 
-            // Act + Assert
-            var sut = CreateSut(current, scriptHandler);
-            sut.HasChanges(current, proposed).Should().BeTrue();
+            // Act
+            var result = sut.HasChanges(current, proposed);
+
+            // Assert
+            result.Should().BeTrue();
         }
 
         [Fact]
-        public void ShouldBeTrue_WhenBypassHasChangesFlagTrue()
+        public void ShouldReturnTrue_WhenChangeCheckBypassed()
         {
-            var scriptHandler = Substitute.For<IScriptHandler>();
+            // Arrange
+            var handler = Substitute.For<IScriptHandler>();
             var current = new SystemConfiguration();
             var proposed = new SystemConfiguration();
-            var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
+            var sut = CreateSut(current, handler, bypassHasChanges: true);
 
-            sut.HasChanges(current, proposed).Should().BeTrue();
+            // Act
+            var result = sut.HasChanges(current, proposed);
+
+            // Assert
+            result.Should().BeTrue();
         }
     }
 
@@ -168,152 +187,157 @@ public class NetworkDNSConfigurationAdapterTests
         private static readonly SystemConfiguration s_proposed = new() { NetworkDNSSettings = s_proposedDNS };
 
         [Fact]
-        public async Task ShouldReturnError_WhenSetMulticastReturnsErrorFromGetInterfacesCall()
+        public async Task ShouldReturnError_WhenGettingInterfacesForMulticastDNSFails()
         {
             // Arrange
-            var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler.ExecuteGetNetworkInterfacesScript().Returns((Result.ErrorResult, ""));
+            var handler = Substitute.For<IScriptHandler>();
+            handler.ExecuteGetNetworkInterfacesScript().Returns((Result.ErrorResult, ""));
 
             var current = new SystemConfiguration();
-            var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
+            var sut = CreateSut(current, handler, bypassHasChanges: true);
 
-            // Act + Assert
+            // Act
             var result = await sut.SetConfiguration(s_proposed, CancellationToken.None);
 
+            // Assert
             result.OperationStatus.Should().Be(OperationStatus.Error);
             result.Messages.Should().Contain(Result.ErrorMessage);
 
-            _ = await scriptHandler.DidNotReceive().ExecuteSetNetworkMulticastDNSSettingsScript(Arg.Any<ScriptOptions>());
-            _ = await scriptHandler.DidNotReceive().ExecuteSetStaticHostsScript(Arg.Any<ScriptOptions>());
-            _ = await scriptHandler.DidNotReceive().ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>());
-            _ = await scriptHandler.DidNotReceive().ExecuteSetHostnameScript(Arg.Any<string>());
+            _ = await handler.DidNotReceive().ExecuteSetNetworkMulticastDNSSettingsScript(Arg.Any<ScriptOptions>());
+            _ = await handler.DidNotReceive().ExecuteSetStaticHostsScript(Arg.Any<ScriptOptions>());
+            _ = await handler.DidNotReceive().ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>());
+            _ = await handler.DidNotReceive().ExecuteSetHostnameScript(Arg.Any<string>());
         }
 
         [Fact]
-        public async Task ShouldReturnError_WhenSetMulticastReturnsError()
+        public async Task ShouldReturnError_WhenSettingMulticastDNSFails()
         {
             // Arrange
-            var scriptHandler = Substitute.For<IScriptHandler>();
+            var handler = Substitute.For<IScriptHandler>();
 
-            scriptHandler
+            handler
                 .ExecuteGetNetworkInterfacesScript()
                 .Returns((Result.SuccessResult, RawInterfacesString));
 
-            scriptHandler
+            handler
                 .ExecuteSetNetworkMulticastDNSSettingsScript(Arg.Any<ScriptOptions>())
                 .Returns(Result.ErrorResult);
 
             var current = new SystemConfiguration();
-            var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
+            var sut = CreateSut(current, handler, bypassHasChanges: true);
 
-            // Act + Assert
+            // Act
             var result = await sut.SetConfiguration(s_proposed, CancellationToken.None);
 
+            // Assert
             result.OperationStatus.Should().Be(OperationStatus.Error);
             result.Messages.Should().Contain(Result.ErrorMessage);
 
-            _ = await scriptHandler.DidNotReceive().ExecuteSetStaticHostsScript(Arg.Any<ScriptOptions>());
-            _ = await scriptHandler.DidNotReceive().ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>());
-            _ = await scriptHandler.DidNotReceive().ExecuteSetHostnameScript(Arg.Any<string>());
+            _ = await handler.DidNotReceive().ExecuteSetStaticHostsScript(Arg.Any<ScriptOptions>());
+            _ = await handler.DidNotReceive().ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>());
+            _ = await handler.DidNotReceive().ExecuteSetHostnameScript(Arg.Any<string>());
         }
 
         [Fact]
-        public async Task ShouldReturnError_WhenSetStaticHostsReturnsError()
+        public async Task ShouldReturnError_WhenSettingStaticHostsFails()
         {
             // Arrange
-            var scriptHandler = Substitute.For<IScriptHandler>();
+            var handler = Substitute.For<IScriptHandler>();
 
-            scriptHandler
+            handler
                 .ExecuteGetNetworkInterfacesScript()
                 .Returns((Result.SuccessResult, RawInterfacesString));
 
-            scriptHandler
+            handler
                 .ExecuteSetNetworkMulticastDNSSettingsScript(Arg.Any<ScriptOptions>())
                 .Returns(Result.SuccessResult);
 
-            scriptHandler
+            handler
                 .ExecuteSetStaticHostsScript(Arg.Any<ScriptOptions>())
                 .Returns(Result.ErrorResult);
 
             var current = new SystemConfiguration();
-            var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
+            var sut = CreateSut(current, handler, bypassHasChanges: true);
 
-            // Act + Assert
+            // Act
             var result = await sut.SetConfiguration(s_proposed, CancellationToken.None);
 
+            // Assert
             result.OperationStatus.Should().Be(OperationStatus.Error);
             result.Messages.Should().Contain(Result.ErrorMessage);
 
-            _ = await scriptHandler.DidNotReceive().ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>());
-            _ = await scriptHandler.DidNotReceive().ExecuteSetHostnameScript(Arg.Any<string>());
+            _ = await handler.DidNotReceive().ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>());
+            _ = await handler.DidNotReceive().ExecuteSetHostnameScript(Arg.Any<string>());
         }
 
         [Fact]
-        public async Task ShouldReturnError_WhenSetDNSReturnsError()
+        public async Task ShouldReturnError_WhenSettingDNSFails()
         {
             // Arrange
-            var scriptHandler = Substitute.For<IScriptHandler>();
+            var handler = Substitute.For<IScriptHandler>();
 
-            scriptHandler
+            handler
                 .ExecuteGetNetworkInterfacesScript()
                 .Returns((Result.SuccessResult, RawInterfacesString));
 
-            scriptHandler
+            handler
                 .ExecuteSetNetworkMulticastDNSSettingsScript(Arg.Any<ScriptOptions>())
                 .Returns(Result.SuccessResult);
 
-            scriptHandler
+            handler
                 .ExecuteSetStaticHostsScript(Arg.Any<ScriptOptions>())
                 .Returns(Result.SuccessResult);
 
-            scriptHandler
+            handler
                 .ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>())
                 .Returns(Result.ErrorResult);
 
             var current = new SystemConfiguration();
-            var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
+            var sut = CreateSut(current, handler, bypassHasChanges: true);
 
-            // Act + Assert
+            // Act
             var result = await sut.SetConfiguration(s_proposed, CancellationToken.None);
 
+            // Assert
             result.OperationStatus.Should().Be(OperationStatus.Error);
             result.Messages.Should().Contain(Result.ErrorMessage);
 
-            _ = await scriptHandler.DidNotReceive().ExecuteSetHostnameScript(Arg.Any<string>());
+            _ = await handler.DidNotReceive().ExecuteSetHostnameScript(Arg.Any<string>());
         }
 
         [Fact]
-        public async Task ShouldReturnError_WhenSetHostnameReturnsError()
+        public async Task ShouldReturnError_WhenSettingHostnameFails()
         {
             // Arrange
-            var scriptHandler = Substitute.For<IScriptHandler>();
+            var handler = Substitute.For<IScriptHandler>();
 
-            scriptHandler
+            handler
                 .ExecuteGetNetworkInterfacesScript()
                 .Returns((Result.SuccessResult, RawInterfacesString));
 
-            scriptHandler
+            handler
                 .ExecuteSetNetworkMulticastDNSSettingsScript(Arg.Any<ScriptOptions>())
                 .Returns(Result.SuccessResult);
 
-            scriptHandler
+            handler
                 .ExecuteSetStaticHostsScript(Arg.Any<ScriptOptions>())
                 .Returns(Result.SuccessResult);
 
-            scriptHandler
+            handler
                 .ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>())
                 .Returns(Result.SuccessResult);
 
-            scriptHandler
+            handler
                 .ExecuteSetHostnameScript(Arg.Any<string>())
                 .Returns(Result.ErrorResult);
 
             var current = new SystemConfiguration();
-            var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
+            var sut = CreateSut(current, handler, bypassHasChanges: true);
 
-            // Act + Assert
+            // Act
             var result = await sut.SetConfiguration(s_proposed, CancellationToken.None);
 
+            // Assert
             result.OperationStatus.Should().Be(OperationStatus.Error);
             result.Messages.Should().Contain(Result.ErrorMessage);
         }
@@ -322,10 +346,10 @@ public class NetworkDNSConfigurationAdapterTests
         public async Task ShouldReturnSuccess_WhenNetworkDNSSettingsNull()
         {
             // Arrange
-            var scriptHandler = Substitute.For<IScriptHandler>();
+            var handler = Substitute.For<IScriptHandler>();
             var current = new SystemConfiguration();
             var proposed = new SystemConfiguration() { NetworkDNSSettings = null };
-            var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
+            var sut = CreateSut(current, handler, bypassHasChanges: true);
 
             // Act
             var result = await sut.SetConfiguration(proposed, CancellationToken.None);
@@ -334,44 +358,44 @@ public class NetworkDNSConfigurationAdapterTests
             result.OperationStatus.Should().Be(OperationStatus.Success);
             result.Messages.Should().BeEmpty();
 
-            _ = await scriptHandler.DidNotReceive().ExecuteGetNetworkInterfacesScript();
-            _ = await scriptHandler.DidNotReceive().ExecuteSetNetworkMulticastDNSSettingsScript(Arg.Any<ScriptOptions>());
-            _ = await scriptHandler.DidNotReceive().ExecuteSetStaticHostsScript(Arg.Any<ScriptOptions>());
-            _ = await scriptHandler.DidNotReceive().ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>());
-            _ = await scriptHandler.DidNotReceive().ExecuteSetHostnameScript(Arg.Any<string>());
+            _ = await handler.DidNotReceive().ExecuteGetNetworkInterfacesScript();
+            _ = await handler.DidNotReceive().ExecuteSetNetworkMulticastDNSSettingsScript(Arg.Any<ScriptOptions>());
+            _ = await handler.DidNotReceive().ExecuteSetStaticHostsScript(Arg.Any<ScriptOptions>());
+            _ = await handler.DidNotReceive().ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>());
+            _ = await handler.DidNotReceive().ExecuteSetHostnameScript(Arg.Any<string>());
         }
 
         [Fact]
-        public async Task ShouldReturnSuccess_WhenDNSSettingsConfiguredSuccessfully()
+        public async Task ShouldReturnSuccess_WhenAllDNSSettingsScriptsSucceed()
         {
             // Arrange
-            List<ScriptOptions> captured = [];
-            string? hostnameCaptured = default;
+            List<ScriptOptions> capturedOptions = [];
+            string? capturedHostname = default;
 
-            var scriptHandler = Substitute.For<IScriptHandler>();
+            var handler = Substitute.For<IScriptHandler>();
 
-            scriptHandler
+            handler
                 .ExecuteGetNetworkInterfacesScript()
                 .Returns((Result.SuccessResult, RawInterfacesString));
 
-            scriptHandler
-                .ExecuteSetNetworkMulticastDNSSettingsScript(Arg.Do<ScriptOptions>(captured.Add))
+            handler
+                .ExecuteSetNetworkMulticastDNSSettingsScript(Arg.Do<ScriptOptions>(capturedOptions.Add))
                 .Returns(Result.SuccessResult);
 
-            scriptHandler
-                .ExecuteSetStaticHostsScript(Arg.Do<ScriptOptions>(captured.Add))
+            handler
+                .ExecuteSetStaticHostsScript(Arg.Do<ScriptOptions>(capturedOptions.Add))
                 .Returns(Result.SuccessResult);
 
-            scriptHandler
-                .ExecuteSetNetworkDNSSettingsScript(Arg.Do<ScriptOptions>(captured.Add))
+            handler
+                .ExecuteSetNetworkDNSSettingsScript(Arg.Do<ScriptOptions>(capturedOptions.Add))
                 .Returns(Result.SuccessResult);
 
-            scriptHandler
-                .ExecuteSetHostnameScript(Arg.Do<string>(so => hostnameCaptured = so))
+            handler
+                .ExecuteSetHostnameScript(Arg.Do<string>(so => capturedHostname = so))
                 .Returns(Result.SuccessResult);
 
             var current = new SystemConfiguration();
-            var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
+            var sut = CreateSut(current, handler, bypassHasChanges: true);
 
             // Act
             var result = await sut.SetConfiguration(s_proposed, CancellationToken.None);
@@ -380,10 +404,10 @@ public class NetworkDNSConfigurationAdapterTests
             result.OperationStatus.Should().Be(OperationStatus.Success);
             result.Messages.Should().BeEmpty();
 
-            hostnameCaptured.Should().NotBeNull();
-            hostnameCaptured.Should().Be("newhost");
+            capturedHostname.Should().NotBeNull();
+            capturedHostname.Should().Be("newhost");
 
-            captured.Should().HaveCount(3).And.SatisfyRespectively(
+            capturedOptions.Should().HaveCount(3).And.SatisfyRespectively(
                 so => so.Options.Should().ContainInOrder(
                     ScriptOptionNames.NetworkMulticastDNS.MulticastDNSEnabled, "true",
                     ScriptOptionNames.NetworkMulticastDNS.Interfaces, RawInterfacesString),
@@ -408,19 +432,20 @@ public class NetworkDNSConfigurationAdapterTests
             public async Task ShouldNotCallMulticastScript_WhenMulticastEnabledIsNull()
             {
                 // Arrange
-                var scriptHandler = Substitute.For<IScriptHandler>();
+                var handler = Substitute.For<IScriptHandler>();
                 var current = new SystemConfiguration();
                 var proposed = new SystemConfiguration() { NetworkDNSSettings = new() { MulticastDNSEnabled = null } };
-                var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
+                var sut = CreateSut(current, handler, bypassHasChanges: true);
 
-                // Act + Assert
+                // Act
                 var result = await sut.SetConfiguration(proposed, CancellationToken.None);
 
+                // Assert
                 result.OperationStatus.Should().Be(OperationStatus.Success);
                 result.Messages.Should().BeEmpty();
 
-                _ = await scriptHandler.DidNotReceive().ExecuteGetNetworkInterfacesScript();
-                _ = await scriptHandler.DidNotReceive().ExecuteSetNetworkMulticastDNSSettingsScript(Arg.Any<ScriptOptions>());
+                _ = await handler.DidNotReceive().ExecuteGetNetworkInterfacesScript();
+                _ = await handler.DidNotReceive().ExecuteSetNetworkMulticastDNSSettingsScript(Arg.Any<ScriptOptions>());
             }
 
             [Theory]
@@ -429,7 +454,7 @@ public class NetworkDNSConfigurationAdapterTests
             public async Task ShouldNotCallMulticastScript_WhenMulticastEnabledUnchanged(bool multicastEnabled)
             {
                 // Arrange
-                var scriptHandler = Substitute.For<IScriptHandler>();
+                var handler = Substitute.For<IScriptHandler>();
 
                 var current = new SystemConfiguration()
                 {
@@ -440,16 +465,17 @@ public class NetworkDNSConfigurationAdapterTests
                     NetworkDNSSettings = new() { MulticastDNSEnabled = multicastEnabled }
                 };
 
-                var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
+                var sut = CreateSut(current, handler, bypassHasChanges: true);
 
-                // Act + Assert
+                // Act
                 var result = await sut.SetConfiguration(proposed, CancellationToken.None);
 
+                // Assert
                 result.OperationStatus.Should().Be(OperationStatus.Success);
                 result.Messages.Should().BeEmpty();
 
-                _ = await scriptHandler.DidNotReceive().ExecuteGetNetworkInterfacesScript();
-                _ = await scriptHandler.DidNotReceive().ExecuteSetNetworkMulticastDNSSettingsScript(Arg.Any<ScriptOptions>());
+                _ = await handler.DidNotReceive().ExecuteGetNetworkInterfacesScript();
+                _ = await handler.DidNotReceive().ExecuteSetNetworkMulticastDNSSettingsScript(Arg.Any<ScriptOptions>());
             }
         }
 
@@ -459,7 +485,7 @@ public class NetworkDNSConfigurationAdapterTests
             public async Task ShouldNotCallStaticHostsScript_WhenEnabledNull()
             {
                 // Arrange
-                var scriptHandler = Substitute.For<IScriptHandler>();
+                var handler = Substitute.For<IScriptHandler>();
                 var current = new SystemConfiguration();
                 var proposed = new SystemConfiguration()
                 {
@@ -473,26 +499,27 @@ public class NetworkDNSConfigurationAdapterTests
                     }
                 };
 
-                var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
+                var sut = CreateSut(current, handler, bypassHasChanges: true);
 
-                // Act + Assert
+                // Act
                 var result = await sut.SetConfiguration(proposed, CancellationToken.None);
 
+                // Assert
                 result.OperationStatus.Should().Be(OperationStatus.Success);
                 result.Messages.Should().BeEmpty();
 
-                _ = await scriptHandler.DidNotReceive().ExecuteSetStaticHostsScript(Arg.Any<ScriptOptions>());
+                _ = await handler.DidNotReceive().ExecuteSetStaticHostsScript(Arg.Any<ScriptOptions>());
             }
 
             [Fact]
             public async Task ShouldCallStaticHostsScript_WhenHostsNull()
             {
                 // Arrange
-                ScriptOptions? staticHostsOptionsCaptured = default;
-                var scriptHandler = Substitute.For<IScriptHandler>();
+                ScriptOptions? capturedOptions = default;
+                var handler = Substitute.For<IScriptHandler>();
 
-                scriptHandler
-                    .ExecuteSetStaticHostsScript(Arg.Do<ScriptOptions>(so => staticHostsOptionsCaptured = so))
+                handler
+                    .ExecuteSetStaticHostsScript(Arg.Do<ScriptOptions>(so => capturedOptions = so))
                     .Returns(Result.SuccessResult);
 
                 var current = new SystemConfiguration();
@@ -508,7 +535,7 @@ public class NetworkDNSConfigurationAdapterTests
                     }
                 };
 
-                var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
+                var sut = CreateSut(current, handler, bypassHasChanges: true);
 
                 // Act
                 var result = await sut.SetConfiguration(proposed, CancellationToken.None);
@@ -517,12 +544,12 @@ public class NetworkDNSConfigurationAdapterTests
                 result.OperationStatus.Should().Be(OperationStatus.Success);
                 result.Messages.Should().BeEmpty();
 
-                _ = await scriptHandler.Received().ExecuteSetStaticHostsScript(Arg.Any<ScriptOptions>());
+                _ = await handler.Received().ExecuteSetStaticHostsScript(Arg.Any<ScriptOptions>());
 
-                staticHostsOptionsCaptured.Should().NotBeNull();
-                staticHostsOptionsCaptured.Options.Should().ContainInOrder(ScriptOptionNames.NetworkDNSStaticHosts.Enabled, "true");
-                staticHostsOptionsCaptured.Options.Should().NotContain(ScriptOptionNames.NetworkDNSStaticHosts.IPAddress);
-                staticHostsOptionsCaptured.Options.Should().NotContain(ScriptOptionNames.NetworkDNSStaticHosts.Hostname);
+                capturedOptions.Should().NotBeNull();
+                capturedOptions.Options.Should().ContainInOrder(ScriptOptionNames.NetworkDNSStaticHosts.Enabled, "true");
+                capturedOptions.Options.Should().NotContain(ScriptOptionNames.NetworkDNSStaticHosts.IPAddress);
+                capturedOptions.Options.Should().NotContain(ScriptOptionNames.NetworkDNSStaticHosts.Hostname);
             }
         }
 
@@ -539,6 +566,9 @@ public class NetworkDNSConfigurationAdapterTests
             public async Task ShouldNotAddNameServerOptions_WhenNoNameServerProvided(bool? enabled, string? value)
             {
                 // Arrange
+                var handler = Substitute.For<IScriptHandler>();
+                handler.ExecuteSetHostnameScript("changed").Returns(Result.SuccessResult);
+
                 var current = new SystemConfiguration();
                 var proposed = new SystemConfiguration()
                 {
@@ -557,19 +587,17 @@ public class NetworkDNSConfigurationAdapterTests
                     }
                 };
 
-                var scriptHandler = Substitute.For<IScriptHandler>();
-                scriptHandler.ExecuteSetHostnameScript("changed").Returns(Result.SuccessResult);
+                var sut = CreateSut(current, handler, bypassHasChanges: true);
 
-                var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
-
-                // Act + Assert
+                // Act
                 var result = await sut.SetConfiguration(proposed, CancellationToken.None);
 
+                // Assert
                 result.OperationStatus.Should().Be(OperationStatus.Success);
                 result.Messages.Should().BeEmpty();
 
-                _ = await scriptHandler.DidNotReceive().ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>());
-                _ = await scriptHandler.Received(1).ExecuteSetHostnameScript("changed");
+                _ = await handler.DidNotReceive().ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>());
+                _ = await handler.Received(1).ExecuteSetHostnameScript("changed");
             }
 
             [Theory]
@@ -580,6 +608,9 @@ public class NetworkDNSConfigurationAdapterTests
             public async Task ShouldNotAddSuffixOptions_WhenNoSuffixProvided(bool? enabled, string? value)
             {
                 // Arrange
+                var handler = Substitute.For<IScriptHandler>();
+                handler.ExecuteSetHostnameScript("changed").Returns(Result.SuccessResult);
+
                 var current = new SystemConfiguration();
                 var proposed = new SystemConfiguration()
                 {
@@ -594,19 +625,17 @@ public class NetworkDNSConfigurationAdapterTests
                     }
                 };
 
-                var scriptHandler = Substitute.For<IScriptHandler>();
-                scriptHandler.ExecuteSetHostnameScript("changed").Returns(Result.SuccessResult);
+                var sut = CreateSut(current, handler, bypassHasChanges: true);
 
-                var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
-
-                // Act + Assert
+                // Act
                 var result = await sut.SetConfiguration(proposed, CancellationToken.None);
 
+                // Assert
                 result.OperationStatus.Should().Be(OperationStatus.Success);
                 result.Messages.Should().BeEmpty();
 
-                _ = await scriptHandler.DidNotReceive().ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>());
-                _ = await scriptHandler.Received(1).ExecuteSetHostnameScript("changed");
+                _ = await handler.DidNotReceive().ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>());
+                _ = await handler.Received(1).ExecuteSetHostnameScript("changed");
             }
 
             [Theory]
@@ -620,6 +649,9 @@ public class NetworkDNSConfigurationAdapterTests
             public async Task ShouldNotAddSearchDomainOptions_WhenNoSearchDomainsProvided(bool? enabled, string? value)
             {
                 // Arrange
+                var handler = Substitute.For<IScriptHandler>();
+                handler.ExecuteSetHostnameScript("changed").Returns(Result.SuccessResult);
+
                 var current = new SystemConfiguration();
                 var proposed = new SystemConfiguration()
                 {
@@ -638,19 +670,17 @@ public class NetworkDNSConfigurationAdapterTests
                     }
                 };
 
-                var scriptHandler = Substitute.For<IScriptHandler>();
-                scriptHandler.ExecuteSetHostnameScript("changed").Returns(Result.SuccessResult);
+                var sut = CreateSut(current, handler, bypassHasChanges: true);
 
-                var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
-
-                // Act + Assert
+                // Act
                 var result = await sut.SetConfiguration(proposed, CancellationToken.None);
 
+                // Assert
                 result.OperationStatus.Should().Be(OperationStatus.Success);
                 result.Messages.Should().BeEmpty();
 
-                _ = await scriptHandler.DidNotReceive().ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>());
-                _ = await scriptHandler.Received(1).ExecuteSetHostnameScript("changed");
+                _ = await handler.DidNotReceive().ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>());
+                _ = await handler.Received(1).ExecuteSetHostnameScript("changed");
             }
         }
 
@@ -660,6 +690,8 @@ public class NetworkDNSConfigurationAdapterTests
             public async Task ShouldNotCallHostnameScript_WhenHostnameNull()
             {
                 // Arrange
+                var handler = Substitute.For<IScriptHandler>();
+
                 var current = new SystemConfiguration()
                 {
                     NetworkDNSSettings = new() { Hostname = s_proposedDNS.Hostname }
@@ -670,22 +702,24 @@ public class NetworkDNSConfigurationAdapterTests
                     NetworkDNSSettings = new() { Hostname = null }
                 };
 
-                var scriptHandler = Substitute.For<IScriptHandler>();
-                var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
+                var sut = CreateSut(current, handler, bypassHasChanges: true);
 
-                // Act + Assert
+                // Act
                 var result = await sut.SetConfiguration(proposed, CancellationToken.None);
 
+                // Assert
                 result.OperationStatus.Should().Be(OperationStatus.Success);
                 result.Messages.Should().BeEmpty();
 
-                _ = await scriptHandler.DidNotReceive().ExecuteSetHostnameScript(Arg.Any<string>());
+                _ = await handler.DidNotReceive().ExecuteSetHostnameScript(Arg.Any<string>());
             }
 
             [Fact]
             public async Task ShouldNotCallHostnameScript_WhenHostnameUnchanged()
             {
                 // Arrange
+                var handler = Substitute.For<IScriptHandler>();
+
                 var current = new SystemConfiguration()
                 {
                     NetworkDNSSettings = new() { Hostname = s_proposedDNS.Hostname }
@@ -696,16 +730,16 @@ public class NetworkDNSConfigurationAdapterTests
                     NetworkDNSSettings = new() { Hostname = s_proposedDNS.Hostname }
                 };
 
-                var scriptHandler = Substitute.For<IScriptHandler>();
-                var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
+                var sut = CreateSut(current, handler, bypassHasChanges: true);
 
-                // Act + Assert
+                // Act
                 var result = await sut.SetConfiguration(proposed, CancellationToken.None);
 
+                // Assert
                 result.OperationStatus.Should().Be(OperationStatus.Success);
                 result.Messages.Should().BeEmpty();
 
-                _ = await scriptHandler.DidNotReceive().ExecuteSetHostnameScript(Arg.Any<string>());
+                _ = await handler.DidNotReceive().ExecuteSetHostnameScript(Arg.Any<string>());
             }
         }
     }

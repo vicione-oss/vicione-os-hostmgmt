@@ -7,86 +7,114 @@ using Xunit;
 
 namespace HostManagement.Tests.SystemConfig.Network;
 
-public class NetworkConfigurationAdapterTests
+public sealed class NetworkConfigurationAdapterTests
 {
-    private static NetworkConfigurationAdapter CreateSut(SystemConfiguration current, IScriptHandler handler, bool bypassHasChanges = false)
-        => new(current, handler, bypassHasChanges, false);
+    private static NetworkConfigurationAdapter CreateSut(
+        SystemConfiguration current,
+        IScriptHandler handler,
+        bool bypassHasChanges = false)
+            => new(current, handler, bypassHasChanges, false);
 
     public sealed class HasChanges
     {
         [Fact]
-        public void ShouldBeFalse_WhenEqual()
+        public void ShouldReturnFalse_WhenConfigurationsEqual()
         {
+            // Arrange
             var handler = Substitute.For<IScriptHandler>();
-            SystemConfiguration current = new();
-            SystemConfiguration proposed = new();
+            var current = new SystemConfiguration();
+            var proposed = new SystemConfiguration();
             var sut = CreateSut(current, handler);
 
-            sut.HasChanges(current, proposed).Should().BeFalse();
+            // Act
+            var result = sut.HasChanges(current, proposed);
+
+            // Assert
+            result.Should().BeFalse();
         }
 
         [Fact]
-        public void ShouldBeTrue_WhenInterfacesDifferent()
+        public void ShouldReturnTrue_WhenNetworkInterfacesDiffer()
         {
+            // Arrange
             var handler = Substitute.For<IScriptHandler>();
-            SystemConfiguration current = new();
-            SystemConfiguration proposed = new()
+
+            var current = new SystemConfiguration();
+            var proposed = new SystemConfiguration()
             {
                 NetworkInterfaces =
                 [
                     new()
                     {
                         CommonInformation = new() { Enabled = true, Name = "eth0" },
-                        IPv4 = new()
+                        IPv4 = new(),
+                        VLAN = new()
                     }
                 ]
             };
+
             var sut = CreateSut(current, handler);
 
-            sut.HasChanges(current, proposed).Should().BeTrue();
+            // Act
+            var result = sut.HasChanges(current, proposed);
+
+            // Assert
+            result.Should().BeTrue();
         }
 
         [Fact]
-        public void ShouldBeTrue_WhenDNSDifferent()
+        public void ShouldReturnTrue_WhenNetworkDNSSettingsDiffer()
         {
+            // Arrange
             var handler = Substitute.For<IScriptHandler>();
-            SystemConfiguration current = new();
-            SystemConfiguration proposed = new()
+
+            var current = new SystemConfiguration();
+            var proposed = new SystemConfiguration()
             {
                 NetworkDNSSettings = new()
                 {
                     Hostname = "other"
                 }
             };
+
             var sut = CreateSut(current, handler);
 
-            sut.HasChanges(current, proposed).Should().BeTrue();
+            // Act
+            var result = sut.HasChanges(current, proposed);
+
+            // Assert
+            result.Should().BeTrue();
         }
 
         [Fact]
-        public void ShouldBeTrue_WhenBypassFlagEnabled()
+        public void ShouldReturnTrue_WhenChangeCheckBypassed()
         {
+            // Arrange
             var handler = Substitute.For<IScriptHandler>();
-            SystemConfiguration current = new();
-            SystemConfiguration proposed = new();
+            var current = new SystemConfiguration();
+            var proposed = new SystemConfiguration();
             var sut = CreateSut(current, handler, bypassHasChanges: true);
 
-            sut.HasChanges(current, proposed).Should().BeTrue();
+            // Act
+            var result = sut.HasChanges(current, proposed);
+
+            // Assert
+            result.Should().BeTrue();
         }
     }
 
     public sealed class SetConfiguration
     {
         [Fact]
-        public async Task ShouldApplyNetplan_WhenAnySubAdapterChanged()
+        public async Task ShouldApplyNetplan_WhenAnySubAdapterHasChanges()
         {
             // Arrange
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler.ExecuteSetHostnameScript("new").Returns(Result.SuccessResult);
             scriptHandler.ExecuteApplyNetplanConfigurationScript().Returns(Result.SuccessResult);
 
-            SystemConfiguration current = new();
-            SystemConfiguration proposed = new()
+            var current = new SystemConfiguration();
+            var proposed = new SystemConfiguration()
             {
                 NetworkDNSSettings = new()
                 {
@@ -96,9 +124,10 @@ public class NetworkConfigurationAdapterTests
 
             var sut = CreateSut(current, scriptHandler);
 
-            // Act + Assert
+            // Act
             var result = await sut.SetConfiguration(proposed, CancellationToken.None);
 
+            // Assert
             result.OperationStatus.Should().Be(OperationStatus.Success);
             result.Messages.Should().BeEmpty();
 
@@ -107,8 +136,9 @@ public class NetworkConfigurationAdapterTests
         }
 
         [Fact]
-        public async Task ShouldNotApplyNetplan_WhenNoChanges()
+        public async Task ShouldNotApplyNetplan_WhenConfigurationUnchanged()
         {
+            // Arrange
             var handler = Substitute.For<IScriptHandler>();
             handler.ExecuteApplyNetplanConfigurationScript().Returns(Result.SuccessResult);
 
@@ -116,10 +146,13 @@ public class NetworkConfigurationAdapterTests
             var proposed = new SystemConfiguration();
             var sut = CreateSut(current, handler);
 
+            // Act
             var result = await sut.SetConfiguration(proposed, CancellationToken.None);
 
+            // Assert
             result.OperationStatus.Should().Be(OperationStatus.Success);
             result.Messages.Should().BeEmpty();
+
             await handler.DidNotReceive().ExecuteApplyNetplanConfigurationScript();
         }
     }
