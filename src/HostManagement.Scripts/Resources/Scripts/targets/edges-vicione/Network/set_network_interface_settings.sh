@@ -158,11 +158,11 @@ add_mac_address() {
         if [[ "$USER_DEFINED_MAC_ADDRESS_ENABLED" == "$VALUE_FALSE" ]]; then
             local original_mac_address
 
-            original_mac_address=$(./Scripts/Network/get_original_physical_address.sh "${INTERFACE_NAME}")
+            original_mac_address=$(./Scripts/Network/get_original_physical_address.sh "$INTERFACE_NAME")
             FILE_CONTENT+="${original_mac_address} # "
         fi
 
-        FILE_CONTENT+="${USER_DEFINED_MAC_ADDRESS}"$'\n'
+        FILE_CONTENT+="$USER_DEFINED_MAC_ADDRESS"$'\n'
     fi
 }
 
