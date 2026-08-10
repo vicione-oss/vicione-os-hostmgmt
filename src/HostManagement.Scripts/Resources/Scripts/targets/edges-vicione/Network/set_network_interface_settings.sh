@@ -39,7 +39,8 @@ readonly VALUE_FALSE="false"
 
 readonly FLAG_VLAN_ID="--vlan-id"
 readonly FLAG_INTERFACE_NAME="--interface-name"
-readonly FLAG_MAC_ADDRESS="--mac-address"
+readonly FLAG_USER_DEFINED_MAC_ADDRESS="--user-defined-mac-address"
+readonly FLAG_USER_DEFINED_MAC_ADDRESS_ENABLED="--user-defined-mac-address-enabled"
 readonly FLAG_ENABLED="--enabled"
 readonly FLAG_DHCP_ENABLED="--dhcp-enabled"
 readonly FLAG_IP_ADDRESS="--ip-address"
@@ -58,7 +59,8 @@ DHCP_ENABLED="$VALUE_TRUE"
 IP_ADDRESS_DISABLED_MARKER="#"
 FILE_CONTENT=""
 GATEWAY=""
-MAC_ADDRESS=""
+USER_DEFINED_MAC_ADDRESS=""
+USER_DEFINED_MAC_ADDRESS_ENABLED="$VALUE_FALSE"
 HAS_IP_ADDRESS_BEEN_ADDED="$VALUE_FALSE"
 
 #######################################
@@ -68,25 +70,26 @@ HAS_IP_ADDRESS_BEEN_ADDED="$VALUE_FALSE"
 usage() {
     echo "The order of the parameters must be observed!"
     echo "Usage: $0"
-    echo "  [${FLAG_VLAN_ID} <id>] ${FLAG_INTERFACE_NAME} <name> [${FLAG_MAC_ADDRESS} <address>] ${FLAG_ENABLED} <${VALUE_TRUE}|${VALUE_FALSE}> ${FLAG_DHCP_ENABLED} <${VALUE_TRUE}|${VALUE_FALSE}>"
+    echo "  [${FLAG_VLAN_ID} <id>] ${FLAG_INTERFACE_NAME} <name> [${FLAG_USER_DEFINED_MAC_ADDRESS} <address> ${FLAG_USER_DEFINED_MAC_ADDRESS_ENABLED} <${VALUE_TRUE}|${VALUE_FALSE}>] ${FLAG_ENABLED} <${VALUE_TRUE}|${VALUE_FALSE}> ${FLAG_DHCP_ENABLED} <${VALUE_TRUE}|${VALUE_FALSE}>"
     echo "  [${FLAG_IP_ADDRESS} <ip>/<cidr>] [--gateway <ip>]"
     echo
     echo "Options:"
-    echo "  ${FLAG_VLAN_ID}        - Specifies the VLAN ID to configure for the given network interface. (optional)"
-    echo "  ${FLAG_INTERFACE_NAME} - Specifies the name of the network interface to configure."
-    echo "  ${FLAG_MAC_ADDRESS}    - Sets the MAC address for the given network interface. (optional)"
-    echo "  ${FLAG_ENABLED}        - Enables or disables the given network interface. (optional)"
-    echo "  ${FLAG_DHCP_ENABLED}   - Specifies whether DHCP should be used to obtain an IP address automatically."
-    echo "  ${FLAG_IP_ADDRESS}     - Specifies the static IP address to assign to the given network interface."
-    echo "                     Must be provided in CIDR notation if DHCP is disabled. (optional)"
-    echo "  ${FLAG_GATEWAY}        - Specifies the default gateway IP address to use for this network interface. (optional)"
+    echo "  ${FLAG_VLAN_ID}                          - Specifies the VLAN ID to configure for the given network interface. (optional)"
+    echo "  ${FLAG_INTERFACE_NAME}                   - Specifies the name of the network interface to configure."
+    echo "  ${FLAG_USER_DEFINED_MAC_ADDRESS}         - Sets the MAC address for the given network interface. (optional)"
+    echo "  ${FLAG_USER_DEFINED_MAC_ADDRESS_ENABLED} - Activates the given MAC address. (optional)"
+    echo "  ${FLAG_ENABLED}                          - Enables or disables the given network interface. (optional)"
+    echo "  ${FLAG_DHCP_ENABLED}                     - Specifies whether DHCP should be used to obtain an IP address automatically."
+    echo "  ${FLAG_IP_ADDRESS}                       - Specifies the static IP address to assign to the given network interface."
+    echo "                                       Must be provided in CIDR notation if DHCP is disabled. (optional)"
+    echo "  ${FLAG_GATEWAY}                          - Specifies the default gateway IP address to use for this network interface. (optional)"
     echo
     echo "Examples:"
     echo "$0"
-    echo "  [${FLAG_VLAN_ID} 10] ${FLAG_INTERFACE_NAME} ens33 [${FLAG_MAC_ADDRESS} aa:bb:cc:dd:ee:ff] ${FLAG_ENABLED} ${VALUE_TRUE} ${FLAG_DHCP_ENABLED} ${VALUE_TRUE}"
-    echo 
+    echo "  [${FLAG_VLAN_ID} 10] ${FLAG_INTERFACE_NAME} ens33 [${FLAG_USER_DEFINED_MAC_ADDRESS} aa:bb:cc:dd:ee:ff ${FLAG_USER_DEFINED_MAC_ADDRESS_ENABLED} ${VALUE_TRUE}] ${FLAG_ENABLED} ${VALUE_TRUE} ${FLAG_DHCP_ENABLED} ${VALUE_TRUE}"
+    echo
     echo "$0"
-    echo "  [${FLAG_VLAN_ID} 10] ${FLAG_INTERFACE_NAME} ens33 [${FLAG_MAC_ADDRESS} aa:bb:cc:dd:ee:ff] ${FLAG_ENABLED} ${VALUE_TRUE} ${FLAG_DHCP_ENABLED} ${VALUE_FALSE}"
+    echo "  [${FLAG_VLAN_ID} 10] ${FLAG_INTERFACE_NAME} ens33 [${FLAG_USER_DEFINED_MAC_ADDRESS} aa:bb:cc:dd:ee:ff ${FLAG_USER_DEFINED_MAC_ADDRESS_ENABLED} ${VALUE_TRUE}] ${FLAG_ENABLED} ${VALUE_TRUE} ${FLAG_DHCP_ENABLED} ${VALUE_FALSE}"
     echo "  ${FLAG_IP_ADDRESS} 192.168.2.2/24 ${FLAG_GATEWAY} 192.168.2.1"
     echo "  ${FLAG_IP_ADDRESS} 192.168.2.3/24"
     exit 0
@@ -136,10 +139,8 @@ add_netplan_base_configuration() {
     fi
 
     if [[ -n "$VLAN_ID" ]]; then
-        if [[ -n "$MAC_ADDRESS" ]]; then
-            FILE_CONTENT+="      macaddress: ${MAC_ADDRESS}"$'\n'
-        fi
-        
+        add_mac_address
+
         FILE_CONTENT+="      dhcp4: false"$'\n'
         FILE_CONTENT+="  vlans:"$'\n'
         FILE_CONTENT+="    vlan${VLAN_ID}:"$'\n'
@@ -147,8 +148,21 @@ add_netplan_base_configuration() {
         FILE_CONTENT+="      link: ${INTERFACE_NAME}"$'\n'
     fi
 
-    if [[ -n "$MAC_ADDRESS" ]]; then
-        FILE_CONTENT+="      macaddress: ${MAC_ADDRESS}"$'\n'
+    add_mac_address
+}
+
+add_mac_address() {
+    if [[ -n "$USER_DEFINED_MAC_ADDRESS" ]]; then
+        FILE_CONTENT+="      macaddress: "
+
+        if [[ "$USER_DEFINED_MAC_ADDRESS_ENABLED" == "$VALUE_FALSE" ]]; then
+            local original_mac_address
+
+            original_mac_address=$(./Scripts/Network/get_original_physical_address.sh "${INTERFACE_NAME}")
+            FILE_CONTENT+="${original_mac_address} # "
+        fi
+
+        FILE_CONTENT+="${USER_DEFINED_MAC_ADDRESS}"$'\n'
     fi
 }
 
@@ -187,7 +201,7 @@ check_for_network_interface() {
 }
 
 check_mac_address() {
-    if [[ ! "$MAC_ADDRESS" =~ ^([a-fA-F0-9]{2}:){5}[a-fA-F0-9]{2}$ ]]; then
+    if [[ ! "$USER_DEFINED_MAC_ADDRESS" =~ ^([a-fA-F0-9]{2}:){5}[a-fA-F0-9]{2}$ ]]; then
         err "$ERR_CODE_4" 4
     fi
 }
@@ -236,10 +250,14 @@ main() {
                 INTERFACE_NAME="$1"
                 CONFIGURATION_PATH="${DIRECTORY_NETPLAN}/50-${1}.yaml"
                 ;;
-            "$FLAG_MAC_ADDRESS")
+            "$FLAG_USER_DEFINED_MAC_ADDRESS")
                 assert_flag_has_arguments "$#" "${1:-}" "$flag_name"
-                MAC_ADDRESS="$1"
+                USER_DEFINED_MAC_ADDRESS="$1"
                 check_mac_address
+                ;;
+            "$FLAG_USER_DEFINED_MAC_ADDRESS_ENABLED")
+                check_bool_value "$1"
+                USER_DEFINED_MAC_ADDRESS_ENABLED="$1"
                 ;;
             "$FLAG_ENABLED")
                 assert_flag_has_arguments "$#" "${1:-}" "$flag_name"
