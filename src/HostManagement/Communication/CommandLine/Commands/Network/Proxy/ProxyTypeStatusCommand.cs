@@ -6,19 +6,19 @@ using HostManagement.Shared.Contracts;
 namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy;
 
 /// <summary>
-/// Represents the proxy type list command.
+/// Represents the proxy type status command.
 /// </summary>
-internal sealed class ProxyTypeListCommand : ProxyTypeCommandBase
+internal sealed class ProxyTypeStatusCommand : ProxyTypeCommandBase
 {
     /// <summary>
-    /// Initializes a new <see cref="ProxyTypeListCommand"/>.
+    /// Initializes a new <see cref="ProxyTypeStatusCommand"/>.
     /// </summary>
     /// <param name="proxyType">The proxy type.</param>
-    public ProxyTypeListCommand(ProxyType proxyType) : base(
-        CommandLineStrings_Common.ListCommandName,
+    public ProxyTypeStatusCommand(ProxyType proxyType) : base(
+        CommandLineStrings_Common.StatusCommandName,
         string.Format(
             CultureInfo.InvariantCulture,
-            CompositeFormat.Parse(CommandLineStrings_Proxy.ProxyTypeListCommandDescription),
+            CompositeFormat.Parse(CommandLineStrings_Proxy.ProxyTypeStatusCommandDescription),
             proxyType))
                 => SetAction((parseResult, cancellationToken) => ListHandler(proxyType, cancellationToken));
 

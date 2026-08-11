@@ -15,9 +15,9 @@ internal sealed class DHCPCommand : Command
         CommandLineStrings_NetworkInterfaces.DHCPCommandName,
         CommandLineStrings_NetworkInterfaces.DHCPCommandDescription)
     {
+        Add(new DHCPListCommand());
         Add(new DHCPEnableCommand(interfaceNameArgument));
         Add(new DHCPDisableCommand(interfaceNameArgument));
-        Add(new DHCPListCommand());
         Add(new DHCPRenewLeaseCommand(interfaceNameArgument));
     }
 }

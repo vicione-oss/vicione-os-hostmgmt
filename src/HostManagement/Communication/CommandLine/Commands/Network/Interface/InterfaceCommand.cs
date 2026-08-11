@@ -23,9 +23,9 @@ internal sealed class InterfaceCommand : Command
         CommandLineStrings_NetworkInterfaces.NetworkInterfaceCommandName,
         CommandLineStrings_NetworkInterfaces.NetworkInterfaceCommandDescription)
     {
+        Add(new InterfaceStatusCommand(interfaceNameArgument));
         Add(new InterfaceEnableCommand(interfaceNameArgument));
         Add(new InterfaceDisableCommand(interfaceNameArgument));
-        Add(new InterfaceStatusCommand(interfaceNameArgument));
         Add(new InterfaceResetCommand(interfaceNameArgument));
         Add(new InterfaceMACCommand(CommonOptions.s_interfaceNameOption, s_macAddressOption));
         Add(new VLANCommand(interfaceNameArgument));

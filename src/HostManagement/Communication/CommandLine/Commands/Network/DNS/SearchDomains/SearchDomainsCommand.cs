@@ -34,9 +34,9 @@ internal sealed class SearchDomainsCommand : Command
         CommandLineStrings_DNS.DNSSearchDomainsCommandName,
         CommandLineStrings_DNS.DNSSearchDomainsCommandDescription)
     {
+        Add(new SearchDomainsListCommand());
         Add(new SearchDomainsEnableCommand());
         Add(new SearchDomainsDisableCommand());
-        Add(new SearchDomainsListCommand());
         Add(new SearchDomainsAddCommand(s_searchDomainsArgument));
         Add(new SearchDomainsRemoveCommand(s_searchDomainsArgument));
         Add(new SearchDomainsSetCommand(s_searchDomainsArgument));

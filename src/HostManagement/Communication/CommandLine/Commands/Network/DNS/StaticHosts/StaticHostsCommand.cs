@@ -21,9 +21,9 @@ internal sealed class StaticHostsCommand : Command
         CommandLineStrings_DNS.DNSStaticHostsCommandName,
         CommandLineStrings_DNS.DNSStaticHostsCommandDescription)
     {
+        Add(new StaticHostsListCommand());
         Add(new StaticHostsEnableCommand());
         Add(new StaticHostsDisableCommand());
-        Add(new StaticHostsListCommand());
         Add(new StaticHostsAddCommand(CommonOptions.s_ipAddressOption, s_hostnameOption));
         Add(new StaticHostsRemoveCommand(CommonOptions.s_ipAddressOption, s_hostnameOption));
         Add(new StaticHostsClearCommand());

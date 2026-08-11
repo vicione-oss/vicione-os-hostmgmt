@@ -43,9 +43,9 @@ internal sealed class NameServersCommand : Command
         CommandLineStrings_DNS.DNSNameServersCommandName,
         CommandLineStrings_DNS.DNSNameServersCommandDescription)
     {
+        Add(new NameServersListCommand());
         Add(new NameServersEnableCommand());
         Add(new NameServersDisableCommand());
-        Add(new NameServersListCommand());
         Add(new NameServersAddCommand(s_ipAddressesArgument));
         Add(new NameServersRemoveCommand(s_ipAddressesArgument));
         Add(new NameServersSetCommand(s_ipAddressesArgument));

@@ -20,10 +20,10 @@ internal sealed class ServiceCommand : Command
         CommandLineStrings_Systemd.ServiceCommandName,
         CommandLineStrings_Systemd.ServiceCommandDescription)
     {
-        Add(new ServiceEnableCommand(s_serviceNameArgument));
-        Add(new ServiceDisableCommand(s_serviceNameArgument));
         Add(new ServiceListCommand());
         Add(new ServiceStatusCommand(s_serviceNameArgument));
+        Add(new ServiceEnableCommand(s_serviceNameArgument));
+        Add(new ServiceDisableCommand(s_serviceNameArgument));
         Add(new ServiceStartCommand(s_serviceNameArgument));
         Add(new ServiceStopCommand(s_serviceNameArgument));
         Add(new ServiceRestartCommand(s_serviceNameArgument));

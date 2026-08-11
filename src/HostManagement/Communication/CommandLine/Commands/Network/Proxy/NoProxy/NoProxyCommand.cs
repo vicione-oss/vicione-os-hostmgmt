@@ -20,9 +20,9 @@ internal sealed class NoProxyCommand : Command
         CommandLineStrings_Proxy.NoProxyListCommandName,
         CommandLineStrings_Proxy.NoProxyListCommandDescription)
     {
+        Add(new NoProxyListCommand());
         Add(new NoProxyEnableCommand());
         Add(new NoProxyDisableCommand());
-        Add(new NoProxyListCommand());
         Add(new NoProxyAddCommand(s_noProxyEntriesArgument));
         Add(new NoProxyRemoveCommand(s_noProxyEntriesArgument));
         Add(new NoProxySetCommand(s_noProxyEntriesArgument));

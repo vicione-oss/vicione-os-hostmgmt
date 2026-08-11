@@ -14,9 +14,9 @@ internal sealed class PrimaryDNSSuffixCommand : Command
         CommandLineStrings_DNS.DNSSuffixCommandName,
         CommandLineStrings_DNS.DNSSuffixCommandDescription)
     {
+        Add(new PrimaryDNSSuffixStatusCommand());
         Add(new PrimaryDNSSuffixEnableCommand());
         Add(new PrimaryDNSSuffixDisableCommand());
-        Add(new PrimaryDNSSuffixStatusCommand());
         Add(new PrimaryDNSSuffixSetCommand());
         Add(new PrimaryDNSSuffixRemoveCommand());
     }

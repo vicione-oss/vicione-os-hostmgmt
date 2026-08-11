@@ -225,13 +225,13 @@
   <data name="ProxyTypeEnabled" xml:space="preserve">
     <value>{0} proxy has been enabled.</value>
   </data>
-  <data name="ProxyTypeListCommandDescription" xml:space="preserve">
-    <value>List {0} proxy settings.</value>
-  </data>
   <data name="ProxyTypeNotConfigured" xml:space="preserve">
     <value>{0} proxy is not configured.</value>
   </data>
   <data name="ProxyTypeSetCommandDescription" xml:space="preserve">
     <value>Set {0} proxy settings.</value>
+  </data>
+  <data name="ProxyTypeStatusCommandDescription" xml:space="preserve">
+    <value>Show {0} proxy settings.</value>
   </data>
 </root>

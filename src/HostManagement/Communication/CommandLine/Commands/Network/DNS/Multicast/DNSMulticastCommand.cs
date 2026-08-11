@@ -14,8 +14,8 @@ internal sealed class DNSMulticastCommand : Command
         CommandLineStrings_DNS.DNSMulticastCommandName,
         CommandLineStrings_DNS.DNSMulticastCommandDescription)
     {
+        Add(new DNSMulticastStatusCommand());
         Add(new DNSMulticastEnableCommand());
         Add(new DNSMulticastDisableCommand());
-        Add(new DNSMulticastStatusCommand());
     }
 }

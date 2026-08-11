@@ -386,15 +386,6 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy {
         }
         
         /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die List {0} proxy settings. ähnelt.
-        /// </summary>
-        internal static string ProxyTypeListCommandDescription {
-            get {
-                return ResourceManager.GetString("ProxyTypeListCommandDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die {0} proxy is not configured. ähnelt.
         /// </summary>
         internal static string ProxyTypeNotConfigured {
@@ -409,6 +400,15 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy {
         internal static string ProxyTypeSetCommandDescription {
             get {
                 return ResourceManager.GetString("ProxyTypeSetCommandDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Show {0} proxy settings. ähnelt.
+        /// </summary>
+        internal static string ProxyTypeStatusCommandDescription {
+            get {
+                return ResourceManager.GetString("ProxyTypeStatusCommandDescription", resourceCulture);
             }
         }
     }

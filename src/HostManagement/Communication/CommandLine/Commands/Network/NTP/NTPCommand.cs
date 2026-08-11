@@ -34,9 +34,9 @@ internal sealed class NTPCommand : Command
         CommandLineStrings_NTP.NTPCommandName,
         CommandLineStrings_NTP.NTPCommandDescription)
     {
+        Add(new NTPListCommand());
         Add(new NTPEnableCommand());
         Add(new NTPDisableCommand());
-        Add(new NTPListCommand());
         Add(new NTPAddCommand(s_ntpServersArgument));
         Add(new NTPRemoveCommand(s_ntpServersArgument));
         Add(new NTPSetCommand(s_ntpServersArgument));

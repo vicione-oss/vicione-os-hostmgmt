@@ -22,9 +22,9 @@ internal sealed class VLANCommand : Command
         CommandLineStrings_NetworkInterfaces.VLANCommandName,
         CommandLineStrings_NetworkInterfaces.VLANCommandDescription)
     {
+        Add(new VLANListCommand());
         Add(new VLANEnableCommand(interfaceNameArgument));
         Add(new VLANDisableCommand(interfaceNameArgument));
-        Add(new VLANListCommand());
         Add(new VLANSetCommand(CommonOptions.s_interfaceNameOption, s_vlanIdOption));
         Add(new VLANRemoveCommand(interfaceNameArgument));
     }
