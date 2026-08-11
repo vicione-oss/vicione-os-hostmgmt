@@ -18,18 +18,18 @@ internal sealed class NameServersCommand : Command
     }
     .WithValidation(argumentResult => IPAddressValidator.Validate(argumentResult, "IP address"));
 
-    private static readonly Option<IPAddress> s_oldNameServerOption = new Option<IPAddress>("--old-name-server", "-o")
+    private static readonly Option<IPAddress> s_oldNameServerOption = new Option<IPAddress>("--old-address", "-o")
     {
-        Description = "The old name server.",
+        Description = "The old IP address.",
         Required = true,
         Arity = ArgumentArity.ExactlyOne,
         CustomParser = IPAddressParser.ParseSingle
     }
     .WithValidation(optionResult => IPAddressValidator.Validate(optionResult, "Old name server"));
 
-    private static readonly Option<IPAddress> s_newNameServerOption = new Option<IPAddress>("--new-name-server", "-n")
+    private static readonly Option<IPAddress> s_newNameServerOption = new Option<IPAddress>("--new-address", "-a")
     {
-        Description = "The new name server.",
+        Description = "The new IP address.",
         Required = true,
         Arity = ArgumentArity.ExactlyOne,
         CustomParser = IPAddressParser.ParseSingle

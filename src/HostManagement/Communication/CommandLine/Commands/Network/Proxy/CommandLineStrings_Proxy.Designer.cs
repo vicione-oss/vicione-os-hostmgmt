@@ -179,7 +179,7 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy {
         }
         
         /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die Remove all items from the no proxy list. ähnelt.
+        ///   Sucht eine lokalisierte Zeichenfolge, die Remove all entries from the no proxy list. ähnelt.
         /// </summary>
         internal static string NoProxyListClearCommandDescription {
             get {
@@ -260,7 +260,7 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy {
         }
         
         /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die List all items of the no proxy list. ähnelt.
+        ///   Sucht eine lokalisierte Zeichenfolge, die List all entries of the no proxy list. ähnelt.
         /// </summary>
         internal static string NoProxyListListCommandDescription {
             get {
@@ -278,7 +278,7 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy {
         }
         
         /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die Remove the specified items from the no proxy list. ähnelt.
+        ///   Sucht eine lokalisierte Zeichenfolge, die Remove the specified entry from the no proxy list. ähnelt.
         /// </summary>
         internal static string NoProxyListRemoveCommandDescription {
             get {

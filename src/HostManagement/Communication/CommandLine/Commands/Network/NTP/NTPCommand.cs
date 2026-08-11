@@ -13,14 +13,14 @@ internal sealed class NTPCommand : Command
         Arity = ArgumentArity.OneOrMore
     };
 
-    private static readonly Option<string> s_oldNTPServerOption = new("--old-ntp-server", "-o")
+    private static readonly Option<string> s_oldNTPServerOption = new("--old-server", "-o")
     {
         Description = "The old NTP server.",
         Required = true,
         Arity = ArgumentArity.ExactlyOne
     };
 
-    private static readonly Option<string> s_newNTPServerOption = new("--new-ntp-server", "-n")
+    private static readonly Option<string> s_newNTPServerOption = new("--new-server", "-n")
     {
         Description = "The new NTP server.",
         Required = true,

@@ -157,7 +157,7 @@
     <value>No-proxy list is already enabled.</value>
   </data>
   <data name="NoProxyListClearCommandDescription" xml:space="preserve">
-    <value>Remove all items from the no proxy list.</value>
+    <value>Remove all entries from the no proxy list.</value>
   </data>
   <data name="NoProxyListCleared" xml:space="preserve">
     <value>List of ignored URLs by the proxy has been cleared.</value>
@@ -184,13 +184,13 @@
     <value>No-proxy list has been enabled.</value>
   </data>
   <data name="NoProxyListListCommandDescription" xml:space="preserve">
-    <value>List all items of the no proxy list.</value>
+    <value>List all entries of the no proxy list.</value>
   </data>
   <data name="NoProxyListNotConfigured" xml:space="preserve">
     <value>No-proxy list is not configured.</value>
   </data>
   <data name="NoProxyListRemoveCommandDescription" xml:space="preserve">
-    <value>Remove the specified items from the no proxy list.</value>
+    <value>Remove the specified entry from the no proxy list.</value>
   </data>
   <data name="NoProxyListSetCommandDescription" xml:space="preserve">
     <value>Remove existing items from the no proxy list and set new ones.</value>

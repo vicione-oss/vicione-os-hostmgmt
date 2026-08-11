@@ -13,14 +13,14 @@ internal sealed class SearchDomainsCommand : Command
         Arity = ArgumentArity.OneOrMore
     };
 
-    private static readonly Option<string> s_oldSearchDomainOption = new("--old-search-domain", "-o")
+    private static readonly Option<string> s_oldSearchDomainOption = new("--old-domain", "-o")
     {
         Description = "The old search domain.",
         Required = true,
         Arity = ArgumentArity.ExactlyOne
     };
 
-    private static readonly Option<string> s_newSearchDomainOption = new("--new-search-domain", "-n")
+    private static readonly Option<string> s_newSearchDomainOption = new("--new-domain", "-n")
     {
         Description = "The new search domain.",
         Required = true,

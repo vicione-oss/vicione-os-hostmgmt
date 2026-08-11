@@ -13,20 +13,20 @@ internal sealed class SystemCommand : Command
         Arity = ArgumentArity.ZeroOrOne
     };
 
-    private static readonly Argument<string> s_filePathArgument = new("filePath")
+    private static readonly Argument<string> s_filePathArgument = new("file-path")
     {
         Description = "The file path.",
         Arity = ArgumentArity.ExactlyOne
     };
 
-    private static readonly Option<string> s_filePathOption = new("--filePath", "-f")
+    private static readonly Option<string> s_filePathOption = new("--file-path", "-f")
     {
         Description = "The file path.",
         Arity = ArgumentArity.ExactlyOne,
         Required = true,
     };
 
-    private static readonly Option<string> s_signatureFilePathOption = new("--signaturePath", "-s")
+    private static readonly Option<string> s_signatureFilePathOption = new("--signature-path", "-s")
     {
         Description = "The file path to the package signature.",
         Arity = ArgumentArity.ExactlyOne,
