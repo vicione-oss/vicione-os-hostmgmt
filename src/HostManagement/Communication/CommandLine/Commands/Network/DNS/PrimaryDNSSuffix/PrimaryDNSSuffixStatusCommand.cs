@@ -11,10 +11,11 @@ internal sealed class PrimaryDNSSuffixStatusCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="PrimaryDNSSuffixStatusCommand"/>.
     /// </summary>
-    public PrimaryDNSSuffixStatusCommand() : base(
-        CommandLineStrings_Common.StatusCommandName,
-        CommandLineStrings_DNS.DNSSuffixStatusCommandDescription)
-            => SetAction((parseResult, cancellationToken) => StatusHandler(cancellationToken));
+    public PrimaryDNSSuffixStatusCommand()
+        : base(
+            CommandLineStrings_Common.StatusCommandName,
+            CommandLineStrings_DNS.DNSSuffixStatusCommandDescription)
+        => SetAction((parseResult, cancellationToken) => StatusHandler(cancellationToken));
 
     private static async Task StatusHandler(CancellationToken cancellationToken)
     {

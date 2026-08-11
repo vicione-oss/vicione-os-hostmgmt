@@ -11,10 +11,9 @@ internal sealed class DeploymentCommand : Command
     /// <summary>
     /// Initializes a new <see cref="DeploymentCommand"/>.
     /// </summary>
-    public DeploymentCommand() : base(
-        CommandLineStrings_Deployment.DeploymentCommandName,
-        CommandLineStrings_Deployment.DeploymentCommandDescription)
-    {
-        Add(new RedeployCommand());
-    }
+    public DeploymentCommand()
+        : base(
+            CommandLineStrings_Deployment.DeploymentCommandName,
+            CommandLineStrings_Deployment.DeploymentCommandDescription)
+        => Add(new RedeployCommand());
 }

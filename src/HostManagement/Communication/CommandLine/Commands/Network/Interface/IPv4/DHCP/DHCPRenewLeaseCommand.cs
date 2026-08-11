@@ -22,12 +22,8 @@ internal sealed class DHCPRenewLeaseCommand : ConfigCommandBase
     {
         Add(interfaceNameArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return RenewLeaseHandler(
-                parseResult.GetRequiredValue(interfaceNameArgument),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => RenewLeaseHandler(parseResult.GetRequiredValue(interfaceNameArgument), cancellationToken));
     }
 
     private static async Task RenewLeaseHandler(string interfaceName, CancellationToken cancellationToken)

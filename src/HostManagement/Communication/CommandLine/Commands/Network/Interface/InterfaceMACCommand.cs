@@ -25,13 +25,11 @@ internal sealed class InterfaceMACCommand : ConfigCommandBase
         Add(interfaceNameOption);
         Add(macAddressOption);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return MACAddressHandler(
+        SetAction((parseResult, cancellationToken)
+            => MACAddressHandler(
                 parseResult.GetRequiredValue(interfaceNameOption),
                 parseResult.GetValue(macAddressOption) ?? string.Empty,
-                cancellationToken);
-        });
+                cancellationToken));
     }
 
     private static async Task MACAddressHandler(

@@ -21,12 +21,8 @@ internal sealed class InterfaceEnableCommand : ConfigCommandBase
     {
         Add(interfaceNameArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return EnableHandler(
-                parseResult.GetRequiredValue(interfaceNameArgument),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => EnableHandler(parseResult.GetRequiredValue(interfaceNameArgument), cancellationToken));
     }
 
     private static async Task EnableHandler(string interfaceName, CancellationToken cancellationToken)

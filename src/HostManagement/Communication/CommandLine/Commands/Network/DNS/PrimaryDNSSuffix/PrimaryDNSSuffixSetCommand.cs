@@ -24,12 +24,8 @@ internal sealed class PrimaryDNSSuffixSetCommand : ConfigCommandBase
     {
         Add(s_suffixArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return SetHandler(
-                parseResult.GetRequiredValue(s_suffixArgument),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => SetHandler(parseResult.GetRequiredValue(s_suffixArgument), cancellationToken));
     }
 
     private static async Task SetHandler(string suffix, CancellationToken cancellationToken)

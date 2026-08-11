@@ -18,12 +18,8 @@ internal sealed class ServiceRestartCommand : ServiceControlCommandBase
     {
         Add(systemdUnitNameArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return RestartHandler(
-                parseResult.GetRequiredValue(systemdUnitNameArgument),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => RestartHandler(parseResult.GetRequiredValue(systemdUnitNameArgument), cancellationToken));
     }
 
     private static async Task RestartHandler(string systemdUnitName, CancellationToken cancellationToken)

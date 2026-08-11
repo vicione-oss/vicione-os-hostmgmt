@@ -14,13 +14,14 @@ internal sealed class ProxyTypeDisableCommand : ProxyTypeCommandBase
     /// Initializes a new <see cref="ProxyTypeDisableCommand"/>.
     /// </summary>
     /// <param name="proxyType">The type of the proxy.</param>
-    public ProxyTypeDisableCommand(ProxyType proxyType) : base(
-        CommandLineStrings_Common.DisableCommandName,
-        string.Format(
-            CultureInfo.InvariantCulture,
-            CompositeFormat.Parse(CommandLineStrings_Proxy.ProxyTypeDisableCommandDescription),
-            proxyType))
-                => SetAction((parseResult, cancellationToken) => DisableHandler(proxyType, cancellationToken));
+    public ProxyTypeDisableCommand(ProxyType proxyType)
+        : base(
+            CommandLineStrings_Common.DisableCommandName,
+            string.Format(
+                CultureInfo.InvariantCulture,
+                CompositeFormat.Parse(CommandLineStrings_Proxy.ProxyTypeDisableCommandDescription),
+                proxyType))
+        => SetAction((parseResult, cancellationToken) => DisableHandler(proxyType, cancellationToken));
 
     private static async Task DisableHandler(ProxyType proxyType, CancellationToken cancellationToken)
     {

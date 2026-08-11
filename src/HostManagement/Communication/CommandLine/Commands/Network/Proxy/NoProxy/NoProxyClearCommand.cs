@@ -11,10 +11,11 @@ internal sealed class NoProxyClearCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="NoProxyClearCommand"/>.
     /// </summary>
-    public NoProxyClearCommand() : base(
-        CommandLineStrings_Common.ClearCommandName,
-        CommandLineStrings_Proxy.NoProxyListClearCommandDescription)
-            => SetAction((parseResult, cancellationToken) => ClearHandler(cancellationToken));
+    public NoProxyClearCommand()
+        : base(
+            CommandLineStrings_Common.ClearCommandName,
+            CommandLineStrings_Proxy.NoProxyListClearCommandDescription)
+        => SetAction((parseResult, cancellationToken) => ClearHandler(cancellationToken));
 
     private static async Task ClearHandler(CancellationToken cancellationToken)
     {

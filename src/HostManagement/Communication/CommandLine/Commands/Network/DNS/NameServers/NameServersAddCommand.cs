@@ -20,12 +20,8 @@ internal sealed class NameServersAddCommand : ConfigCommandBase
     {
         Add(ipAddressesArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return AddHandler(
-                parseResult.GetRequiredValue(ipAddressesArgument),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => AddHandler(parseResult.GetRequiredValue(ipAddressesArgument), cancellationToken));
     }
 
     private static async Task AddHandler(IPAddress[] addresses, CancellationToken cancellationToken)

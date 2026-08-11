@@ -24,13 +24,11 @@ internal sealed class GatewaySetCommand : ConfigCommandBase
         Add(interfaceNameOption);
         Add(addressOption);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return SetHandler(
+        SetAction((parseResult, cancellationToken)
+            => SetHandler(
                 parseResult.GetRequiredValue(interfaceNameOption),
                 parseResult.GetRequiredValue(addressOption),
-                cancellationToken);
-        });
+                cancellationToken));
     }
 
     private static async Task SetHandler(string interfaceName, IPAddress address, CancellationToken cancellationToken)

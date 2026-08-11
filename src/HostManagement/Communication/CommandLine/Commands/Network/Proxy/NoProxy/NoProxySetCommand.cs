@@ -19,12 +19,8 @@ internal sealed class NoProxySetCommand : ConfigCommandBase
     {
         Add(noProxyEntriesArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return SetHandler(
-                parseResult.GetRequiredValue(noProxyEntriesArgument),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => SetHandler(parseResult.GetRequiredValue(noProxyEntriesArgument), cancellationToken));
     }
 
     private static async Task SetHandler(string[] entries, CancellationToken cancellationToken)

@@ -30,14 +30,12 @@ internal sealed class IPAddCommand : ConfigCommandBase
         Add(addressOption);
         Add(netmaskOption);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return AddHandler(
+        SetAction((parseResult, cancellationToken)
+            => AddHandler(
                 parseResult.GetRequiredValue(interfaceNameOption),
                 parseResult.GetRequiredValue(addressOption),
                 parseResult.GetRequiredValue(netmaskOption),
-                cancellationToken);
-        });
+                cancellationToken));
     }
 
     private static async Task AddHandler(

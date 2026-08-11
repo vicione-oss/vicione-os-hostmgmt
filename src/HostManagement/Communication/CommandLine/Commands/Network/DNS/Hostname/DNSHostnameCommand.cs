@@ -24,12 +24,8 @@ internal sealed class DNSHostnameCommand : ConfigCommandBase
     {
         Add(s_hostnameArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return HostNameHandler(
-                parseResult.GetValue(s_hostnameArgument),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => HostNameHandler(parseResult.GetValue(s_hostnameArgument), cancellationToken));
     }
 
     private static async Task HostNameHandler(string? hostname, CancellationToken cancellationToken)

@@ -22,12 +22,8 @@ internal sealed class NetworkStatusCommand : ConfigCommandBase
     {
         Add(interfaceNameArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return NetworkTestHandler(
-                parseResult.GetRequiredValue(interfaceNameArgument),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => NetworkTestHandler(parseResult.GetRequiredValue(interfaceNameArgument), cancellationToken));
     }
 
     private static async Task NetworkTestHandler(string interfaceName, CancellationToken cancellationToken)

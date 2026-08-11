@@ -11,10 +11,11 @@ internal sealed class NoProxyListCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="NoProxyListCommand"/>.
     /// </summary>
-    public NoProxyListCommand() : base(
-        CommandLineStrings_Common.ListCommandName,
-        CommandLineStrings_Proxy.NoProxyListListCommandDescription)
-            => SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
+    public NoProxyListCommand()
+        : base(
+            CommandLineStrings_Common.ListCommandName,
+            CommandLineStrings_Proxy.NoProxyListListCommandDescription)
+        => SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
 
     private static async Task ListHandler(CancellationToken cancellationToken)
     {

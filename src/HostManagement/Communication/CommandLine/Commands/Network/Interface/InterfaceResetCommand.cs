@@ -19,12 +19,8 @@ internal sealed class InterfaceResetCommand : ConfigCommandBase
     {
         Add(interfaceNameArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return ResetHandler(
-                parseResult.GetRequiredValue(interfaceNameArgument),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => ResetHandler(parseResult.GetRequiredValue(interfaceNameArgument), cancellationToken));
     }
 
     private static async Task ResetHandler(string interfaceName, CancellationToken cancellationToken)

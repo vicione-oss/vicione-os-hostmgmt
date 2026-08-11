@@ -12,12 +12,11 @@ internal sealed class RedeployCommand : Command
     /// <summary>
     /// Initializes a new <see cref="DeploymentCommand"/>.
     /// </summary>
-    public RedeployCommand() : base(
-        CommandLineStrings_Deployment.RedeployCommandName,
-        CommandLineStrings_Deployment.RedeployCommandDescription)
-    {
-        SetAction((parseResult, cancellationToken) => RedeployHandler(cancellationToken));
-    }
+    public RedeployCommand()
+        : base(
+            CommandLineStrings_Deployment.RedeployCommandName,
+            CommandLineStrings_Deployment.RedeployCommandDescription)
+        => SetAction((parseResult, cancellationToken) => RedeployHandler(cancellationToken));
 
     private static async Task RedeployHandler(CancellationToken cancellationToken)
     {

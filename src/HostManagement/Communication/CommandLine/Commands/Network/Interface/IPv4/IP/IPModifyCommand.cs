@@ -33,15 +33,13 @@ internal sealed class IPModifyCommand : ConfigCommandBase
         Add(newAddressOption);
         Add(netmaskOption);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return ModifyHandler(
+        SetAction((parseResult, cancellationToken)
+            => ModifyHandler(
                 parseResult.GetRequiredValue(interfaceNameOption),
                 parseResult.GetRequiredValue(oldAddressOption),
                 parseResult.GetRequiredValue(newAddressOption),
                 parseResult.GetRequiredValue(netmaskOption),
-                cancellationToken);
-        });
+                cancellationToken));
     }
 
     private static async Task ModifyHandler(

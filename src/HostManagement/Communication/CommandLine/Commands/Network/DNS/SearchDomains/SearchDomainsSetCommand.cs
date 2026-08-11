@@ -19,12 +19,8 @@ internal sealed class SearchDomainsSetCommand : ConfigCommandBase
     {
         Add(searchDomainsArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return SetHandler(
-                parseResult.GetRequiredValue(searchDomainsArgument),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => SetHandler(parseResult.GetRequiredValue(searchDomainsArgument), cancellationToken));
     }
 
     private static async Task SetHandler(string[] searchDomains, CancellationToken cancellationToken)

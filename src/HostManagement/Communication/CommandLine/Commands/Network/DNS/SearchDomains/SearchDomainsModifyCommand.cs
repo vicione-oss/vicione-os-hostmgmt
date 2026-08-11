@@ -24,13 +24,11 @@ internal sealed class SearchDomainsModifyCommand : ConfigCommandBase
         Add(oldSearchDomainOption);
         Add(newSearchDomainOption);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return ModifyHandler(
+        SetAction((parseResult, cancellationToken)
+            => ModifyHandler(
                 parseResult.GetRequiredValue(oldSearchDomainOption),
                 parseResult.GetRequiredValue(newSearchDomainOption),
-                cancellationToken);
-        });
+                cancellationToken));
     }
 
     private static async Task ModifyHandler(string oldDomain, string newDomain, CancellationToken cancellationToken)

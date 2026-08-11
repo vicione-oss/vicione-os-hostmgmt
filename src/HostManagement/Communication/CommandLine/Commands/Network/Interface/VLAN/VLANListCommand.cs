@@ -11,10 +11,11 @@ internal sealed class VLANListCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="VLANListCommand"/>.
     /// </summary>
-    public VLANListCommand() : base(
-        CommandLineStrings_Common.ListCommandName,
-        CommandLineStrings_NetworkInterfaces.VLANListCommandDescription)
-            => SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
+    public VLANListCommand()
+        : base(
+            CommandLineStrings_Common.ListCommandName,
+            CommandLineStrings_NetworkInterfaces.VLANListCommandDescription)
+        => SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
 
     private static async Task ListHandler(CancellationToken cancellationToken)
     {

@@ -21,12 +21,8 @@ internal sealed class VLANDisableCommand : ConfigCommandBase
     {
         Add(interfaceNameArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return DisableHandler(
-                parseResult.GetRequiredValue(interfaceNameArgument),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => DisableHandler(parseResult.GetRequiredValue(interfaceNameArgument), cancellationToken));
     }
 
     private static async Task DisableHandler(string interfaceName, CancellationToken cancellationToken)

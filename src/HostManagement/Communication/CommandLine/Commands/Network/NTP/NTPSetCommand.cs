@@ -19,12 +19,8 @@ internal sealed class NTPSetCommand : ConfigCommandBase
     {
         Add(ntpServersArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return SetHandler(
-                parseResult.GetRequiredValue(ntpServersArgument),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => SetHandler(parseResult.GetRequiredValue(ntpServersArgument), cancellationToken));
     }
 
     private static async Task SetHandler(string[] servers, CancellationToken cancellationToken)

@@ -11,10 +11,11 @@ internal sealed class PrimaryDNSSuffixDisableCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="PrimaryDNSSuffixDisableCommand"/>.
     /// </summary>
-    public PrimaryDNSSuffixDisableCommand() : base(
-        CommandLineStrings_Common.DisableCommandName,
-        CommandLineStrings_DNS.DNSSuffixDisableCommandDescription)
-            => SetAction((parseResult, cancellationToken) => DisableHandler(cancellationToken));
+    public PrimaryDNSSuffixDisableCommand()
+        : base(
+            CommandLineStrings_Common.DisableCommandName,
+            CommandLineStrings_DNS.DNSSuffixDisableCommandDescription)
+        => SetAction((parseResult, cancellationToken) => DisableHandler(cancellationToken));
 
     private static async Task DisableHandler(CancellationToken cancellationToken)
     {

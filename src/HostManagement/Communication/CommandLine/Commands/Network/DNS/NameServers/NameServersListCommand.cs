@@ -11,10 +11,11 @@ internal sealed class NameServersListCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="NameServersListCommand"/>.
     /// </summary>
-    public NameServersListCommand() : base(
-        CommandLineStrings_Common.ListCommandName,
-        CommandLineStrings_DNS.DNSNameServersListCommandDescription)
-            => SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
+    public NameServersListCommand()
+        : base(
+            CommandLineStrings_Common.ListCommandName,
+            CommandLineStrings_DNS.DNSNameServersListCommandDescription)
+        => SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
 
     private static async Task ListHandler(CancellationToken cancellationToken)
     {

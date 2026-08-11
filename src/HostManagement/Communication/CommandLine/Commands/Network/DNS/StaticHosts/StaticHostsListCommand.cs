@@ -11,10 +11,11 @@ internal sealed class StaticHostsListCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="StaticHostsListCommand"/>.
     /// </summary>
-    public StaticHostsListCommand() : base(
-        CommandLineStrings_Common.ListCommandName,
-        CommandLineStrings_DNS.DNSStaticHostsListCommandDescription)
-            => SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
+    public StaticHostsListCommand()
+        : base(
+            CommandLineStrings_Common.ListCommandName,
+            CommandLineStrings_DNS.DNSStaticHostsListCommandDescription)
+        => SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
 
     private static async Task ListHandler(CancellationToken cancellationToken)
     {

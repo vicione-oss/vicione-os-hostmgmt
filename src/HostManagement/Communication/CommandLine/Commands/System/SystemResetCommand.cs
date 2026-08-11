@@ -12,12 +12,11 @@ internal sealed class SystemResetCommand : Command
     /// <summary>
     /// Initializes a new <see cref="SystemResetCommand"/>.
     /// </summary>
-    public SystemResetCommand() : base(
-        CommandLineStrings_System.SystemResetCommandName,
-        CommandLineStrings_System.SystemResetCommandDescription)
-    {
-        SetAction((parseResult, cancellationToken) => ResetHandler(cancellationToken));
-    }
+    public SystemResetCommand()
+        : base(
+            CommandLineStrings_System.SystemResetCommandName,
+            CommandLineStrings_System.SystemResetCommandDescription)
+        => SetAction((parseResult, cancellationToken) => ResetHandler(cancellationToken));
 
     private static async Task ResetHandler(CancellationToken cancellationToken)
     {

@@ -20,12 +20,8 @@ internal sealed class ServiceEnableCommand : ServiceCommandBase
     {
         Add(systemdUnitNameArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return EnableHandler(
-                parseResult.GetRequiredValue(systemdUnitNameArgument),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => EnableHandler(parseResult.GetRequiredValue(systemdUnitNameArgument), cancellationToken));
     }
 
     private static async Task EnableHandler(string systemdUnitName, CancellationToken cancellationToken)

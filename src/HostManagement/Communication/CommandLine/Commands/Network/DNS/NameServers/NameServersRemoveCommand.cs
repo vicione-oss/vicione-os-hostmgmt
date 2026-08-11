@@ -20,12 +20,8 @@ internal sealed class NameServersRemoveCommand : ConfigCommandBase
     {
         Add(ipAddressesArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return RemoveHandler(
-                parseResult.GetRequiredValue(ipAddressesArgument),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => RemoveHandler(parseResult.GetRequiredValue(ipAddressesArgument), cancellationToken));
     }
 
     private static async Task RemoveHandler(IPAddress[] addresses, CancellationToken cancellationToken)

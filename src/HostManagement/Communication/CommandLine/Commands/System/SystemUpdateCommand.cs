@@ -19,12 +19,8 @@ internal sealed class SystemUpdateCommand : Command
     {
         Add(filePathArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return UpdateHandler(
-                parseResult.GetRequiredValue(filePathArgument),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => UpdateHandler(parseResult.GetRequiredValue(filePathArgument), cancellationToken));
     }
 
     private static async Task UpdateHandler(string filePath, CancellationToken cancellationToken)

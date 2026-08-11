@@ -19,12 +19,8 @@ internal sealed class NTPRemoveCommand : ConfigCommandBase
     {
         Add(ntpServersArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return RemoveHandler(
-                parseResult.GetRequiredValue(ntpServersArgument),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => RemoveHandler(parseResult.GetRequiredValue(ntpServersArgument), cancellationToken));
     }
 
     private static async Task RemoveHandler(string[] servers, CancellationToken cancellationToken)

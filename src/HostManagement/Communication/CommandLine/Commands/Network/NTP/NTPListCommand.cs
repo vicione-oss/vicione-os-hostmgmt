@@ -12,10 +12,11 @@ internal sealed class NTPListCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="NTPListCommand"/>.
     /// </summary>
-    public NTPListCommand() : base(
-        CommandLineStrings_Common.ListCommandName,
-        CommandLineStrings_NTP.NTPListCommandDescription)
-            => SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
+    public NTPListCommand()
+        : base(
+            CommandLineStrings_Common.ListCommandName,
+            CommandLineStrings_NTP.NTPListCommandDescription)
+        => SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
 
     private static async Task ListHandler(CancellationToken cancellationToken)
     {

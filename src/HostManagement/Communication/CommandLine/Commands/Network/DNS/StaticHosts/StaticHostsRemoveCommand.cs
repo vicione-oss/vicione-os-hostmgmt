@@ -23,13 +23,11 @@ internal sealed class StaticHostsRemoveCommand : ConfigCommandBase
         Add(addressOption);
         Add(hostnameOption);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return RemoveHandler(
+        SetAction((parseResult, cancellationToken)
+            => RemoveHandler(
                 parseResult.GetRequiredValue(addressOption),
                 parseResult.GetRequiredValue(hostnameOption),
-                cancellationToken);
-        });
+                cancellationToken));
     }
 
     private static async Task RemoveHandler(IPAddress address, string hostname, CancellationToken cancellationToken)

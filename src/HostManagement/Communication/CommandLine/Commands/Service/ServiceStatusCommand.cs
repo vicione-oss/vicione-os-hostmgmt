@@ -19,12 +19,8 @@ internal sealed class ServiceStatusCommand : Command
     {
         Add(systemdUnitNameArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return StatusHandler(
-                parseResult.GetRequiredValue(systemdUnitNameArgument),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => StatusHandler(parseResult.GetRequiredValue(systemdUnitNameArgument), cancellationToken));
     }
 
     private static async Task StatusHandler(string systemdUnitName, CancellationToken cancellationToken)

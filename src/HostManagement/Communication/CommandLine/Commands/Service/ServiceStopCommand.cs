@@ -18,12 +18,8 @@ internal sealed class ServiceStopCommand : ServiceControlCommandBase
     {
         Add(systemdUnitNameArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return StopHandler(
-                parseResult.GetRequiredValue(systemdUnitNameArgument),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => StopHandler(parseResult.GetRequiredValue(systemdUnitNameArgument), cancellationToken));
     }
 
     private static async Task StopHandler(string systemdUnitName, CancellationToken cancellationToken)

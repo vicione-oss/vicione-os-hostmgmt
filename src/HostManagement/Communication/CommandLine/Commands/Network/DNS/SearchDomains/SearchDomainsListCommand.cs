@@ -11,10 +11,11 @@ internal sealed class SearchDomainsListCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="SearchDomainsListCommand"/>.
     /// </summary>
-    public SearchDomainsListCommand() : base(
-        CommandLineStrings_Common.ListCommandName,
-        CommandLineStrings_DNS.DNSSearchDomainsListCommandDescription)
-            => SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
+    public SearchDomainsListCommand()
+        : base(
+            CommandLineStrings_Common.ListCommandName,
+            CommandLineStrings_DNS.DNSSearchDomainsListCommandDescription)
+        => SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
 
     private static async Task ListHandler(CancellationToken cancellationToken)
     {

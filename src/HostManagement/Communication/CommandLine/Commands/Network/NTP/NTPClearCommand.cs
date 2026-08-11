@@ -11,10 +11,11 @@ internal sealed class NTPClearCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="NTPClearCommand"/>.
     /// </summary>
-    public NTPClearCommand() : base(
-        CommandLineStrings_Common.ClearCommandName,
-        CommandLineStrings_NTP.NTPClearCommandDescription)
-            => SetAction((parseResult, cancellationToken) => ClearHandler(cancellationToken));
+    public NTPClearCommand()
+        : base(
+            CommandLineStrings_Common.ClearCommandName,
+            CommandLineStrings_NTP.NTPClearCommandDescription)
+        => SetAction((parseResult, cancellationToken) => ClearHandler(cancellationToken));
 
     private static async Task ClearHandler(CancellationToken cancellationToken)
     {

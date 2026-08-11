@@ -24,13 +24,11 @@ internal sealed class IPRemoveCommand : ConfigCommandBase
         Add(interfaceNameOption);
         Add(addressOption);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return RemoveHandler(
+        SetAction((parseResult, cancellationToken)
+            => RemoveHandler(
                 parseResult.GetRequiredValue(interfaceNameOption),
                 parseResult.GetRequiredValue(addressOption),
-                cancellationToken);
-        });
+                cancellationToken));
     }
 
     private static async Task RemoveHandler(

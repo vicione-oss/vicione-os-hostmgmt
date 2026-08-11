@@ -23,13 +23,11 @@ internal sealed class StaticHostsAddCommand : ConfigCommandBase
         Add(addressOption);
         Add(hostnameOption);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return AddHandler(
+        SetAction((parseResult, cancellationToken)
+            => AddHandler(
                 parseResult.GetRequiredValue(addressOption),
                 parseResult.GetRequiredValue(hostnameOption),
-                cancellationToken);
-        });
+                cancellationToken));
     }
 
     private static async Task AddHandler(IPAddress address, string hostname, CancellationToken cancellationToken)

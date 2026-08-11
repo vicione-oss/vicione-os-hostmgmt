@@ -19,12 +19,8 @@ internal sealed class SearchDomainsRemoveCommand : ConfigCommandBase
     {
         Add(searchDomainsArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return RemoveHandler(
-                parseResult.GetRequiredValue(searchDomainsArgument),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => RemoveHandler(parseResult.GetRequiredValue(searchDomainsArgument), cancellationToken));
     }
 
     private static async Task RemoveHandler(string[] searchDomains, CancellationToken cancellationToken)

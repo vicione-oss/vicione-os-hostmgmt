@@ -18,12 +18,8 @@ internal sealed class ServiceStartCommand : ServiceControlCommandBase
     {
         Add(systemdUnitNameArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return StartHandler(
-                parseResult.GetRequiredValue(systemdUnitNameArgument),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => StartHandler(parseResult.GetRequiredValue(systemdUnitNameArgument), cancellationToken));
     }
 
     private static async Task StartHandler(string systemdUnitName, CancellationToken cancellationToken)

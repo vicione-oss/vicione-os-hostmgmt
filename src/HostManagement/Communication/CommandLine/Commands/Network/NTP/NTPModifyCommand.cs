@@ -21,13 +21,11 @@ internal sealed class NTPModifyCommand : ConfigCommandBase
         Add(oldNTPServerOption);
         Add(newNTPServerOption);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return ModifyHandler(
+        SetAction((parseResult, cancellationToken)
+            => ModifyHandler(
                 parseResult.GetRequiredValue(oldNTPServerOption),
                 parseResult.GetRequiredValue(newNTPServerOption),
-                cancellationToken);
-        });
+                cancellationToken));
     }
 
     private static async Task ModifyHandler(string oldServer, string newServer, CancellationToken cancellationToken)
