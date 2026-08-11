@@ -9,20 +9,25 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.PrimaryD
 /// </summary>
 internal sealed class PrimaryDNSSuffixSetCommand : ConfigCommandBase
 {
+    private static readonly Argument<string> s_suffixArgument = new("suffix")
+    {
+        Description = "The new primary DNS suffix.",
+        Arity = ArgumentArity.ExactlyOne
+    };
+
     /// <summary>
     /// Initializes a new <see cref="PrimaryDNSSuffixSetCommand"/>.
     /// </summary>
-    /// <param name="dnsSuffixOption">The primary DNS suffix option.</param>
-    public PrimaryDNSSuffixSetCommand(Option<string> dnsSuffixOption) : base(
+    public PrimaryDNSSuffixSetCommand() : base(
         CommandLineStrings_Common.SetCommandName,
         CommandLineStrings_DNS.DNSSuffixSetCommandDescription)
     {
-        Add(dnsSuffixOption);
+        Add(s_suffixArgument);
 
         SetAction((parseResult, cancellationToken) =>
         {
             return SetHandler(
-                parseResult.GetRequiredValue(dnsSuffixOption),
+                parseResult.GetRequiredValue(s_suffixArgument),
                 cancellationToken);
         });
     }

@@ -12,17 +12,17 @@ internal sealed class NTPAddCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="NTPAddCommand"/>.
     /// </summary>
-    /// <param name="ntpServersOption">The NTP servers option.</param>
-    public NTPAddCommand(Option<string[]> ntpServersOption) : base(
+    /// <param name="ntpServersArgument">The NTP servers argument.</param>
+    public NTPAddCommand(Argument<string[]> ntpServersArgument) : base(
         CommandLineStrings_Common.AddCommandName,
         CommandLineStrings_NTP.NTPAddCommandDescription)
     {
-        Add(ntpServersOption);
+        Add(ntpServersArgument);
 
         SetAction((parseResult, cancellationToken) =>
         {
             return AddHandler(
-                parseResult.GetRequiredValue(ntpServersOption),
+                parseResult.GetRequiredValue(ntpServersArgument),
                 cancellationToken);
         });
     }

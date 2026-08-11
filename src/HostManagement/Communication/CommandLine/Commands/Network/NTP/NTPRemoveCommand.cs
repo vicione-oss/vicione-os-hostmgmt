@@ -12,17 +12,17 @@ internal sealed class NTPRemoveCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="NTPRemoveCommand"/>.
     /// </summary>
-    /// <param name="ntpServersOption">The NTP servers option.</param>
-    public NTPRemoveCommand(Option<string[]> ntpServersOption) : base(
+    /// <param name="ntpServersArgument">The NTP servers argument.</param>
+    public NTPRemoveCommand(Argument<string[]> ntpServersArgument) : base(
         CommandLineStrings_Common.RemoveCommandName,
         CommandLineStrings_NTP.NTPRemoveCommandDescription)
     {
-        Add(ntpServersOption);
+        Add(ntpServersArgument);
 
         SetAction((parseResult, cancellationToken) =>
         {
             return RemoveHandler(
-                parseResult.GetRequiredValue(ntpServersOption),
+                parseResult.GetRequiredValue(ntpServersArgument),
                 cancellationToken);
         });
     }

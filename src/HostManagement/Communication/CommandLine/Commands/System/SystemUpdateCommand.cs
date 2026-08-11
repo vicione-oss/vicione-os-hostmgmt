@@ -12,17 +12,17 @@ internal sealed class SystemUpdateCommand : Command
     /// <summary>
     /// Initializes a new <see cref="SystemUpdateCommand"/>.
     /// </summary>
-    /// <param name="filePathOption">The file path option.</param>
-    public SystemUpdateCommand(Option<string> filePathOption) : base(
+    /// <param name="filePathArgument">The file path argument.</param>
+    public SystemUpdateCommand(Argument<string> filePathArgument) : base(
         CommandLineStrings_System.SystemUpdateCommandName,
         CommandLineStrings_System.SystemUpdateCommandDescription)
     {
-        Add(filePathOption);
+        Add(filePathArgument);
 
         SetAction((parseResult, cancellationToken) =>
         {
             return UpdateHandler(
-                parseResult.GetRequiredValue(filePathOption),
+                parseResult.GetRequiredValue(filePathArgument),
                 cancellationToken);
         });
     }

@@ -11,17 +11,17 @@ internal sealed class ServiceStartCommand : ServiceControlCommandBase
     /// <summary>
     /// Initializes a new <see cref="ServiceStartCommand"/>.
     /// </summary>
-    /// <param name="systemdUnitNameOption">The systemd unit name option.</param>
-    public ServiceStartCommand(Option<string> systemdUnitNameOption) : base(
+    /// <param name="systemdUnitNameArgument">The systemd unit name argument.</param>
+    public ServiceStartCommand(Argument<string> systemdUnitNameArgument) : base(
         CommandLineStrings_Systemd.ServiceStartCommandName,
         CommandLineStrings_Systemd.ServiceStartCommandDescription)
     {
-        Add(systemdUnitNameOption);
+        Add(systemdUnitNameArgument);
 
         SetAction((parseResult, cancellationToken) =>
         {
             return StartHandler(
-                parseResult.GetRequiredValue(systemdUnitNameOption),
+                parseResult.GetRequiredValue(systemdUnitNameArgument),
                 cancellationToken);
         });
     }

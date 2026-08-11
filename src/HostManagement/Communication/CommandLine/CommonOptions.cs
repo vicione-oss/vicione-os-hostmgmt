@@ -44,22 +44,4 @@ internal static class CommonOptions
         CustomParser = IPAddressParser.ParseSingle
     }
     .WithValidation(optionResult => IPAddressValidator.Validate(optionResult, "Subnet mask"));
-
-    internal static readonly Option<string[]> s_itemsOption = new("--items", ["-i"])
-    {
-        Description = "The list of items.",
-        Required = true,
-        Arity = ArgumentArity.OneOrMore,
-        AllowMultipleArgumentsPerToken = true
-    };
-
-    internal static readonly Option<IPAddress[]> s_ipAddressItemsOption = new Option<IPAddress[]>("--items", ["-i"])
-    {
-        Description = "The list of items.",
-        Required = true,
-        Arity = ArgumentArity.OneOrMore,
-        AllowMultipleArgumentsPerToken = true,
-        CustomParser = IPAddressParser.ParseMultiple
-    }
-    .WithValidation(optionResult => IPAddressValidator.Validate(optionResult, "IP address"));
 }

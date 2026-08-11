@@ -17,14 +17,15 @@ internal sealed class VLANCommand : Command
     /// <summary>
     /// Initializes a new <see cref="VLANCommand"/>.
     /// </summary>
-    public VLANCommand() : base(
+    /// <param name="interfaceNameArgument">The interface name argument.</param>
+    public VLANCommand(Argument<string> interfaceNameArgument) : base(
         CommandLineStrings_NetworkInterfaces.VLANCommandName,
         CommandLineStrings_NetworkInterfaces.VLANCommandDescription)
     {
-        Add(new VLANEnableCommand(CommonOptions.s_interfaceNameOption));
-        Add(new VLANDisableCommand(CommonOptions.s_interfaceNameOption));
+        Add(new VLANEnableCommand(interfaceNameArgument));
+        Add(new VLANDisableCommand(interfaceNameArgument));
         Add(new VLANListCommand());
         Add(new VLANSetCommand(CommonOptions.s_interfaceNameOption, s_vlanIdOption));
-        Add(new VLANRemoveCommand(CommonOptions.s_interfaceNameOption));
+        Add(new VLANRemoveCommand(interfaceNameArgument));
     }
 }

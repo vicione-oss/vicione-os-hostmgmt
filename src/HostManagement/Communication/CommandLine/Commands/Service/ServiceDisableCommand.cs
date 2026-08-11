@@ -13,17 +13,17 @@ internal sealed class ServiceDisableCommand : ServiceCommandBase
     /// <summary>
     /// Initializes a new <see cref="ServiceDisableCommand"/>.
     /// </summary>
-    /// <param name="systemdUnitNameOption">The systemd unit name option.</param>
-    public ServiceDisableCommand(Option<string> systemdUnitNameOption) : base(
+    /// <param name="systemdUnitNameArgument">The systemd unit name argument.</param>
+    public ServiceDisableCommand(Argument<string> systemdUnitNameArgument) : base(
         CommandLineStrings_Common.DisableCommandName,
         CommandLineStrings_Systemd.ServiceDisableCommandDescription)
     {
-        Add(systemdUnitNameOption);
+        Add(systemdUnitNameArgument);
 
         SetAction((parseResult, cancellationToken) =>
         {
             return DisableHandler(
-                parseResult.GetRequiredValue(systemdUnitNameOption),
+                parseResult.GetRequiredValue(systemdUnitNameArgument),
                 cancellationToken);
         });
     }

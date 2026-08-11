@@ -13,17 +13,17 @@ internal sealed class NameServersRemoveCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="NameServersRemoveCommand"/>.
     /// </summary>
-    /// <param name="nameServersOption">The name servers option.</param>
-    public NameServersRemoveCommand(Option<IPAddress[]> nameServersOption) : base(
+    /// <param name="ipAddressesArgument">The IP addresses argument.</param>
+    public NameServersRemoveCommand(Argument<IPAddress[]> ipAddressesArgument) : base(
         CommandLineStrings_Common.RemoveCommandName,
         CommandLineStrings_DNS.DNSNameServersRemoveCommandDescription)
     {
-        Add(nameServersOption);
+        Add(ipAddressesArgument);
 
         SetAction((parseResult, cancellationToken) =>
         {
             return RemoveHandler(
-                parseResult.GetRequiredValue(nameServersOption),
+                parseResult.GetRequiredValue(ipAddressesArgument),
                 cancellationToken);
         });
     }

@@ -14,17 +14,17 @@ internal sealed class VLANRemoveCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="VLANRemoveCommand"/>.
     /// </summary>
-    /// <param name="interfaceNameOption">The interface name option.</param>
-    public VLANRemoveCommand(Option<string> interfaceNameOption) : base(
+    /// <param name="interfaceNameArgument">The interface name argument.</param>
+    public VLANRemoveCommand(Argument<string> interfaceNameArgument) : base(
         CommandLineStrings_Common.RemoveCommandName,
         CommandLineStrings_NetworkInterfaces.VLANRemoveCommandDescription)
     {
-        Add(interfaceNameOption);
+        Add(interfaceNameArgument);
 
         SetAction((parseResult, cancellationToken) =>
         {
             return RemoveHandler(
-                parseResult.GetRequiredValue(interfaceNameOption),
+                parseResult.GetRequiredValue(interfaceNameArgument),
                 cancellationToken);
         });
     }

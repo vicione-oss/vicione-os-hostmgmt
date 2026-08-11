@@ -10,6 +10,14 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.NameServ
 /// </summary>
 internal sealed class NameServersCommand : Command
 {
+    private static readonly Argument<IPAddress[]> s_ipAddressesArgument = new Argument<IPAddress[]>("addresses")
+    {
+        Description = "The list of IP addresses.",
+        Arity = ArgumentArity.OneOrMore,
+        CustomParser = IPAddressParser.ParseMultiple
+    }
+    .WithValidation(argumentResult => IPAddressValidator.Validate(argumentResult, "IP address"));
+
     private static readonly Option<IPAddress> s_oldNameServerOption = new Option<IPAddress>("--old-name-server", "-o")
     {
         Description = "The old name server.",
@@ -38,9 +46,9 @@ internal sealed class NameServersCommand : Command
         Add(new NameServersEnableCommand());
         Add(new NameServersDisableCommand());
         Add(new NameServersListCommand());
-        Add(new NameServersAddCommand(CommonOptions.s_ipAddressItemsOption));
-        Add(new NameServersRemoveCommand(CommonOptions.s_ipAddressItemsOption));
-        Add(new NameServersSetCommand(CommonOptions.s_ipAddressItemsOption));
+        Add(new NameServersAddCommand(s_ipAddressesArgument));
+        Add(new NameServersRemoveCommand(s_ipAddressesArgument));
+        Add(new NameServersSetCommand(s_ipAddressesArgument));
         Add(new NameServersClearCommand());
         Add(new NameServersModifyCommand(s_oldNameServerOption, s_newNameServerOption));
     }

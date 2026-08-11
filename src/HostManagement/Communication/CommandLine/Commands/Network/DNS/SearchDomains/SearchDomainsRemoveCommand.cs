@@ -12,17 +12,17 @@ internal sealed class SearchDomainsRemoveCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="SearchDomainsRemoveCommand"/>.
     /// </summary>
-    /// <param name="searchDomainsOption">The search domains option.</param>
-    public SearchDomainsRemoveCommand(Option<string[]> searchDomainsOption) : base(
+    /// <param name="searchDomainsArgument">The search domains argument.</param>
+    public SearchDomainsRemoveCommand(Argument<string[]> searchDomainsArgument) : base(
         CommandLineStrings_Common.RemoveCommandName,
         CommandLineStrings_DNS.DNSSearchDomainsRemoveCommandDescription)
     {
-        Add(searchDomainsOption);
+        Add(searchDomainsArgument);
 
         SetAction((parseResult, cancellationToken) =>
         {
             return RemoveHandler(
-                parseResult.GetRequiredValue(searchDomainsOption),
+                parseResult.GetRequiredValue(searchDomainsArgument),
                 cancellationToken);
         });
     }

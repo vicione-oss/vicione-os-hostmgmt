@@ -13,11 +13,12 @@ internal sealed class IPv4Command : Command
     /// <summary>
     /// Initializes a new <see cref="IPv4Command"/>.
     /// </summary>
-    public IPv4Command() : base(
+    /// <param name="interfaceNameArgument">The interface name argument.</param>
+    public IPv4Command(Argument<string> interfaceNameArgument) : base(
         CommandLineStrings_NetworkInterfaces.IPv4CommandName,
         CommandLineStrings_NetworkInterfaces.IPv4CommandDescription)
     {
-        Add(new DHCPCommand());
+        Add(new DHCPCommand(interfaceNameArgument));
         Add(new IPCommand());
         Add(new GatewayCommand());
     }

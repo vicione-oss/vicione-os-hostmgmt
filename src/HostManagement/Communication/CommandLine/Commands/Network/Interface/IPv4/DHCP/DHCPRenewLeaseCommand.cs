@@ -15,17 +15,17 @@ internal sealed class DHCPRenewLeaseCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="DHCPRenewLeaseCommand"/>.
     /// </summary>
-    /// <param name="interfaceNameOption">The interface name option.</param>
-    public DHCPRenewLeaseCommand(Option<string> interfaceNameOption) : base(
+    /// <param name="interfaceNameArgument">The interface name argument.</param>
+    public DHCPRenewLeaseCommand(Argument<string> interfaceNameArgument) : base(
         CommandLineStrings_NetworkInterfaces.DHCPRenewLeaseCommandName,
         CommandLineStrings_NetworkInterfaces.DHCPRenewLeaseCommandDescription)
     {
-        Add(interfaceNameOption);
+        Add(interfaceNameArgument);
 
         SetAction((parseResult, cancellationToken) =>
         {
             return RenewLeaseHandler(
-                parseResult.GetRequiredValue(interfaceNameOption),
+                parseResult.GetRequiredValue(interfaceNameArgument),
                 cancellationToken);
         });
     }

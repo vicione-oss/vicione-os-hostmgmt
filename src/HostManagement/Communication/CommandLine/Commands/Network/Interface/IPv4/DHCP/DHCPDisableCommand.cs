@@ -14,17 +14,17 @@ internal sealed class DHCPDisableCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="DHCPDisableCommand"/>.
     /// </summary>
-    /// <param name="interfaceNameOption">The interface name option.</param>
-    public DHCPDisableCommand(Option<string> interfaceNameOption) : base(
+    /// <param name="interfaceNameArgument">The interface name argument.</param>
+    public DHCPDisableCommand(Argument<string> interfaceNameArgument) : base(
         CommandLineStrings_Common.DisableCommandName,
         CommandLineStrings_NetworkInterfaces.DHCPDisableCommandDescription)
     {
-        Add(interfaceNameOption);
+        Add(interfaceNameArgument);
 
         SetAction((parseResult, cancellationToken) =>
         {
             return DisableHandler(
-                parseResult.GetRequiredValue(interfaceNameOption),
+                parseResult.GetRequiredValue(interfaceNameArgument),
                 cancellationToken);
         });
     }

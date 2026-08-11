@@ -7,6 +7,12 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.NTP;
 /// </summary>
 internal sealed class NTPCommand : Command
 {
+    private static readonly Argument<string[]> s_ntpServersArgument = new("servers")
+    {
+        Description = "The list of NTP servers.",
+        Arity = ArgumentArity.OneOrMore
+    };
+
     private static readonly Option<string> s_oldNTPServerOption = new("--old-ntp-server", "-o")
     {
         Description = "The old NTP server.",
@@ -31,9 +37,9 @@ internal sealed class NTPCommand : Command
         Add(new NTPEnableCommand());
         Add(new NTPDisableCommand());
         Add(new NTPListCommand());
-        Add(new NTPAddCommand(CommonOptions.s_itemsOption));
-        Add(new NTPRemoveCommand(CommonOptions.s_itemsOption));
-        Add(new NTPSetCommand(CommonOptions.s_itemsOption));
+        Add(new NTPAddCommand(s_ntpServersArgument));
+        Add(new NTPRemoveCommand(s_ntpServersArgument));
+        Add(new NTPSetCommand(s_ntpServersArgument));
         Add(new NTPClearCommand());
         Add(new NTPModifyCommand(s_oldNTPServerOption, s_newNTPServerOption));
     }

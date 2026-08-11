@@ -11,17 +11,17 @@ internal sealed class ServiceStopCommand : ServiceControlCommandBase
     /// <summary>
     /// Initializes a new <see cref="ServiceStopCommand"/>.
     /// </summary>
-    /// <param name="systemdUnitNameOption">The systemd unit name option.</param>
-    public ServiceStopCommand(Option<string> systemdUnitNameOption) : base(
+    /// <param name="systemdUnitNameArgument">The systemd unit name argument.</param>
+    public ServiceStopCommand(Argument<string> systemdUnitNameArgument) : base(
         CommandLineStrings_Systemd.ServiceStopCommandName,
         CommandLineStrings_Systemd.ServiceStopCommandDescription)
     {
-        Add(systemdUnitNameOption);
+        Add(systemdUnitNameArgument);
 
         SetAction((parseResult, cancellationToken) =>
         {
             return StopHandler(
-                parseResult.GetRequiredValue(systemdUnitNameOption),
+                parseResult.GetRequiredValue(systemdUnitNameArgument),
                 cancellationToken);
         });
     }

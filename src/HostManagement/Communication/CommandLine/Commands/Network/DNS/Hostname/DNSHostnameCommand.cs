@@ -9,9 +9,9 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.Hostname
 /// </summary>
 internal sealed class DNSHostnameCommand : ConfigCommandBase
 {
-    private static readonly Option<string> s_hostnameOption = new("--set", "-s")
+    private static readonly Argument<string> s_hostnameArgument = new("name")
     {
-        Description = "Set a new hostname.",
+        Description = "The new hostname.",
         Arity = ArgumentArity.ExactlyOne
     };
 
@@ -22,12 +22,12 @@ internal sealed class DNSHostnameCommand : ConfigCommandBase
         CommandLineStrings_DNS.DNSHostnameCommandName,
         CommandLineStrings_DNS.DNSHostnameCommandDescription)
     {
-        Add(s_hostnameOption);
+        Add(s_hostnameArgument);
 
         SetAction((parseResult, cancellationToken) =>
         {
             return HostNameHandler(
-                parseResult.GetValue(s_hostnameOption),
+                parseResult.GetValue(s_hostnameArgument),
                 cancellationToken);
         });
     }

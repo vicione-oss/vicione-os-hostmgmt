@@ -12,17 +12,17 @@ internal sealed class NoProxySetCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="NoProxySetCommand"/>.
     /// </summary>
-    /// <param name="noProxyItemsOption">The no-proxy items option.</param>
-    public NoProxySetCommand(Option<string[]> noProxyItemsOption) : base(
+    /// <param name="noProxyEntriesArgument">The no-proxy entries argument.</param>
+    public NoProxySetCommand(Argument<string[]> noProxyEntriesArgument) : base(
         CommandLineStrings_Common.SetCommandName,
         CommandLineStrings_Proxy.NoProxyListSetCommandDescription)
     {
-        Add(noProxyItemsOption);
+        Add(noProxyEntriesArgument);
 
         SetAction((parseResult, cancellationToken) =>
         {
             return SetHandler(
-                parseResult.GetRequiredValue(noProxyItemsOption),
+                parseResult.GetRequiredValue(noProxyEntriesArgument),
                 cancellationToken);
         });
     }

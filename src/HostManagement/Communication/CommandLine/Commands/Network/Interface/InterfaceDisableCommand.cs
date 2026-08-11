@@ -14,17 +14,17 @@ internal sealed class InterfaceDisableCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="InterfaceDisableCommand"/>.
     /// </summary>
-    /// <param name="interfaceNameOption">The interface name option.</param>
-    public InterfaceDisableCommand(Option<string> interfaceNameOption) : base(
+    /// <param name="interfaceNameArgument">The interface name argument.</param>
+    public InterfaceDisableCommand(Argument<string> interfaceNameArgument) : base(
         CommandLineStrings_Common.DisableCommandName,
         CommandLineStrings_NetworkInterfaces.NetworkInterfaceDisableCommandDescription)
     {
-        Add(interfaceNameOption);
+        Add(interfaceNameArgument);
 
         SetAction((parseResult, cancellationToken) =>
         {
             return DisableHandler(
-                parseResult.GetRequiredValue(interfaceNameOption),
+                parseResult.GetRequiredValue(interfaceNameArgument),
                 cancellationToken);
         });
     }

@@ -14,17 +14,17 @@ internal sealed class DHCPEnableCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="DHCPEnableCommand"/>.
     /// </summary>
-    /// <param name="interfaceNameOption">The interface name option.</param>
-    public DHCPEnableCommand(Option<string> interfaceNameOption) : base(
+    /// <param name="interfaceNameArgument">The interface name argument.</param>
+    public DHCPEnableCommand(Argument<string> interfaceNameArgument) : base(
         CommandLineStrings_Common.EnableCommandName,
         CommandLineStrings_NetworkInterfaces.DHCPEnableCommandDescription)
     {
-        Add(interfaceNameOption);
+        Add(interfaceNameArgument);
 
         SetAction((parseResult, cancellationToken) =>
         {
             return EnableHandler(
-                parseResult.GetRequiredValue(interfaceNameOption),
+                parseResult.GetRequiredValue(interfaceNameArgument),
                 cancellationToken);
         });
     }

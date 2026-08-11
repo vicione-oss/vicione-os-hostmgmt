@@ -7,6 +7,12 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.SearchDo
 /// </summary>
 internal sealed class SearchDomainsCommand : Command
 {
+    private static readonly Argument<string[]> s_searchDomainsArgument = new("domains")
+    {
+        Description = "The list of search domains.",
+        Arity = ArgumentArity.OneOrMore
+    };
+
     private static readonly Option<string> s_oldSearchDomainOption = new("--old-search-domain", "-o")
     {
         Description = "The old search domain.",
@@ -31,9 +37,9 @@ internal sealed class SearchDomainsCommand : Command
         Add(new SearchDomainsEnableCommand());
         Add(new SearchDomainsDisableCommand());
         Add(new SearchDomainsListCommand());
-        Add(new SearchDomainsAddCommand(CommonOptions.s_itemsOption));
-        Add(new SearchDomainsRemoveCommand(CommonOptions.s_itemsOption));
-        Add(new SearchDomainsSetCommand(CommonOptions.s_itemsOption));
+        Add(new SearchDomainsAddCommand(s_searchDomainsArgument));
+        Add(new SearchDomainsRemoveCommand(s_searchDomainsArgument));
+        Add(new SearchDomainsSetCommand(s_searchDomainsArgument));
         Add(new SearchDomainsClearCommand());
         Add(new SearchDomainsModifyCommand(s_oldSearchDomainOption, s_newSearchDomainOption));
     }

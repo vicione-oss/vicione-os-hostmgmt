@@ -14,17 +14,17 @@ internal sealed class InterfaceEnableCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="InterfaceEnableCommand"/>.
     /// </summary>
-    /// <param name="interfaceNameOption">The interface name option.</param>
-    public InterfaceEnableCommand(Option<string> interfaceNameOption) : base(
+    /// <param name="interfaceNameArgument">The interface name argument.</param>
+    public InterfaceEnableCommand(Argument<string> interfaceNameArgument) : base(
         CommandLineStrings_Common.EnableCommandName,
         CommandLineStrings_NetworkInterfaces.NetworkInterfaceEnableCommandDescription)
     {
-        Add(interfaceNameOption);
+        Add(interfaceNameArgument);
 
         SetAction((parseResult, cancellationToken) =>
         {
             return EnableHandler(
-                parseResult.GetRequiredValue(interfaceNameOption),
+                parseResult.GetRequiredValue(interfaceNameArgument),
                 cancellationToken);
         });
     }

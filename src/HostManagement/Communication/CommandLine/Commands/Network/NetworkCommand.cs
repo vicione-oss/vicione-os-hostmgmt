@@ -11,6 +11,12 @@ namespace HostManagement.Communication.CommandLine.Commands.Network;
 /// </summary>
 internal sealed class NetworkCommand : Command
 {
+    private static readonly Argument<string> s_interfaceNameArgument = new("name")
+    {
+        Description = CommandLineStrings_NetworkInterfaces.InterfaceNameArgumentDescription,
+        Arity = ArgumentArity.ExactlyOne
+    };
+
     /// <summary>
     /// Initializes a new <see cref="NetworkCommand"/>.
     /// </summary>
@@ -19,8 +25,8 @@ internal sealed class NetworkCommand : Command
         CommandLineStrings_Network.NetworkCommandDescription)
     {
         Add(new ListInterfacesCommand());
-        Add(new NetworkStatusCommand());
-        Add(new InterfaceCommand());
+        Add(new NetworkStatusCommand(s_interfaceNameArgument));
+        Add(new InterfaceCommand(s_interfaceNameArgument));
         Add(new DNSCommand());
         Add(new ProxyCommand());
         Add(new NTPCommand());

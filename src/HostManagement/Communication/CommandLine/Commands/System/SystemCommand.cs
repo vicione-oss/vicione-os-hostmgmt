@@ -13,6 +13,12 @@ internal sealed class SystemCommand : Command
         Arity = ArgumentArity.ZeroOrOne
     };
 
+    private static readonly Argument<string> s_filePathArgument = new("filePath")
+    {
+        Description = "The file path.",
+        Arity = ArgumentArity.ExactlyOne
+    };
+
     private static readonly Option<string> s_filePathOption = new("--filePath", "-f")
     {
         Description = "The file path.",
@@ -37,7 +43,7 @@ internal sealed class SystemCommand : Command
         Add(new SystemResetCommand());
         Add(new SystemRestartCommand(s_delayArgument));
         Add(new SystemShutdownCommand(s_delayArgument));
-        Add(new SystemUpdateCommand(s_filePathOption));
+        Add(new SystemUpdateCommand(s_filePathArgument));
         Add(new InstallSignedDebianPackageCommand(s_filePathOption, s_signatureFilePathOption));
     }
 }

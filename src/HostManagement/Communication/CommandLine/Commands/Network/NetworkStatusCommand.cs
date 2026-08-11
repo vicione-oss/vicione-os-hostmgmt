@@ -15,16 +15,11 @@ internal sealed class NetworkStatusCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="NetworkStatusCommand"/>.
     /// </summary>
-    public NetworkStatusCommand() : base(
+    /// <param name="interfaceNameArgument">The interface name argument.</param>
+    public NetworkStatusCommand(Argument<string> interfaceNameArgument) : base(
         CommandLineStrings_Common.StatusCommandName,
         CommandLineStrings_Network.NetworkStatusCommandDescription)
     {
-        var interfaceNameArgument = new Argument<string>("name")
-        {
-            Arity = ArgumentArity.ExactlyOne,
-            Description = CommandLineStrings_NetworkInterfaces.InterfaceNameArgumentDescription
-        };
-
         Add(interfaceNameArgument);
 
         SetAction((parseResult, cancellationToken) =>
