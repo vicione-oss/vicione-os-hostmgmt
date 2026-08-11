@@ -25,7 +25,7 @@ internal sealed class VLANCommand : Command
         Add(new VLANListCommand());
         Add(new VLANEnableCommand(interfaceNameArgument));
         Add(new VLANDisableCommand(interfaceNameArgument));
-        Add(new VLANSetCommand(CommonOptions.s_interfaceNameOption, s_vlanIdOption));
         Add(new VLANRemoveCommand(interfaceNameArgument));
+        Add(new VLANSetCommand(CommonOptions.s_interfaceNameOption, s_vlanIdOption));
     }
 }
