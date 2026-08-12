@@ -407,8 +407,5 @@ FodyWeavers.xsd
 
 # Overwrites
 
-# User defined instructions for GitHub Copilot
-.github/instructions/user-defined.instructions.md
-
 # local files like reports, exports, logs, etc.
 local/

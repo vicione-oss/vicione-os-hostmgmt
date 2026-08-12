@@ -1,8 +1,3 @@
----
-description: "Guidelines for unit testing"
-applyTo: "**/*Tests.cs"
----
-
 # Unit Testing Instructions
 
 These are the instructions for unit testing of the `HostManagement` project.
