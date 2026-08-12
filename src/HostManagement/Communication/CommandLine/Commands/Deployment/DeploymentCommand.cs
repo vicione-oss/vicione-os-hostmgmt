@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Commands.Deployment.Redeploy;
 
 namespace HostManagement.Communication.CommandLine.Commands.Deployment;

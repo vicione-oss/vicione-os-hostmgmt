@@ -41,27 +41,19 @@ internal sealed class StaticHostsRemoveCommand : ConfigCommandBase
             Hostname = hostname
         };
 
-        var output = new TableOutput();
-
         if (!config.NetworkDNSSettings.StaticHosts.Hosts.Contains(staticHostToRemove))
         {
-            output
-                .WithWarning(CommandLineStrings_DNS.StaticHostNotFound, address, hostname)
-                .WriteLine();
-
+            SimpleOutput.WriteLineWarning(CommandLineStrings_DNS.StaticHostNotFound, address, hostname);
             return;
         }
 
         if (!config.NetworkDNSSettings.StaticHosts.Hosts.Remove(staticHostToRemove))
         {
-            output
-                .WithError(CommandLineStrings_DNS.StaticHostCouldNotBeRemoved, address, hostname)
-                .WriteLine();
-
+            SimpleOutput.WriteLineError(CommandLineStrings_DNS.StaticHostCouldNotBeRemoved, address, hostname);
             return;
         }
 
-        output.With(address, hostname);
+        var output = new TableOutput().With(address, hostname);
 
         if (config.NetworkDNSSettings.StaticHosts.Enabled)
         {

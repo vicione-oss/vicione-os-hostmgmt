@@ -17,7 +17,7 @@ internal abstract partial class CliOutputBase
     private protected static string GetWarningMessage(string warningText)
         => CommandLineStrings_Output.WARNING + LogMessageDelimiter + WhiteSpace + warningText;
 
-    private protected string GetIndentedString(int indentationLevel, string value)
+    private protected static string GetIndentedString(int indentationLevel, string value)
     {
         var indentation = Enumerable.Repeat(IndentationPattern, indentationLevel);
 

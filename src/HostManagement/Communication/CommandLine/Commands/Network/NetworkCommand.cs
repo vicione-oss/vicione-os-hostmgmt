@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Commands.Network.DNS;
 using HostManagement.Communication.CommandLine.Commands.Network.Interface;
 using HostManagement.Communication.CommandLine.Commands.Network.NTP;

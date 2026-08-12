@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Interface.IPv4.DHCP;
 

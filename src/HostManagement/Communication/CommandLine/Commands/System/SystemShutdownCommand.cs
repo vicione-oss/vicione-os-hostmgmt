@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
 

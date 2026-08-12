@@ -1,4 +1,4 @@
-﻿using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Service;

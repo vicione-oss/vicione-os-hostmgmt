@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.NTP;
 
@@ -30,9 +30,7 @@ internal sealed class NTPCommand : Command
     /// <summary>
     /// Initializes a new <see cref="NTPCommand"/>.
     /// </summary>
-    public NTPCommand() : base(
-        CommandLineStrings_NTP.NTPCommandName,
-        CommandLineStrings_NTP.NTPCommandDescription)
+    public NTPCommand() : base(CommandLineStrings_NTP.NTPCommandName, CommandLineStrings_NTP.NTPCommandDescription)
     {
         Add(new NTPListCommand());
         Add(new NTPEnableCommand());

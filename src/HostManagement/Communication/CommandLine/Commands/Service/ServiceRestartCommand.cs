@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Shared.Enums;
 
 namespace HostManagement.Communication.CommandLine.Commands.Service;

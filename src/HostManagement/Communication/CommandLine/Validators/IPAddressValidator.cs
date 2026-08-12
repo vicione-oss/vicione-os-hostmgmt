@@ -1,4 +1,4 @@
-﻿using System.CommandLine.Parsing;
+using System.CommandLine.Parsing;
 using System.Globalization;
 using System.Text;
 using HostManagement.Communication.CommandLine.Commands.Network.Interface;

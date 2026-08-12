@@ -29,9 +29,7 @@ internal sealed class StaticHostsListCommand : ConfigCommandBase
         }
 
         var output = new TableOutput()
-            .WithTitle(
-                CommandLineStrings_DNS.StaticHosts,
-                config.NetworkDNSSettings.StaticHosts.Enabled);
+            .WithTitle(CommandLineStrings_DNS.StaticHosts, config.NetworkDNSSettings.StaticHosts.Enabled);
 
         config.NetworkDNSSettings.StaticHosts.Hosts.ForEach(host => output.With(host.IPAddress, host.Hostname));
         output.WriteLine();
