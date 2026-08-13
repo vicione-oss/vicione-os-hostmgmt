@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.StaticHosts;
@@ -13,7 +14,7 @@ internal sealed class StaticHostsClearCommand : ConfigCommandBase
     /// </summary>
     public StaticHostsClearCommand()
         : base(
-            CommandLineStrings_Common.ClearCommandName,
+            CliStrings.Common.ClearCommandName,
             CommandLineStrings_DNS.DNSStaticHostsClearCommandDescription)
         => SetAction((parseResult, cancellationToken) => ClearHandler(cancellationToken));
 

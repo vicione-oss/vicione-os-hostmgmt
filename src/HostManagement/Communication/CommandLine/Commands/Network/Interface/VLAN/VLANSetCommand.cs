@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Extensions;
@@ -17,7 +18,7 @@ internal sealed class VLANSetCommand : ConfigCommandBase
     /// <param name="interfaceNameOption">The interface name option.</param>
     /// <param name="vlanIdOption">The VLAN ID option.</param>
     public VLANSetCommand(Option<string> interfaceNameOption, Option<int> vlanIdOption) : base(
-        CommandLineStrings_Common.SetCommandName,
+        CliStrings.Common.SetCommandName,
         CommandLineStrings_NetworkInterfaces.VLANSetCommandDescription)
     {
         Add(interfaceNameOption);

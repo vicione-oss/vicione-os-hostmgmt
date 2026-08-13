@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.SearchDomains;
@@ -13,7 +14,7 @@ internal sealed class SearchDomainsClearCommand : ConfigCommandBase
     /// </summary>
     public SearchDomainsClearCommand()
         : base(
-            CommandLineStrings_Common.ClearCommandName,
+            CliStrings.Common.ClearCommandName,
             CommandLineStrings_DNS.DNSSearchDomainsClearCommandDescription)
         => SetAction((parseResult, cancellationToken) => ClearHandler(cancellationToken));
 

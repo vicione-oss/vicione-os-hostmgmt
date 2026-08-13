@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy.NoProxy;
@@ -14,7 +15,7 @@ internal sealed class NoProxyAddCommand : ConfigCommandBase
     /// </summary>
     /// <param name="noProxyEntriesArgument">The no-proxy entries argument.</param>
     public NoProxyAddCommand(Argument<string[]> noProxyEntriesArgument) : base(
-        CommandLineStrings_Common.AddCommandName,
+        CliStrings.Common.AddCommandName,
         CommandLineStrings_Proxy.NoProxyListAddCommandDescription)
     {
         Add(noProxyEntriesArgument);

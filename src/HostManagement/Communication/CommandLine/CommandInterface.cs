@@ -3,6 +3,7 @@ using HostManagement.Communication.CommandLine.Commands.Deployment;
 using HostManagement.Communication.CommandLine.Commands.Network;
 using HostManagement.Communication.CommandLine.Commands.Service;
 using HostManagement.Communication.CommandLine.Commands.System;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine;
 
@@ -17,7 +18,7 @@ internal sealed class CommandInterface
     /// <returns><see cref="RootCommand"/></returns>
     public static RootCommand CreateRootCommand()
     {
-        return new RootCommand("ViciOne Host Management Tool")
+        return new RootCommand(CliStrings.Common.RootCommandDescription)
         {
             new NetworkCommand(),
             new ServiceCommand(),

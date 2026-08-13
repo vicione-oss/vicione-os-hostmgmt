@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.StaticHosts;
@@ -13,7 +14,7 @@ internal sealed class StaticHostsListCommand : ConfigCommandBase
     /// </summary>
     public StaticHostsListCommand()
         : base(
-            CommandLineStrings_Common.ListCommandName,
+            CliStrings.Common.ListCommandName,
             CommandLineStrings_DNS.DNSStaticHostsListCommandDescription)
         => SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
 

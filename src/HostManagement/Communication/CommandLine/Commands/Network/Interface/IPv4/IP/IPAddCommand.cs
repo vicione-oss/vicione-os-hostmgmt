@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.Net;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Extensions;
@@ -23,7 +24,7 @@ internal sealed class IPAddCommand : ConfigCommandBase
         Option<IPAddress> addressOption,
         Option<IPAddress> netmaskOption)
         : base(
-            CommandLineStrings_Common.AddCommandName,
+            CliStrings.Common.AddCommandName,
             CommandLineStrings_NetworkInterfaces.IPAddCommandDescription)
     {
         Add(interfaceNameOption);

@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Extensions;
@@ -16,7 +17,7 @@ internal sealed class VLANRemoveCommand : ConfigCommandBase
     /// </summary>
     /// <param name="interfaceNameArgument">The interface name argument.</param>
     public VLANRemoveCommand(Argument<string> interfaceNameArgument) : base(
-        CommandLineStrings_Common.RemoveCommandName,
+        CliStrings.Common.RemoveCommandName,
         CommandLineStrings_NetworkInterfaces.VLANRemoveCommandDescription)
     {
         Add(interfaceNameArgument);

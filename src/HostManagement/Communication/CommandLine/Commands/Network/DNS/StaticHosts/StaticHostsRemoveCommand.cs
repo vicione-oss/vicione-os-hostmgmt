@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.Net;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 
@@ -17,7 +18,7 @@ internal sealed class StaticHostsRemoveCommand : ConfigCommandBase
     /// <param name="addressOption">The IP address option.</param>
     /// <param name="hostnameOption">The hostname option.</param>
     public StaticHostsRemoveCommand(Option<IPAddress> addressOption, Option<string> hostnameOption) : base(
-        CommandLineStrings_Common.RemoveCommandName,
+        CliStrings.Common.RemoveCommandName,
         CommandLineStrings_DNS.DNSStaticHostsRemoveCommandDescription)
     {
         Add(addressOption);

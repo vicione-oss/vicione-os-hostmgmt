@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Interface.IPv4.Gateway;
@@ -13,7 +14,7 @@ internal sealed class GatewayRemoveCommand : ConfigCommandBase
     /// </summary>
     public GatewayRemoveCommand()
         : base(
-            CommandLineStrings_Common.RemoveCommandName,
+            CliStrings.Common.RemoveCommandName,
             CommandLineStrings_NetworkInterfaces.GatewayRemoveCommandDescription)
         => SetAction((parseResult, cancellationToken) => RemoveHandler(cancellationToken));
 

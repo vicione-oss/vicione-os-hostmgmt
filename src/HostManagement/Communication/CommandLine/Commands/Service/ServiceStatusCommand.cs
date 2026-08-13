@@ -1,6 +1,7 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine.Commands.Service;
 
@@ -14,7 +15,7 @@ internal sealed class ServiceStatusCommand : Command
     /// </summary>
     /// <param name="systemdUnitNameArgument">The systemd unit name argument.</param>
     public ServiceStatusCommand(Argument<string> systemdUnitNameArgument) : base(
-        CommandLineStrings_Common.StatusCommandName,
+        CliStrings.Common.StatusCommandName,
         CommandLineStrings_Systemd.ServiceStatusCommandDescription)
     {
         Add(systemdUnitNameArgument);

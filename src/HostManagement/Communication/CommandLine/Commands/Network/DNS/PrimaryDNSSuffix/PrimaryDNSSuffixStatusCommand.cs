@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.PrimaryDNSSuffix;
@@ -13,7 +14,7 @@ internal sealed class PrimaryDNSSuffixStatusCommand : ConfigCommandBase
     /// </summary>
     public PrimaryDNSSuffixStatusCommand()
         : base(
-            CommandLineStrings_Common.StatusCommandName,
+            CliStrings.Common.StatusCommandName,
             CommandLineStrings_DNS.DNSSuffixStatusCommandDescription)
         => SetAction((parseResult, cancellationToken) => StatusHandler(cancellationToken));
 

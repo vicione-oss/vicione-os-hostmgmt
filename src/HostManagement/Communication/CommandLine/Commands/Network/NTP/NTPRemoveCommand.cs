@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.NTP;
@@ -14,7 +15,7 @@ internal sealed class NTPRemoveCommand : ConfigCommandBase
     /// </summary>
     /// <param name="ntpServersArgument">The NTP servers argument.</param>
     public NTPRemoveCommand(Argument<string[]> ntpServersArgument) : base(
-        CommandLineStrings_Common.RemoveCommandName,
+        CliStrings.Common.RemoveCommandName,
         CommandLineStrings_NTP.NTPRemoveCommandDescription)
     {
         Add(ntpServersArgument);

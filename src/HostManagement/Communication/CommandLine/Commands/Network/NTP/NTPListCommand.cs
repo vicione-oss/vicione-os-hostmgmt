@@ -1,5 +1,6 @@
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.NTP;
@@ -14,7 +15,7 @@ internal sealed class NTPListCommand : ConfigCommandBase
     /// </summary>
     public NTPListCommand()
         : base(
-            CommandLineStrings_Common.ListCommandName,
+            CliStrings.Common.ListCommandName,
             CommandLineStrings_NTP.NTPListCommandDescription)
         => SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
 

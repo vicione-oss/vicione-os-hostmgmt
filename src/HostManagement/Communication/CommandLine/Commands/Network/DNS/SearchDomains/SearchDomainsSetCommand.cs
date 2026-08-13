@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.SearchDomains;
@@ -14,7 +15,7 @@ internal sealed class SearchDomainsSetCommand : ConfigCommandBase
     /// </summary>
     /// <param name="searchDomainsArgument">The search domains argument.</param>
     public SearchDomainsSetCommand(Argument<string[]> searchDomainsArgument) : base(
-        CommandLineStrings_Common.SetCommandName,
+        CliStrings.Common.SetCommandName,
         CommandLineStrings_DNS.DNSSearchDomainsSetCommandDescription)
     {
         Add(searchDomainsArgument);

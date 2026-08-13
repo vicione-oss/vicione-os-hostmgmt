@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy;
@@ -15,7 +16,7 @@ internal sealed class ProxyTypeStatusCommand : ProxyTypeCommandBase
     /// </summary>
     /// <param name="proxyType">The proxy type.</param>
     public ProxyTypeStatusCommand(ProxyType proxyType) : base(
-        CommandLineStrings_Common.StatusCommandName,
+        CliStrings.Common.StatusCommandName,
         string.Format(
             CultureInfo.InvariantCulture,
             CompositeFormat.Parse(CommandLineStrings_Proxy.ProxyTypeStatusCommandDescription),

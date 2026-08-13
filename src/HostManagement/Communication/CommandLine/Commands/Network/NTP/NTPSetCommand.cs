@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.NTP;
@@ -14,7 +15,7 @@ internal sealed class NTPSetCommand : ConfigCommandBase
     /// </summary>
     /// <param name="ntpServersArgument">The NTP servers argument.</param>
     public NTPSetCommand(Argument<string[]> ntpServersArgument) : base(
-        CommandLineStrings_Common.SetCommandName,
+        CliStrings.Common.SetCommandName,
         CommandLineStrings_NTP.NTPSetCommandDescription)
     {
         Add(ntpServersArgument);

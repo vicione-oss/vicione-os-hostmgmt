@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.PrimaryDNSSuffix;
@@ -13,7 +14,7 @@ internal sealed class PrimaryDNSSuffixRemoveCommand : ConfigCommandBase
     /// </summary>
     public PrimaryDNSSuffixRemoveCommand()
         : base(
-            CommandLineStrings_Common.RemoveCommandName,
+            CliStrings.Common.RemoveCommandName,
             CommandLineStrings_DNS.DNSSuffixRemoveCommandDescription)
         => SetAction((parseResult, cancellationToken) => RemoveHandler(cancellationToken));
 

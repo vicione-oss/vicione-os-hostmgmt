@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.SearchDomains;
@@ -18,7 +19,7 @@ internal sealed class SearchDomainsModifyCommand : ConfigCommandBase
         Option<string> oldSearchDomainOption,
         Option<string> newSearchDomainOption)
         : base(
-            CommandLineStrings_Common.ModifyCommandName,
+            CliStrings.Common.ModifyCommandName,
             CommandLineStrings_DNS.DNSSearchDomainsModifyCommandDescription)
     {
         Add(oldSearchDomainOption);

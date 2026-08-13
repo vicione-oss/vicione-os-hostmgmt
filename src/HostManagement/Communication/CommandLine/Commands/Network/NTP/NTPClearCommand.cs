@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.NTP;
@@ -13,7 +14,7 @@ internal sealed class NTPClearCommand : ConfigCommandBase
     /// </summary>
     public NTPClearCommand()
         : base(
-            CommandLineStrings_Common.ClearCommandName,
+            CliStrings.Common.ClearCommandName,
             CommandLineStrings_NTP.NTPClearCommandDescription)
         => SetAction((parseResult, cancellationToken) => ClearHandler(cancellationToken));
 

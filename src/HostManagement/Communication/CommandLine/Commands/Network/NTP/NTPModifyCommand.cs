@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.NTP;
@@ -15,7 +16,7 @@ internal sealed class NTPModifyCommand : ConfigCommandBase
     /// <param name="oldNTPServerOption">The old NTP server option.</param>
     /// <param name="newNTPServerOption">The new NTP server option.</param>
     public NTPModifyCommand(Option<string> oldNTPServerOption, Option<string> newNTPServerOption) : base(
-        CommandLineStrings_Common.ModifyCommandName,
+        CliStrings.Common.ModifyCommandName,
         CommandLineStrings_NTP.NTPModifyCommandDescription)
     {
         Add(oldNTPServerOption);

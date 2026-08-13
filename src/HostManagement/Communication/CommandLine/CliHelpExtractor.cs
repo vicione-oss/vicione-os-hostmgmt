@@ -1,4 +1,5 @@
 using System.CommandLine;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine;
 
@@ -24,7 +25,10 @@ internal static class CliHelpExtractor
         HideDefaultHelpOptionsRecursively(rootCommand);
 
         // Output description of the Host Management CLI followed by all commands
-        s_output.WriteLine(CommandLineStrings_Common.CliHelpExtractorHostManagementDescription);
+        s_output.WriteLine(CliStrings.Common.CliHelpExtractorHostManagementDescription);
+        s_output.WriteLine();
+        s_output.WriteLine("## Commands and Options");
+        s_output.WriteLine();
         OutputHelpForRootCommand(rootCommand);
         OutputHelpForSubcommands(rootCommand.Subcommands);
     }

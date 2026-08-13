@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.StaticHosts;
@@ -13,7 +14,7 @@ internal sealed class StaticHostsEnableCommand : ConfigCommandBase
     /// </summary>
     public StaticHostsEnableCommand()
         : base(
-            CommandLineStrings_Common.EnableCommandName,
+            CliStrings.Common.EnableCommandName,
             CommandLineStrings_DNS.DNSStaticHostsEnableCommandDescription)
         => SetAction((parseResult, cancellationToken) => EnableHandler(cancellationToken));
 

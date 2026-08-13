@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Enums;
 
@@ -15,7 +16,7 @@ internal sealed class ServiceDisableCommand : ServiceCommandBase
     /// </summary>
     /// <param name="systemdUnitNameArgument">The systemd unit name argument.</param>
     public ServiceDisableCommand(Argument<string> systemdUnitNameArgument) : base(
-        CommandLineStrings_Common.DisableCommandName,
+        CliStrings.Common.DisableCommandName,
         CommandLineStrings_Systemd.ServiceDisableCommandDescription)
     {
         Add(systemdUnitNameArgument);

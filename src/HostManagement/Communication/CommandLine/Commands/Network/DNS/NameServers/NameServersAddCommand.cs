@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.Net;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.NameServers;
@@ -15,7 +16,7 @@ internal sealed class NameServersAddCommand : ConfigCommandBase
     /// </summary>
     /// <param name="ipAddressesArgument">The IP addresses argument.</param>
     public NameServersAddCommand(Argument<IPAddress[]> ipAddressesArgument) : base(
-        CommandLineStrings_Common.AddCommandName,
+        CliStrings.Common.AddCommandName,
         CommandLineStrings_DNS.DNSNameServersAddCommandDescription)
     {
         Add(ipAddressesArgument);

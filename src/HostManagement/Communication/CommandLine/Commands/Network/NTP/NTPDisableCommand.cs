@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.NTP;
@@ -13,7 +14,7 @@ internal sealed class NTPDisableCommand : ConfigCommandBase
     /// </summary>
     public NTPDisableCommand()
         : base(
-            CommandLineStrings_Common.DisableCommandName,
+            CliStrings.Common.DisableCommandName,
             CommandLineStrings_NTP.NTPDisableCommandDescription)
         => SetAction((parseResult, cancellationToken) => DisableHandler(cancellationToken));
 

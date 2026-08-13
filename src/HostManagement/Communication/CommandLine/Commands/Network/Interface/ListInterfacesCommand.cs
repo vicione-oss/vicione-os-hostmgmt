@@ -2,6 +2,7 @@ using System.CommandLine;
 using HostManagement.Communication.CommandLine.Commands.Network.DNS;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 
@@ -87,7 +88,7 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
         var multiKeyValueOutput = output
             .AddMultiKeyValueOutput(indentationLevel)
             .WithTitle(CommandLineStrings_NetworkInterfaces.CommonInfo)
-            .With(new(CommandLineStrings_NetworkInterfaces.Enabled, commonInformation.Enabled));
+            .With(new(CliStrings.Common.EnabledLabel, commonInformation.Enabled));
 
         if (physicalAddress.Equals(originalPhysicalAddress))
         {
@@ -242,7 +243,7 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
 
         output.AddKeyValueOutput(indentationLevel)
             .WithTitle(CommandLineStrings_NetworkInterfaces.VLAN)
-            .With(new(CommandLineStrings_NetworkInterfaces.Enabled, vlanSettings.Enabled))
+            .With(new(CliStrings.Common.EnabledLabel, vlanSettings.Enabled))
             .With(new(CommandLineStrings_NetworkInterfaces.VLANID, vlanIdValue));
     }
 }

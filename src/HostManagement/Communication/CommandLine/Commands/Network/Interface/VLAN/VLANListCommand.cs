@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Interface.VLAN;
@@ -13,7 +14,7 @@ internal sealed class VLANListCommand : ConfigCommandBase
     /// </summary>
     public VLANListCommand()
         : base(
-            CommandLineStrings_Common.ListCommandName,
+            CliStrings.Common.ListCommandName,
             CommandLineStrings_NetworkInterfaces.VLANListCommandDescription)
         => SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
 

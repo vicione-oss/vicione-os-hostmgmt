@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy;
@@ -16,7 +17,7 @@ internal sealed class ProxyTypeDisableCommand : ProxyTypeCommandBase
     /// <param name="proxyType">The type of the proxy.</param>
     public ProxyTypeDisableCommand(ProxyType proxyType)
         : base(
-            CommandLineStrings_Common.DisableCommandName,
+            CliStrings.Common.DisableCommandName,
             string.Format(
                 CultureInfo.InvariantCulture,
                 CompositeFormat.Parse(CommandLineStrings_Proxy.ProxyTypeDisableCommandDescription),

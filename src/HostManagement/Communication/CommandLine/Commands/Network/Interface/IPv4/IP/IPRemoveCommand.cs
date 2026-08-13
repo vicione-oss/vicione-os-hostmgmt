@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.Net;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Extensions;
@@ -18,7 +19,7 @@ internal sealed class IPRemoveCommand : ConfigCommandBase
     /// <param name="interfaceNameOption">The interface name option.</param>
     /// <param name="addressOption">The IP address option.</param>
     public IPRemoveCommand(Option<string> interfaceNameOption, Option<IPAddress> addressOption) : base(
-        CommandLineStrings_Common.RemoveCommandName,
+        CliStrings.Common.RemoveCommandName,
         CommandLineStrings_NetworkInterfaces.IPRemoveCommandDescription)
     {
         Add(interfaceNameOption);

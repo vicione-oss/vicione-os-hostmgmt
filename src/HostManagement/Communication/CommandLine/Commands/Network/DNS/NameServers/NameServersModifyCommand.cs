@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.Net;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.NameServers;
@@ -19,7 +20,7 @@ internal sealed class NameServersModifyCommand : ConfigCommandBase
         Option<IPAddress> oldNameServerOption,
         Option<IPAddress> newNameServerOption)
         : base(
-            CommandLineStrings_Common.ModifyCommandName,
+            CliStrings.Common.ModifyCommandName,
             CommandLineStrings_DNS.DNSNameServersModifyCommandDescription)
     {
         Add(oldNameServerOption);

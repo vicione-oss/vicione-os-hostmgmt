@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.NameServers;
@@ -13,7 +14,7 @@ internal sealed class NameServersEnableCommand : ConfigCommandBase
     /// </summary>
     public NameServersEnableCommand()
         : base(
-            CommandLineStrings_Common.EnableCommandName,
+            CliStrings.Common.EnableCommandName,
             CommandLineStrings_DNS.DNSNameServersEnableCommandDescription)
         => SetAction((parseResult, cancellationToken) => EnableHandler(cancellationToken));
 

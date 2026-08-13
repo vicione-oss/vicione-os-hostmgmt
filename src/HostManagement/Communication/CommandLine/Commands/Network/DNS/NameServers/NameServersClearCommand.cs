@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.NameServers;
@@ -13,7 +14,7 @@ internal sealed class NameServersClearCommand : ConfigCommandBase
     /// </summary>
     public NameServersClearCommand()
         : base(
-            CommandLineStrings_Common.ClearCommandName,
+            CliStrings.Common.ClearCommandName,
             CommandLineStrings_DNS.DNSNameServersClearCommandDescription)
         => SetAction((parseResult, cancellationToken) => ClearHandler(cancellationToken));
 

@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.Net;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 
@@ -17,7 +18,7 @@ internal sealed class StaticHostsAddCommand : ConfigCommandBase
     /// <param name="addressOption">The IP address option.</param>
     /// <param name="hostnameOption">The hostname option.</param>
     public StaticHostsAddCommand(Option<IPAddress> addressOption, Option<string> hostnameOption) : base(
-        CommandLineStrings_Common.AddCommandName,
+        CliStrings.Common.AddCommandName,
         CommandLineStrings_DNS.DNSStaticHostsAddCommandDescription)
     {
         Add(addressOption);

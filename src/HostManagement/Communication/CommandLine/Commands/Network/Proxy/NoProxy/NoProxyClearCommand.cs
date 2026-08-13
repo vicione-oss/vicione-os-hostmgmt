@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy.NoProxy;
@@ -13,7 +14,7 @@ internal sealed class NoProxyClearCommand : ConfigCommandBase
     /// </summary>
     public NoProxyClearCommand()
         : base(
-            CommandLineStrings_Common.ClearCommandName,
+            CliStrings.Common.ClearCommandName,
             CommandLineStrings_Proxy.NoProxyListClearCommandDescription)
         => SetAction((parseResult, cancellationToken) => ClearHandler(cancellationToken));
 

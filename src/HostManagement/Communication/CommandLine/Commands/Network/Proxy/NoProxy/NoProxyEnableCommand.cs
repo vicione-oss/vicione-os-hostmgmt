@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy.NoProxy;
@@ -13,7 +14,7 @@ internal sealed class NoProxyEnableCommand : ConfigCommandBase
     /// </summary>
     public NoProxyEnableCommand()
         : base(
-            CommandLineStrings_Common.EnableCommandName,
+            CliStrings.Common.EnableCommandName,
             CommandLineStrings_Proxy.NoProxyListEnableCommandDescription)
         => SetAction((parseResult, cancellationToken) => EnableHandler(cancellationToken));
 

@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Extensions;
@@ -16,7 +17,7 @@ internal sealed class InterfaceStatusCommand : ConfigCommandBase
     /// </summary>
     /// <param name="interfaceNameArgument">The interface name argument.</param>
     public InterfaceStatusCommand(Argument<string> interfaceNameArgument) : base(
-        CommandLineStrings_Common.StatusCommandName,
+        CliStrings.Common.StatusCommandName,
         CommandLineStrings_NetworkInterfaces.NetworkInterfaceStatusCommandDescription)
     {
         Add(interfaceNameArgument);

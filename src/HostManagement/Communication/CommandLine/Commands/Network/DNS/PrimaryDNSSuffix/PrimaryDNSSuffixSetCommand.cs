@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.PrimaryDNSSuffix;
@@ -19,7 +20,7 @@ internal sealed class PrimaryDNSSuffixSetCommand : ConfigCommandBase
     /// Initializes a new <see cref="PrimaryDNSSuffixSetCommand"/>.
     /// </summary>
     public PrimaryDNSSuffixSetCommand() : base(
-        CommandLineStrings_Common.SetCommandName,
+        CliStrings.Common.SetCommandName,
         CommandLineStrings_DNS.DNSSuffixSetCommandDescription)
     {
         Add(s_suffixArgument);

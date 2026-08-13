@@ -1,4 +1,5 @@
-﻿using System.Text;
+using System.Text;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine.Output;
 
@@ -377,9 +378,9 @@ internal abstract class CliComplexOutputBase : CliOutputBase
     private protected static string GetEnabledText(bool? enabled)
     {
         if (enabled is true)
-            return WhiteSpace + $"({CommandLineStrings_Common.enabled})";
+            return WhiteSpace + $"({CliStrings.Common.EnabledState})";
         else if (enabled is false)
-            return WhiteSpace + $"({CommandLineStrings_Common.disabled})";
+            return WhiteSpace + $"({CliStrings.Common.DisabledState})";
         else
             return string.Empty;
     }

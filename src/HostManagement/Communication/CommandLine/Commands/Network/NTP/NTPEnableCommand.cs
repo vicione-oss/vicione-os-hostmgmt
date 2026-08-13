@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.NTP;
@@ -13,7 +14,7 @@ internal sealed class NTPEnableCommand : ConfigCommandBase
     /// </summary>
     public NTPEnableCommand()
         : base(
-            CommandLineStrings_Common.EnableCommandName,
+            CliStrings.Common.EnableCommandName,
             CommandLineStrings_NTP.NTPEnableCommandDescription)
         => SetAction((parseResult, cancellationToken) => EnableHandler(cancellationToken));
 
