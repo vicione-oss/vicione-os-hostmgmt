@@ -14,9 +14,8 @@ internal sealed class NTPRemoveCommand : ConfigCommandBase
     /// Initializes a new <see cref="NTPRemoveCommand"/>.
     /// </summary>
     /// <param name="ntpServersArgument">The NTP servers argument.</param>
-    public NTPRemoveCommand(Argument<string[]> ntpServersArgument) : base(
-        CliStrings.Common.RemoveCommandName,
-        CommandLineStrings_NTP.NTPRemoveCommandDescription)
+    public NTPRemoveCommand(Argument<string[]> ntpServersArgument)
+        : base(CliStrings.Common.RemoveCommandName, CliStrings.Network.NTP.RemoveCommandDescription)
     {
         Add(ntpServersArgument);
 
@@ -36,16 +35,13 @@ internal sealed class NTPRemoveCommand : ConfigCommandBase
         {
             if (!config.NetworkNTPSettings.Servers.Contains(server))
             {
-                output.WithWarning(CommandLineStrings_NTP.ServerNotFound, server);
+                output.WithWarning(CliStrings.Network.NTP.NotFound, server);
                 continue;
             }
 
             if (!config.NetworkNTPSettings.Servers.Remove(server))
             {
-                output
-                    .WithError(CommandLineStrings_NTP.ServerCouldNotBeRemoved, server)
-                    .WriteLine();
-
+                output.WithError(CliStrings.Network.NTP.CouldNotBeRemoved, server).WriteLine();
                 return;
             }
 
@@ -62,14 +58,14 @@ internal sealed class NTPRemoveCommand : ConfigCommandBase
                 {
                     config.NetworkNTPSettings.Enabled = false;
 
-                    output.WithInformation(CommandLineStrings_NTP.ServersDisabled);
+                    output.WithInformation(CliStrings.Network.NTP.Disabled);
                 }
             }
             else
             {
                 if (config.NetworkNTPSettings.Servers.Count > 0)
                 {
-                    output.WithWarning(CommandLineStrings_NTP.ServersCurrentlyDisabled);
+                    output.WithWarning(CliStrings.Network.NTP.CurrentlyDisabled);
                 }
             }
 
@@ -77,8 +73,8 @@ internal sealed class NTPRemoveCommand : ConfigCommandBase
                 return;
 
             var title = output.ItemCount == 1
-                ? CommandLineStrings_NTP.ServerRemoved
-                : CommandLineStrings_NTP.ServersRemoved;
+                ? CliStrings.Network.NTP.Removed
+                : CliStrings.Network.NTP.RemovedMultiple;
 
             output.WithTitle(title);
         }
