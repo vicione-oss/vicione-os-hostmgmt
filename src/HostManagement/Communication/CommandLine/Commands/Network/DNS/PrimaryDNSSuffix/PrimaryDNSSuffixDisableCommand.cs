@@ -13,9 +13,7 @@ internal sealed class PrimaryDNSSuffixDisableCommand : ConfigCommandBase
     /// Initializes a new <see cref="PrimaryDNSSuffixDisableCommand"/>.
     /// </summary>
     public PrimaryDNSSuffixDisableCommand()
-        : base(
-            CliStrings.Common.DisableCommandName,
-            CommandLineStrings_DNS.DNSSuffixDisableCommandDescription)
+        : base(CliStrings.Common.DisableCommandName, CliStrings.Network.DNS.Suffix.DisableCommandDescription)
         => SetAction((parseResult, cancellationToken) => DisableHandler(cancellationToken));
 
     private static async Task DisableHandler(CancellationToken cancellationToken)
@@ -25,7 +23,7 @@ internal sealed class PrimaryDNSSuffixDisableCommand : ConfigCommandBase
 
         if (!config.NetworkDNSSettings.PrimaryDNSSuffix.Enabled)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.SuffixAlreadyDisabled);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.DNS.Suffix.AlreadyDisabled);
             return;
         }
 
@@ -34,6 +32,6 @@ internal sealed class PrimaryDNSSuffixDisableCommand : ConfigCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_DNS.SuffixDisabled);
+        SimpleOutput.WriteLine(CliStrings.Network.DNS.Suffix.Disabled);
     }
 }

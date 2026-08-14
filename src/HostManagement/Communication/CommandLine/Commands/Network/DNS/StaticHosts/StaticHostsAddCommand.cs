@@ -17,9 +17,8 @@ internal sealed class StaticHostsAddCommand : ConfigCommandBase
     /// </summary>
     /// <param name="addressOption">The IP address option.</param>
     /// <param name="hostnameOption">The hostname option.</param>
-    public StaticHostsAddCommand(Option<IPAddress> addressOption, Option<string> hostnameOption) : base(
-        CliStrings.Common.AddCommandName,
-        CommandLineStrings_DNS.DNSStaticHostsAddCommandDescription)
+    public StaticHostsAddCommand(Option<IPAddress> addressOption, Option<string> hostnameOption)
+        : base(CliStrings.Common.AddCommandName, CliStrings.Network.DNS.StaticHosts.AddCommandDescription)
     {
         Add(addressOption);
         Add(hostnameOption);
@@ -44,7 +43,7 @@ internal sealed class StaticHostsAddCommand : ConfigCommandBase
 
         if (config.NetworkDNSSettings.StaticHosts.Hosts.Contains(newStaticHost))
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.StaticHostAlreadyDefined, address, hostname);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.DNS.StaticHosts.AlreadyDefined, address, hostname);
             return;
         }
 
@@ -56,10 +55,10 @@ internal sealed class StaticHostsAddCommand : ConfigCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        output.WithTitle(CommandLineStrings_DNS.StaticHostAdded);
+        output.WithTitle(CliStrings.Network.DNS.StaticHosts.Added);
 
         if (!config.NetworkDNSSettings.StaticHosts.Enabled)
-            output.WithWarning(CommandLineStrings_DNS.StaticHostsCurrentlyDisabled);
+            output.WithWarning(CliStrings.Network.DNS.StaticHosts.CurrentlyDisabled);
 
         output.WriteLine();
     }

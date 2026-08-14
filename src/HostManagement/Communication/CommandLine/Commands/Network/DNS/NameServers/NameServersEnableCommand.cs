@@ -13,9 +13,7 @@ internal sealed class NameServersEnableCommand : ConfigCommandBase
     /// Initializes a new <see cref="NameServersEnableCommand"/>.
     /// </summary>
     public NameServersEnableCommand()
-        : base(
-            CliStrings.Common.EnableCommandName,
-            CommandLineStrings_DNS.DNSNameServersEnableCommandDescription)
+        : base(CliStrings.Common.EnableCommandName, CliStrings.Network.DNS.NameServers.EnableCommandDescription)
         => SetAction((parseResult, cancellationToken) => EnableHandler(cancellationToken));
 
     private static async Task EnableHandler(CancellationToken cancellationToken)
@@ -25,13 +23,13 @@ internal sealed class NameServersEnableCommand : ConfigCommandBase
 
         if (config.NetworkDNSSettings.NameServers.Enabled)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.NameServersAlreadyEnabled);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.DNS.NameServers.AlreadyEnabled);
             return;
         }
 
         if (config.NetworkDNSSettings.NameServers.Addresses.Count == 0)
         {
-            SimpleOutput.WriteLineError(CommandLineStrings_DNS.NameServersNotConfigured);
+            SimpleOutput.WriteLineError(CliStrings.Network.DNS.NameServers.NotConfigured);
             return;
         }
 
@@ -40,6 +38,6 @@ internal sealed class NameServersEnableCommand : ConfigCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_DNS.NameServersEnabled);
+        SimpleOutput.WriteLine(CliStrings.Network.DNS.NameServers.Enabled);
     }
 }

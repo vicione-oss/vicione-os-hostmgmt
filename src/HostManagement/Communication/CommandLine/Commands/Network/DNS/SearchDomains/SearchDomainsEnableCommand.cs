@@ -13,9 +13,7 @@ internal sealed class SearchDomainsEnableCommand : ConfigCommandBase
     /// Initializes a new <see cref="SearchDomainsEnableCommand"/>.
     /// </summary>
     public SearchDomainsEnableCommand()
-        : base(
-            CliStrings.Common.EnableCommandName,
-            CommandLineStrings_DNS.DNSSearchDomainsEnableCommandDescription)
+        : base(CliStrings.Common.EnableCommandName, CliStrings.Network.DNS.SearchDomains.EnableCommandDescription)
         => SetAction((parseResult, cancellationToken) => EnableHandler(cancellationToken));
 
     private static async Task EnableHandler(CancellationToken cancellationToken)
@@ -25,13 +23,13 @@ internal sealed class SearchDomainsEnableCommand : ConfigCommandBase
 
         if (config.NetworkDNSSettings.SearchDomains.Enabled)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.SearchDomainsAlreadyEnabled);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.DNS.SearchDomains.AlreadyEnabled);
             return;
         }
 
         if (config.NetworkDNSSettings.SearchDomains.Domains.Count == 0)
         {
-            SimpleOutput.WriteLineError(CommandLineStrings_DNS.SearchDomainsNotConfigured);
+            SimpleOutput.WriteLineError(CliStrings.Network.DNS.SearchDomains.NotConfigured);
             return;
         }
 
@@ -40,6 +38,6 @@ internal sealed class SearchDomainsEnableCommand : ConfigCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_DNS.SearchDomainsEnabled);
+        SimpleOutput.WriteLine(CliStrings.Network.DNS.SearchDomains.Enabled);
     }
 }

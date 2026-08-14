@@ -13,9 +13,7 @@ internal sealed class DNSMulticastStatusCommand : ConfigCommandBase
     /// Initializes a new <see cref="DNSMulticastStatusCommand"/>.
     /// </summary>
     public DNSMulticastStatusCommand()
-        : base(
-            CliStrings.Common.StatusCommandName,
-            CommandLineStrings_DNS.DNSMulticastStatusCommandDescription)
+        : base(CliStrings.Common.StatusCommandName, CliStrings.Network.DNS.Multicast.StatusCommandDescription)
         => SetAction((parseResult, cancellationToken) => StatusHandler(cancellationToken));
 
     private static async Task StatusHandler(CancellationToken cancellationToken)
@@ -24,8 +22,8 @@ internal sealed class DNSMulticastStatusCommand : ConfigCommandBase
             return;
 
         var enableMessage = config.NetworkDNSSettings.MulticastDNSEnabled
-            ? CommandLineStrings_DNS.MulticastDNSIsEnabled
-            : CommandLineStrings_DNS.MulticastDNSIsDisabled;
+            ? CliStrings.Network.DNS.Multicast.IsEnabled
+            : CliStrings.Network.DNS.Multicast.IsDisabled;
 
         SimpleOutput.WriteLine(enableMessage);
     }

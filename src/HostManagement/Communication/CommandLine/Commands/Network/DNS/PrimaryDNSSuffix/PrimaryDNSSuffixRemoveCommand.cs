@@ -13,9 +13,7 @@ internal sealed class PrimaryDNSSuffixRemoveCommand : ConfigCommandBase
     /// Initializes a new <see cref="PrimaryDNSSuffixRemoveCommand"/>.
     /// </summary>
     public PrimaryDNSSuffixRemoveCommand()
-        : base(
-            CliStrings.Common.RemoveCommandName,
-            CommandLineStrings_DNS.DNSSuffixRemoveCommandDescription)
+        : base(CliStrings.Common.RemoveCommandName, CliStrings.Network.DNS.Suffix.RemoveCommandDescription)
         => SetAction((parseResult, cancellationToken) => RemoveHandler(cancellationToken));
 
     private static async Task RemoveHandler(CancellationToken cancellationToken)
@@ -27,7 +25,7 @@ internal sealed class PrimaryDNSSuffixRemoveCommand : ConfigCommandBase
 
         if (string.IsNullOrWhiteSpace(suffix))
         {
-            SimpleOutput.WriteLineWarning(CommandLineStrings_DNS.SuffixNotConfigured);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.DNS.Suffix.NotConfigured);
             return;
         }
 
@@ -40,6 +38,6 @@ internal sealed class PrimaryDNSSuffixRemoveCommand : ConfigCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        output.WithTitle(CommandLineStrings_DNS.SuffixRemoved).WriteLine();
+        output.WithTitle(CliStrings.Network.DNS.Suffix.Removed).WriteLine();
     }
 }

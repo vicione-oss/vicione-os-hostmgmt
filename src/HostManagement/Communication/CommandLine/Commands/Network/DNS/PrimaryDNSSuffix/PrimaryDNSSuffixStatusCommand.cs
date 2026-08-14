@@ -13,9 +13,7 @@ internal sealed class PrimaryDNSSuffixStatusCommand : ConfigCommandBase
     /// Initializes a new <see cref="PrimaryDNSSuffixStatusCommand"/>.
     /// </summary>
     public PrimaryDNSSuffixStatusCommand()
-        : base(
-            CliStrings.Common.StatusCommandName,
-            CommandLineStrings_DNS.DNSSuffixStatusCommandDescription)
+        : base(CliStrings.Common.StatusCommandName, CliStrings.Network.DNS.Suffix.StatusCommandDescription)
         => SetAction((parseResult, cancellationToken) => StatusHandler(cancellationToken));
 
     private static async Task StatusHandler(CancellationToken cancellationToken)
@@ -25,12 +23,12 @@ internal sealed class PrimaryDNSSuffixStatusCommand : ConfigCommandBase
 
         if (string.IsNullOrWhiteSpace(config.NetworkDNSSettings.PrimaryDNSSuffix.Suffix))
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.SuffixNotConfigured);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.DNS.Suffix.NotConfigured);
             return;
         }
 
         new ListOutput()
-            .WithTitle(CommandLineStrings_DNS.Suffix, config.NetworkDNSSettings.PrimaryDNSSuffix.Enabled)
+            .WithTitle(CliStrings.Network.DNS.Suffix.Label, config.NetworkDNSSettings.PrimaryDNSSuffix.Enabled)
             .With(config.NetworkDNSSettings.PrimaryDNSSuffix.Suffix)
             .WriteLine();
     }

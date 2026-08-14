@@ -14,9 +14,8 @@ internal sealed class SearchDomainsAddCommand : ConfigCommandBase
     /// Initializes a new <see cref="SearchDomainsAddCommand"/>.
     /// </summary>
     /// <param name="searchDomainsArgument">The search domains argument.</param>
-    public SearchDomainsAddCommand(Argument<string[]> searchDomainsArgument) : base(
-        CliStrings.Common.AddCommandName,
-        CommandLineStrings_DNS.DNSSearchDomainsAddCommandDescription)
+    public SearchDomainsAddCommand(Argument<string[]> searchDomainsArgument)
+        : base(CliStrings.Common.AddCommandName, CliStrings.Network.DNS.SearchDomains.AddCommandDescription)
     {
         Add(searchDomainsArgument);
 
@@ -36,7 +35,7 @@ internal sealed class SearchDomainsAddCommand : ConfigCommandBase
         {
             if (config.NetworkDNSSettings.SearchDomains.Domains.Contains(searchDomain))
             {
-                output.WithInformation(CommandLineStrings_DNS.SearchDomainAlreadyDefined, searchDomain);
+                output.WithInformation(CliStrings.Network.DNS.SearchDomains.AlreadyDefined, searchDomain);
                 continue;
             }
 
@@ -52,13 +51,13 @@ internal sealed class SearchDomainsAddCommand : ConfigCommandBase
                 return;
 
             var title = output.ItemCount == 1
-                ? CommandLineStrings_DNS.SearchDomainAdded
-                : CommandLineStrings_DNS.SearchDomainsAdded;
+                ? CliStrings.Network.DNS.SearchDomains.Added
+                : CliStrings.Network.DNS.SearchDomains.AddedMultiple;
 
             output.WithTitle(title);
 
             if (!config.NetworkDNSSettings.SearchDomains.Enabled)
-                output.WithWarning(CommandLineStrings_DNS.SearchDomainsCurrentlyDisabled);
+                output.WithWarning(CliStrings.Network.DNS.SearchDomains.CurrentlyDisabled);
         }
 
         output.WriteLine();

@@ -13,9 +13,7 @@ internal sealed class NameServersClearCommand : ConfigCommandBase
     /// Initializes a new <see cref="NameServersClearCommand"/>.
     /// </summary>
     public NameServersClearCommand()
-        : base(
-            CliStrings.Common.ClearCommandName,
-            CommandLineStrings_DNS.DNSNameServersClearCommandDescription)
+        : base(CliStrings.Common.ClearCommandName, CliStrings.Network.DNS.NameServers.ClearCommandDescription)
         => SetAction((parseResult, cancellationToken) => ClearHandler(cancellationToken));
 
     private static async Task ClearHandler(CancellationToken cancellationToken)
@@ -25,7 +23,7 @@ internal sealed class NameServersClearCommand : ConfigCommandBase
 
         if (config.NetworkDNSSettings.NameServers.Addresses.Count == 0)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.NameServersNotConfigured);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.DNS.NameServers.NotConfigured);
             return;
         }
 
@@ -35,7 +33,7 @@ internal sealed class NameServersClearCommand : ConfigCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.NameServersDisabled);
-        SimpleOutput.WriteLine(CommandLineStrings_DNS.NameServersCleared);
+        SimpleOutput.WriteLineInformation(CliStrings.Network.DNS.NameServers.Disabled);
+        SimpleOutput.WriteLine(CliStrings.Network.DNS.NameServers.Cleared);
     }
 }

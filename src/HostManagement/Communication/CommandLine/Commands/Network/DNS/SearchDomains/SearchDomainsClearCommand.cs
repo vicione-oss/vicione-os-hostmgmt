@@ -13,9 +13,7 @@ internal sealed class SearchDomainsClearCommand : ConfigCommandBase
     /// Initializes a new <see cref="SearchDomainsClearCommand"/>.
     /// </summary>
     public SearchDomainsClearCommand()
-        : base(
-            CliStrings.Common.ClearCommandName,
-            CommandLineStrings_DNS.DNSSearchDomainsClearCommandDescription)
+        : base(CliStrings.Common.ClearCommandName, CliStrings.Network.DNS.SearchDomains.ClearCommandDescription)
         => SetAction((parseResult, cancellationToken) => ClearHandler(cancellationToken));
 
     private static async Task ClearHandler(CancellationToken cancellationToken)
@@ -25,7 +23,7 @@ internal sealed class SearchDomainsClearCommand : ConfigCommandBase
 
         if (config.NetworkDNSSettings.SearchDomains.Domains.Count == 0)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.SearchDomainsNotConfigured);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.DNS.SearchDomains.NotConfigured);
             return;
         }
 
@@ -35,7 +33,7 @@ internal sealed class SearchDomainsClearCommand : ConfigCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.SearchDomainsDisabled);
-        SimpleOutput.WriteLine(CommandLineStrings_DNS.SearchDomainsCleared);
+        SimpleOutput.WriteLineInformation(CliStrings.Network.DNS.SearchDomains.Disabled);
+        SimpleOutput.WriteLine(CliStrings.Network.DNS.SearchDomains.Cleared);
     }
 }

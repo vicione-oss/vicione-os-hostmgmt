@@ -19,9 +19,8 @@ internal sealed class PrimaryDNSSuffixSetCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="PrimaryDNSSuffixSetCommand"/>.
     /// </summary>
-    public PrimaryDNSSuffixSetCommand() : base(
-        CliStrings.Common.SetCommandName,
-        CommandLineStrings_DNS.DNSSuffixSetCommandDescription)
+    public PrimaryDNSSuffixSetCommand()
+        : base(CliStrings.Common.SetCommandName, CliStrings.Network.DNS.Suffix.SetCommandDescription)
     {
         Add(s_suffixArgument);
 
@@ -40,11 +39,11 @@ internal sealed class PrimaryDNSSuffixSetCommand : ConfigCommandBase
             return;
 
         var output = new ListOutput();
-        output.WithTitle(CommandLineStrings_DNS.SuffixSet);
+        output.WithTitle(CliStrings.Network.DNS.Suffix.Set);
         output.With(suffix);
 
         if (!config.NetworkDNSSettings.PrimaryDNSSuffix.Enabled)
-            output.WithWarning(CommandLineStrings_DNS.SuffixCurrentlyDisabled);
+            output.WithWarning(CliStrings.Network.DNS.Suffix.CurrentlyDisabled);
 
         output.WriteLine();
     }

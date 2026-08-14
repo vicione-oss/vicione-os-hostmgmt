@@ -13,9 +13,7 @@ internal sealed class NameServersListCommand : ConfigCommandBase
     /// Initializes a new <see cref="NameServersListCommand"/>.
     /// </summary>
     public NameServersListCommand()
-        : base(
-            CliStrings.Common.ListCommandName,
-            CommandLineStrings_DNS.DNSNameServersListCommandDescription)
+        : base(CliStrings.Common.ListCommandName, CliStrings.Network.DNS.NameServers.ListCommandDescription)
         => SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
 
     private static async Task ListHandler(CancellationToken cancellationToken)
@@ -25,12 +23,12 @@ internal sealed class NameServersListCommand : ConfigCommandBase
 
         if (config.NetworkDNSSettings.NameServers.Addresses.Count == 0)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.NameServersNotConfigured);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.DNS.NameServers.NotConfigured);
             return;
         }
 
         new ListOutput()
-            .WithTitle(CommandLineStrings_DNS.NameServers, config.NetworkDNSSettings.NameServers.Enabled)
+            .WithTitle(CliStrings.Network.DNS.NameServers.Label, config.NetworkDNSSettings.NameServers.Enabled)
             .WithEach(config.NetworkDNSSettings.NameServers.Addresses.Select(CliOutputValue.Create))
             .WriteLine();
     }

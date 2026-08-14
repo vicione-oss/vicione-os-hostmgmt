@@ -13,9 +13,7 @@ internal sealed class StaticHostsDisableCommand : ConfigCommandBase
     /// Initializes a new <see cref="StaticHostsDisableCommand"/>.
     /// </summary>
     public StaticHostsDisableCommand()
-        : base(
-            CliStrings.Common.DisableCommandName,
-            CommandLineStrings_DNS.DNSStaticHostsDisableCommandDescription)
+        : base(CliStrings.Common.DisableCommandName, CliStrings.Network.DNS.StaticHosts.DisableCommandDescription)
         => SetAction((parseResult, cancellationToken) => DisableHandler(cancellationToken));
 
     private static async Task DisableHandler(CancellationToken cancellationToken)
@@ -25,7 +23,7 @@ internal sealed class StaticHostsDisableCommand : ConfigCommandBase
 
         if (!config.NetworkDNSSettings.StaticHosts.Enabled)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.StaticHostsAlreadyDisabled);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.DNS.StaticHosts.AlreadyDisabled);
             return;
         }
 
@@ -34,6 +32,6 @@ internal sealed class StaticHostsDisableCommand : ConfigCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_DNS.StaticHostsDisabled);
+        SimpleOutput.WriteLine(CliStrings.Network.DNS.StaticHosts.Disabled);
     }
 }

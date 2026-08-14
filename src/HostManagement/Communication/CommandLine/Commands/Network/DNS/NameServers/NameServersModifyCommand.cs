@@ -16,12 +16,8 @@ internal sealed class NameServersModifyCommand : ConfigCommandBase
     /// </summary>
     /// <param name="oldNameServerOption">The old name server option.</param>
     /// <param name="newNameServerOption">The new name server option.</param>
-    public NameServersModifyCommand(
-        Option<IPAddress> oldNameServerOption,
-        Option<IPAddress> newNameServerOption)
-        : base(
-            CliStrings.Common.ModifyCommandName,
-            CommandLineStrings_DNS.DNSNameServersModifyCommandDescription)
+    public NameServersModifyCommand(Option<IPAddress> oldNameServerOption, Option<IPAddress> newNameServerOption)
+        : base(CliStrings.Common.ModifyCommandName, CliStrings.Network.DNS.NameServers.ModifyCommandDescription)
     {
         Add(oldNameServerOption);
         Add(newNameServerOption);
@@ -45,7 +41,7 @@ internal sealed class NameServersModifyCommand : ConfigCommandBase
 
         if (addresses.Contains(newAddress))
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.NameServerAlreadyDefined, newAddress);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.DNS.NameServers.AlreadyDefined, newAddress);
             return;
         }
 
@@ -53,7 +49,7 @@ internal sealed class NameServersModifyCommand : ConfigCommandBase
 
         if (index == -1)
         {
-            SimpleOutput.WriteLineError(CommandLineStrings_DNS.NameServerNotFound, oldAddress);
+            SimpleOutput.WriteLineError(CliStrings.Network.DNS.NameServers.NotFound, oldAddress);
             return;
         }
 
@@ -63,8 +59,8 @@ internal sealed class NameServersModifyCommand : ConfigCommandBase
             return;
 
         if (!config.NetworkDNSSettings.NameServers.Enabled)
-            SimpleOutput.WriteLineWarning(CommandLineStrings_DNS.NameServersCurrentlyDisabled);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.DNS.NameServers.CurrentlyDisabled);
 
-        SimpleOutput.WriteLine(CommandLineStrings_DNS.NameServerModified, oldAddress, newAddress);
+        SimpleOutput.WriteLine(CliStrings.Network.DNS.NameServers.Modified, oldAddress, newAddress);
     }
 }

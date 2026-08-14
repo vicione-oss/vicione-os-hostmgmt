@@ -13,9 +13,7 @@ internal sealed class StaticHostsListCommand : ConfigCommandBase
     /// Initializes a new <see cref="StaticHostsListCommand"/>.
     /// </summary>
     public StaticHostsListCommand()
-        : base(
-            CliStrings.Common.ListCommandName,
-            CommandLineStrings_DNS.DNSStaticHostsListCommandDescription)
+        : base(CliStrings.Common.ListCommandName, CliStrings.Network.DNS.StaticHosts.ListCommandDescription)
         => SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
 
     private static async Task ListHandler(CancellationToken cancellationToken)
@@ -25,12 +23,12 @@ internal sealed class StaticHostsListCommand : ConfigCommandBase
 
         if (config.NetworkDNSSettings.StaticHosts.Hosts.Count == 0)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.StaticHostsNotConfigured);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.DNS.StaticHosts.NotConfigured);
             return;
         }
 
         var output = new TableOutput()
-            .WithTitle(CommandLineStrings_DNS.StaticHosts, config.NetworkDNSSettings.StaticHosts.Enabled);
+            .WithTitle(CliStrings.Network.DNS.StaticHosts.Label, config.NetworkDNSSettings.StaticHosts.Enabled);
 
         config.NetworkDNSSettings.StaticHosts.Hosts.ForEach(host => output.With(host.IPAddress, host.Hostname));
         output.WriteLine();

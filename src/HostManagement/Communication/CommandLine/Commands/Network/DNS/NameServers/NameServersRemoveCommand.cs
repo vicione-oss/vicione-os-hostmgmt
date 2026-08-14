@@ -15,9 +15,8 @@ internal sealed class NameServersRemoveCommand : ConfigCommandBase
     /// Initializes a new <see cref="NameServersRemoveCommand"/>.
     /// </summary>
     /// <param name="ipAddressesArgument">The IP addresses argument.</param>
-    public NameServersRemoveCommand(Argument<IPAddress[]> ipAddressesArgument) : base(
-        CliStrings.Common.RemoveCommandName,
-        CommandLineStrings_DNS.DNSNameServersRemoveCommandDescription)
+    public NameServersRemoveCommand(Argument<IPAddress[]> ipAddressesArgument)
+        : base(CliStrings.Common.RemoveCommandName, CliStrings.Network.DNS.NameServers.RemoveCommandDescription)
     {
         Add(ipAddressesArgument);
 
@@ -37,14 +36,14 @@ internal sealed class NameServersRemoveCommand : ConfigCommandBase
         {
             if (!config.NetworkDNSSettings.NameServers.Addresses.Contains(address))
             {
-                output.WithWarning(CommandLineStrings_DNS.NameServerNotFound, address);
+                output.WithWarning(CliStrings.Network.DNS.NameServers.NotFound, address);
                 continue;
             }
 
             if (!config.NetworkDNSSettings.NameServers.Addresses.Remove(address))
             {
                 output
-                    .WithError(CommandLineStrings_DNS.NameServerCouldNotBeRemoved, address)
+                    .WithError(CliStrings.Network.DNS.NameServers.CouldNotBeRemoved, address)
                     .WriteLine();
 
                 return;
@@ -63,14 +62,14 @@ internal sealed class NameServersRemoveCommand : ConfigCommandBase
                 {
                     config.NetworkDNSSettings.NameServers.Enabled = false;
 
-                    output.WithInformation(CommandLineStrings_DNS.NameServersDisabled);
+                    output.WithInformation(CliStrings.Network.DNS.NameServers.Disabled);
                 }
             }
             else
             {
                 if (config.NetworkDNSSettings.NameServers.Addresses.Count > 0)
                 {
-                    output.WithWarning(CommandLineStrings_DNS.NameServersCurrentlyDisabled);
+                    output.WithWarning(CliStrings.Network.DNS.NameServers.CurrentlyDisabled);
                 }
             }
 
@@ -78,8 +77,8 @@ internal sealed class NameServersRemoveCommand : ConfigCommandBase
                 return;
 
             var title = output.ItemCount == 1
-                ? CommandLineStrings_DNS.NameServerRemoved
-                : CommandLineStrings_DNS.NameServersRemoved;
+                ? CliStrings.Network.DNS.NameServers.Removed
+                : CliStrings.Network.DNS.NameServers.RemovedMultiple;
 
             output.WithTitle(title);
         }

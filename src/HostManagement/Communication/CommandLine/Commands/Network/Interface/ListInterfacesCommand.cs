@@ -1,5 +1,4 @@
 using System.CommandLine;
-using HostManagement.Communication.CommandLine.Commands.Network.DNS;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Communication.CommandLine.Resources;
@@ -164,7 +163,7 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
 
         var dnsOutput = output
             .AddListOutput(indentationLevel + 1)
-            .WithTitle(CommandLineStrings_DNS.DNS);
+            .WithTitle(CliStrings.Network.DNS.Label);
 
         if (lease.NetworkDNSSettings is null)
         {
@@ -182,7 +181,7 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
     {
         var dnsOutput = output
             .AddListOutput()
-            .WithTitle(CommandLineStrings_DNS.DNS);
+            .WithTitle(CliStrings.Network.DNS.Label);
 
         AppendOutputForPrimaryDNSSuffix(dnsOutput, 1, networkDNSSettings.PrimaryDNSSuffix);
         AppendOutputForSearchDomains(dnsOutput, 1, networkDNSSettings.SearchDomains);
@@ -196,7 +195,7 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
     {
         var dnsSuffixOutput = output
             .AddListOutput(indentationLevel)
-            .WithTitle(CommandLineStrings_DNS.Suffix, primaryDnsSuffixSettings.Enabled);
+            .WithTitle(CliStrings.Network.DNS.Suffix.Label, primaryDnsSuffixSettings.Enabled);
 
         if (string.IsNullOrWhiteSpace(primaryDnsSuffixSettings.Suffix))
             dnsSuffixOutput.With(CliOutputBase.NotSetValue);
@@ -211,7 +210,7 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
     {
         var searchDomainsOutput = output
             .AddListOutput(indentationLevel)
-            .WithTitle(CommandLineStrings_DNS.SearchDomains, searchDomainsSettings.Enabled);
+            .WithTitle(CliStrings.Network.DNS.SearchDomains.Label, searchDomainsSettings.Enabled);
 
         if (searchDomainsSettings.Domains.Count == 0)
             searchDomainsOutput.With(CliOutputBase.NotSetValue);
@@ -226,7 +225,7 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
     {
         var nameServersOutput = output
             .AddListOutput(indentationLevel)
-            .WithTitle(CommandLineStrings_DNS.NameServers, nameServersSettings.Enabled);
+            .WithTitle(CliStrings.Network.DNS.NameServers.Label, nameServersSettings.Enabled);
 
         if (nameServersSettings.Addresses.Count == 0)
             nameServersOutput.With(CliOutputBase.NotSetValue);
