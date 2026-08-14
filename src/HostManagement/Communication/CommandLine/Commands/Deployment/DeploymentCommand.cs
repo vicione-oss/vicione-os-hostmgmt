@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Commands.Deployment.Redeploy;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine.Commands.Deployment;
 
@@ -11,9 +12,6 @@ internal sealed class DeploymentCommand : Command
     /// <summary>
     /// Initializes a new <see cref="DeploymentCommand"/>.
     /// </summary>
-    public DeploymentCommand()
-        : base(
-            CommandLineStrings_Deployment.DeploymentCommandName,
-            CommandLineStrings_Deployment.DeploymentCommandDescription)
+    public DeploymentCommand() : base(CliStrings.Deployment.CommandName, CliStrings.Deployment.CommandDescription)
         => Add(new RedeployCommand());
 }
