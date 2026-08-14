@@ -1,4 +1,5 @@
 using System.CommandLine;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Interface.VLAN;
 
@@ -18,9 +19,8 @@ internal sealed class VLANCommand : Command
     /// Initializes a new <see cref="VLANCommand"/>.
     /// </summary>
     /// <param name="interfaceNameArgument">The interface name argument.</param>
-    public VLANCommand(Argument<string> interfaceNameArgument) : base(
-        CommandLineStrings_NetworkInterfaces.VLANCommandName,
-        CommandLineStrings_NetworkInterfaces.VLANCommandDescription)
+    public VLANCommand(Argument<string> interfaceNameArgument)
+        : base(CliStrings.Network.Interface.VLAN.CommandName, CliStrings.Network.Interface.VLAN.CommandDescription)
     {
         Add(new VLANListCommand());
         Add(new VLANEnableCommand(interfaceNameArgument));

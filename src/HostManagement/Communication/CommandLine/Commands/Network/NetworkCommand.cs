@@ -14,7 +14,7 @@ internal sealed class NetworkCommand : Command
 {
     private static readonly Argument<string> s_interfaceNameArgument = new("name")
     {
-        Description = CommandLineStrings_NetworkInterfaces.InterfaceNameArgumentDescription,
+        Description = "The name of the network interface.",
         Arity = ArgumentArity.ExactlyOne
     };
 

@@ -1,4 +1,5 @@
 using System.CommandLine;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Interface.IPv4.DHCP;
 
@@ -11,9 +12,8 @@ internal sealed class DHCPCommand : Command
     /// Initializes a new <see cref="DHCPCommand"/>.
     /// </summary>
     /// <param name="interfaceNameArgument">The interface name argument.</param>
-    public DHCPCommand(Argument<string> interfaceNameArgument) : base(
-        CommandLineStrings_NetworkInterfaces.DHCPCommandName,
-        CommandLineStrings_NetworkInterfaces.DHCPCommandDescription)
+    public DHCPCommand(Argument<string> interfaceNameArgument)
+        : base(CliStrings.Network.Interface.DHCP.CommandName, CliStrings.Network.Interface.DHCP.CommandDescription)
     {
         Add(new DHCPListCommand());
         Add(new DHCPEnableCommand(interfaceNameArgument));

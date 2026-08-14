@@ -16,9 +16,8 @@ internal sealed class InterfaceDisableCommand : ConfigCommandBase
     /// Initializes a new <see cref="InterfaceDisableCommand"/>.
     /// </summary>
     /// <param name="interfaceNameArgument">The interface name argument.</param>
-    public InterfaceDisableCommand(Argument<string> interfaceNameArgument) : base(
-        CliStrings.Common.DisableCommandName,
-        CommandLineStrings_NetworkInterfaces.NetworkInterfaceDisableCommandDescription)
+    public InterfaceDisableCommand(Argument<string> interfaceNameArgument)
+        : base(CliStrings.Common.DisableCommandName, CliStrings.Network.Interface.DisableCommandDescription)
     {
         Add(interfaceNameArgument);
 
@@ -33,13 +32,13 @@ internal sealed class InterfaceDisableCommand : ConfigCommandBase
 
         if (config.GetNetworkInterface(interfaceName) is not NetworkInterfaceDetail interfaceToConfigure)
         {
-            SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.InterfaceNotFound, interfaceName);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.NotFound, interfaceName);
             return;
         }
 
         if (!interfaceToConfigure.CommonInformation.Enabled)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_NetworkInterfaces.InterfaceAlreadyDisabled, interfaceName);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.Interface.AlreadyDisabled, interfaceName);
             return;
         }
 
@@ -48,6 +47,6 @@ internal sealed class InterfaceDisableCommand : ConfigCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_NetworkInterfaces.InterfaceDisabled, interfaceName);
+        SimpleOutput.WriteLine(CliStrings.Network.Interface.Disabled, interfaceName);
     }
 }

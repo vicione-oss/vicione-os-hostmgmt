@@ -17,9 +17,8 @@ internal sealed class VLANSetCommand : ConfigCommandBase
     /// </summary>
     /// <param name="interfaceNameOption">The interface name option.</param>
     /// <param name="vlanIdOption">The VLAN ID option.</param>
-    public VLANSetCommand(Option<string> interfaceNameOption, Option<int> vlanIdOption) : base(
-        CliStrings.Common.SetCommandName,
-        CommandLineStrings_NetworkInterfaces.VLANSetCommandDescription)
+    public VLANSetCommand(Option<string> interfaceNameOption, Option<int> vlanIdOption)
+        : base(CliStrings.Common.SetCommandName, CliStrings.Network.Interface.VLAN.SetCommandDescription)
     {
         Add(interfaceNameOption);
         Add(vlanIdOption);
@@ -38,14 +37,14 @@ internal sealed class VLANSetCommand : ConfigCommandBase
 
         if (config.GetNetworkInterface(interfaceName) is not NetworkInterfaceDetail interfaceToConfigure)
         {
-            SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.InterfaceNotFound, interfaceName);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.NotFound, interfaceName);
             return;
         }
 
         if (!interfaceToConfigure.VLAN.Enabled &&
             vlanId.Equals(0))
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_NetworkInterfaces.VLANAlreadyDisabled, interfaceName);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.Interface.VLAN.AlreadyDisabled, interfaceName);
             return;
         }
 
@@ -58,7 +57,7 @@ internal sealed class VLANSetCommand : ConfigCommandBase
                 return;
 
             SimpleOutput.WriteLine(
-                CommandLineStrings_NetworkInterfaces.VLANIDAdded,
+                CliStrings.Network.Interface.VLAN.IDAdded,
                 vlanId,
                 interfaceToConfigure.CommonInformation.Name);
         }
@@ -72,7 +71,7 @@ internal sealed class VLANSetCommand : ConfigCommandBase
                 return;
 
             SimpleOutput.WriteLine(
-                CommandLineStrings_NetworkInterfaces.VLANIDSet,
+                CliStrings.Network.Interface.VLAN.IDSet,
                 oldVlanId,
                 vlanId,
                 interfaceToConfigure.CommonInformation.Name);

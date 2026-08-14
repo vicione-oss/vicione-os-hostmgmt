@@ -16,9 +16,8 @@ internal sealed class VLANDisableCommand : ConfigCommandBase
     /// Initializes a new <see cref="VLANDisableCommand"/>.
     /// </summary>
     /// <param name="interfaceNameArgument">The interface name argument.</param>
-    public VLANDisableCommand(Argument<string> interfaceNameArgument) : base(
-        CliStrings.Common.DisableCommandName,
-        CommandLineStrings_NetworkInterfaces.VLANDisableCommandDescription)
+    public VLANDisableCommand(Argument<string> interfaceNameArgument)
+        : base(CliStrings.Common.DisableCommandName, CliStrings.Network.Interface.VLAN.DisableCommandDescription)
     {
         Add(interfaceNameArgument);
 
@@ -33,13 +32,13 @@ internal sealed class VLANDisableCommand : ConfigCommandBase
 
         if (config.GetNetworkInterface(interfaceName) is not NetworkInterfaceDetail interfaceToConfigure)
         {
-            SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.InterfaceNotFound, interfaceName);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.NotFound, interfaceName);
             return;
         }
 
         if (!interfaceToConfigure.VLAN.Enabled)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_NetworkInterfaces.VLANAlreadyDisabled, interfaceName);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.Interface.VLAN.AlreadyDisabled, interfaceName);
             return;
         }
 
@@ -48,6 +47,6 @@ internal sealed class VLANDisableCommand : ConfigCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_NetworkInterfaces.VLANDisabled, interfaceName);
+        SimpleOutput.WriteLine(CliStrings.Network.Interface.VLAN.Disabled, interfaceName);
     }
 }

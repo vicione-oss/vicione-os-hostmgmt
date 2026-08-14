@@ -22,9 +22,10 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="ListInterfacesCommand"/>.
     /// </summary>
-    public ListInterfacesCommand() : base(
-        CommandLineStrings_NetworkInterfaces.ListInterfacesCommandName,
-        CommandLineStrings_NetworkInterfaces.ListInterfacesCommandDescription)
+    public ListInterfacesCommand()
+        : base(
+            CliStrings.Network.Interface.ListInterfacesCommandName,
+            CliStrings.Network.Interface.ListInterfacesCommandDescription)
     {
         Add(s_showNamesOnlyOption);
 
@@ -39,12 +40,12 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
 
         if (config.NetworkInterfaces.Count == 0)
         {
-            SimpleOutput.WriteLine(CommandLineStrings_NetworkInterfaces.InterfacesNotFound);
+            SimpleOutput.WriteLine(CliStrings.Network.Interface.InterfacesNotFound);
             return;
         }
 
         var output = new ListOutput();
-        output.WithTitle(CommandLineStrings_NetworkInterfaces.Interfaces);
+        output.WithTitle(CliStrings.Network.Interface.Interfaces);
 
         foreach (var networkInterface in config.NetworkInterfaces)
         {
@@ -83,22 +84,22 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
         var physicalAddress = commonInformation.PhysicalAddress;
         var originalPhysicalAddress =
             await NamedPipeRequestHelper.GetOriginalPhysicalAddress(commonInformation.Name, CancellationToken.None)
-            ?? CommandLineStrings_NetworkInterfaces.Unknown;
+            ?? CliStrings.Network.Interface.Unknown;
 
         var multiKeyValueOutput = output
             .AddMultiKeyValueOutput(indentationLevel)
-            .WithTitle(CommandLineStrings_NetworkInterfaces.CommonInfo)
+            .WithTitle(CliStrings.Network.Interface.CommonInfo)
             .With(new(CliStrings.Common.EnabledLabel, commonInformation.Enabled));
 
         if (physicalAddress.Equals(originalPhysicalAddress))
         {
-            multiKeyValueOutput.With(new(CommandLineStrings_NetworkInterfaces.PhysicalAddress, commonInformation.PhysicalAddress));
+            multiKeyValueOutput.With(new(CliStrings.Network.Interface.PhysicalAddress, commonInformation.PhysicalAddress));
         }
         else
         {
             multiKeyValueOutput.With(
-                new(CommandLineStrings_NetworkInterfaces.PhysicalAddress, physicalAddress),
-                new(CommandLineStrings_NetworkInterfaces.OriginalPhysicalAddress, originalPhysicalAddress));
+                new(CliStrings.Network.Interface.PhysicalAddress, physicalAddress),
+                new(CliStrings.Network.Interface.OriginalPhysicalAddress, originalPhysicalAddress));
         }
     }
 
@@ -109,9 +110,9 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
         DHCPLease? dhcpLease)
     {
         var ipv4Output = output.AddKeyValueOutput(indentationLevel)
-            .WithTitle(CommandLineStrings_NetworkInterfaces.IPv4)
+            .WithTitle(CliStrings.Network.Interface.IPv4.Label)
             .WithSingleItemOnNewLine()
-            .With(new(CommandLineStrings_NetworkInterfaces.DHCP, ipv4Settings.DHCPEnabled));
+            .With(new(CliStrings.Network.Interface.DHCP.Label, ipv4Settings.DHCPEnabled));
 
         if (ipv4Settings.DHCPEnabled)
         {
@@ -121,20 +122,20 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
         {
             ipv4Output
                 .AddKeyValueOutput(indentationLevel + 1)
-                .With(new(CommandLineStrings_NetworkInterfaces.Gateway, ipv4Settings.Gateway));
+                .With(new(CliStrings.Network.Interface.Gateway.Label, ipv4Settings.Gateway));
 
             if (ipv4Settings.IPv4Details.Count > 0)
             {
                 var ipv4DetailsOutput = ipv4Output
                     .AddMultiKeyValueOutput(indentationLevel + 1)
-                    .WithTitle(CommandLineStrings_NetworkInterfaces.IPAddresses)
+                    .WithTitle(CliStrings.Network.Interface.IP.IPAddresses)
                     .WithSingleItemOnNewLine();
 
                 foreach (var ipv4Detail in ipv4Settings.IPv4Details)
                 {
                     ipv4DetailsOutput.With(
-                        new(CommandLineStrings_NetworkInterfaces.IPAddress, ipv4Detail.IPAddress),
-                        new(CommandLineStrings_NetworkInterfaces.SubnetMask, ipv4Detail.Netmask));
+                        new(CliStrings.Network.Interface.IP.IPAddress, ipv4Detail.IPAddress),
+                        new(CliStrings.Network.Interface.IP.SubnetMask, ipv4Detail.Netmask));
                 }
             }
         }
@@ -146,20 +147,20 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
         {
             output
                 .AddListOutput(indentationLevel)
-                .WithTitle(CommandLineStrings_NetworkInterfaces.DHCPLease)
-                .With(CommandLineStrings_NetworkInterfaces.DHCPLeaseNotAvailable);
+                .WithTitle(CliStrings.Network.Interface.DHCP.Lease)
+                .With(CliStrings.Network.Interface.DHCP.LeaseNotAvailable);
 
             return;
         }
 
         output
             .AddKeyValueOutput(indentationLevel)
-            .WithTitle(CommandLineStrings_NetworkInterfaces.DHCPLease)
-            .With(new(CommandLineStrings_NetworkInterfaces.DHCPLeaseObtained, lease.LeaseObtained))
-            .With(new(CommandLineStrings_NetworkInterfaces.DHCPLeaseExpires, lease.LeaseExpires))
-            .With(new(CommandLineStrings_NetworkInterfaces.Gateway, lease.Gateway))
-            .With(new(CommandLineStrings_NetworkInterfaces.IPAddress, lease.IPv4Detail?.IPAddress))
-            .With(new(CommandLineStrings_NetworkInterfaces.SubnetMask, lease.IPv4Detail?.Netmask));
+            .WithTitle(CliStrings.Network.Interface.DHCP.Lease)
+            .With(new(CliStrings.Network.Interface.DHCP.LeaseObtained, lease.LeaseObtained))
+            .With(new(CliStrings.Network.Interface.DHCP.LeaseExpires, lease.LeaseExpires))
+            .With(new(CliStrings.Network.Interface.Gateway.Label, lease.Gateway))
+            .With(new(CliStrings.Network.Interface.IP.IPAddress, lease.IPv4Detail?.IPAddress))
+            .With(new(CliStrings.Network.Interface.IP.SubnetMask, lease.IPv4Detail?.Netmask));
 
         var dnsOutput = output
             .AddListOutput(indentationLevel + 1)
@@ -167,7 +168,7 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
 
         if (lease.NetworkDNSSettings is null)
         {
-            dnsOutput.With(CommandLineStrings_NetworkInterfaces.DHCPLeaseNotAvailable);
+            dnsOutput.With(CliStrings.Network.Interface.DHCP.LeaseNotAvailable);
         }
         else
         {
@@ -242,8 +243,8 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
         int? vlanIdValue = vlanSettings.ID == 0 ? null : vlanSettings.ID;
 
         output.AddKeyValueOutput(indentationLevel)
-            .WithTitle(CommandLineStrings_NetworkInterfaces.VLAN)
+            .WithTitle(CliStrings.Network.Interface.VLAN.Label)
             .With(new(CliStrings.Common.EnabledLabel, vlanSettings.Enabled))
-            .With(new(CommandLineStrings_NetworkInterfaces.VLANID, vlanIdValue));
+            .With(new(CliStrings.Network.Interface.VLAN.ID, vlanIdValue));
     }
 }

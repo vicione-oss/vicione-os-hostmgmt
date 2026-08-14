@@ -18,9 +18,8 @@ internal sealed class GatewaySetCommand : ConfigCommandBase
     /// </summary>
     /// <param name="interfaceNameOption">The interface name option.</param>
     /// <param name="addressOption">The IP address option.</param>
-    public GatewaySetCommand(Option<string> interfaceNameOption, Option<IPAddress> addressOption) : base(
-        CliStrings.Common.SetCommandName,
-        CommandLineStrings_NetworkInterfaces.GatewaySetCommandDescription)
+    public GatewaySetCommand(Option<string> interfaceNameOption, Option<IPAddress> addressOption)
+        : base(CliStrings.Common.SetCommandName, CliStrings.Network.Interface.Gateway.SetCommandDescription)
     {
         Add(interfaceNameOption);
         Add(addressOption);
@@ -39,13 +38,13 @@ internal sealed class GatewaySetCommand : ConfigCommandBase
 
         if (config.GetNetworkInterface(interfaceName) is not NetworkInterfaceDetail interfaceToConfigure)
         {
-            SimpleOutput.WriteLineError(CommandLineStrings_NetworkInterfaces.InterfaceNotFound, interfaceName);
+            SimpleOutput.WriteLineError(CliStrings.Network.Interface.NotFound, interfaceName);
             return;
         }
 
         if (interfaceToConfigure.IPv4.IPv4Details.Count == 0)
         {
-            SimpleOutput.WriteLineError(CommandLineStrings_NetworkInterfaces.InterfaceIPsNotSet, interfaceName);
+            SimpleOutput.WriteLineError(CliStrings.Network.Interface.IP.NoneSpecified, interfaceName);
             return;
         }
 
@@ -53,7 +52,7 @@ internal sealed class GatewaySetCommand : ConfigCommandBase
         {
             if (interfaceToConfigure.IPv4.Gateway.Equals(address))
             {
-                SimpleOutput.WriteLineInformation(CommandLineStrings_NetworkInterfaces.GatewayAlreadyDefined, address);
+                SimpleOutput.WriteLineInformation(CliStrings.Network.Interface.Gateway.AlreadyDefined, address);
                 return;
             }
 
@@ -64,10 +63,10 @@ internal sealed class GatewaySetCommand : ConfigCommandBase
                 return;
 
             if (interfaceToConfigure.IPv4.DHCPEnabled)
-                SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.DHCPIsEnabled, interfaceName);
+                SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.DHCP.IsEnabled, interfaceName);
 
             SimpleOutput.WriteLine(
-                CommandLineStrings_NetworkInterfaces.GatewaySet,
+                CliStrings.Network.Interface.Gateway.Set,
                 oldAddress,
                 address,
                 interfaceToConfigure.CommonInformation.Name);
@@ -80,10 +79,10 @@ internal sealed class GatewaySetCommand : ConfigCommandBase
                 return;
 
             if (interfaceToConfigure.IPv4.DHCPEnabled)
-                SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.DHCPIsEnabled, interfaceName);
+                SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.DHCP.IsEnabled, interfaceName);
 
             SimpleOutput.WriteLine(
-                CommandLineStrings_NetworkInterfaces.GatewayAdded,
+                CliStrings.Network.Interface.Gateway.Added,
                 address,
                 interfaceToConfigure.CommonInformation.Name);
         }

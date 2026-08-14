@@ -1,4 +1,5 @@
-﻿using System.CommandLine;
+using System.CommandLine;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Interface.IPv4.IP;
 
@@ -10,9 +11,8 @@ internal sealed class IPCommand : Command
     /// <summary>
     /// Initializes a new <see cref="IPCommand"/>.
     /// </summary>
-    public IPCommand() : base(
-        CommandLineStrings_NetworkInterfaces.IPCommandName,
-        CommandLineStrings_NetworkInterfaces.IPCommandDescription)
+    public IPCommand()
+        : base(CliStrings.Network.Interface.IP.CommandName, CliStrings.Network.Interface.IP.CommandDescription)
     {
         Add(new IPAddCommand(
             CommonOptions.s_interfaceNameOption,

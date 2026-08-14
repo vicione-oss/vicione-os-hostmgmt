@@ -13,9 +13,7 @@ internal sealed class GatewayRemoveCommand : ConfigCommandBase
     /// Initializes a new <see cref="GatewayRemoveCommand"/>.
     /// </summary>
     public GatewayRemoveCommand()
-        : base(
-            CliStrings.Common.RemoveCommandName,
-            CommandLineStrings_NetworkInterfaces.GatewayRemoveCommandDescription)
+        : base(CliStrings.Common.RemoveCommandName, CliStrings.Network.Interface.Gateway.RemoveCommandDescription)
         => SetAction((parseResult, cancellationToken) => RemoveHandler(cancellationToken));
 
     private static async Task RemoveHandler(CancellationToken cancellationToken)
@@ -28,7 +26,7 @@ internal sealed class GatewayRemoveCommand : ConfigCommandBase
 
         if (interfaceToConfigure is null)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_NetworkInterfaces.GatewayIsNotConfigured);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.Interface.Gateway.IsNotConfigured);
             return;
         }
 
@@ -38,6 +36,6 @@ internal sealed class GatewayRemoveCommand : ConfigCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_NetworkInterfaces.GatewayRemoved, oldAddress);
+        SimpleOutput.WriteLine(CliStrings.Network.Interface.Gateway.Removed, oldAddress);
     }
 }

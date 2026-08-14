@@ -18,9 +18,8 @@ internal sealed class IPRemoveCommand : ConfigCommandBase
     /// </summary>
     /// <param name="interfaceNameOption">The interface name option.</param>
     /// <param name="addressOption">The IP address option.</param>
-    public IPRemoveCommand(Option<string> interfaceNameOption, Option<IPAddress> addressOption) : base(
-        CliStrings.Common.RemoveCommandName,
-        CommandLineStrings_NetworkInterfaces.IPRemoveCommandDescription)
+    public IPRemoveCommand(Option<string> interfaceNameOption, Option<IPAddress> addressOption)
+        : base(CliStrings.Common.RemoveCommandName, CliStrings.Network.Interface.IPv4.RemoveCommandDescription)
     {
         Add(interfaceNameOption);
         Add(addressOption);
@@ -42,7 +41,7 @@ internal sealed class IPRemoveCommand : ConfigCommandBase
 
         if (config.GetNetworkInterface(interfaceName) is not NetworkInterfaceDetail interfaceToConfigure)
         {
-            SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.InterfaceNotFound, interfaceName);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.NotFound, interfaceName);
             return;
         }
 
@@ -51,7 +50,7 @@ internal sealed class IPRemoveCommand : ConfigCommandBase
 
         if (ipv4DetailToRemove is null)
         {
-            SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.InterfaceIPNotFound, ipAddress, interfaceName);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.IP.NotFound, ipAddress, interfaceName);
             return;
         }
 
@@ -66,18 +65,18 @@ internal sealed class IPRemoveCommand : ConfigCommandBase
                 var removedGateway = interfaceToConfigure.IPv4.Gateway;
                 interfaceToConfigure.IPv4.Gateway = null;
 
-                output.WithInformation(CommandLineStrings_NetworkInterfaces.GatewayRemoved, removedGateway);
+                output.WithInformation(CliStrings.Network.Interface.Gateway.Removed, removedGateway);
             }
 
             if (!interfaceToConfigure.IPv4.DHCPEnabled)
             {
                 interfaceToConfigure.IPv4.DHCPEnabled = true;
-                output.WithInformation(CommandLineStrings_NetworkInterfaces.DHCPEnabled, interfaceName);
+                output.WithInformation(CliStrings.Network.Interface.DHCP.Enabled, interfaceName);
             }
         }
         else if (interfaceToConfigure.IPv4.DHCPEnabled)
         {
-            output.WithWarning(CommandLineStrings_NetworkInterfaces.DHCPIsEnabled, interfaceName);
+            output.WithWarning(CliStrings.Network.Interface.DHCP.IsEnabled, interfaceName);
         }
 
         if (!await SetConfiguration(config, cancellationToken))
@@ -86,6 +85,6 @@ internal sealed class IPRemoveCommand : ConfigCommandBase
         if (output.HasMessages)
             output.WriteLine();
 
-        SimpleOutput.WriteLine(CommandLineStrings_NetworkInterfaces.InterfaceIPRemoved, ipAddress, interfaceName);
+        SimpleOutput.WriteLine(CliStrings.Network.Interface.IP.Removed, ipAddress, interfaceName);
     }
 }

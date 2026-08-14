@@ -16,9 +16,8 @@ internal sealed class VLANRemoveCommand : ConfigCommandBase
     /// Initializes a new <see cref="VLANRemoveCommand"/>.
     /// </summary>
     /// <param name="interfaceNameArgument">The interface name argument.</param>
-    public VLANRemoveCommand(Argument<string> interfaceNameArgument) : base(
-        CliStrings.Common.RemoveCommandName,
-        CommandLineStrings_NetworkInterfaces.VLANRemoveCommandDescription)
+    public VLANRemoveCommand(Argument<string> interfaceNameArgument)
+        : base(CliStrings.Common.RemoveCommandName, CliStrings.Network.Interface.VLAN.RemoveCommandDescription)
     {
         Add(interfaceNameArgument);
 
@@ -33,13 +32,13 @@ internal sealed class VLANRemoveCommand : ConfigCommandBase
 
         if (config.GetNetworkInterface(interfaceName) is not NetworkInterfaceDetail interfaceToConfigure)
         {
-            SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.InterfaceNotFound, interfaceName);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.NotFound, interfaceName);
             return;
         }
 
         if (interfaceToConfigure.VLAN.ID.Equals(0))
         {
-            SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.VLANNotConfigured, interfaceName);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.VLAN.NotConfigured, interfaceName);
             return;
         }
 
@@ -52,8 +51,8 @@ internal sealed class VLANRemoveCommand : ConfigCommandBase
             return;
 
         if (wasVlanEnabled)
-            SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.VLANDisabled, interfaceName);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.VLAN.Disabled, interfaceName);
 
-        SimpleOutput.WriteLine(CommandLineStrings_NetworkInterfaces.VLANIDRemoved, vlanIdToRemove, interfaceName);
+        SimpleOutput.WriteLine(CliStrings.Network.Interface.VLAN.IDRemoved, vlanIdToRemove, interfaceName);
     }
 }

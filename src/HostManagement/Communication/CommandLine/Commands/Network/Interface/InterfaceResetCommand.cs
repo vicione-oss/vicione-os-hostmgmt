@@ -1,6 +1,7 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Interface;
 
@@ -13,9 +14,8 @@ internal sealed class InterfaceResetCommand : ConfigCommandBase
     /// Initializes a new <see cref="InterfaceResetCommand"/>.
     /// </summary>
     /// <param name="interfaceNameArgument">The interface name argument.</param>
-    public InterfaceResetCommand(Argument<string> interfaceNameArgument) : base(
-        CommandLineStrings_NetworkInterfaces.NetworkInterfaceResetCommandName,
-        CommandLineStrings_NetworkInterfaces.NetworkInterfaceResetCommandDescription)
+    public InterfaceResetCommand(Argument<string> interfaceNameArgument)
+        : base(CliStrings.Network.Interface.ResetCommandName, CliStrings.Network.Interface.ResetCommandDescription)
     {
         Add(interfaceNameArgument);
 
@@ -28,6 +28,6 @@ internal sealed class InterfaceResetCommand : ConfigCommandBase
         if (!await NamedPipeRequestHelper.ResetNetworkInterface(interfaceName, cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_NetworkInterfaces.InterfaceResetSucceeded, interfaceName);
+        SimpleOutput.WriteLine(CliStrings.Network.Interface.ResetSucceeded, interfaceName);
     }
 }

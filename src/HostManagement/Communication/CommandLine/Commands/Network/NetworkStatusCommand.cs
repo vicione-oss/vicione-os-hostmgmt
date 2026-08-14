@@ -1,5 +1,4 @@
 using System.CommandLine;
-using HostManagement.Communication.CommandLine.Commands.Network.Interface;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Communication.CommandLine.Resources;
@@ -33,7 +32,7 @@ internal sealed class NetworkStatusCommand : ConfigCommandBase
 
         if (config.GetNetworkInterface(interfaceName) is null)
         {
-            SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.InterfaceNotFound, interfaceName);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.NotFound, interfaceName);
             return;
         }
 

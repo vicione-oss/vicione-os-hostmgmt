@@ -29,11 +29,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>CommandLineStrings_DNS.resx</DependentUpon>
     </Compile>
-    <Compile Update="Communication\CommandLine\Commands\Network\Interface\CommandLineStrings_NetworkInterfaces.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>CommandLineStrings_NetworkInterfaces.resx</DependentUpon>
-    </Compile>
     <Compile Update="Communication\CommandLine\Commands\Network\NTP\CommandLineStrings_NTP.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -70,10 +65,6 @@
     <EmbeddedResource Update="Communication\CommandLine\Commands\Network\DNS\CommandLineStrings_DNS.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>CommandLineStrings_DNS.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Communication\CommandLine\Commands\Network\Interface\CommandLineStrings_NetworkInterfaces.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>CommandLineStrings_NetworkInterfaces.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Update="Communication\CommandLine\Commands\Network\NTP\CommandLineStrings_NTP.resx">
       <Generator>ResXFileCodeGenerator</Generator>

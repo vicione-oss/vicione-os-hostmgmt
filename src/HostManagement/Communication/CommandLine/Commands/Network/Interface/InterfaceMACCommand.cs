@@ -2,6 +2,7 @@ using System.CommandLine;
 using HostManagement.Common.Utilities;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Extensions;
@@ -18,9 +19,8 @@ internal sealed class InterfaceMACCommand : ConfigCommandBase
     /// </summary>
     /// <param name="interfaceNameOption">The interface name option.</param>
     /// <param name="macAddressOption">The MAC address option.</param>
-    public InterfaceMACCommand(Option<string> interfaceNameOption, Option<string> macAddressOption) : base(
-        CommandLineStrings_NetworkInterfaces.NetworkInterfaceMACCommandName,
-        CommandLineStrings_NetworkInterfaces.NetworkInterfaceMACCommandDescription)
+    public InterfaceMACCommand(Option<string> interfaceNameOption, Option<string> macAddressOption)
+        : base(CliStrings.Network.Interface.MACCommandName, CliStrings.Network.Interface.MACCommandDescription)
     {
         Add(interfaceNameOption);
         Add(macAddressOption);
@@ -42,7 +42,7 @@ internal sealed class InterfaceMACCommand : ConfigCommandBase
 
         if (config.GetNetworkInterface(interfaceName) is not NetworkInterfaceDetail interfaceToConfigure)
         {
-            SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.InterfaceNotFound, interfaceName);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.NotFound, interfaceName);
             return;
         }
 
@@ -53,13 +53,13 @@ internal sealed class InterfaceMACCommand : ConfigCommandBase
             var originalPhysicalAddress = await NamedPipeRequestHelper
                 .GetOriginalPhysicalAddress(interfaceToConfigure.CommonInformation.Name, cancellationToken);
 
-            originalPhysicalAddress ??= CommandLineStrings_NetworkInterfaces.Unknown;
+            originalPhysicalAddress ??= CliStrings.Network.Interface.Unknown;
 
             var output = new KeyValueOutput()
-                .With(new(CommandLineStrings_NetworkInterfaces.PhysicalAddress, physicalAddress));
+                .With(new(CliStrings.Network.Interface.PhysicalAddress, physicalAddress));
 
             if (!physicalAddress.Equals(originalPhysicalAddress))
-                output.With(new(CommandLineStrings_NetworkInterfaces.OriginalPhysicalAddress, originalPhysicalAddress));
+                output.With(new(CliStrings.Network.Interface.OriginalPhysicalAddress, originalPhysicalAddress));
 
             output.WriteLine();
             return;
@@ -68,7 +68,7 @@ internal sealed class InterfaceMACCommand : ConfigCommandBase
         if (macAddress.Length != 12 &&
             macAddress.Length != 17)
         {
-            SimpleOutput.WriteLineError(CommandLineStrings_NetworkInterfaces.InterfaceMACInvalidLength, macAddress);
+            SimpleOutput.WriteLineError(CliStrings.Network.Interface.MACInvalidLength, macAddress);
             return;
         }
 
@@ -76,7 +76,7 @@ internal sealed class InterfaceMACCommand : ConfigCommandBase
 
         if (interfaceToConfigure.CommonInformation.PhysicalAddress.Equals(macAddress))
         {
-            SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.InterfaceMACAlreadyDefined, macAddress);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.MACAlreadyDefined, macAddress);
             return;
         }
 
@@ -87,7 +87,7 @@ internal sealed class InterfaceMACCommand : ConfigCommandBase
             return;
 
         SimpleOutput.WriteLine(
-            CommandLineStrings_NetworkInterfaces.InterfaceMACSet,
+            CliStrings.Network.Interface.MACSet,
             oldMacAddress,
             macAddress,
             interfaceToConfigure.CommonInformation.Name);
