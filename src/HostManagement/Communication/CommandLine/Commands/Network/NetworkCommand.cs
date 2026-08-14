@@ -3,6 +3,7 @@ using HostManagement.Communication.CommandLine.Commands.Network.DNS;
 using HostManagement.Communication.CommandLine.Commands.Network.Interface;
 using HostManagement.Communication.CommandLine.Commands.Network.NTP;
 using HostManagement.Communication.CommandLine.Commands.Network.Proxy;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network;
 
@@ -20,9 +21,7 @@ internal sealed class NetworkCommand : Command
     /// <summary>
     /// Initializes a new <see cref="NetworkCommand"/>.
     /// </summary>
-    public NetworkCommand() : base(
-        CommandLineStrings_Network.NetworkCommandName,
-        CommandLineStrings_Network.NetworkCommandDescription)
+    public NetworkCommand() : base(CliStrings.Network.CommandName, CliStrings.Network.CommandDescription)
     {
         Add(new ListInterfacesCommand());
         Add(new NetworkStatusCommand(s_interfaceNameArgument));
