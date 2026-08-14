@@ -54,11 +54,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>CommandLineStrings_Proxy.resx</DependentUpon>
     </Compile>
-    <Compile Update="Communication\CommandLine\Commands\Service\CommandLineStrings_Systemd.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>CommandLineStrings_Systemd.resx</DependentUpon>
-    </Compile>
     <Compile Update="SystemConfig\InternalValidation\InternalValidationResultMessages.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -100,10 +95,6 @@
     <EmbeddedResource Update="Communication\CommandLine\Commands\Network\Proxy\CommandLineStrings_Proxy.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>CommandLineStrings_Proxy.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Communication\CommandLine\Commands\Service\CommandLineStrings_Systemd.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>CommandLineStrings_Systemd.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Update="SystemConfig\InternalValidation\InternalValidationResultMessages.resx">
       <Generator>ResXFileCodeGenerator</Generator>

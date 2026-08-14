@@ -1,4 +1,5 @@
 using System.CommandLine;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Enums;
 
 namespace HostManagement.Communication.CommandLine.Commands.Service;
@@ -12,9 +13,8 @@ internal sealed class ServiceStopCommand : ServiceControlCommandBase
     /// Initializes a new <see cref="ServiceStopCommand"/>.
     /// </summary>
     /// <param name="systemdUnitNameArgument">The systemd unit name argument.</param>
-    public ServiceStopCommand(Argument<string> systemdUnitNameArgument) : base(
-        CommandLineStrings_Systemd.ServiceStopCommandName,
-        CommandLineStrings_Systemd.ServiceStopCommandDescription)
+    public ServiceStopCommand(Argument<string> systemdUnitNameArgument)
+        : base(CliStrings.Service.StopCommandName, CliStrings.Service.StopCommandDescription)
     {
         Add(systemdUnitNameArgument);
 

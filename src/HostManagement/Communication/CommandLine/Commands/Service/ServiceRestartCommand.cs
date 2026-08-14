@@ -1,4 +1,5 @@
 using System.CommandLine;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Enums;
 
 namespace HostManagement.Communication.CommandLine.Commands.Service;
@@ -12,9 +13,8 @@ internal sealed class ServiceRestartCommand : ServiceControlCommandBase
     /// Initializes a new <see cref="ServiceRestartCommand"/>.
     /// </summary>
     /// <param name="systemdUnitNameArgument">The systemd unit name argument.</param>
-    public ServiceRestartCommand(Argument<string> systemdUnitNameArgument) : base(
-        CommandLineStrings_Systemd.ServiceRestartCommandName,
-        CommandLineStrings_Systemd.ServiceRestartCommandDescription)
+    public ServiceRestartCommand(Argument<string> systemdUnitNameArgument)
+        : base(CliStrings.Service.RestartCommandName, CliStrings.Service.RestartCommandDescription)
     {
         Add(systemdUnitNameArgument);
 

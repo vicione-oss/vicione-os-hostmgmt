@@ -14,9 +14,8 @@ internal sealed class ServiceStatusCommand : Command
     /// Initializes a new <see cref="ServiceStatusCommand"/>.
     /// </summary>
     /// <param name="systemdUnitNameArgument">The systemd unit name argument.</param>
-    public ServiceStatusCommand(Argument<string> systemdUnitNameArgument) : base(
-        CliStrings.Common.StatusCommandName,
-        CommandLineStrings_Systemd.ServiceStatusCommandDescription)
+    public ServiceStatusCommand(Argument<string> systemdUnitNameArgument)
+        : base(CliStrings.Common.StatusCommandName, CliStrings.Service.StatusCommandDescription)
     {
         Add(systemdUnitNameArgument);
 
