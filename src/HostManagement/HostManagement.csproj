@@ -54,11 +54,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>CommandLineStrings_Proxy.resx</DependentUpon>
     </Compile>
-    <Compile Update="Communication\CommandLine\Commands\System\CommandLineStrings_System.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>CommandLineStrings_System.resx</DependentUpon>
-    </Compile>
     <Compile Update="Communication\CommandLine\Commands\Service\CommandLineStrings_Systemd.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -105,10 +100,6 @@
     <EmbeddedResource Update="Communication\CommandLine\Commands\Network\Proxy\CommandLineStrings_Proxy.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>CommandLineStrings_Proxy.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Communication\CommandLine\Commands\System\CommandLineStrings_System.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>CommandLineStrings_System.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Update="Communication\CommandLine\Commands\Service\CommandLineStrings_Systemd.resx">
       <Generator>ResXFileCodeGenerator</Generator>

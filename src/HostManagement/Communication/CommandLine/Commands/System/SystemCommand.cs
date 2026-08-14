@@ -1,4 +1,5 @@
 using System.CommandLine;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine.Commands.System;
 
@@ -36,9 +37,7 @@ internal sealed class SystemCommand : Command
     /// <summary>
     /// Initializes a new <see cref="SystemCommand"/>.
     /// </summary>
-    public SystemCommand() : base(
-        CommandLineStrings_System.SystemCommandName,
-        CommandLineStrings_System.SystemCommandDescription)
+    public SystemCommand() : base(CliStrings.System.CommandName, CliStrings.System.CommandDescription)
     {
         Add(new SystemResetCommand());
         Add(new SystemRestartCommand(s_delayArgument));

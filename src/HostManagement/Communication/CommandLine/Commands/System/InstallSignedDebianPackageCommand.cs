@@ -2,6 +2,7 @@ using System.CommandLine;
 using System.Text.Json;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts.System;
 using SharedJsonContext = HostManagement.Shared.Contracts.SourceGenerationContext;
 
@@ -18,12 +19,8 @@ internal sealed class InstallSignedDebianPackageCommand : Command
     /// </summary>
     /// <param name="filePathOption">The file path option.</param>
     /// <param name="signatureFilePathOption">The signature file path option.</param>
-    public InstallSignedDebianPackageCommand(
-        Option<string> filePathOption,
-        Option<string> signatureFilePathOption)
-        : base(
-            CommandLineStrings_System.InstallPackageCommandName,
-            CommandLineStrings_System.InstallPackageCommandDescription)
+    public InstallSignedDebianPackageCommand(Option<string> filePathOption, Option<string> signatureFilePathOption)
+        : base(CliStrings.System.InstallPackageCommandName, CliStrings.System.InstallPackageCommandDescription)
     {
         Add(filePathOption);
         Add(signatureFilePathOption);
@@ -51,6 +48,6 @@ internal sealed class InstallSignedDebianPackageCommand : Command
         if (!await NamedPipeRequestHelper.InstallSignedDebianPackage(messageContent, cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_System.InstallPackageSuccessfull, filePath);
+        SimpleOutput.WriteLine(CliStrings.System.InstallPackageSuccessful, filePath);
     }
 }
