@@ -14,9 +14,8 @@ internal sealed class NoProxyRemoveCommand : ConfigCommandBase
     /// Initializes a new <see cref="NoProxyRemoveCommand"/>.
     /// </summary>
     /// <param name="noProxyEntriesArgument">The no-proxy entries argument.</param>
-    public NoProxyRemoveCommand(Argument<string[]> noProxyEntriesArgument) : base(
-        CliStrings.Common.RemoveCommandName,
-        CommandLineStrings_Proxy.NoProxyListRemoveCommandDescription)
+    public NoProxyRemoveCommand(Argument<string[]> noProxyEntriesArgument)
+        : base(CliStrings.Common.RemoveCommandName, CliStrings.Network.Proxy.NoProxy.RemoveCommandDescription)
     {
         Add(noProxyEntriesArgument);
 
@@ -36,14 +35,14 @@ internal sealed class NoProxyRemoveCommand : ConfigCommandBase
         {
             if (!config.NetworkProxySettings.NoProxy.Entries.Contains(entry, StringComparer.OrdinalIgnoreCase))
             {
-                output.WithWarning(CommandLineStrings_Proxy.NoProxyItemNotFound, entry);
+                output.WithWarning(CliStrings.Network.Proxy.NoProxy.NotFound, entry);
                 continue;
             }
 
             if (!config.NetworkProxySettings.NoProxy.Entries.Remove(entry))
             {
                 output
-                    .WithError(CommandLineStrings_Proxy.NoProxyItemCouldNotBeRemoved, entry)
+                    .WithError(CliStrings.Network.Proxy.NoProxy.CouldNotBeRemoved, entry)
                     .WriteLine();
 
                 return;
@@ -60,15 +59,15 @@ internal sealed class NoProxyRemoveCommand : ConfigCommandBase
                 return;
 
             var title = output.ItemCount == 1
-                ? CommandLineStrings_Proxy.NoProxyItemRemoved
-                : CommandLineStrings_Proxy.NoProxyItemsRemoved;
+                ? CliStrings.Network.Proxy.NoProxy.Removed
+                : CliStrings.Network.Proxy.NoProxy.RemovedMultiple;
 
             output.WithTitle(title);
 
             if (!config.NetworkProxySettings.NoProxy.Enabled &&
                 config.NetworkProxySettings.NoProxy.Entries.Count > 0)
             {
-                output.WithWarning(CommandLineStrings_Proxy.NoProxyListCurrentlyDisabled);
+                output.WithWarning(CliStrings.Network.Proxy.NoProxy.CurrentlyDisabled);
             }
         }
 

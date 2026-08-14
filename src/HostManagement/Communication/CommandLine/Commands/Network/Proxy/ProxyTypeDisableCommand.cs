@@ -20,7 +20,7 @@ internal sealed class ProxyTypeDisableCommand : ProxyTypeCommandBase
             CliStrings.Common.DisableCommandName,
             string.Format(
                 CultureInfo.InvariantCulture,
-                CompositeFormat.Parse(CommandLineStrings_Proxy.ProxyTypeDisableCommandDescription),
+                CompositeFormat.Parse(CliStrings.Network.Proxy.DisableCommandDescription),
                 proxyType))
         => SetAction((parseResult, cancellationToken) => DisableHandler(proxyType, cancellationToken));
 
@@ -33,7 +33,7 @@ internal sealed class ProxyTypeDisableCommand : ProxyTypeCommandBase
 
         if (!proxyDetail.Enabled)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_Proxy.ProxyTypeAlreadyDisabled, proxyType.ToString());
+            SimpleOutput.WriteLineInformation(CliStrings.Network.Proxy.AlreadyDisabled, proxyType.ToString());
             return;
         }
 
@@ -42,6 +42,6 @@ internal sealed class ProxyTypeDisableCommand : ProxyTypeCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_Proxy.ProxyTypeDisabled, proxyType.ToString());
+        SimpleOutput.WriteLine(CliStrings.Network.Proxy.Disabled, proxyType.ToString());
     }
 }

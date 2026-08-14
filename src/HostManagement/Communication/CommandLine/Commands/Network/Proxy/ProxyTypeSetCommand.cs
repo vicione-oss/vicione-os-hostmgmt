@@ -47,7 +47,7 @@ internal sealed class ProxyTypeSetCommand : ProxyTypeCommandBase
             CliStrings.Common.SetCommandName,
             string.Format(
                 CultureInfo.InvariantCulture,
-                CompositeFormat.Parse(CommandLineStrings_Proxy.ProxyTypeSetCommandDescription),
+                CompositeFormat.Parse(CliStrings.Network.Proxy.SetCommandDescription),
                 proxyType))
     {
         Add(s_serverOption);
@@ -86,6 +86,6 @@ internal sealed class ProxyTypeSetCommand : ProxyTypeCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_Proxy.ProxyTypeConfigured, proxyType.ToString());
+        SimpleOutput.WriteLine(CliStrings.Network.Proxy.Configured, proxyType.ToString());
     }
 }

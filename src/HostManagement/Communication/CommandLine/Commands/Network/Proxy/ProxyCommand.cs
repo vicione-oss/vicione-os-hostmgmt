@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Commands.Network.Proxy.NoProxy;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy;
 
@@ -11,9 +12,7 @@ internal sealed class ProxyCommand : Command
     /// <summary>
     /// Initializes a new <see cref="ProxyCommand"/>.
     /// </summary>
-    public ProxyCommand() : base(
-        CommandLineStrings_Proxy.ProxyCommandName,
-        CommandLineStrings_Proxy.ProxyCommandDescription)
+    public ProxyCommand() : base(CliStrings.Network.Proxy.CommandName, CliStrings.Network.Proxy.CommandDescription)
     {
         Add(new ProxyTypeCommand(ProxyType.HTTP));
         Add(new ProxyTypeCommand(ProxyType.HTTPS));
