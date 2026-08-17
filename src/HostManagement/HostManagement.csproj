@@ -24,11 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Communication\CommandLine\Output\CommandLineStrings_Output.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>CommandLineStrings_Output.resx</DependentUpon>
-    </Compile>
     <Compile Update="SystemConfig\InternalValidation\InternalValidationResultMessages.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -47,10 +42,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="Communication\CommandLine\Output\CommandLineStrings_Output.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>CommandLineStrings_Output.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
     <EmbeddedResource Update="SystemConfig\InternalValidation\InternalValidationResultMessages.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>InternalValidationResultMessages.Designer.cs</LastGenOutput>

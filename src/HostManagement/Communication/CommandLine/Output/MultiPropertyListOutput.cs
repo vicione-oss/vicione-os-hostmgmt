@@ -1,4 +1,5 @@
-﻿using System.Text;
+using System.Text;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine.Output;
 
@@ -89,7 +90,7 @@ internal sealed class MultiPropertyListOutput : CliComplexOutputBase
         {
             throw new ArgumentOutOfRangeException(
                 nameof(additionalProperties),
-                CommandLineStrings_Output.MultiPropertyListTooManyValues);
+                CliStrings.Output.MultiPropertyListTooManyValues);
         }
 
         var nonEmptyValue = string.IsNullOrWhiteSpace(value)
