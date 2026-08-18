@@ -805,7 +805,7 @@ csharp_style_expression_bodied_methods = when_on_single_line # Prefer expression
 dotnet_diagnostic.IDE0290.severity = none # Use primary constructor
 dotnet_diagnostic.IDE0028.severity = none # Use collection initializers
 dotnet_diagnostic.IDE0301.severity = none # Use collection expression for empty
-dotnet_diagnostic.IDE0303.severity = none # Use collection expression for Create
+dotnet_diagnostic.IDE0303.severity = none # Use collection expression for Create()
 dotnet_diagnostic.IDE0305.severity = none # Use collection expression for fluent
 dotnet_diagnostic.RS2008.severity = none # Enable analyzer release tracking
 

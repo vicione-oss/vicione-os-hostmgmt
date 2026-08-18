@@ -17,7 +17,7 @@ public abstract record SettingSupport
     /// The supported capability for the setting.
     /// </summary>
     [JsonPropertyOrder(-1)]
-    public Capability Capability { get; set; }
+    public CapabilityStatus Capability { get; set; }
 }
 
 /// <summary>

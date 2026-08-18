@@ -1,9 +1,9 @@
 namespace HostManagement.Shared.Capabilities;
 
 /// <summary>
-/// Represents a capability.
+/// Represents the status of a capability.
 /// </summary>
-public enum Capability
+public enum CapabilityStatus
 {
     /// <summary>
     /// The capability is disabled.

@@ -22,7 +22,7 @@ public partial class SupportedSettingsGenerator
         private static readonly DiagnosticDescriptor s_duplicateSettingNameDescriptor = new(
             "SSG002",
             "Duplicate supported setting name in parent scope",
-            "Supported setting name '{0}' is ambiguous in '{1}'. Setting names must be unique within parent scope.",
+            "Supported setting name '{0}' is ambiguous in '{1}'",
             UsageCategory,
             DiagnosticSeverity.Error,
             isEnabledByDefault: true,

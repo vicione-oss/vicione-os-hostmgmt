@@ -13,7 +13,7 @@ namespace HostManagement.Shared.Communication.SourceGeneration;
 public partial class SupportedTopicsGenerator : IIncrementalGenerator
 {
     private const string SharedCapabilitiesNamespace = "HostManagement.Shared.Capabilities";
-    private const string CapabilityTypeName = "Capability";
+    private const string CapabilityTypeName = "CapabilityStatus";
 
     private const string CommunicationCapabilitiesNamespace = "HostManagement.Shared.Communication.Capabilities";
     private const string SupportedTopicAttributeFullName = CommunicationCapabilitiesNamespace + ".SupportedTopicAttribute";

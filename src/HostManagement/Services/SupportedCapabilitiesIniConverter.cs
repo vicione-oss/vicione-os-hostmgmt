@@ -26,8 +26,8 @@ internal static class SupportedCapabilitiesIniConverter
 
     private const string NamePropertyName = "Name";
     private const string CapabilityPropertyName = "Capability";
-    private const string DisabledCapabilityValue = nameof(Capability.Disabled);
-    private const string EnabledCapabilityValue = nameof(Capability.Enabled);
+    private const string DisabledCapabilityValue = nameof(CapabilityStatus.Disabled);
+    private const string EnabledCapabilityValue = nameof(CapabilityStatus.Enabled);
     private const string SettingsSectionName = nameof(SupportedCapabilities.Settings);
     private const string TopicsSectionName = nameof(SupportedCapabilities.Topics);
 
@@ -40,7 +40,7 @@ internal static class SupportedCapabilitiesIniConverter
     /// A <see cref="JsonDocument"/> containing the equivalent 'SupportedCapabilities' JSON structure.
     /// </returns>
     /// <exception cref="FormatException">
-    /// Thrown when the INI content contains an unknown section, an unknown setting, an invalid section,
+    /// Thrown when the INI content contains an unknown or invalid section, an unknown setting,
     /// an invalid key-value entry, an entry outside a section, a duplicate entry,
     /// an invalid capability value or conflicting scalar and object values.
     /// </exception>
@@ -68,9 +68,9 @@ internal static class SupportedCapabilitiesIniConverter
         foreach (var section in document.RootElement.EnumerateObject())
         {
             if (section.NameEquals(SettingsSectionName))
-                WriteSettingsIni(builder, section.Name, section.Value);
+                WriteSettingsToIniContext(builder, section.Name, section.Value);
             else if (section.NameEquals(TopicsSectionName))
-                WriteTopicsIni(builder, section.Name, section.Value);
+                WriteTopicsToIniContext(builder, section.Name, section.Value);
             else
                 throw new InvalidOperationException($"Invalid 'SupportedCapabilities' JSON section '{section.Name}'.");
         }
@@ -383,7 +383,7 @@ internal static class SupportedCapabilitiesIniConverter
             .AppendLine();
     }
 
-    private static void WriteSettingsIni(StringBuilder builder, string sectionPath, JsonElement settingElement)
+    private static void WriteSettingsToIniContext(StringBuilder builder, string sectionPath, JsonElement settingElement)
     {
         EnsureJsonObject(settingElement, sectionPath);
 
@@ -418,11 +418,11 @@ internal static class SupportedCapabilitiesIniConverter
                 continue;
 
             if (HasNestedSettingProperties(property.Value))
-                WriteSettingsIni(builder, $"{sectionPath}.{property.Name}", property.Value);
+                WriteSettingsToIniContext(builder, $"{sectionPath}.{property.Name}", property.Value);
         }
     }
 
-    private static void WriteTopicsIni(StringBuilder builder, string sectionName, JsonElement sectionElement)
+    private static void WriteTopicsToIniContext(StringBuilder builder, string sectionName, JsonElement sectionElement)
     {
         EnsureJsonObject(sectionElement, sectionName);
 
@@ -551,7 +551,7 @@ internal static class SupportedCapabilitiesIniConverter
         var segments = sectionName.Split('.', StringSplitOptions.TrimEntries);
 
         if (segments.Any(static segment => segment.Length == 0))
-            throw new FormatException($"Invalid INI section '{sectionName}' at line {lineNumber}.");
+            throw new FormatException(GetInvalidSectionMessage());
 
         var topLevelSectionName = segments[0];
 
@@ -561,12 +561,14 @@ internal static class SupportedCapabilitiesIniConverter
         if (string.Equals(topLevelSectionName, TopicsSectionName, StringComparison.Ordinal))
         {
             if (segments.Length != 1)
-                throw new FormatException($"Invalid INI section '{sectionName}' at line {lineNumber}.");
+                throw new FormatException(GetInvalidSectionMessage());
 
             return segments;
         }
 
         throw new FormatException($"Unknown supported capabilities INI section '{sectionName}' at line {lineNumber}.");
+
+        string GetInvalidSectionMessage() => $"Invalid INI section '{sectionName}' at line {lineNumber}.";
     }
 
     private static JsonObject GetOrCreateJsonObject(JsonObject parent, string propertyName, int lineNumber)

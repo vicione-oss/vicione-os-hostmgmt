@@ -10,5 +10,5 @@ namespace HostManagement.Shared.Capabilities;
     RespectRequiredConstructorParameters = true,
     UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
     UseStringEnumConverter = true)]
-[JsonSerializable(typeof(Capability))]
+[JsonSerializable(typeof(CapabilityStatus))]
 public sealed partial class CapabilityJsonSerializerContext : JsonSerializerContext;

@@ -17,7 +17,7 @@ public partial class SupportedSettingsGenerator : IIncrementalGenerator
     private const string SystemConfigurationTypeName = "SystemConfiguration";
     private const string CapabilitiesNamespace = "HostManagement.Shared.Capabilities";
     private const string SupportedSettingAttributeFullName = CapabilitiesNamespace + ".SupportedSettingAttribute";
-    private const string CapabilityTypeName = "Capability";
+    private const string CapabilityTypeName = "CapabilityStatus";
     private const string LeafSettingTypeName = "LeafSettingSupport";
     private const string CompositeSettingTypeName = "CompositeSettingSupport";
 

@@ -21,7 +21,7 @@ public partial class SupportedTopicsGenerator
         private static readonly DiagnosticDescriptor s_duplicateTopicNameDescriptor = new(
             "STG002",
             "Duplicate supported topic name",
-            "Supported topic name '{0}' is ambiguous. Topic names must be unique.",
+            "Supported topic name '{0}' is ambiguous",
             UsageCategory,
             DiagnosticSeverity.Error,
             isEnabledByDefault: true,
