@@ -11,10 +11,10 @@ The **HostManagement (HM)** project is an AOT-compiled .NET application for Debi
 
 A description of the conceptual ideas and design decisions can be found under: [Concept]
 
-|                                                                                              |                                                                                              |                                                                                        |
-| :------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------- |
-| **[Getting Started](#getting-started)** <br> Quick Start / Target Environments               | **[Usage](#usage)** <br> CLI / Service / Environment Variables / Logging                     | **[Architecture](#architecture)** <br> Request Processing / System Configuration Flows |
-| **[Project Structure](#project-structure)** <br> Main Components / Project Structure Details | **[Contributing](#contributing)** <br> Development / Publishing / Toolchain / GitHub Copilot | **[License](#license)** <br> License Status                                            |
+|                                                                                              |                                                                                         |                                                                                        |
+| :------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------- |
+| **[Getting Started](#getting-started)** <br> Quick Start / Target Environments               | **[Usage](#usage)** <br> CLI / Service / Environment Variables / Logging                | **[Architecture](#architecture)** <br> Request Processing / System Configuration Flows |
+| **[Project Structure](#project-structure)** <br> Main Components / Project Structure Details | **[Contributing](#contributing)** <br> Development / Publishing / Toolchain / AI Agents | **[License](#license)** <br> License Status                                            |
 
 ## Getting Started
 
@@ -404,24 +404,21 @@ The repository uses [mise](https://mise.jdx.dev/) to pin needed tools (e.g. .NET
 
   Generated output file path is: `local/cli_help/cli_help_export.md` (configured in `mise.toml`).
 
-### GitHub Copilot
+### AI Agent Instructions
 
-The project uses custom GitHub Copilot instructions:
+The project uses provider-independent `AGENTS.md` files for AI coding agent instructions:
 
-* Global instructions: [`copilot-instructions.md`]
-* Testing instructions: [`testing.instructions.md`]
-
-Additional, local instructions can be stored in `.github/instructions/user-defined.instructions.md`.
-This file is excluded via [`.gitignore`] and is not committed.
+* Repository-wide instructions: [`AGENTS.md`]
+* Production code instructions: [`src/AGENTS.md`]
+* Unit testing instructions: [`tests/AGENTS.md`]
 
 ## License
 
 This project is licensed under the MIT License.
 The full license text is available in [`LICENSE.txt`](./LICENSE.txt).
 
-[`.gitignore`]: .gitignore
+[`AGENTS.md`]: AGENTS.md
 [Concept]: docs/Concept.md
-[`copilot-instructions.md`]: .github/copilot-instructions.md
 [DNS Validation]: docs/DNSValidation.md
 [docs/Architecture.md]: docs/Architecture.md
 [docs/EnvironmentVariables.md]: docs/EnvironmentVariables.md
@@ -429,6 +426,7 @@ The full license text is available in [`LICENSE.txt`](./LICENSE.txt).
 [docs/ScriptResponse.md]: docs/ScriptResponse.md
 [docs/SystemConfigurationMigrations.md]: docs/SystemConfigurationMigrations.md
 [InstallNetSdk]: https://learn.microsoft.com/en-us/dotnet/core/install/linux-debian#install-the-sdk
-[`testing.instructions.md`]: .github/instructions/testing.instructions.md
+[`tests/AGENTS.md`]: tests/AGENTS.md
+[`src/AGENTS.md`]: src/AGENTS.md
 [Visual Studio 2026]: https://visualstudio.microsoft.com/vs/
 [Visual Studio Code]: https://code.visualstudio.com/Download

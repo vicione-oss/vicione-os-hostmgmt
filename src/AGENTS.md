@@ -1,8 +1,3 @@
----
-description: "Guidelines for production C# code"
-applyTo: "src/**/*.cs"
----
-
 # Production C# Instructions
 
 These instructions apply when creating or modifying production C# code.
@@ -36,7 +31,7 @@ These instructions apply when creating or modifying production C# code.
 - Additional comments SHOULD be added if needed (for example exceptions), by using `<inheritdoc/>` on the method.
 - Non-XML comments (inline code comments) MAY be in **German** to explain complex technical concepts.
 
-[`.editorconfig`]: ../../.editorconfig
+[`.editorconfig`]: ../.editorconfig
 [SA1201]: https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/SA1201.md
 [SA1202]: https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/SA1202.md
 [SA1203]: https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/SA1203.md
