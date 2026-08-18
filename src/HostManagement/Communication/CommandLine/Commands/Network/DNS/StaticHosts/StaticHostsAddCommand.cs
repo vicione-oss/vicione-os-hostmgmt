@@ -23,13 +23,11 @@ internal sealed class StaticHostsAddCommand : ConfigCommandBase
         Add(addressOption);
         Add(hostnameOption);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return AddHandler(
+        SetAction((parseResult, cancellationToken)
+            => AddHandler(
                 parseResult.GetRequiredValue(addressOption),
                 parseResult.GetRequiredValue(hostnameOption),
-                cancellationToken);
-        });
+                cancellationToken));
     }
 
     private static async Task AddHandler(IPAddress address, string hostname, CancellationToken cancellationToken)
@@ -43,18 +41,15 @@ internal sealed class StaticHostsAddCommand : ConfigCommandBase
             Hostname = hostname
         };
 
-        var output = new TableOutput();
-
         if (config.NetworkDNSSettings.StaticHosts.Hosts.Contains(newStaticHost))
         {
-            output
-                .WithInformation(CommandLineStrings_DNS.StaticHostAlreadyDefined, address, hostname)
-                .WriteLine();
-
+            SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.StaticHostAlreadyDefined, address, hostname);
             return;
         }
 
         config.NetworkDNSSettings.StaticHosts.Hosts.Add(newStaticHost);
+
+        var output = new TableOutput();
         output.With(address, hostname);
 
         if (!await SetConfiguration(config, cancellationToken))

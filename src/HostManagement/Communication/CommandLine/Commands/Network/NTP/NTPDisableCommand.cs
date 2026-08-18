@@ -11,10 +11,11 @@ internal sealed class NTPDisableCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="NTPDisableCommand"/>.
     /// </summary>
-    public NTPDisableCommand() : base(
-        CommandLineStrings_Common.DisableCommandName,
-        CommandLineStrings_NTP.NTPDisableCommandDescription)
-            => SetAction((parseResult, cancellationToken) => DisableHandler(cancellationToken));
+    public NTPDisableCommand()
+        : base(
+            CommandLineStrings_Common.DisableCommandName,
+            CommandLineStrings_NTP.NTPDisableCommandDescription)
+        => SetAction((parseResult, cancellationToken) => DisableHandler(cancellationToken));
 
     private static async Task DisableHandler(CancellationToken cancellationToken)
     {

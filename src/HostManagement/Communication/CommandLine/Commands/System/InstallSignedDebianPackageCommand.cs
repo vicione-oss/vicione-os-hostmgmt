@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using System.Text.Json;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
@@ -28,13 +28,11 @@ internal sealed class InstallSignedDebianPackageCommand : Command
         Add(filePathOption);
         Add(signatureFilePathOption);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return InstallHandler(
+        SetAction((parseResult, cancellationToken)
+            => InstallHandler(
                 parseResult.GetRequiredValue(filePathOption),
                 parseResult.GetRequiredValue(signatureFilePathOption),
-                cancellationToken);
-        });
+                cancellationToken));
     }
 
     private static async Task InstallHandler(

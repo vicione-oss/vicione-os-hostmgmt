@@ -11,10 +11,11 @@ internal sealed class NTPEnableCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="NTPEnableCommand"/>.
     /// </summary>
-    public NTPEnableCommand() : base(
-        CommandLineStrings_Common.EnableCommandName,
-        CommandLineStrings_NTP.NTPEnableCommandDescription)
-            => SetAction((parseResult, cancellationToken) => EnableHandler(cancellationToken));
+    public NTPEnableCommand()
+        : base(
+            CommandLineStrings_Common.EnableCommandName,
+            CommandLineStrings_NTP.NTPEnableCommandDescription)
+        => SetAction((parseResult, cancellationToken) => EnableHandler(cancellationToken));
 
     private static async Task EnableHandler(CancellationToken cancellationToken)
     {

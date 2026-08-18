@@ -71,8 +71,7 @@ internal static class CliHelpExtractor
             s_output.WriteLine();
             s_output.WriteLine(commandHeading);
 
-            if (!string.IsNullOrWhiteSpace(parentCommandStructure))
-                OutputCommandDetails(command);
+            OutputCommandDetails(command);
 
             if (command.Subcommands.Count > 0)
                 OutputHelpForSubcommands(command.Subcommands, commandStructure);

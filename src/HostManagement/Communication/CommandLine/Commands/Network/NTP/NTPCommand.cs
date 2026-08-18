@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.NTP;
 
@@ -7,14 +7,20 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.NTP;
 /// </summary>
 internal sealed class NTPCommand : Command
 {
-    private static readonly Option<string> s_oldNTPServerOption = new("--old-ntp-server", "-o")
+    private static readonly Argument<string[]> s_ntpServersArgument = new("servers")
+    {
+        Description = "The list of NTP servers.",
+        Arity = ArgumentArity.OneOrMore
+    };
+
+    private static readonly Option<string> s_oldNTPServerOption = new("--old-server", "-o")
     {
         Description = "The old NTP server.",
         Required = true,
         Arity = ArgumentArity.ExactlyOne
     };
 
-    private static readonly Option<string> s_newNTPServerOption = new("--new-ntp-server", "-n")
+    private static readonly Option<string> s_newNTPServerOption = new("--new-server", "-n")
     {
         Description = "The new NTP server.",
         Required = true,
@@ -24,16 +30,14 @@ internal sealed class NTPCommand : Command
     /// <summary>
     /// Initializes a new <see cref="NTPCommand"/>.
     /// </summary>
-    public NTPCommand() : base(
-        CommandLineStrings_NTP.NTPCommandName,
-        CommandLineStrings_NTP.NTPCommandDescription)
+    public NTPCommand() : base(CommandLineStrings_NTP.NTPCommandName, CommandLineStrings_NTP.NTPCommandDescription)
     {
+        Add(new NTPListCommand());
         Add(new NTPEnableCommand());
         Add(new NTPDisableCommand());
-        Add(new NTPListCommand());
-        Add(new NTPAddCommand(CommonOptions.s_itemsOption));
-        Add(new NTPRemoveCommand(CommonOptions.s_itemsOption));
-        Add(new NTPSetCommand(CommonOptions.s_itemsOption));
+        Add(new NTPAddCommand(s_ntpServersArgument));
+        Add(new NTPRemoveCommand(s_ntpServersArgument));
+        Add(new NTPSetCommand(s_ntpServersArgument));
         Add(new NTPClearCommand());
         Add(new NTPModifyCommand(s_oldNTPServerOption, s_newNTPServerOption));
     }

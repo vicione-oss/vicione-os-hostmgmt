@@ -11,10 +11,11 @@ internal sealed class NameServersDisableCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="NameServersDisableCommand"/>.
     /// </summary>
-    public NameServersDisableCommand() : base(
-        CommandLineStrings_Common.DisableCommandName,
-        CommandLineStrings_DNS.DNSNameServersDisableCommandDescription)
-            => SetAction((parseResult, cancellationToken) => DisableHandler(cancellationToken));
+    public NameServersDisableCommand()
+        : base(
+            CommandLineStrings_Common.DisableCommandName,
+            CommandLineStrings_DNS.DNSNameServersDisableCommandDescription)
+        => SetAction((parseResult, cancellationToken) => DisableHandler(cancellationToken));
 
     private static async Task DisableHandler(CancellationToken cancellationToken)
     {

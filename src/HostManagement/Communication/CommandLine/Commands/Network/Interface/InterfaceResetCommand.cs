@@ -12,19 +12,15 @@ internal sealed class InterfaceResetCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="InterfaceResetCommand"/>.
     /// </summary>
-    /// <param name="interfaceNameOption">The interface name option.</param>
-    public InterfaceResetCommand(Option<string> interfaceNameOption) : base(
+    /// <param name="interfaceNameArgument">The interface name argument.</param>
+    public InterfaceResetCommand(Argument<string> interfaceNameArgument) : base(
         CommandLineStrings_NetworkInterfaces.NetworkInterfaceResetCommandName,
         CommandLineStrings_NetworkInterfaces.NetworkInterfaceResetCommandDescription)
     {
-        Add(interfaceNameOption);
+        Add(interfaceNameArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return ResetHandler(
-                parseResult.GetRequiredValue(interfaceNameOption),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => ResetHandler(parseResult.GetRequiredValue(interfaceNameArgument), cancellationToken));
     }
 
     private static async Task ResetHandler(string interfaceName, CancellationToken cancellationToken)

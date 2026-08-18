@@ -27,12 +27,8 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
     {
         Add(s_showNamesOnlyOption);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return ListHandler(
-                parseResult.GetValue(s_showNamesOnlyOption),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => ListHandler(parseResult.GetValue(s_showNamesOnlyOption), cancellationToken));
     }
 
     private static async Task ListHandler(bool showNamesOnly, CancellationToken cancellationToken)

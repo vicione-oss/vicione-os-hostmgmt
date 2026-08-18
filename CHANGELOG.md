@@ -74,6 +74,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - unavailable topic on platform
   - missing request message content
 - Shared: Moved `HashCodeExtensions` to `HostManagement.Shared.Extensions` (replaces `IEnumerableExtensions` with `GetSequenceHashCode`)
+- CLI: Improves consistency of commands
+  - Moved `list` and `status` commands to the top
+  - Moved `set` command after `remove` command for `VLAN`
+  - Improved naming of options and their descriptions
+- CLI: Updates list of supported features in cli help export
 
 ### Removed
 
@@ -95,6 +100,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed potential overwrite of an error status of a result, when adding a warning message, resulting in a warning status.
 - Fixed `HashCodeExtensions` not passing `HashCode` by reference
 - Fixed value equality for shared and internal `SystemConfiguration` contracts, when using object or default equality comparisons
+- CLI: Fixed cli help export not including subcommand details (e.g. for `network`, `service`)
 
 ## [1.3.0] - 2026-03-23
 

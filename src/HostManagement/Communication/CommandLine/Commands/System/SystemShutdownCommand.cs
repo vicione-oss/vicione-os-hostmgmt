@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
 
@@ -21,12 +21,8 @@ internal sealed class SystemShutdownCommand : Command
     {
         Add(delayArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return ShutdownHandler(
-                parseResult.GetValue(delayArgument),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => ShutdownHandler(parseResult.GetValue(delayArgument), cancellationToken));
     }
 
     private static async Task ShutdownHandler(int delayInSeconds, CancellationToken cancellationToken)

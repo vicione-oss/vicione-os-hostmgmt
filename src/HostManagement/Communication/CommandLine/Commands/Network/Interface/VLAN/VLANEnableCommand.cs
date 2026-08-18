@@ -14,19 +14,15 @@ internal sealed class VLANEnableCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="VLANEnableCommand"/>.
     /// </summary>
-    /// <param name="interfaceNameOption">The interface name option.</param>
-    public VLANEnableCommand(Option<string> interfaceNameOption) : base(
+    /// <param name="interfaceNameArgument">The interface name argument.</param>
+    public VLANEnableCommand(Argument<string> interfaceNameArgument) : base(
         CommandLineStrings_Common.EnableCommandName,
         CommandLineStrings_NetworkInterfaces.VLANEnableCommandDescription)
     {
-        Add(interfaceNameOption);
+        Add(interfaceNameArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return EnableHandler(
-                parseResult.GetRequiredValue(interfaceNameOption),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => EnableHandler(parseResult.GetRequiredValue(interfaceNameArgument), cancellationToken));
     }
 
     private static async Task EnableHandler(string interfaceName, CancellationToken cancellationToken)

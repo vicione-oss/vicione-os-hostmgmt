@@ -11,10 +11,11 @@ internal sealed class NoProxyDisableCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="NoProxyDisableCommand"/>.
     /// </summary>
-    public NoProxyDisableCommand() : base(
-        CommandLineStrings_Common.DisableCommandName,
-        CommandLineStrings_Proxy.NoProxyListDisableCommandDescription)
-            => SetAction((parseResult, cancellationToken) => DisableHandler(cancellationToken));
+    public NoProxyDisableCommand()
+        : base(
+            CommandLineStrings_Common.DisableCommandName,
+            CommandLineStrings_Proxy.NoProxyListDisableCommandDescription)
+        => SetAction((parseResult, cancellationToken) => DisableHandler(cancellationToken));
 
     private static async Task DisableHandler(CancellationToken cancellationToken)
     {

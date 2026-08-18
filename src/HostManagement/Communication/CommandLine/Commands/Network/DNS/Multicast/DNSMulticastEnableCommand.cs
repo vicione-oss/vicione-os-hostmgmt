@@ -1,4 +1,4 @@
-﻿using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.Multicast;
@@ -11,12 +11,11 @@ internal sealed class DNSMulticastEnableCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="DNSMulticastEnableCommand"/>.
     /// </summary>
-    public DNSMulticastEnableCommand() : base(
-        CommandLineStrings_Common.EnableCommandName,
-        CommandLineStrings_DNS.DNSMulticastEnableCommandDescription)
-    {
-        SetAction((parseResult, cancellationToken) => EnableHandler(cancellationToken));
-    }
+    public DNSMulticastEnableCommand()
+        : base(
+            CommandLineStrings_Common.EnableCommandName,
+            CommandLineStrings_DNS.DNSMulticastEnableCommandDescription)
+        => SetAction((parseResult, cancellationToken) => EnableHandler(cancellationToken));
 
     private static async Task EnableHandler(CancellationToken cancellationToken)
     {

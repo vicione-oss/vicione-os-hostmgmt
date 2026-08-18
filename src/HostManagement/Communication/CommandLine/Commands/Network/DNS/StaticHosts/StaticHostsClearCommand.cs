@@ -11,10 +11,11 @@ internal sealed class StaticHostsClearCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="StaticHostsClearCommand"/>.
     /// </summary>
-    public StaticHostsClearCommand() : base(
-        CommandLineStrings_Common.ClearCommandName,
-        CommandLineStrings_DNS.DNSStaticHostsClearCommandDescription)
-            => SetAction((parseResult, cancellationToken) => ClearHandler(cancellationToken));
+    public StaticHostsClearCommand()
+        : base(
+            CommandLineStrings_Common.ClearCommandName,
+            CommandLineStrings_DNS.DNSStaticHostsClearCommandDescription)
+        => SetAction((parseResult, cancellationToken) => ClearHandler(cancellationToken));
 
     private static async Task ClearHandler(CancellationToken cancellationToken)
     {

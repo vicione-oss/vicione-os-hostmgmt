@@ -14,19 +14,15 @@ internal sealed class VLANDisableCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="VLANDisableCommand"/>.
     /// </summary>
-    /// <param name="interfaceNameOption">The interface name option.</param>
-    public VLANDisableCommand(Option<string> interfaceNameOption) : base(
+    /// <param name="interfaceNameArgument">The interface name argument.</param>
+    public VLANDisableCommand(Argument<string> interfaceNameArgument) : base(
         CommandLineStrings_Common.DisableCommandName,
         CommandLineStrings_NetworkInterfaces.VLANDisableCommandDescription)
     {
-        Add(interfaceNameOption);
+        Add(interfaceNameArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return DisableHandler(
-                parseResult.GetRequiredValue(interfaceNameOption),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => DisableHandler(parseResult.GetRequiredValue(interfaceNameArgument), cancellationToken));
     }
 
     private static async Task DisableHandler(string interfaceName, CancellationToken cancellationToken)

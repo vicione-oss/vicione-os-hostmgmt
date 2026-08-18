@@ -23,13 +23,11 @@ internal sealed class VLANSetCommand : ConfigCommandBase
         Add(interfaceNameOption);
         Add(vlanIdOption);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return SetHandler(
+        SetAction((parseResult, cancellationToken)
+            => SetHandler(
                 parseResult.GetRequiredValue(interfaceNameOption),
                 parseResult.GetRequiredValue(vlanIdOption),
-                cancellationToken);
-        });
+                cancellationToken));
     }
 
     private static async Task SetHandler(string interfaceName, int vlanId, CancellationToken cancellationToken)

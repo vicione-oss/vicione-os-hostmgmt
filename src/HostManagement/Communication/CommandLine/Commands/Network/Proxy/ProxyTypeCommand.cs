@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using System.Globalization;
 using System.Text;
 
@@ -20,9 +20,9 @@ internal sealed class ProxyTypeCommand : Command
             CompositeFormat.Parse(CommandLineStrings_Proxy.ProxyTypeCommandDescription),
             proxyType))
     {
+        Add(new ProxyTypeStatusCommand(proxyType));
         Add(new ProxyTypeEnableCommand(proxyType));
         Add(new ProxyTypeDisableCommand(proxyType));
         Add(new ProxyTypeSetCommand(proxyType));
-        Add(new ProxyTypeListCommand(proxyType));
     }
 }

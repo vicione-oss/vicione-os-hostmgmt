@@ -12,19 +12,15 @@ internal sealed class NoProxyRemoveCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="NoProxyRemoveCommand"/>.
     /// </summary>
-    /// <param name="noProxyItemsOption">The no-proxy items option.</param>
-    public NoProxyRemoveCommand(Option<string[]> noProxyItemsOption) : base(
+    /// <param name="noProxyEntriesArgument">The no-proxy entries argument.</param>
+    public NoProxyRemoveCommand(Argument<string[]> noProxyEntriesArgument) : base(
         CommandLineStrings_Common.RemoveCommandName,
         CommandLineStrings_Proxy.NoProxyListRemoveCommandDescription)
     {
-        Add(noProxyItemsOption);
+        Add(noProxyEntriesArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return RemoveHandler(
-                parseResult.GetRequiredValue(noProxyItemsOption),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => RemoveHandler(parseResult.GetRequiredValue(noProxyEntriesArgument), cancellationToken));
     }
 
     private static async Task RemoveHandler(string[] entries, CancellationToken cancellationToken)

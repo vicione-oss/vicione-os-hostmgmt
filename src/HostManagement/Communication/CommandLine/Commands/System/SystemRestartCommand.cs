@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
 
@@ -21,12 +21,8 @@ internal sealed class SystemRestartCommand : Command
     {
         Add(delayArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return RestartHandler(
-                parseResult.GetValue(delayArgument),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => RestartHandler(parseResult.GetValue(delayArgument), cancellationToken));
     }
 
     private static async Task RestartHandler(int delayInSeconds, CancellationToken cancellationToken)

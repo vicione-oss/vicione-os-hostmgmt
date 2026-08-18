@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
 
@@ -12,19 +12,15 @@ internal sealed class SystemUpdateCommand : Command
     /// <summary>
     /// Initializes a new <see cref="SystemUpdateCommand"/>.
     /// </summary>
-    /// <param name="filePathOption">The file path option.</param>
-    public SystemUpdateCommand(Option<string> filePathOption) : base(
+    /// <param name="filePathArgument">The file path argument.</param>
+    public SystemUpdateCommand(Argument<string> filePathArgument) : base(
         CommandLineStrings_System.SystemUpdateCommandName,
         CommandLineStrings_System.SystemUpdateCommandDescription)
     {
-        Add(filePathOption);
+        Add(filePathArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return UpdateHandler(
-                parseResult.GetRequiredValue(filePathOption),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => UpdateHandler(parseResult.GetRequiredValue(filePathArgument), cancellationToken));
     }
 
     private static async Task UpdateHandler(string filePath, CancellationToken cancellationToken)

@@ -12,19 +12,15 @@ internal sealed class SearchDomainsAddCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="SearchDomainsAddCommand"/>.
     /// </summary>
-    /// <param name="searchDomainsOption">The search domains option.</param>
-    public SearchDomainsAddCommand(Option<string[]> searchDomainsOption) : base(
+    /// <param name="searchDomainsArgument">The search domains argument.</param>
+    public SearchDomainsAddCommand(Argument<string[]> searchDomainsArgument) : base(
         CommandLineStrings_Common.AddCommandName,
         CommandLineStrings_DNS.DNSSearchDomainsAddCommandDescription)
     {
-        Add(searchDomainsOption);
+        Add(searchDomainsArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return AddHandler(
-                parseResult.GetRequiredValue(searchDomainsOption),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => AddHandler(parseResult.GetRequiredValue(searchDomainsArgument), cancellationToken));
     }
 
     private static async Task AddHandler(string[] searchDomains, CancellationToken cancellationToken)

@@ -86,14 +86,14 @@ namespace HostManagement.Communication.CommandLine {
         ///Currently the following features are supported:
         ///
         ///* Change network settings
-        ///* Install `ViciOne Suite`
+        ///* Install signed Debian packages (including `ViciOne Suite`)
         ///* Configure systemd units
         ///* Execute system wide commands
         ///
         ///## Usage
         ///
         ///1. Execute `HostManagement` in daemon mode, for example as a Linux service (`HostManagement --daemon`).
-        ///1. Execute `HostManagement` CLI application that commu [Rest der Zeichenfolge wurde abgeschnitten]&quot;; ähnelt.
+        ///1. Execute `HostMan [Rest der Zeichenfolge wurde abgeschnitten]&quot;; ähnelt.
         /// </summary>
         internal static string CliHelpExtractorHostManagementDescription {
             get {

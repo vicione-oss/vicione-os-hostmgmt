@@ -18,16 +18,17 @@ internal sealed class InterfaceCommand : Command
     /// <summary>
     /// Initializes a new <see cref="InterfaceCommand"/>.
     /// </summary>
-    public InterfaceCommand() : base(
+    /// <param name="interfaceNameArgument">The interface name argument.</param>
+    public InterfaceCommand(Argument<string> interfaceNameArgument) : base(
         CommandLineStrings_NetworkInterfaces.NetworkInterfaceCommandName,
         CommandLineStrings_NetworkInterfaces.NetworkInterfaceCommandDescription)
     {
-        Add(new InterfaceEnableCommand(CommonOptions.s_interfaceNameOption));
-        Add(new InterfaceDisableCommand(CommonOptions.s_interfaceNameOption));
-        Add(new InterfaceStatusCommand(CommonOptions.s_interfaceNameOption));
-        Add(new InterfaceResetCommand(CommonOptions.s_interfaceNameOption));
+        Add(new InterfaceStatusCommand(interfaceNameArgument));
+        Add(new InterfaceEnableCommand(interfaceNameArgument));
+        Add(new InterfaceDisableCommand(interfaceNameArgument));
+        Add(new InterfaceResetCommand(interfaceNameArgument));
         Add(new InterfaceMACCommand(CommonOptions.s_interfaceNameOption, s_macAddressOption));
-        Add(new VLANCommand());
-        Add(new IPv4Command());
+        Add(new VLANCommand(interfaceNameArgument));
+        Add(new IPv4Command(interfaceNameArgument));
     }
 }

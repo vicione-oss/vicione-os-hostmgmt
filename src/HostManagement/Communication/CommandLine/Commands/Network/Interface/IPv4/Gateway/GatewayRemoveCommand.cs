@@ -11,12 +11,11 @@ internal sealed class GatewayRemoveCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="GatewayRemoveCommand"/>.
     /// </summary>
-    public GatewayRemoveCommand() : base(
-        CommandLineStrings_Common.RemoveCommandName,
-        CommandLineStrings_NetworkInterfaces.GatewayRemoveCommandDescription)
-    {
-        SetAction((parseResult, cancellationToken) => RemoveHandler(cancellationToken));
-    }
+    public GatewayRemoveCommand()
+        : base(
+            CommandLineStrings_Common.RemoveCommandName,
+            CommandLineStrings_NetworkInterfaces.GatewayRemoveCommandDescription)
+        => SetAction((parseResult, cancellationToken) => RemoveHandler(cancellationToken));
 
     private static async Task RemoveHandler(CancellationToken cancellationToken)
     {

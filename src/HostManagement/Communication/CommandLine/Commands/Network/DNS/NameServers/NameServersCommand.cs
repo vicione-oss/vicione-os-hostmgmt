@@ -10,18 +10,26 @@ namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.NameServ
 /// </summary>
 internal sealed class NameServersCommand : Command
 {
-    private static readonly Option<IPAddress> s_oldNameServerOption = new Option<IPAddress>("--old-name-server", "-o")
+    private static readonly Argument<IPAddress[]> s_ipAddressesArgument = new Argument<IPAddress[]>("addresses")
     {
-        Description = "The old name server.",
+        Description = "The list of IP addresses.",
+        Arity = ArgumentArity.OneOrMore,
+        CustomParser = IPAddressParser.ParseMultiple
+    }
+    .WithValidation(argumentResult => IPAddressValidator.Validate(argumentResult, "IP address"));
+
+    private static readonly Option<IPAddress> s_oldNameServerOption = new Option<IPAddress>("--old-address", "-o")
+    {
+        Description = "The old IP address.",
         Required = true,
         Arity = ArgumentArity.ExactlyOne,
         CustomParser = IPAddressParser.ParseSingle
     }
     .WithValidation(optionResult => IPAddressValidator.Validate(optionResult, "Old name server"));
 
-    private static readonly Option<IPAddress> s_newNameServerOption = new Option<IPAddress>("--new-name-server", "-n")
+    private static readonly Option<IPAddress> s_newNameServerOption = new Option<IPAddress>("--new-address", "-a")
     {
-        Description = "The new name server.",
+        Description = "The new IP address.",
         Required = true,
         Arity = ArgumentArity.ExactlyOne,
         CustomParser = IPAddressParser.ParseSingle
@@ -35,12 +43,12 @@ internal sealed class NameServersCommand : Command
         CommandLineStrings_DNS.DNSNameServersCommandName,
         CommandLineStrings_DNS.DNSNameServersCommandDescription)
     {
+        Add(new NameServersListCommand());
         Add(new NameServersEnableCommand());
         Add(new NameServersDisableCommand());
-        Add(new NameServersListCommand());
-        Add(new NameServersAddCommand(CommonOptions.s_ipAddressItemsOption));
-        Add(new NameServersRemoveCommand(CommonOptions.s_ipAddressItemsOption));
-        Add(new NameServersSetCommand(CommonOptions.s_ipAddressItemsOption));
+        Add(new NameServersAddCommand(s_ipAddressesArgument));
+        Add(new NameServersRemoveCommand(s_ipAddressesArgument));
+        Add(new NameServersSetCommand(s_ipAddressesArgument));
         Add(new NameServersClearCommand());
         Add(new NameServersModifyCommand(s_oldNameServerOption, s_newNameServerOption));
     }

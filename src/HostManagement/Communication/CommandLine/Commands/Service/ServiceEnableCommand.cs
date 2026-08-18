@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Enums;
@@ -13,19 +13,15 @@ internal sealed class ServiceEnableCommand : ServiceCommandBase
     /// <summary>
     /// Initializes a new <see cref="ServiceEnableCommand"/>.
     /// </summary>
-    /// <param name="systemdUnitNameOption">The systemd unit name option.</param>
-    public ServiceEnableCommand(Option<string> systemdUnitNameOption) : base(
+    /// <param name="systemdUnitNameArgument">The systemd unit name argument.</param>
+    public ServiceEnableCommand(Argument<string> systemdUnitNameArgument) : base(
         CommandLineStrings_Common.EnableCommandName,
         CommandLineStrings_Systemd.ServiceEnableCommandDescription)
     {
-        Add(systemdUnitNameOption);
+        Add(systemdUnitNameArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return EnableHandler(
-                parseResult.GetRequiredValue(systemdUnitNameOption),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => EnableHandler(parseResult.GetRequiredValue(systemdUnitNameArgument), cancellationToken));
     }
 
     private static async Task EnableHandler(string systemdUnitName, CancellationToken cancellationToken)

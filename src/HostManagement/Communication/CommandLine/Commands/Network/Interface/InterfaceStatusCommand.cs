@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
@@ -14,19 +14,15 @@ internal sealed class InterfaceStatusCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="InterfaceStatusCommand"/>.
     /// </summary>
-    /// <param name="interfaceNameOption">The interface name option.</param>
-    public InterfaceStatusCommand(Option<string> interfaceNameOption) : base(
+    /// <param name="interfaceNameArgument">The interface name argument.</param>
+    public InterfaceStatusCommand(Argument<string> interfaceNameArgument) : base(
         CommandLineStrings_Common.StatusCommandName,
         CommandLineStrings_NetworkInterfaces.NetworkInterfaceStatusCommandDescription)
     {
-        Add(interfaceNameOption);
+        Add(interfaceNameArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return StatusHandler(
-                parseResult.GetRequiredValue(interfaceNameOption),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => StatusHandler(parseResult.GetRequiredValue(interfaceNameArgument), cancellationToken));
     }
 
     private static async Task StatusHandler(string interfaceName, CancellationToken cancellationToken)

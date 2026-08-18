@@ -13,19 +13,15 @@ internal sealed class NameServersSetCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="NameServersSetCommand"/>.
     /// </summary>
-    /// <param name="nameServersOption">The name servers option.</param>
-    public NameServersSetCommand(Option<IPAddress[]> nameServersOption) : base(
+    /// <param name="ipAddressesArgument">The IP addresses argument.</param>
+    public NameServersSetCommand(Argument<IPAddress[]> ipAddressesArgument) : base(
         CommandLineStrings_Common.SetCommandName,
         CommandLineStrings_DNS.DNSNameServersSetCommandDescription)
     {
-        Add(nameServersOption);
+        Add(ipAddressesArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return SetHandler(
-                parseResult.GetRequiredValue(nameServersOption),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => SetHandler(parseResult.GetRequiredValue(ipAddressesArgument), cancellationToken));
     }
 
     private static async Task SetHandler(IPAddress[] addresses, CancellationToken cancellationToken)

@@ -11,10 +11,11 @@ internal sealed class NameServersClearCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="NameServersClearCommand"/>.
     /// </summary>
-    public NameServersClearCommand() : base(
-        CommandLineStrings_Common.ClearCommandName,
-        CommandLineStrings_DNS.DNSNameServersClearCommandDescription)
-            => SetAction((parseResult, cancellationToken) => ClearHandler(cancellationToken));
+    public NameServersClearCommand()
+        : base(
+            CommandLineStrings_Common.ClearCommandName,
+            CommandLineStrings_DNS.DNSNameServersClearCommandDescription)
+        => SetAction((parseResult, cancellationToken) => ClearHandler(cancellationToken));
 
     private static async Task ClearHandler(CancellationToken cancellationToken)
     {

@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Shared.Enums;
 
 namespace HostManagement.Communication.CommandLine.Commands.Service;
@@ -11,19 +11,15 @@ internal sealed class ServiceRestartCommand : ServiceControlCommandBase
     /// <summary>
     /// Initializes a new <see cref="ServiceRestartCommand"/>.
     /// </summary>
-    /// <param name="systemdUnitNameOption">The systemd unit name option.</param>
-    public ServiceRestartCommand(Option<string> systemdUnitNameOption) : base(
+    /// <param name="systemdUnitNameArgument">The systemd unit name argument.</param>
+    public ServiceRestartCommand(Argument<string> systemdUnitNameArgument) : base(
         CommandLineStrings_Systemd.ServiceRestartCommandName,
         CommandLineStrings_Systemd.ServiceRestartCommandDescription)
     {
-        Add(systemdUnitNameOption);
+        Add(systemdUnitNameArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return RestartHandler(
-                parseResult.GetRequiredValue(systemdUnitNameOption),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => RestartHandler(parseResult.GetRequiredValue(systemdUnitNameArgument), cancellationToken));
     }
 
     private static async Task RestartHandler(string systemdUnitName, CancellationToken cancellationToken)

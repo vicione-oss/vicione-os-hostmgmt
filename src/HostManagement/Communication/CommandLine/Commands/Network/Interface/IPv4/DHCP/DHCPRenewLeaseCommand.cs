@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Contracts;
@@ -15,19 +15,15 @@ internal sealed class DHCPRenewLeaseCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="DHCPRenewLeaseCommand"/>.
     /// </summary>
-    /// <param name="interfaceNameOption">The interface name option.</param>
-    public DHCPRenewLeaseCommand(Option<string> interfaceNameOption) : base(
+    /// <param name="interfaceNameArgument">The interface name argument.</param>
+    public DHCPRenewLeaseCommand(Argument<string> interfaceNameArgument) : base(
         CommandLineStrings_NetworkInterfaces.DHCPRenewLeaseCommandName,
         CommandLineStrings_NetworkInterfaces.DHCPRenewLeaseCommandDescription)
     {
-        Add(interfaceNameOption);
+        Add(interfaceNameArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return RenewLeaseHandler(
-                parseResult.GetRequiredValue(interfaceNameOption),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => RenewLeaseHandler(parseResult.GetRequiredValue(interfaceNameArgument), cancellationToken));
     }
 
     private static async Task RenewLeaseHandler(string interfaceName, CancellationToken cancellationToken)
@@ -35,30 +31,22 @@ internal sealed class DHCPRenewLeaseCommand : ConfigCommandBase
         if (await GetConfiguration(cancellationToken) is not SystemConfiguration config)
             return;
 
-        var output = new KeyValueOutput();
-
         if (config.GetNetworkInterface(interfaceName) is not NetworkInterfaceDetail interfaceToConfigure)
         {
-            output
-                .WithWarning(CommandLineStrings_NetworkInterfaces.InterfaceNotFound, interfaceName)
-                .WriteLine();
-
+            SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.InterfaceNotFound, interfaceName);
             return;
         }
 
         if (!interfaceToConfigure.IPv4.DHCPEnabled)
         {
-            output
-                .WithInformation(CommandLineStrings_NetworkInterfaces.DHCPIsDisabled, interfaceName)
-                .WriteLine();
-
+            SimpleOutput.WriteLineInformation(CommandLineStrings_NetworkInterfaces.DHCPIsDisabled, interfaceName);
             return;
         }
 
         if (await NamedPipeRequestHelper.RenewDHCPLease(interfaceName, cancellationToken) is not DHCPLease dhcpLease)
             return;
 
-        output
+        new KeyValueOutput()
             .WithTitle(CommandLineStrings_NetworkInterfaces.DHCPLeaseRenewed)
             .With(new(CommandLineStrings_NetworkInterfaces.DHCPLeaseObtained, dhcpLease.LeaseObtained))
             .With(new(CommandLineStrings_NetworkInterfaces.DHCPLeaseExpires, dhcpLease.LeaseExpires))

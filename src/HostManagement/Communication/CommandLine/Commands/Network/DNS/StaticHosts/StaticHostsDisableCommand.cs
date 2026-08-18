@@ -11,10 +11,11 @@ internal sealed class StaticHostsDisableCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="StaticHostsDisableCommand"/>.
     /// </summary>
-    public StaticHostsDisableCommand() : base(
-        CommandLineStrings_Common.DisableCommandName,
-        CommandLineStrings_DNS.DNSStaticHostsDisableCommandDescription)
-            => SetAction((parseResult, cancellationToken) => DisableHandler(cancellationToken));
+    public StaticHostsDisableCommand()
+        : base(
+            CommandLineStrings_Common.DisableCommandName,
+            CommandLineStrings_DNS.DNSStaticHostsDisableCommandDescription)
+        => SetAction((parseResult, cancellationToken) => DisableHandler(cancellationToken));
 
     private static async Task DisableHandler(CancellationToken cancellationToken)
     {

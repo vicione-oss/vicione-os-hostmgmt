@@ -18,20 +18,18 @@ internal sealed class NameServersModifyCommand : ConfigCommandBase
     public NameServersModifyCommand(
         Option<IPAddress> oldNameServerOption,
         Option<IPAddress> newNameServerOption)
-            : base(
-                CommandLineStrings_Common.ModifyCommandName,
-                CommandLineStrings_DNS.DNSNameServersModifyCommandDescription)
+        : base(
+            CommandLineStrings_Common.ModifyCommandName,
+            CommandLineStrings_DNS.DNSNameServersModifyCommandDescription)
     {
         Add(oldNameServerOption);
         Add(newNameServerOption);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return ModifyHandler(
+        SetAction((parseResult, cancellationToken)
+            => ModifyHandler(
                 parseResult.GetRequiredValue(oldNameServerOption),
                 parseResult.GetRequiredValue(newNameServerOption),
-                cancellationToken);
-        });
+                cancellationToken));
     }
 
     private static async Task ModifyHandler(

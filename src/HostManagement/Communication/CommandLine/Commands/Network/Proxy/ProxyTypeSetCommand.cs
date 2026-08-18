@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using System.Globalization;
 using System.Text;
 using HostManagement.Communication.CommandLine.Output;
@@ -41,28 +41,27 @@ internal sealed class ProxyTypeSetCommand : ProxyTypeCommandBase
     /// Initializes a new <see cref="ProxyTypeSetCommand"/>.
     /// </summary>
     /// <param name="proxyType">The type of the proxy.</param>
-    public ProxyTypeSetCommand(ProxyType proxyType) : base(
-        CommandLineStrings_Common.SetCommandName,
-        string.Format(
-            CultureInfo.InvariantCulture,
-            CompositeFormat.Parse(CommandLineStrings_Proxy.ProxyTypeSetCommandDescription),
-            proxyType))
+    public ProxyTypeSetCommand(ProxyType proxyType)
+        : base(
+            CommandLineStrings_Common.SetCommandName,
+            string.Format(
+                CultureInfo.InvariantCulture,
+                CompositeFormat.Parse(CommandLineStrings_Proxy.ProxyTypeSetCommandDescription),
+                proxyType))
     {
         Add(s_serverOption);
         Add(s_portOption);
         Add(s_userOption);
         Add(s_passwordOption);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return SetHandler(
+        SetAction((parseResult, cancellationToken)
+            => SetHandler(
                 proxyType,
                 parseResult.GetRequiredValue(s_serverOption),
                 parseResult.GetRequiredValue(s_portOption),
                 parseResult.GetValue(s_userOption),
                 parseResult.GetValue(s_passwordOption),
-                cancellationToken);
-        });
+                cancellationToken));
     }
 
     private static async Task SetHandler(

@@ -12,19 +12,15 @@ internal sealed class NoProxyAddCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="NoProxyAddCommand"/>.
     /// </summary>
-    /// <param name="noProxyItemsOption">The no-proxy items option.</param>
-    public NoProxyAddCommand(Option<string[]> noProxyItemsOption) : base(
+    /// <param name="noProxyEntriesArgument">The no-proxy entries argument.</param>
+    public NoProxyAddCommand(Argument<string[]> noProxyEntriesArgument) : base(
         CommandLineStrings_Common.AddCommandName,
         CommandLineStrings_Proxy.NoProxyListAddCommandDescription)
     {
-        Add(noProxyItemsOption);
+        Add(noProxyEntriesArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return AddHandler(
-                parseResult.GetRequiredValue(noProxyItemsOption),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => AddHandler(parseResult.GetRequiredValue(noProxyEntriesArgument), cancellationToken));
     }
 
     private static async Task AddHandler(string[] entries, CancellationToken cancellationToken)

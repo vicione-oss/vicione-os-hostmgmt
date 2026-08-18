@@ -11,10 +11,11 @@ internal sealed class SearchDomainsDisableCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="SearchDomainsDisableCommand"/>.
     /// </summary>
-    public SearchDomainsDisableCommand() : base(
-        CommandLineStrings_Common.DisableCommandName,
-        CommandLineStrings_DNS.DNSSearchDomainsDisableCommandDescription)
-            => SetAction((parseResult, cancellationToken) => DisableHandler(cancellationToken));
+    public SearchDomainsDisableCommand()
+        : base(
+            CommandLineStrings_Common.DisableCommandName,
+            CommandLineStrings_DNS.DNSSearchDomainsDisableCommandDescription)
+        => SetAction((parseResult, cancellationToken) => DisableHandler(cancellationToken));
 
     private static async Task DisableHandler(CancellationToken cancellationToken)
     {

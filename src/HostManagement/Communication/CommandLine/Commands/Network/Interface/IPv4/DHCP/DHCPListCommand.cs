@@ -11,12 +11,11 @@ internal sealed class DHCPListCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="DHCPListCommand"/>.
     /// </summary>
-    public DHCPListCommand() : base(
-        CommandLineStrings_Common.ListCommandName,
-        CommandLineStrings_NetworkInterfaces.DHCPListCommandDescription)
-    {
-        SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
-    }
+    public DHCPListCommand()
+        : base(
+            CommandLineStrings_Common.ListCommandName,
+            CommandLineStrings_NetworkInterfaces.DHCPListCommandDescription)
+        => SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
 
     private static async Task ListHandler(CancellationToken cancellationToken)
     {

@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
 
@@ -12,19 +12,15 @@ internal sealed class ServiceStatusCommand : Command
     /// <summary>
     /// Initializes a new <see cref="ServiceStatusCommand"/>.
     /// </summary>
-    /// <param name="systemdUnitNameOption">The systemd unit name.</param>
-    public ServiceStatusCommand(Option<string> systemdUnitNameOption) : base(
+    /// <param name="systemdUnitNameArgument">The systemd unit name argument.</param>
+    public ServiceStatusCommand(Argument<string> systemdUnitNameArgument) : base(
         CommandLineStrings_Common.StatusCommandName,
         CommandLineStrings_Systemd.ServiceStatusCommandDescription)
     {
-        Add(systemdUnitNameOption);
+        Add(systemdUnitNameArgument);
 
-        SetAction((parseResult, cancellationToken) =>
-        {
-            return StatusHandler(
-                parseResult.GetRequiredValue(systemdUnitNameOption),
-                cancellationToken);
-        });
+        SetAction((parseResult, cancellationToken)
+            => StatusHandler(parseResult.GetRequiredValue(systemdUnitNameArgument), cancellationToken));
     }
 
     private static async Task StatusHandler(string systemdUnitName, CancellationToken cancellationToken)

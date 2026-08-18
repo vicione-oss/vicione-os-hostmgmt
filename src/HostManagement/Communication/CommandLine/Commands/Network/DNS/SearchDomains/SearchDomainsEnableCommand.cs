@@ -11,10 +11,11 @@ internal sealed class SearchDomainsEnableCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="SearchDomainsEnableCommand"/>.
     /// </summary>
-    public SearchDomainsEnableCommand() : base(
-        CommandLineStrings_Common.EnableCommandName,
-        CommandLineStrings_DNS.DNSSearchDomainsEnableCommandDescription)
-            => SetAction((parseResult, cancellationToken) => EnableHandler(cancellationToken));
+    public SearchDomainsEnableCommand()
+        : base(
+            CommandLineStrings_Common.EnableCommandName,
+            CommandLineStrings_DNS.DNSSearchDomainsEnableCommandDescription)
+        => SetAction((parseResult, cancellationToken) => EnableHandler(cancellationToken));
 
     private static async Task EnableHandler(CancellationToken cancellationToken)
     {

@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 
 namespace HostManagement.Communication.CommandLine.Commands.Service;
 
@@ -7,10 +7,9 @@ namespace HostManagement.Communication.CommandLine.Commands.Service;
 /// </summary>
 internal sealed class ServiceCommand : Command
 {
-    private static readonly Option<string> s_nameOption = new("--name", "-n")
+    private static readonly Argument<string> s_serviceNameArgument = new("name")
     {
         Description = "The name of the systemd unit.",
-        Required = true,
         Arity = ArgumentArity.ExactlyOne
     };
 
@@ -21,12 +20,12 @@ internal sealed class ServiceCommand : Command
         CommandLineStrings_Systemd.ServiceCommandName,
         CommandLineStrings_Systemd.ServiceCommandDescription)
     {
-        Add(new ServiceEnableCommand(s_nameOption));
-        Add(new ServiceDisableCommand(s_nameOption));
         Add(new ServiceListCommand());
-        Add(new ServiceStatusCommand(s_nameOption));
-        Add(new ServiceStartCommand(s_nameOption));
-        Add(new ServiceStopCommand(s_nameOption));
-        Add(new ServiceRestartCommand(s_nameOption));
+        Add(new ServiceStatusCommand(s_serviceNameArgument));
+        Add(new ServiceEnableCommand(s_serviceNameArgument));
+        Add(new ServiceDisableCommand(s_serviceNameArgument));
+        Add(new ServiceStartCommand(s_serviceNameArgument));
+        Add(new ServiceStopCommand(s_serviceNameArgument));
+        Add(new ServiceRestartCommand(s_serviceNameArgument));
     }
 }

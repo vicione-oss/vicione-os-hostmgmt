@@ -131,7 +131,7 @@
 Currently the following features are supported:
 
 * Change network settings
-* Install `ViciOne Suite`
+* Install signed Debian packages (including `ViciOne Suite`)
 * Configure systemd units
 * Execute system wide commands
 
