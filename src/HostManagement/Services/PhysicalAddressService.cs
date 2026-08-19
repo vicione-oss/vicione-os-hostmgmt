@@ -32,7 +32,7 @@ internal sealed partial class PhysicalAddressService(ILogger logger)
                 .ConfigureAwait(false);
 
             if (result.OperationStatus is OperationStatus.Error)
-                LogAndReturnGetOriginalPhysicalAddressFailedResult(result.FormattedMessages);
+                return LogAndReturnGetOriginalPhysicalAddressFailedResult(result.FormattedMessages);
 
             return new GetOriginalPhysicalAddressResult
             {
