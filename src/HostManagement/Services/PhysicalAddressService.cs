@@ -49,7 +49,7 @@ internal sealed partial class PhysicalAddressService(ILogger logger)
 
             return new GetOriginalPhysicalAddressResult
             {
-                Status = OperationStatus.Error,
+                Status = OperationStatus.Warning,
                 Message = message,
                 OriginalPhysicalAddress = null
             };
