@@ -8,9 +8,11 @@ namespace HostManagement.Services;
 /// Represents the NTP service.
 /// </summary>
 /// <param name="logger">An <see cref="ILogger"/> implementation.</param>
-internal sealed partial class NTPService(ILogger logger)
+/// <param name="scriptHandler">An <see cref="IScriptHandler"/> implementation.</param>
+internal sealed partial class NTPService(ILogger logger, IScriptHandler scriptHandler)
 {
     private readonly ILogger _logger = logger;
+    private readonly IScriptHandler _scriptHandler = scriptHandler;
 
     /// <summary>
     /// Gets the NTP fallback servers.
@@ -23,9 +25,8 @@ internal sealed partial class NTPService(ILogger logger)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var (result, fallbackNTPServers) = await new ScriptHandler()
-                    .ExecuteGetNetworkNTPFallbackInformationScript()
-                    .ConfigureAwait(false);
+            var (result, fallbackNTPServers) = await _scriptHandler.ExecuteGetNetworkNTPFallbackInformationScript()
+                .ConfigureAwait(false);
 
             if (result.OperationStatus is OperationStatus.Error)
                 return LogAndReturnGetNTPFallbackServersFailed(result.FormattedMessages);
