@@ -30,10 +30,10 @@ internal sealed partial class DHCPLeaseService(ILogger logger)
                 .ConfigureAwait(false);
 
             if (result.OperationStatus is OperationStatus.Error)
-                LogAndReturnGetDHCPLeaseFailed(result.FormattedMessages);
+                return LogAndReturnGetDHCPLeaseFailed(result.FormattedMessages);
 
             if (dhcpLease.LeaseObtained is null)
-                LogAndReturnGetDHCPLeaseFailed(ServicesResources.DHCPLeaseEmpty);
+                return LogAndReturnGetDHCPLeaseFailed(ServicesResources.DHCPLeaseEmpty);
 
             return new GetDHCPLeaseInformationResult
             {
@@ -76,10 +76,10 @@ internal sealed partial class DHCPLeaseService(ILogger logger)
             var (result, dhcpLease) = await RenewDHCPLease(new ScriptHandler(), interfaceName, cancellationToken);
 
             if (result.OperationStatus is OperationStatus.Error)
-                LogAndReturnRenewDHCPLeaseFailed(result.FormattedMessages);
+                return LogAndReturnRenewDHCPLeaseFailed(result.FormattedMessages);
 
             if (dhcpLease.LeaseObtained is null)
-                LogAndReturnRenewDHCPLeaseFailed(ServicesResources.DHCPLeaseEmpty);
+                return LogAndReturnRenewDHCPLeaseFailed(ServicesResources.DHCPLeaseEmpty);
 
             return new GetDHCPLeaseInformationResult
             {
