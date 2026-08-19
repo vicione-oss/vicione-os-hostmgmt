@@ -38,7 +38,7 @@ public sealed class PhysicalAddressServiceTests
                 LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(state => state.ToString()!.Contains(GetPhysicalAddressFailed)),
-                null,
+                Arg.Is<Exception>(ex => ReferenceEquals(ex, expectedException)),
                 Arg.Any<Func<object, Exception?, string>>());
 
             result.Status.Should().Be(OperationStatus.Error);

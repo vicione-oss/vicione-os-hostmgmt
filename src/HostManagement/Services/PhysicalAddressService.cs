@@ -58,16 +58,23 @@ internal sealed partial class PhysicalAddressService(ILogger logger, IScriptHand
         }
         catch (Exception ex)
         {
-            return LogAndReturnGetOriginalPhysicalAddressFailedResult(ex.Message);
+            return LogAndReturnGetOriginalPhysicalAddressFailedResult(exception: ex);
         }
     }
 
-    private GetOriginalPhysicalAddressResult LogAndReturnGetOriginalPhysicalAddressFailedResult(string additionalMessage)
+    private GetOriginalPhysicalAddressResult LogAndReturnGetOriginalPhysicalAddressFailedResult(
+        string? additionalMessage = null,
+        Exception? exception = null)
     {
         var simpleMessage = ServicesResources.GetOriginalPhysicalAddressFailed;
-        var message = simpleMessage + Environment.NewLine + additionalMessage;
 
-        GetOriginalPhysicalAddressFailed(_logger, message);
+        var message =
+            simpleMessage +
+            (additionalMessage is not null
+                ? Environment.NewLine + additionalMessage
+                : string.Empty);
+
+        GetOriginalPhysicalAddressFailed(_logger, message, exception);
 
         return new GetOriginalPhysicalAddressResult
         {
@@ -81,5 +88,5 @@ internal sealed partial class PhysicalAddressService(ILogger logger, IScriptHand
     private static partial void GetOriginalPhysicalAddressCanceled(ILogger logger, string? innerMessage);
 
     [LoggerMessage(LogLevel.Error, "{InnerMessage}")]
-    private static partial void GetOriginalPhysicalAddressFailed(ILogger logger, string? innerMessage);
+    private static partial void GetOriginalPhysicalAddressFailed(ILogger logger, string? innerMessage, Exception? exception);
 }
