@@ -28,7 +28,7 @@ internal sealed partial class NTPService(ILogger logger)
                     .ConfigureAwait(false);
 
             if (result.OperationStatus is OperationStatus.Error)
-                LogAndReturnGetNTPFallbackServersFailed(result.FormattedMessages);
+                return LogAndReturnGetNTPFallbackServersFailed(result.FormattedMessages);
 
             return new GetNTPFallbackInformationResult
             {
