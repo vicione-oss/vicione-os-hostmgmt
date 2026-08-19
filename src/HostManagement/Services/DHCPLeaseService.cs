@@ -10,9 +10,11 @@ namespace HostManagement.Services;
 /// Represents the DHCP lease service.
 /// </summary>
 /// <param name="logger">An <see cref="ILogger"/> implementation.</param>
-internal sealed partial class DHCPLeaseService(ILogger logger)
+/// <param name="scriptHandler">An <see cref="IScriptHandler"/> implementation.</param>
+internal sealed partial class DHCPLeaseService(ILogger logger, IScriptHandler scriptHandler)
 {
     private readonly ILogger _logger = logger;
+    private readonly IScriptHandler _scriptHandler = scriptHandler;
 
     /// <summary>
     /// Gets the DHCP lease information of the specified network interface.
@@ -26,8 +28,7 @@ internal sealed partial class DHCPLeaseService(ILogger logger)
     {
         try
         {
-            var (result, dhcpLease) = await GetDHCPLease(new ScriptHandler(), interfaceName, cancellationToken)
-                .ConfigureAwait(false);
+            var (result, dhcpLease) = await GetDHCPLease(interfaceName, cancellationToken).ConfigureAwait(false);
 
             if (result.OperationStatus is OperationStatus.Error)
                 return LogAndReturnGetDHCPLeaseFailed(result.FormattedMessages);
@@ -73,7 +74,8 @@ internal sealed partial class DHCPLeaseService(ILogger logger)
     {
         try
         {
-            var (result, dhcpLease) = await RenewDHCPLease(new ScriptHandler(), interfaceName, cancellationToken);
+            var (result, dhcpLease) = await RenewDHCPLeaseInternal(interfaceName, cancellationToken)
+                .ConfigureAwait(false);
 
             if (result.OperationStatus is OperationStatus.Error)
                 return LogAndReturnRenewDHCPLeaseFailed(result.FormattedMessages);
@@ -107,28 +109,26 @@ internal sealed partial class DHCPLeaseService(ILogger logger)
         }
     }
 
-    private static async Task<(Result, DHCPLease)> RenewDHCPLease(
-        ScriptHandler scriptHandler,
+    private async Task<(Result, DHCPLease)> RenewDHCPLeaseInternal(
         string interfaceName,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await scriptHandler.ExecuteIsNetworkInterfaceAvailableScript(interfaceName).ConfigureAwait(false);
+        var result = await _scriptHandler.ExecuteIsNetworkInterfaceAvailableScript(interfaceName).ConfigureAwait(false);
 
         if (result.OperationStatus is OperationStatus.Warning or OperationStatus.Error)
             return (result, DHCPLease.Empty);
 
-        result.AddResult(await scriptHandler.ExecuteRenewDHCPLeaseScript(interfaceName).ConfigureAwait(false));
+        result.AddResult(await _scriptHandler.ExecuteRenewDHCPLeaseScript(interfaceName).ConfigureAwait(false));
 
         if (result.OperationStatus is OperationStatus.Error)
             return (result, DHCPLease.Empty);
 
-        return await GetDHCPLeaseWithRetry(scriptHandler, interfaceName, cancellationToken);
+        return await GetDHCPLeaseWithRetry(interfaceName, cancellationToken);
     }
 
-    private static async Task<(Result, DHCPLease)> GetDHCPLeaseWithRetry(
-        ScriptHandler scriptHandler,
+    private async Task<(Result, DHCPLease)> GetDHCPLeaseWithRetry(
         string interfaceName,
         CancellationToken cancellationToken)
     {
@@ -141,7 +141,7 @@ internal sealed partial class DHCPLeaseService(ILogger logger)
             cancellationToken.ThrowIfCancellationRequested();
             await Task.Delay(1000, cancellationToken);
 
-            (result, dhcpLease) = await GetDHCPLease(scriptHandler, interfaceName, cancellationToken);
+            (result, dhcpLease) = await GetDHCPLease(interfaceName, cancellationToken);
             retryCount--;
         }
         while (IsDHCPLeaseNull(result.OperationStatus, dhcpLease) && retryCount > 0);
@@ -149,14 +149,13 @@ internal sealed partial class DHCPLeaseService(ILogger logger)
         return (result, dhcpLease);
     }
 
-    private static async Task<(Result, DHCPLease)> GetDHCPLease(
-        ScriptHandler scriptHandler,
+    private async Task<(Result, DHCPLease)> GetDHCPLease(
         string interfaceName,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var (result, dhcpLease) = await scriptHandler
+        var (result, dhcpLease) = await _scriptHandler
             .ExecuteGetInterfaceIPv4DHCPLeaseScript(interfaceName)
             .ConfigureAwait(false);
 
