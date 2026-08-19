@@ -35,7 +35,7 @@ public sealed class NTPServiceTests
                 LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(state => state.ToString()!.Contains(GetNTPFallbackInformationFailed)),
-                null,
+                Arg.Is<Exception>(ex => ReferenceEquals(ex, expectedException)),
                 Arg.Any<Func<object, Exception?, string>>());
 
             result.Status.Should().Be(OperationStatus.Error);
