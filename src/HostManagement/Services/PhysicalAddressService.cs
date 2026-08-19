@@ -8,9 +8,11 @@ namespace HostManagement.Services;
 /// Represents the physical address service.
 /// </summary>
 /// <param name="logger">The logger instance.</param>
-internal sealed partial class PhysicalAddressService(ILogger logger)
+/// <param name="scriptHandler">An <see cref="IScriptHandler"/> implementation.</param>
+internal sealed partial class PhysicalAddressService(ILogger logger, IScriptHandler scriptHandler)
 {
     private readonly ILogger _logger = logger;
+    private readonly IScriptHandler _scriptHandler = scriptHandler;
 
     /// <summary>
     /// Gets the original physical address of the specified network interface.
@@ -27,7 +29,7 @@ internal sealed partial class PhysicalAddressService(ILogger logger)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var (result, physicalAddress) = await new ScriptHandler()
+            var (result, physicalAddress) = await _scriptHandler
                 .ExecuteGetOriginalPhysicalAddressScript(interfaceName)
                 .ConfigureAwait(false);
 
