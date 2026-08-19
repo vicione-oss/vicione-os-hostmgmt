@@ -58,7 +58,7 @@ internal sealed partial class DHCPLeaseService(ILogger logger, IScriptHandler sc
         }
         catch (Exception ex)
         {
-            return LogAndReturnGetDHCPLeaseFailed(ex.Message);
+            return LogAndReturnGetDHCPLeaseFailed(exception: ex);
         }
     }
 
@@ -105,7 +105,7 @@ internal sealed partial class DHCPLeaseService(ILogger logger, IScriptHandler sc
         }
         catch (Exception ex)
         {
-            return LogAndReturnRenewDHCPLeaseFailed(ex.Message);
+            return LogAndReturnRenewDHCPLeaseFailed(exception: ex);
         }
     }
 
@@ -169,13 +169,22 @@ internal sealed partial class DHCPLeaseService(ILogger logger, IScriptHandler sc
         => status == OperationStatus.Success && dhcpLease.LeaseObtained is null;
 
     private GetDHCPLeaseInformationResult LogAndReturnGetDHCPLeaseFailed(
-        string additionalMessage,
+        string? additionalMessage = null,
+        Exception? exception = null,
         bool wasRenewal = false)
     {
         var simpleMessage = wasRenewal ? ServicesResources.RenewDHCPLeaseFailed : ServicesResources.GetDHCPLeaseFailed;
-        var message = simpleMessage + Environment.NewLine + additionalMessage;
 
-        GetDHCPLeaseFailed(_logger, message);
+        var message =
+            simpleMessage +
+            (additionalMessage is not null
+                ? Environment.NewLine + additionalMessage
+                : string.Empty);
+
+        if (wasRenewal)
+            RenewDHCPLeaseFailed(_logger, message, exception);
+        else
+            GetDHCPLeaseFailed(_logger, message, exception);
 
         return new GetDHCPLeaseInformationResult
         {
@@ -185,18 +194,20 @@ internal sealed partial class DHCPLeaseService(ILogger logger, IScriptHandler sc
         };
     }
 
-    private GetDHCPLeaseInformationResult LogAndReturnRenewDHCPLeaseFailed(string additionalMessage)
-        => LogAndReturnGetDHCPLeaseFailed(additionalMessage, true);
+    private GetDHCPLeaseInformationResult LogAndReturnRenewDHCPLeaseFailed(
+        string? additionalMessage = null,
+        Exception? exception = null)
+            => LogAndReturnGetDHCPLeaseFailed(additionalMessage, exception, true);
 
     [LoggerMessage(LogLevel.Warning, "{InnerMessage}")]
     private static partial void GetDHCPLeaseCanceled(ILogger logger, string? innerMessage);
 
     [LoggerMessage(LogLevel.Error, "{InnerMessage}")]
-    private static partial void GetDHCPLeaseFailed(ILogger logger, string? innerMessage);
+    private static partial void GetDHCPLeaseFailed(ILogger logger, string? innerMessage, Exception? exception);
 
     [LoggerMessage(LogLevel.Warning, "{InnerMessage}")]
     private static partial void RenewDHCPLeaseCanceled(ILogger logger, string? innerMessage);
 
     [LoggerMessage(LogLevel.Error, "{InnerMessage}")]
-    private static partial void RenewDHCPLeaseFailed(ILogger logger, string? innerMessage);
+    private static partial void RenewDHCPLeaseFailed(ILogger logger, string? innerMessage, Exception? exception);
 }

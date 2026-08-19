@@ -46,7 +46,7 @@ public sealed class DHCPLeaseServiceTests
                 LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(state => state.ToString()!.Contains(GetDHCPLeaseInformationFailed)),
-                null,
+                Arg.Is<Exception>(ex => ReferenceEquals(ex, expectedException)),
                 Arg.Any<Func<object, Exception?, string>>());
 
             result.Status.Should().Be(OperationStatus.Error);
@@ -209,10 +209,8 @@ public sealed class DHCPLeaseServiceTests
             logger.Received(1).Log(
                 LogLevel.Error,
                 Arg.Any<EventId>(),
-                Arg.Is<object>(state =>
-                    state.ToString()!.StartsWith(RenewDHCPLeaseFailed) &&
-                    state.ToString()!.Contains(expectedException.Message)),
-                null,
+                Arg.Is<object>(state => state.ToString()!.StartsWith(RenewDHCPLeaseFailed)),
+                Arg.Is<Exception>(ex => ReferenceEquals(ex, expectedException)),
                 Arg.Any<Func<object, Exception?, string>>());
 
             result.Status.Should().Be(OperationStatus.Error);
