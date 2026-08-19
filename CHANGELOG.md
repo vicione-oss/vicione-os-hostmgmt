@@ -102,6 +102,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed value equality for shared and internal `SystemConfiguration` contracts, when using object or default equality comparisons
 - CLI: Fixed cli help export not including subcommand details (e.g. for `network`, `service`)
 - Fixed a potential shell injection vulnerability in `ScriptRunner`
+- Fixed `PhysicalAddressService` not returning correct result on error and incorrect operation status when canceled
 
 ## [1.3.0] - 2026-03-23
 
