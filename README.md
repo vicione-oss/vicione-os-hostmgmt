@@ -404,6 +404,13 @@ The repository uses [mise](https://mise.jdx.dev/) to pin needed tools (e.g. .NET
 
   Generated output file path is: `local/cli_help/cli_help_export.md` (configured in `mise.toml`).
 
+* On Windows, mise runs inline shell commands (e.g. tasks) via `cmd.exe` by default. To use PowerShell instead, set `windows_default_inline_shell_args` in your **global** mise config (`%USERPROFILE%\.config\mise\config.toml`), not in this repo's `mise.toml` — mise ignores this setting in project-local config files for security reasons:
+
+  ```toml
+  [settings]
+  windows_default_inline_shell_args = "pwsh -NoProfile -Command"
+  ```
+
 ### AI Agent Instructions
 
 The project uses provider-independent `AGENTS.md` files for AI coding agent instructions:

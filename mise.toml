@@ -1,9 +1,6 @@
 [tools]
 dotnet = "10.0.400" # Pin SDK version
 
-[settings]
-windows_default_inline_shell_args = "pwsh -NoProfile -Command"
-
 [tasks.extract-help]
 description = "Extracts HostManagement CLI help to a Markdown file"
 
