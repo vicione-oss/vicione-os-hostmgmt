@@ -8,9 +8,11 @@ namespace HostManagement.Services;
 /// Represents the physical address service.
 /// </summary>
 /// <param name="logger">The logger instance.</param>
-internal sealed partial class PhysicalAddressService(ILogger logger)
+/// <param name="scriptHandler">An <see cref="IScriptHandler"/> implementation.</param>
+internal sealed partial class PhysicalAddressService(ILogger logger, IScriptHandler scriptHandler)
 {
     private readonly ILogger _logger = logger;
+    private readonly IScriptHandler _scriptHandler = scriptHandler;
 
     /// <summary>
     /// Gets the original physical address of the specified network interface.
@@ -27,12 +29,12 @@ internal sealed partial class PhysicalAddressService(ILogger logger)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var (result, physicalAddress) = await new ScriptHandler()
+            var (result, physicalAddress) = await _scriptHandler
                 .ExecuteGetOriginalPhysicalAddressScript(interfaceName)
                 .ConfigureAwait(false);
 
             if (result.OperationStatus is OperationStatus.Error)
-                LogAndReturnGetOriginalPhysicalAddressFailedResult(result.FormattedMessages);
+                return LogAndReturnGetOriginalPhysicalAddressFailedResult(result.FormattedMessages);
 
             return new GetOriginalPhysicalAddressResult
             {
@@ -49,23 +51,30 @@ internal sealed partial class PhysicalAddressService(ILogger logger)
 
             return new GetOriginalPhysicalAddressResult
             {
-                Status = OperationStatus.Error,
+                Status = OperationStatus.Warning,
                 Message = message,
                 OriginalPhysicalAddress = null
             };
         }
         catch (Exception ex)
         {
-            return LogAndReturnGetOriginalPhysicalAddressFailedResult(ex.Message);
+            return LogAndReturnGetOriginalPhysicalAddressFailedResult(exception: ex);
         }
     }
 
-    private GetOriginalPhysicalAddressResult LogAndReturnGetOriginalPhysicalAddressFailedResult(string additionalMessage)
+    private GetOriginalPhysicalAddressResult LogAndReturnGetOriginalPhysicalAddressFailedResult(
+        string? additionalMessage = null,
+        Exception? exception = null)
     {
         var simpleMessage = ServicesResources.GetOriginalPhysicalAddressFailed;
-        var message = simpleMessage + Environment.NewLine + additionalMessage;
 
-        GetOriginalPhysicalAddressFailed(_logger, message);
+        var message =
+            simpleMessage +
+            (additionalMessage is not null
+                ? Environment.NewLine + additionalMessage
+                : string.Empty);
+
+        GetOriginalPhysicalAddressFailed(_logger, message, exception);
 
         return new GetOriginalPhysicalAddressResult
         {
@@ -79,5 +88,5 @@ internal sealed partial class PhysicalAddressService(ILogger logger)
     private static partial void GetOriginalPhysicalAddressCanceled(ILogger logger, string? innerMessage);
 
     [LoggerMessage(LogLevel.Error, "{InnerMessage}")]
-    private static partial void GetOriginalPhysicalAddressFailed(ILogger logger, string? innerMessage);
+    private static partial void GetOriginalPhysicalAddressFailed(ILogger logger, string? innerMessage, Exception? exception);
 }
