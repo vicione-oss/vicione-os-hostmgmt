@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Enums;
 
@@ -14,9 +15,8 @@ internal sealed class ServiceDisableCommand : ServiceCommandBase
     /// Initializes a new <see cref="ServiceDisableCommand"/>.
     /// </summary>
     /// <param name="systemdUnitNameArgument">The systemd unit name argument.</param>
-    public ServiceDisableCommand(Argument<string> systemdUnitNameArgument) : base(
-        CommandLineStrings_Common.DisableCommandName,
-        CommandLineStrings_Systemd.ServiceDisableCommandDescription)
+    public ServiceDisableCommand(Argument<string> systemdUnitNameArgument)
+        : base(CliStrings.Common.DisableCommandName, CliStrings.Service.DisableCommandDescription)
     {
         Add(systemdUnitNameArgument);
 
@@ -33,13 +33,13 @@ internal sealed class ServiceDisableCommand : ServiceCommandBase
 
         if (serviceToConfigure is null)
         {
-            SimpleOutput.WriteLineError(CommandLineStrings_Systemd.UnitConfigurationNotAllowed, systemdUnitName);
+            SimpleOutput.WriteLineError(CliStrings.Service.ConfigurationNotAllowed, systemdUnitName);
             return;
         }
 
         if (serviceToConfigure.State == ServiceState.Disabled)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_Systemd.UnitAlreadyDisabled, systemdUnitName);
+            SimpleOutput.WriteLineInformation(CliStrings.Service.AlreadyDisabled, systemdUnitName);
             return;
         }
 
@@ -48,6 +48,6 @@ internal sealed class ServiceDisableCommand : ServiceCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_Systemd.UnitDisabled, systemdUnitName);
+        SimpleOutput.WriteLine(CliStrings.Service.Disabled, systemdUnitName);
     }
 }

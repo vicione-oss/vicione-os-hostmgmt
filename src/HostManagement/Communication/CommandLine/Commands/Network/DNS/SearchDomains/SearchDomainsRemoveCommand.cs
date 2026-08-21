@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.SearchDomains;
@@ -13,9 +14,8 @@ internal sealed class SearchDomainsRemoveCommand : ConfigCommandBase
     /// Initializes a new <see cref="SearchDomainsRemoveCommand"/>.
     /// </summary>
     /// <param name="searchDomainsArgument">The search domains argument.</param>
-    public SearchDomainsRemoveCommand(Argument<string[]> searchDomainsArgument) : base(
-        CommandLineStrings_Common.RemoveCommandName,
-        CommandLineStrings_DNS.DNSSearchDomainsRemoveCommandDescription)
+    public SearchDomainsRemoveCommand(Argument<string[]> searchDomainsArgument)
+        : base(CliStrings.Common.RemoveCommandName, CliStrings.Network.DNS.SearchDomains.RemoveCommandDescription)
     {
         Add(searchDomainsArgument);
 
@@ -35,14 +35,14 @@ internal sealed class SearchDomainsRemoveCommand : ConfigCommandBase
         {
             if (!config.NetworkDNSSettings.SearchDomains.Domains.Contains(searchDomain))
             {
-                output.WithWarning(CommandLineStrings_DNS.SearchDomainNotFound, searchDomain);
+                output.WithWarning(CliStrings.Network.DNS.SearchDomains.NotFound, searchDomain);
                 continue;
             }
 
             if (!config.NetworkDNSSettings.SearchDomains.Domains.Remove(searchDomain))
             {
                 output
-                    .WithError(CommandLineStrings_DNS.SearchDomainCouldNotBeRemoved, searchDomain)
+                    .WithError(CliStrings.Network.DNS.SearchDomains.CouldNotBeRemoved, searchDomain)
                     .WriteLine();
 
                 return;
@@ -61,14 +61,14 @@ internal sealed class SearchDomainsRemoveCommand : ConfigCommandBase
                 {
                     config.NetworkDNSSettings.SearchDomains.Enabled = false;
 
-                    output.WithInformation(CommandLineStrings_DNS.SearchDomainsDisabled);
+                    output.WithInformation(CliStrings.Network.DNS.SearchDomains.Disabled);
                 }
             }
             else
             {
                 if (config.NetworkDNSSettings.SearchDomains.Domains.Count > 0)
                 {
-                    output.WithWarning(CommandLineStrings_DNS.SearchDomainsCurrentlyDisabled);
+                    output.WithWarning(CliStrings.Network.DNS.SearchDomains.CurrentlyDisabled);
                 }
             }
 
@@ -76,8 +76,8 @@ internal sealed class SearchDomainsRemoveCommand : ConfigCommandBase
                 return;
 
             var title = output.ItemCount == 1
-                ? CommandLineStrings_DNS.SearchDomainRemoved
-                : CommandLineStrings_DNS.SearchDomainsRemoved;
+                ? CliStrings.Network.DNS.SearchDomains.Removed
+                : CliStrings.Network.DNS.SearchDomains.RemovedMultiple;
 
             output.WithTitle(title);
         }

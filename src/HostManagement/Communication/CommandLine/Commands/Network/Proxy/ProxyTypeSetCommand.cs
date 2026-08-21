@@ -2,6 +2,7 @@ using System.CommandLine;
 using System.Globalization;
 using System.Text;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy;
@@ -43,10 +44,10 @@ internal sealed class ProxyTypeSetCommand : ProxyTypeCommandBase
     /// <param name="proxyType">The type of the proxy.</param>
     public ProxyTypeSetCommand(ProxyType proxyType)
         : base(
-            CommandLineStrings_Common.SetCommandName,
+            CliStrings.Common.SetCommandName,
             string.Format(
                 CultureInfo.InvariantCulture,
-                CompositeFormat.Parse(CommandLineStrings_Proxy.ProxyTypeSetCommandDescription),
+                CompositeFormat.Parse(CliStrings.Network.Proxy.SetCommandDescription),
                 proxyType))
     {
         Add(s_serverOption);
@@ -85,6 +86,6 @@ internal sealed class ProxyTypeSetCommand : ProxyTypeCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_Proxy.ProxyTypeConfigured, proxyType.ToString());
+        SimpleOutput.WriteLine(CliStrings.Network.Proxy.Configured, proxyType.ToString());
     }
 }

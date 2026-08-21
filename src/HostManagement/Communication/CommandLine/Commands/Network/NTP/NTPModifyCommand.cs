@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.NTP;
@@ -14,9 +15,8 @@ internal sealed class NTPModifyCommand : ConfigCommandBase
     /// </summary>
     /// <param name="oldNTPServerOption">The old NTP server option.</param>
     /// <param name="newNTPServerOption">The new NTP server option.</param>
-    public NTPModifyCommand(Option<string> oldNTPServerOption, Option<string> newNTPServerOption) : base(
-        CommandLineStrings_Common.ModifyCommandName,
-        CommandLineStrings_NTP.NTPModifyCommandDescription)
+    public NTPModifyCommand(Option<string> oldNTPServerOption, Option<string> newNTPServerOption)
+        : base(CliStrings.Common.ModifyCommandName, CliStrings.Network.NTP.ModifyCommandDescription)
     {
         Add(oldNTPServerOption);
         Add(newNTPServerOption);
@@ -37,7 +37,7 @@ internal sealed class NTPModifyCommand : ConfigCommandBase
 
         if (servers.Contains(newServer))
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_NTP.ServerAlreadyDefined, newServer);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.NTP.AlreadyDefined, newServer);
             return;
         }
 
@@ -45,7 +45,7 @@ internal sealed class NTPModifyCommand : ConfigCommandBase
 
         if (index == -1)
         {
-            SimpleOutput.WriteLineError(CommandLineStrings_NTP.ServerNotFound, oldServer);
+            SimpleOutput.WriteLineError(CliStrings.Network.NTP.NotFound, oldServer);
             return;
         }
 
@@ -55,8 +55,8 @@ internal sealed class NTPModifyCommand : ConfigCommandBase
             return;
 
         if (!config.NetworkNTPSettings.Enabled)
-            SimpleOutput.WriteLineWarning(CommandLineStrings_NTP.ServersCurrentlyDisabled);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.NTP.CurrentlyDisabled);
 
-        SimpleOutput.WriteLine(CommandLineStrings_NTP.ServerModified, oldServer, newServer);
+        SimpleOutput.WriteLine(CliStrings.Network.NTP.Modified, oldServer, newServer);
     }
 }

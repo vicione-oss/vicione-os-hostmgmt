@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy.NoProxy;
@@ -13,9 +14,8 @@ internal sealed class NoProxySetCommand : ConfigCommandBase
     /// Initializes a new <see cref="NoProxySetCommand"/>.
     /// </summary>
     /// <param name="noProxyEntriesArgument">The no-proxy entries argument.</param>
-    public NoProxySetCommand(Argument<string[]> noProxyEntriesArgument) : base(
-        CommandLineStrings_Common.SetCommandName,
-        CommandLineStrings_Proxy.NoProxyListSetCommandDescription)
+    public NoProxySetCommand(Argument<string[]> noProxyEntriesArgument)
+        : base(CliStrings.Common.SetCommandName, CliStrings.Network.Proxy.NoProxy.SetCommandDescription)
     {
         Add(noProxyEntriesArgument);
 
@@ -42,13 +42,13 @@ internal sealed class NoProxySetCommand : ConfigCommandBase
             return;
 
         var title = output.ItemCount == 1
-            ? CommandLineStrings_Proxy.NoProxyItemSet
-            : CommandLineStrings_Proxy.NoProxyItemsSet;
+            ? CliStrings.Network.Proxy.NoProxy.Set
+            : CliStrings.Network.Proxy.NoProxy.SetMultiple;
 
         output.WithTitle(title);
 
         if (!config.NetworkProxySettings.NoProxy.Enabled)
-            output.WithWarning(CommandLineStrings_Proxy.NoProxyListCurrentlyDisabled);
+            output.WithWarning(CliStrings.Network.Proxy.NoProxy.CurrentlyDisabled);
 
         output.WriteLine();
     }

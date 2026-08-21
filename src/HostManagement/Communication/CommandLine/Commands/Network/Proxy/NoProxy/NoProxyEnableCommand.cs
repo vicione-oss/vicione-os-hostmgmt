@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy.NoProxy;
@@ -12,9 +13,7 @@ internal sealed class NoProxyEnableCommand : ConfigCommandBase
     /// Initializes a new <see cref="NoProxyEnableCommand"/>.
     /// </summary>
     public NoProxyEnableCommand()
-        : base(
-            CommandLineStrings_Common.EnableCommandName,
-            CommandLineStrings_Proxy.NoProxyListEnableCommandDescription)
+        : base(CliStrings.Common.EnableCommandName, CliStrings.Network.Proxy.NoProxy.EnableCommandDescription)
         => SetAction((parseResult, cancellationToken) => EnableHandler(cancellationToken));
 
     private static async Task EnableHandler(CancellationToken cancellationToken)
@@ -24,13 +23,13 @@ internal sealed class NoProxyEnableCommand : ConfigCommandBase
 
         if (config.NetworkProxySettings.NoProxy.Enabled)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_Proxy.NoProxyListAlreadyEnabled);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.Proxy.NoProxy.AlreadyEnabled);
             return;
         }
 
         if (config.NetworkProxySettings.NoProxy.Entries.Count == 0)
         {
-            SimpleOutput.WriteLineError(CommandLineStrings_Proxy.NoProxyListNotConfigured);
+            SimpleOutput.WriteLineError(CliStrings.Network.Proxy.NoProxy.NotConfigured);
             return;
         }
 
@@ -39,6 +38,6 @@ internal sealed class NoProxyEnableCommand : ConfigCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_Proxy.NoProxyListEnabled);
+        SimpleOutput.WriteLine(CliStrings.Network.Proxy.NoProxy.Enabled);
     }
 }

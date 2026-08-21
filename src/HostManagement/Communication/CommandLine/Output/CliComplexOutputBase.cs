@@ -1,4 +1,5 @@
-﻿using System.Text;
+using System.Text;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine.Output;
 
@@ -34,7 +35,7 @@ internal abstract class CliComplexOutputBase : CliOutputBase
         {
             throw new ArgumentOutOfRangeException(
                 nameof(indentationLevel),
-                CommandLineStrings_Output.IndentationLevelNegative);
+                CliStrings.Output.IndentationLevelNegative);
         }
 
         _indentationLevel = indentationLevel;
@@ -269,8 +270,8 @@ internal abstract class CliComplexOutputBase : CliOutputBase
         var formattedMessage = FormatMessage(
             errorText,
             args,
-            CommandLineStrings_Output.ErrorMessageEmpty,
-            CommandLineStrings_Output.ErrorMessageInvalidFormat);
+            CliStrings.Output.ErrorMessageEmpty,
+            CliStrings.Output.ErrorMessageInvalidFormat);
 
         AddErrorMessage(formattedMessage);
     }
@@ -304,8 +305,8 @@ internal abstract class CliComplexOutputBase : CliOutputBase
         var formattedMessage = FormatMessage(
             informationText,
             args,
-            CommandLineStrings_Output.InformationMessageEmpty,
-            CommandLineStrings_Output.InformationMessageInvalidFormat);
+            CliStrings.Output.InformationMessageEmpty,
+            CliStrings.Output.InformationMessageInvalidFormat);
 
         AddInformationMessage(formattedMessage);
     }
@@ -339,8 +340,8 @@ internal abstract class CliComplexOutputBase : CliOutputBase
         var formattedMessage = FormatMessage(
             warningText,
             args,
-            CommandLineStrings_Output.WarningMessageEmpty,
-            CommandLineStrings_Output.WarningMessageInvalidFormat);
+            CliStrings.Output.WarningMessageEmpty,
+            CliStrings.Output.WarningMessageInvalidFormat);
 
         AddWarningMessage(formattedMessage);
     }
@@ -377,9 +378,9 @@ internal abstract class CliComplexOutputBase : CliOutputBase
     private protected static string GetEnabledText(bool? enabled)
     {
         if (enabled is true)
-            return WhiteSpace + $"({CommandLineStrings_Common.enabled})";
+            return WhiteSpace + $"({CliStrings.Common.EnabledState})";
         else if (enabled is false)
-            return WhiteSpace + $"({CommandLineStrings_Common.disabled})";
+            return WhiteSpace + $"({CliStrings.Common.DisabledState})";
         else
             return string.Empty;
     }
@@ -419,15 +420,15 @@ internal abstract class CliComplexOutputBase : CliOutputBase
 
         for (var i = 0; i < lines.Length; i++)
         {
-            if (lines[i].StartsWith(CommandLineStrings_Output.ERROR))
+            if (lines[i].StartsWith(CliStrings.Output.ERROR))
             {
                 DoColoredErrorOutput(lines[i]);
             }
-            else if (lines[i].StartsWith(CommandLineStrings_Output.WARNING))
+            else if (lines[i].StartsWith(CliStrings.Output.WARNING))
             {
                 DoColoredWarningOutput(lines[i]);
             }
-            else if (lines[i].StartsWith(CommandLineStrings_Output.INFORMATION))
+            else if (lines[i].StartsWith(CliStrings.Output.INFORMATION))
             {
                 DoColoredInformationOutput(lines[i]);
             }

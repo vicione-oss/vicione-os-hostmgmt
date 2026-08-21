@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Enums;
 
@@ -14,9 +15,8 @@ internal sealed class ServiceEnableCommand : ServiceCommandBase
     /// Initializes a new <see cref="ServiceEnableCommand"/>.
     /// </summary>
     /// <param name="systemdUnitNameArgument">The systemd unit name argument.</param>
-    public ServiceEnableCommand(Argument<string> systemdUnitNameArgument) : base(
-        CommandLineStrings_Common.EnableCommandName,
-        CommandLineStrings_Systemd.ServiceEnableCommandDescription)
+    public ServiceEnableCommand(Argument<string> systemdUnitNameArgument)
+        : base(CliStrings.Common.EnableCommandName, CliStrings.Service.EnableCommandDescription)
     {
         Add(systemdUnitNameArgument);
 
@@ -33,13 +33,13 @@ internal sealed class ServiceEnableCommand : ServiceCommandBase
 
         if (serviceToConfigure is null)
         {
-            SimpleOutput.WriteLineError(CommandLineStrings_Systemd.UnitConfigurationNotAllowed, systemdUnitName);
+            SimpleOutput.WriteLineError(CliStrings.Service.ConfigurationNotAllowed, systemdUnitName);
             return;
         }
 
         if (serviceToConfigure.State == ServiceState.Enabled)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_Systemd.UnitAlreadyEnabled, systemdUnitName);
+            SimpleOutput.WriteLineInformation(CliStrings.Service.AlreadyEnabled, systemdUnitName);
             return;
         }
 
@@ -48,6 +48,6 @@ internal sealed class ServiceEnableCommand : ServiceCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_Systemd.UnitEnabled, systemdUnitName);
+        SimpleOutput.WriteLine(CliStrings.Service.Enabled, systemdUnitName);
     }
 }

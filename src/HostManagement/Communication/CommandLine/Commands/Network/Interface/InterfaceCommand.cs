@@ -1,6 +1,7 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Commands.Network.Interface.IPv4;
 using HostManagement.Communication.CommandLine.Commands.Network.Interface.VLAN;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Interface;
 
@@ -19,9 +20,8 @@ internal sealed class InterfaceCommand : Command
     /// Initializes a new <see cref="InterfaceCommand"/>.
     /// </summary>
     /// <param name="interfaceNameArgument">The interface name argument.</param>
-    public InterfaceCommand(Argument<string> interfaceNameArgument) : base(
-        CommandLineStrings_NetworkInterfaces.NetworkInterfaceCommandName,
-        CommandLineStrings_NetworkInterfaces.NetworkInterfaceCommandDescription)
+    public InterfaceCommand(Argument<string> interfaceNameArgument)
+        : base(CliStrings.Network.Interface.CommandName, CliStrings.Network.Interface.CommandDescription)
     {
         Add(new InterfaceStatusCommand(interfaceNameArgument));
         Add(new InterfaceEnableCommand(interfaceNameArgument));

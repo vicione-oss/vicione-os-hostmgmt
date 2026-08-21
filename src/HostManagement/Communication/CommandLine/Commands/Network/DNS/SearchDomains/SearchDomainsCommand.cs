@@ -1,4 +1,5 @@
 using System.CommandLine;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.SearchDomains;
 
@@ -30,9 +31,10 @@ internal sealed class SearchDomainsCommand : Command
     /// <summary>
     /// Initializes a new <see cref="SearchDomainsCommand"/>.
     /// </summary>
-    public SearchDomainsCommand() : base(
-        CommandLineStrings_DNS.DNSSearchDomainsCommandName,
-        CommandLineStrings_DNS.DNSSearchDomainsCommandDescription)
+    public SearchDomainsCommand()
+        : base(
+            CliStrings.Network.DNS.SearchDomains.CommandName,
+            CliStrings.Network.DNS.SearchDomains.CommandDescription)
     {
         Add(new SearchDomainsListCommand());
         Add(new SearchDomainsEnableCommand());

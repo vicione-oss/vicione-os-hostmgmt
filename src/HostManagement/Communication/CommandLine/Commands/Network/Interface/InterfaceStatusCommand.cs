@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Extensions;
@@ -15,9 +16,8 @@ internal sealed class InterfaceStatusCommand : ConfigCommandBase
     /// Initializes a new <see cref="InterfaceStatusCommand"/>.
     /// </summary>
     /// <param name="interfaceNameArgument">The interface name argument.</param>
-    public InterfaceStatusCommand(Argument<string> interfaceNameArgument) : base(
-        CommandLineStrings_Common.StatusCommandName,
-        CommandLineStrings_NetworkInterfaces.NetworkInterfaceStatusCommandDescription)
+    public InterfaceStatusCommand(Argument<string> interfaceNameArgument)
+        : base(CliStrings.Common.StatusCommandName, CliStrings.Network.Interface.StatusCommandDescription)
     {
         Add(interfaceNameArgument);
 
@@ -32,13 +32,13 @@ internal sealed class InterfaceStatusCommand : ConfigCommandBase
 
         if (config.GetNetworkInterface(interfaceName) is not NetworkInterfaceDetail interfaceToConfigure)
         {
-            SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.InterfaceNotFound, interfaceName);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.NotFound, interfaceName);
             return;
         }
 
         var enabledStateMessage = interfaceToConfigure.CommonInformation.Enabled
-            ? CommandLineStrings_NetworkInterfaces.InterfaceIsEnabled
-            : CommandLineStrings_NetworkInterfaces.InterfaceIsDisabled;
+            ? CliStrings.Network.Interface.IsEnabled
+            : CliStrings.Network.Interface.IsDisabled;
 
         SimpleOutput.WriteLine(enabledStateMessage, interfaceName);
     }

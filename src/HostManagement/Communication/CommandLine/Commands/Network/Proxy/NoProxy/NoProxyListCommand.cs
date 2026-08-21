@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy.NoProxy;
@@ -12,9 +13,7 @@ internal sealed class NoProxyListCommand : ConfigCommandBase
     /// Initializes a new <see cref="NoProxyListCommand"/>.
     /// </summary>
     public NoProxyListCommand()
-        : base(
-            CommandLineStrings_Common.ListCommandName,
-            CommandLineStrings_Proxy.NoProxyListListCommandDescription)
+        : base(CliStrings.Common.ListCommandName, CliStrings.Network.Proxy.NoProxy.ListCommandDescription)
         => SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
 
     private static async Task ListHandler(CancellationToken cancellationToken)
@@ -24,12 +23,12 @@ internal sealed class NoProxyListCommand : ConfigCommandBase
 
         if (config.NetworkProxySettings.NoProxy.Entries.Count == 0)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_Proxy.NoProxyListNotConfigured);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.Proxy.NoProxy.NotConfigured);
             return;
         }
 
         new ListOutput()
-            .WithTitle(CommandLineStrings_Proxy.NoProxyList, config.NetworkProxySettings.NoProxy.Enabled)
+            .WithTitle(CliStrings.Network.Proxy.NoProxy.Label, config.NetworkProxySettings.NoProxy.Enabled)
             .WithEach(config.NetworkProxySettings.NoProxy.Entries.Select(CliOutputValue.Create))
             .WriteLine();
     }

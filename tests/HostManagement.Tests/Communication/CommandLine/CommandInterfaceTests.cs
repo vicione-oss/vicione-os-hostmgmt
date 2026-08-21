@@ -18,7 +18,7 @@ public class CommandInterfaceTests
     public void CreateRootCommand_ShouldReturnExpectedRootCommand()
     {
         // Arrange
-        var expectedDescription = "ViciOne Host Management Tool";
+        var expectedDescription = "ViciOne Host Management CLI";
         var expectedSubcommands = new[]
         {
             typeof(NetworkCommand),

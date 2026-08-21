@@ -1,4 +1,5 @@
 using System.CommandLine;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy.NoProxy;
 
@@ -16,9 +17,8 @@ internal sealed class NoProxyCommand : Command
     /// <summary>
     /// Initializes a new <see cref="NoProxyCommand"/>.
     /// </summary>
-    public NoProxyCommand() : base(
-        CommandLineStrings_Proxy.NoProxyListCommandName,
-        CommandLineStrings_Proxy.NoProxyListCommandDescription)
+    public NoProxyCommand()
+        : base(CliStrings.Network.Proxy.NoProxy.CommandName, CliStrings.Network.Proxy.NoProxy.CommandDescription)
     {
         Add(new NoProxyListCommand());
         Add(new NoProxyEnableCommand());

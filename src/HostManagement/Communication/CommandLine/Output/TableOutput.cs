@@ -1,4 +1,5 @@
-﻿using System.Text;
+using System.Text;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine.Output;
 
@@ -69,7 +70,7 @@ internal sealed class TableOutput : CliComplexOutputBase
         {
             throw new ArgumentOutOfRangeException(
                 nameof(additionalValues),
-                CommandLineStrings_Output.TableOutputTooManyValues);
+                CliStrings.Output.TableOutputTooManyValues);
         }
 
         if (_maxColumnLengths[0] < value1.Length)

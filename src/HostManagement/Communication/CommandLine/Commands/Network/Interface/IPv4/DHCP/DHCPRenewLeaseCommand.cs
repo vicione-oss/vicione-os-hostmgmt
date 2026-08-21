@@ -1,6 +1,7 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Extensions;
@@ -16,9 +17,10 @@ internal sealed class DHCPRenewLeaseCommand : ConfigCommandBase
     /// Initializes a new <see cref="DHCPRenewLeaseCommand"/>.
     /// </summary>
     /// <param name="interfaceNameArgument">The interface name argument.</param>
-    public DHCPRenewLeaseCommand(Argument<string> interfaceNameArgument) : base(
-        CommandLineStrings_NetworkInterfaces.DHCPRenewLeaseCommandName,
-        CommandLineStrings_NetworkInterfaces.DHCPRenewLeaseCommandDescription)
+    public DHCPRenewLeaseCommand(Argument<string> interfaceNameArgument)
+        : base(
+            CliStrings.Network.Interface.DHCP.RenewLeaseCommandName,
+            CliStrings.Network.Interface.DHCP.RenewLeaseCommandDescription)
     {
         Add(interfaceNameArgument);
 
@@ -33,13 +35,13 @@ internal sealed class DHCPRenewLeaseCommand : ConfigCommandBase
 
         if (config.GetNetworkInterface(interfaceName) is not NetworkInterfaceDetail interfaceToConfigure)
         {
-            SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.InterfaceNotFound, interfaceName);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.NotFound, interfaceName);
             return;
         }
 
         if (!interfaceToConfigure.IPv4.DHCPEnabled)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_NetworkInterfaces.DHCPIsDisabled, interfaceName);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.Interface.DHCP.IsDisabled, interfaceName);
             return;
         }
 
@@ -47,12 +49,12 @@ internal sealed class DHCPRenewLeaseCommand : ConfigCommandBase
             return;
 
         new KeyValueOutput()
-            .WithTitle(CommandLineStrings_NetworkInterfaces.DHCPLeaseRenewed)
-            .With(new(CommandLineStrings_NetworkInterfaces.DHCPLeaseObtained, dhcpLease.LeaseObtained))
-            .With(new(CommandLineStrings_NetworkInterfaces.DHCPLeaseExpires, dhcpLease.LeaseExpires))
-            .With(new(CommandLineStrings_NetworkInterfaces.Gateway, dhcpLease.Gateway))
-            .With(new(CommandLineStrings_NetworkInterfaces.IPAddress, dhcpLease.IPv4Detail?.IPAddress))
-            .With(new(CommandLineStrings_NetworkInterfaces.SubnetMask, dhcpLease.IPv4Detail?.Netmask))
+            .WithTitle(CliStrings.Network.Interface.DHCP.LeaseRenewed)
+            .With(new(CliStrings.Network.Interface.DHCP.LeaseObtained, dhcpLease.LeaseObtained))
+            .With(new(CliStrings.Network.Interface.DHCP.LeaseExpires, dhcpLease.LeaseExpires))
+            .With(new(CliStrings.Network.Interface.Gateway.Label, dhcpLease.Gateway))
+            .With(new(CliStrings.Network.Interface.IP.IPAddress, dhcpLease.IPv4Detail?.IPAddress))
+            .With(new(CliStrings.Network.Interface.IP.SubnetMask, dhcpLease.IPv4Detail?.Netmask))
             .WriteLine();
     }
 }

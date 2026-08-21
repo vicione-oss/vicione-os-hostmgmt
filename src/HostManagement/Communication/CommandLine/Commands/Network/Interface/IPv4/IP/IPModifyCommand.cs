@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.Net;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Extensions;
@@ -25,8 +26,8 @@ internal sealed class IPModifyCommand : ConfigCommandBase
         Option<IPAddress> newAddressOption,
         Option<IPAddress> netmaskOption)
         : base(
-            CommandLineStrings_Common.ModifyCommandName,
-            CommandLineStrings_NetworkInterfaces.IPModifyCommandDescription)
+            CliStrings.Common.ModifyCommandName,
+            CliStrings.Network.Interface.IPv4.ModifyCommandDescription)
     {
         Add(interfaceNameOption);
         Add(oldAddressOption);
@@ -54,7 +55,7 @@ internal sealed class IPModifyCommand : ConfigCommandBase
 
         if (config.GetNetworkInterface(interfaceName) is not NetworkInterfaceDetail interfaceToConfigure)
         {
-            SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.InterfaceNotFound, interfaceName);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.NotFound, interfaceName);
             return;
         }
 
@@ -64,7 +65,7 @@ internal sealed class IPModifyCommand : ConfigCommandBase
                 ipv4Detail.Netmask.Equals(newNetmask))
             {
                 SimpleOutput.WriteLineInformation(
-                    CommandLineStrings_NetworkInterfaces.InterfaceIPAlreadyDefined,
+                    CliStrings.Network.Interface.IP.AlreadyDefined,
                     newAddress,
                     newNetmask);
 
@@ -82,10 +83,10 @@ internal sealed class IPModifyCommand : ConfigCommandBase
                     return;
 
                 if (interfaceToConfigure.IPv4.DHCPEnabled)
-                    SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.DHCPIsEnabled, interfaceName);
+                    SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.DHCP.IsEnabled, interfaceName);
 
                 SimpleOutput.WriteLine(
-                    CommandLineStrings_NetworkInterfaces.InterfaceIPModified,
+                    CliStrings.Network.Interface.IP.Modified,
                     interfaceName,
                     oldAddress,
                     oldNetmask,
@@ -96,9 +97,6 @@ internal sealed class IPModifyCommand : ConfigCommandBase
             }
         }
 
-        SimpleOutput.WriteLineWarning(
-            CommandLineStrings_NetworkInterfaces.InterfaceIPNotFound,
-            oldAddress,
-            interfaceName);
+        SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.IP.NotFound, oldAddress, interfaceName);
     }
 }

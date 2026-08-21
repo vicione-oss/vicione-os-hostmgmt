@@ -1,6 +1,7 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine.Commands.System;
 
@@ -13,9 +14,8 @@ internal sealed class SystemUpdateCommand : Command
     /// Initializes a new <see cref="SystemUpdateCommand"/>.
     /// </summary>
     /// <param name="filePathArgument">The file path argument.</param>
-    public SystemUpdateCommand(Argument<string> filePathArgument) : base(
-        CommandLineStrings_System.SystemUpdateCommandName,
-        CommandLineStrings_System.SystemUpdateCommandDescription)
+    public SystemUpdateCommand(Argument<string> filePathArgument)
+        : base(CliStrings.System.UpdateCommandName, CliStrings.System.UpdateCommandDescription)
     {
         Add(filePathArgument);
 
@@ -27,7 +27,7 @@ internal sealed class SystemUpdateCommand : Command
     {
         if (!await NamedPipeRequestHelper.UpdateSystem(filePath, cancellationToken))
         {
-            SimpleOutput.WriteLine(CommandLineStrings_System.UpdateFailed);
+            SimpleOutput.WriteLine(CliStrings.System.UpdateFailed);
             return;
         }
     }

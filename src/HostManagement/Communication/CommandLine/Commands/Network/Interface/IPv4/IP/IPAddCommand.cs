@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.Net;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Extensions;
@@ -23,8 +24,8 @@ internal sealed class IPAddCommand : ConfigCommandBase
         Option<IPAddress> addressOption,
         Option<IPAddress> netmaskOption)
         : base(
-            CommandLineStrings_Common.AddCommandName,
-            CommandLineStrings_NetworkInterfaces.IPAddCommandDescription)
+            CliStrings.Common.AddCommandName,
+            CliStrings.Network.Interface.IPv4.AddCommandDescription)
     {
         Add(interfaceNameOption);
         Add(addressOption);
@@ -49,7 +50,7 @@ internal sealed class IPAddCommand : ConfigCommandBase
 
         if (config.GetNetworkInterface(interfaceName) is not NetworkInterfaceDetail interfaceToConfigure)
         {
-            SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.InterfaceNotFound, interfaceName);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.NotFound, interfaceName);
             return;
         }
 
@@ -63,12 +64,8 @@ internal sealed class IPAddCommand : ConfigCommandBase
             return;
 
         if (interfaceToConfigure.IPv4.DHCPEnabled)
-            SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.DHCPIsEnabled, interfaceName);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.DHCP.IsEnabled, interfaceName);
 
-        SimpleOutput.WriteLine(
-            CommandLineStrings_NetworkInterfaces.InterfaceIPAdded,
-            ipAddress,
-            netmask,
-            interfaceName);
+        SimpleOutput.WriteLine(CliStrings.Network.Interface.IP.Added, ipAddress, netmask, interfaceName);
     }
 }

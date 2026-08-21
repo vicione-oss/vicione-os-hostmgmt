@@ -1,7 +1,7 @@
 using System.CommandLine;
-using HostManagement.Communication.CommandLine.Commands.Network.Interface;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Extensions;
 
@@ -16,9 +16,8 @@ internal sealed class NetworkStatusCommand : ConfigCommandBase
     /// Initializes a new <see cref="NetworkStatusCommand"/>.
     /// </summary>
     /// <param name="interfaceNameArgument">The interface name argument.</param>
-    public NetworkStatusCommand(Argument<string> interfaceNameArgument) : base(
-        CommandLineStrings_Common.StatusCommandName,
-        CommandLineStrings_Network.NetworkStatusCommandDescription)
+    public NetworkStatusCommand(Argument<string> interfaceNameArgument)
+        : base(CliStrings.Common.StatusCommandName, CliStrings.Network.StatusCommandDescription)
     {
         Add(interfaceNameArgument);
 
@@ -33,7 +32,7 @@ internal sealed class NetworkStatusCommand : ConfigCommandBase
 
         if (config.GetNetworkInterface(interfaceName) is null)
         {
-            SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.InterfaceNotFound, interfaceName);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.NotFound, interfaceName);
             return;
         }
 
@@ -43,11 +42,11 @@ internal sealed class NetworkStatusCommand : ConfigCommandBase
             return;
 
         new KeyValueOutput()
-            .With(new(CommandLineStrings_Network.InterfaceState, networkStatus.InterfaceState))
-            .With(new(CommandLineStrings_Network.DefaultRouteConfigured, networkStatus.IsDefaultRouteConfigured))
-            .With(new(CommandLineStrings_Network.DefaultGatewayAvailable, networkStatus.IsDefaultGatewayAvailable))
-            .With(new(CommandLineStrings_Network.InternetAvailable, networkStatus.IsInternetAvailable))
-            .With(new(CommandLineStrings_Network.DNSFunctional, networkStatus.IsDNSFunctional))
+            .With(new(CliStrings.Network.InterfaceState, networkStatus.InterfaceState))
+            .With(new(CliStrings.Network.DefaultRouteConfigured, networkStatus.IsDefaultRouteConfigured))
+            .With(new(CliStrings.Network.DefaultGatewayAvailable, networkStatus.IsDefaultGatewayAvailable))
+            .With(new(CliStrings.Network.InternetAvailable, networkStatus.IsInternetAvailable))
+            .With(new(CliStrings.Network.DNSFunctional, networkStatus.IsDNSFunctional))
             .WriteLine();
     }
 }

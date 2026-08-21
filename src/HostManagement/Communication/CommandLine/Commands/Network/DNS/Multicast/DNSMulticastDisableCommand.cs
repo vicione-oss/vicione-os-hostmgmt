@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.Multicast;
@@ -12,9 +13,7 @@ internal sealed class DNSMulticastDisableCommand : ConfigCommandBase
     /// Initializes a new <see cref="DNSMulticastDisableCommand"/>.
     /// </summary>
     public DNSMulticastDisableCommand()
-        : base(
-            CommandLineStrings_Common.DisableCommandName,
-            CommandLineStrings_DNS.DNSMulticastDisableCommandDescription)
+        : base(CliStrings.Common.DisableCommandName, CliStrings.Network.DNS.Multicast.DisableCommandDescription)
         => SetAction((parseResult, cancellationToken) => DisableHandler(cancellationToken));
 
     private static async Task DisableHandler(CancellationToken cancellationToken)
@@ -24,7 +23,7 @@ internal sealed class DNSMulticastDisableCommand : ConfigCommandBase
 
         if (!config.NetworkDNSSettings.MulticastDNSEnabled)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.MulticastDNSAlreadyDisabled);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.DNS.Multicast.AlreadyDisabled);
             return;
         }
 
@@ -33,6 +32,6 @@ internal sealed class DNSMulticastDisableCommand : ConfigCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_DNS.MulticastDNSDisabled);
+        SimpleOutput.WriteLine(CliStrings.Network.DNS.Multicast.Disabled);
     }
 }

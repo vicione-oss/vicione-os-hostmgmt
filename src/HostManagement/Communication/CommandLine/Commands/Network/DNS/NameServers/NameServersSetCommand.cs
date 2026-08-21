@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.Net;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.NameServers;
@@ -14,9 +15,8 @@ internal sealed class NameServersSetCommand : ConfigCommandBase
     /// Initializes a new <see cref="NameServersSetCommand"/>.
     /// </summary>
     /// <param name="ipAddressesArgument">The IP addresses argument.</param>
-    public NameServersSetCommand(Argument<IPAddress[]> ipAddressesArgument) : base(
-        CommandLineStrings_Common.SetCommandName,
-        CommandLineStrings_DNS.DNSNameServersSetCommandDescription)
+    public NameServersSetCommand(Argument<IPAddress[]> ipAddressesArgument)
+        : base(CliStrings.Common.SetCommandName, CliStrings.Network.DNS.NameServers.SetCommandDescription)
     {
         Add(ipAddressesArgument);
 
@@ -43,13 +43,13 @@ internal sealed class NameServersSetCommand : ConfigCommandBase
             return;
 
         var title = output.ItemCount == 1
-            ? CommandLineStrings_DNS.NameServerSet
-            : CommandLineStrings_DNS.NameServersSet;
+            ? CliStrings.Network.DNS.NameServers.Set
+            : CliStrings.Network.DNS.NameServers.SetMultiple;
 
         output.WithTitle(title);
 
         if (!config.NetworkDNSSettings.NameServers.Enabled)
-            output.WithWarning(CommandLineStrings_DNS.NameServersCurrentlyDisabled);
+            output.WithWarning(CliStrings.Network.DNS.NameServers.CurrentlyDisabled);
 
         output.WriteLine();
     }

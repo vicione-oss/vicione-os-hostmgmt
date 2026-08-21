@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.SearchDomains;
@@ -12,9 +13,7 @@ internal sealed class SearchDomainsDisableCommand : ConfigCommandBase
     /// Initializes a new <see cref="SearchDomainsDisableCommand"/>.
     /// </summary>
     public SearchDomainsDisableCommand()
-        : base(
-            CommandLineStrings_Common.DisableCommandName,
-            CommandLineStrings_DNS.DNSSearchDomainsDisableCommandDescription)
+        : base(CliStrings.Common.DisableCommandName, CliStrings.Network.DNS.SearchDomains.DisableCommandDescription)
         => SetAction((parseResult, cancellationToken) => DisableHandler(cancellationToken));
 
     private static async Task DisableHandler(CancellationToken cancellationToken)
@@ -24,7 +23,7 @@ internal sealed class SearchDomainsDisableCommand : ConfigCommandBase
 
         if (!config.NetworkDNSSettings.SearchDomains.Enabled)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.SearchDomainsAlreadyDisabled);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.DNS.SearchDomains.AlreadyDisabled);
             return;
         }
 
@@ -33,6 +32,6 @@ internal sealed class SearchDomainsDisableCommand : ConfigCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_DNS.SearchDomainsDisabled);
+        SimpleOutput.WriteLine(CliStrings.Network.DNS.SearchDomains.Disabled);
     }
 }

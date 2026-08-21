@@ -1,7 +1,7 @@
 using System.CommandLine.Parsing;
 using System.Globalization;
 using System.Text;
-using HostManagement.Communication.CommandLine.Commands.Network.Interface;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine.Validators;
 
@@ -32,7 +32,7 @@ internal static class IPAddressValidator
                 errorMessageBuilder.AppendLine(
                     string.Format(
                         CultureInfo.InvariantCulture,
-                        CompositeFormat.Parse(CommandLineStrings_NetworkInterfaces.IPAddressMustHave4Octets),
+                        CompositeFormat.Parse(CliStrings.Network.Interface.IPv4.AddressMustHave4Octets),
                         ipAddressDescription,
                         parts.Length));
             }
@@ -69,7 +69,7 @@ internal static class IPAddressValidator
                 errorMessageBuilder.AppendLine(
                     string.Format(
                         CultureInfo.InvariantCulture,
-                        CompositeFormat.Parse(CommandLineStrings_NetworkInterfaces.IPAddressMustHave4Octets),
+                        CompositeFormat.Parse(CliStrings.Network.Interface.IPv4.AddressMustHave4Octets),
                         ipAddressDescription,
                         parts.Length));
             }

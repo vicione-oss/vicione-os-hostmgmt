@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.StaticHosts;
@@ -12,9 +13,7 @@ internal sealed class StaticHostsEnableCommand : ConfigCommandBase
     /// Initializes a new <see cref="StaticHostsEnableCommand"/>.
     /// </summary>
     public StaticHostsEnableCommand()
-        : base(
-            CommandLineStrings_Common.EnableCommandName,
-            CommandLineStrings_DNS.DNSStaticHostsEnableCommandDescription)
+        : base(CliStrings.Common.EnableCommandName, CliStrings.Network.DNS.StaticHosts.EnableCommandDescription)
         => SetAction((parseResult, cancellationToken) => EnableHandler(cancellationToken));
 
     private static async Task EnableHandler(CancellationToken cancellationToken)
@@ -24,13 +23,13 @@ internal sealed class StaticHostsEnableCommand : ConfigCommandBase
 
         if (config.NetworkDNSSettings.StaticHosts.Enabled)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.StaticHostsAlreadyEnabled);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.DNS.StaticHosts.AlreadyEnabled);
             return;
         }
 
         if (config.NetworkDNSSettings.StaticHosts.Hosts.Count == 0)
         {
-            SimpleOutput.WriteLineError(CommandLineStrings_DNS.StaticHostsNotConfigured);
+            SimpleOutput.WriteLineError(CliStrings.Network.DNS.StaticHosts.NotConfigured);
             return;
         }
 
@@ -39,6 +38,6 @@ internal sealed class StaticHostsEnableCommand : ConfigCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_DNS.StaticHostsEnabled);
+        SimpleOutput.WriteLine(CliStrings.Network.DNS.StaticHosts.Enabled);
     }
 }

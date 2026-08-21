@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy;
@@ -16,10 +17,10 @@ internal sealed class ProxyTypeEnableCommand : ProxyTypeCommandBase
     /// <param name="proxyType">The type of the proxy.</param>
     public ProxyTypeEnableCommand(ProxyType proxyType)
         : base(
-            CommandLineStrings_Common.EnableCommandName,
+            CliStrings.Common.EnableCommandName,
             string.Format(
                 CultureInfo.InvariantCulture,
-                CompositeFormat.Parse(CommandLineStrings_Proxy.ProxyTypeEnableCommandDescription),
+                CompositeFormat.Parse(CliStrings.Network.Proxy.EnableCommandDescription),
                 proxyType))
         => SetAction((parseResult, cancellationToken) => EnableHandler(proxyType, cancellationToken));
 
@@ -32,7 +33,7 @@ internal sealed class ProxyTypeEnableCommand : ProxyTypeCommandBase
 
         if (proxyDetail.Enabled)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_Proxy.ProxyTypeAlreadyEnabled, proxyType.ToString());
+            SimpleOutput.WriteLineInformation(CliStrings.Network.Proxy.AlreadyEnabled, proxyType.ToString());
             return;
         }
 
@@ -41,7 +42,7 @@ internal sealed class ProxyTypeEnableCommand : ProxyTypeCommandBase
             proxyDetail.Username is null &&
             proxyDetail.Password is null)
         {
-            SimpleOutput.WriteLineError(CommandLineStrings_Proxy.ProxyTypeNotConfigured, proxyType.ToString());
+            SimpleOutput.WriteLineError(CliStrings.Network.Proxy.NotConfigured, proxyType.ToString());
             return;
         }
 
@@ -50,6 +51,6 @@ internal sealed class ProxyTypeEnableCommand : ProxyTypeCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_Proxy.ProxyTypeEnabled, proxyType.ToString());
+        SimpleOutput.WriteLine(CliStrings.Network.Proxy.Enabled, proxyType.ToString());
     }
 }

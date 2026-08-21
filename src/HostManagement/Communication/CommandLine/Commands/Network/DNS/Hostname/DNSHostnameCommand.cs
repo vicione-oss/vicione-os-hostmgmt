@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.Hostname;
@@ -18,9 +19,8 @@ internal sealed class DNSHostnameCommand : ConfigCommandBase
     /// <summary>
     /// Initializes a new <see cref="DNSHostnameCommand"/>.
     /// </summary>
-    public DNSHostnameCommand() : base(
-        CommandLineStrings_DNS.DNSHostnameCommandName,
-        CommandLineStrings_DNS.DNSHostnameCommandDescription)
+    public DNSHostnameCommand()
+        : base(CliStrings.Network.DNS.Hostname.CommandName, CliStrings.Network.DNS.Hostname.CommandDescription)
     {
         Add(s_hostnameArgument);
 
@@ -36,7 +36,7 @@ internal sealed class DNSHostnameCommand : ConfigCommandBase
                 return;
 
             new KeyValueOutput()
-                .With(new(CommandLineStrings_DNS.Hostname, config.NetworkDNSSettings.Hostname))
+                .With(new(CliStrings.Network.DNS.Hostname.Label, config.NetworkDNSSettings.Hostname))
                 .WriteLine();
         }
         else
@@ -49,7 +49,7 @@ internal sealed class DNSHostnameCommand : ConfigCommandBase
             if (!await SetConfiguration(config, cancellationToken))
                 return;
 
-            SimpleOutput.WriteLine(CommandLineStrings_DNS.HostnameSet, hostname);
+            SimpleOutput.WriteLine(CliStrings.Network.DNS.Hostname.Set, hostname);
         }
     }
 }

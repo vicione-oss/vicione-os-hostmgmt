@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Interface.IPv4.DHCP;
@@ -12,9 +13,7 @@ internal sealed class DHCPListCommand : ConfigCommandBase
     /// Initializes a new <see cref="DHCPListCommand"/>.
     /// </summary>
     public DHCPListCommand()
-        : base(
-            CommandLineStrings_Common.ListCommandName,
-            CommandLineStrings_NetworkInterfaces.DHCPListCommandDescription)
+        : base(CliStrings.Common.ListCommandName, CliStrings.Network.Interface.DHCP.ListCommandDescription)
         => SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
 
     private static async Task ListHandler(CancellationToken cancellationToken)
@@ -22,17 +21,17 @@ internal sealed class DHCPListCommand : ConfigCommandBase
         if (await GetConfiguration(cancellationToken) is not SystemConfiguration config)
             return;
 
-        var output = new PropertyListOutput().WithTitle(CommandLineStrings_NetworkInterfaces.Interfaces);
+        var output = new PropertyListOutput().WithTitle(CliStrings.Network.Interface.Interfaces);
 
         foreach (var @interface in config.NetworkInterfaces)
         {
             var dhcpEnabledString = @interface.IPv4.DHCPEnabled
-                ? CommandLineStrings_Common.enabled
-                : CommandLineStrings_Common.disabled;
+                ? CliStrings.Common.EnabledState
+                : CliStrings.Common.DisabledState;
 
             output.With(
                 @interface.CommonInformation.Name,
-                new(CommandLineStrings_NetworkInterfaces.DHCP, dhcpEnabledString));
+                new(CliStrings.Network.Interface.DHCP.Label, dhcpEnabledString));
         }
 
         output.WriteLine();

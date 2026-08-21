@@ -1,4 +1,5 @@
 using System.CommandLine;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine.Commands.Service;
 
@@ -16,9 +17,7 @@ internal sealed class ServiceCommand : Command
     /// <summary>
     /// Initializes a new <see cref="ServiceCommand"/>.
     /// </summary>
-    public ServiceCommand() : base(
-        CommandLineStrings_Systemd.ServiceCommandName,
-        CommandLineStrings_Systemd.ServiceCommandDescription)
+    public ServiceCommand() : base(CliStrings.Service.CommandName, CliStrings.Service.CommandDescription)
     {
         Add(new ServiceListCommand());
         Add(new ServiceStatusCommand(s_serviceNameArgument));

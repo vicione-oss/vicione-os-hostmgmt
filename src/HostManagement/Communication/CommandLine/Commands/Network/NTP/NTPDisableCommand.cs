@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.NTP;
@@ -12,9 +13,7 @@ internal sealed class NTPDisableCommand : ConfigCommandBase
     /// Initializes a new <see cref="NTPDisableCommand"/>.
     /// </summary>
     public NTPDisableCommand()
-        : base(
-            CommandLineStrings_Common.DisableCommandName,
-            CommandLineStrings_NTP.NTPDisableCommandDescription)
+        : base(CliStrings.Common.DisableCommandName, CliStrings.Network.NTP.DisableCommandDescription)
         => SetAction((parseResult, cancellationToken) => DisableHandler(cancellationToken));
 
     private static async Task DisableHandler(CancellationToken cancellationToken)
@@ -24,7 +23,7 @@ internal sealed class NTPDisableCommand : ConfigCommandBase
 
         if (!config.NetworkNTPSettings.Enabled)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_NTP.ServersAlreadyDisabled);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.NTP.AlreadyDisabled);
             return;
         }
 
@@ -33,6 +32,6 @@ internal sealed class NTPDisableCommand : ConfigCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_NTP.ServersDisabled);
+        SimpleOutput.WriteLine(CliStrings.Network.NTP.Disabled);
     }
 }

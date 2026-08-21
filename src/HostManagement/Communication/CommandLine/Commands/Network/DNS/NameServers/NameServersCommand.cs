@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.Net;
 using HostManagement.Communication.CommandLine.Extensions;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Communication.CommandLine.Validators;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.NameServers;
@@ -39,9 +40,8 @@ internal sealed class NameServersCommand : Command
     /// <summary>
     /// Initializes a new <see cref="NameServersCommand"/>.
     /// </summary>
-    public NameServersCommand() : base(
-        CommandLineStrings_DNS.DNSNameServersCommandName,
-        CommandLineStrings_DNS.DNSNameServersCommandDescription)
+    public NameServersCommand()
+        : base(CliStrings.Network.DNS.NameServers.CommandName, CliStrings.Network.DNS.NameServers.CommandDescription)
     {
         Add(new NameServersListCommand());
         Add(new NameServersEnableCommand());

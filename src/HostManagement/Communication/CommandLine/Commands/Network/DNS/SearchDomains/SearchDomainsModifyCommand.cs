@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.SearchDomains;
@@ -14,12 +15,8 @@ internal sealed class SearchDomainsModifyCommand : ConfigCommandBase
     /// </summary>
     /// <param name="oldSearchDomainOption">The old search domain option.</param>
     /// <param name="newSearchDomainOption">The new search domain option.</param>
-    public SearchDomainsModifyCommand(
-        Option<string> oldSearchDomainOption,
-        Option<string> newSearchDomainOption)
-        : base(
-            CommandLineStrings_Common.ModifyCommandName,
-            CommandLineStrings_DNS.DNSSearchDomainsModifyCommandDescription)
+    public SearchDomainsModifyCommand(Option<string> oldSearchDomainOption, Option<string> newSearchDomainOption)
+        : base(CliStrings.Common.ModifyCommandName, CliStrings.Network.DNS.SearchDomains.ModifyCommandDescription)
     {
         Add(oldSearchDomainOption);
         Add(newSearchDomainOption);
@@ -40,7 +37,7 @@ internal sealed class SearchDomainsModifyCommand : ConfigCommandBase
 
         if (domains.Contains(newDomain))
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.SearchDomainAlreadyDefined, newDomain);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.DNS.SearchDomains.AlreadyDefined, newDomain);
             return;
         }
 
@@ -48,7 +45,7 @@ internal sealed class SearchDomainsModifyCommand : ConfigCommandBase
 
         if (index == -1)
         {
-            SimpleOutput.WriteLineError(CommandLineStrings_DNS.SearchDomainNotFound, oldDomain);
+            SimpleOutput.WriteLineError(CliStrings.Network.DNS.SearchDomains.NotFound, oldDomain);
             return;
         }
 
@@ -58,8 +55,8 @@ internal sealed class SearchDomainsModifyCommand : ConfigCommandBase
             return;
 
         if (!config.NetworkDNSSettings.SearchDomains.Enabled)
-            SimpleOutput.WriteLineWarning(CommandLineStrings_DNS.SearchDomainsCurrentlyDisabled);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.DNS.SearchDomains.CurrentlyDisabled);
 
-        SimpleOutput.WriteLine(CommandLineStrings_DNS.SearchDomainModified, oldDomain, newDomain);
+        SimpleOutput.WriteLine(CliStrings.Network.DNS.SearchDomains.Modified, oldDomain, newDomain);
     }
 }

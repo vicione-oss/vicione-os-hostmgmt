@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.NTP;
@@ -13,9 +14,8 @@ internal sealed class NTPAddCommand : ConfigCommandBase
     /// Initializes a new <see cref="NTPAddCommand"/>.
     /// </summary>
     /// <param name="ntpServersArgument">The NTP servers argument.</param>
-    public NTPAddCommand(Argument<string[]> ntpServersArgument) : base(
-        CommandLineStrings_Common.AddCommandName,
-        CommandLineStrings_NTP.NTPAddCommandDescription)
+    public NTPAddCommand(Argument<string[]> ntpServersArgument)
+        : base(CliStrings.Common.AddCommandName, CliStrings.Network.NTP.AddCommandDescription)
     {
         Add(ntpServersArgument);
 
@@ -35,7 +35,7 @@ internal sealed class NTPAddCommand : ConfigCommandBase
         {
             if (config.NetworkNTPSettings.Servers.Contains(server))
             {
-                output.WithInformation(CommandLineStrings_NTP.ServerAlreadyDefined, server);
+                output.WithInformation(CliStrings.Network.NTP.AlreadyDefined, server);
                 continue;
             }
 
@@ -51,11 +51,11 @@ internal sealed class NTPAddCommand : ConfigCommandBase
                 return;
 
             if (!config.NetworkNTPSettings.Enabled)
-                output.WithWarning(CommandLineStrings_NTP.ServersCurrentlyDisabled);
+                output.WithWarning(CliStrings.Network.NTP.CurrentlyDisabled);
 
             var title = output.ItemCount == 1
-                ? CommandLineStrings_NTP.ServerAdded
-                : CommandLineStrings_NTP.ServersAdded;
+                ? CliStrings.Network.NTP.Added
+                : CliStrings.Network.NTP.AddedMultiple;
 
             output.WithTitle(title);
         }

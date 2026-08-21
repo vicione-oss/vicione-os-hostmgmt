@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy.NoProxy;
@@ -13,9 +14,8 @@ internal sealed class NoProxyAddCommand : ConfigCommandBase
     /// Initializes a new <see cref="NoProxyAddCommand"/>.
     /// </summary>
     /// <param name="noProxyEntriesArgument">The no-proxy entries argument.</param>
-    public NoProxyAddCommand(Argument<string[]> noProxyEntriesArgument) : base(
-        CommandLineStrings_Common.AddCommandName,
-        CommandLineStrings_Proxy.NoProxyListAddCommandDescription)
+    public NoProxyAddCommand(Argument<string[]> noProxyEntriesArgument)
+        : base(CliStrings.Common.AddCommandName, CliStrings.Network.Proxy.NoProxy.AddCommandDescription)
     {
         Add(noProxyEntriesArgument);
 
@@ -35,7 +35,7 @@ internal sealed class NoProxyAddCommand : ConfigCommandBase
         {
             if (config.NetworkProxySettings.NoProxy.Entries.Contains(entry, StringComparer.OrdinalIgnoreCase))
             {
-                output.WithInformation(CommandLineStrings_Proxy.NoProxyItemAlreadyDefined, entry);
+                output.WithInformation(CliStrings.Network.Proxy.NoProxy.AlreadyDefined, entry);
                 continue;
             }
 
@@ -51,13 +51,13 @@ internal sealed class NoProxyAddCommand : ConfigCommandBase
                 return;
 
             var title = output.ItemCount == 1
-                ? CommandLineStrings_Proxy.NoProxyItemAdded
-                : CommandLineStrings_Proxy.NoProxyItemsAdded;
+                ? CliStrings.Network.Proxy.NoProxy.Added
+                : CliStrings.Network.Proxy.NoProxy.AddedMultiple;
 
             output.WithTitle(title);
 
             if (!config.NetworkProxySettings.NoProxy.Enabled)
-                output.WithWarning(CommandLineStrings_Proxy.NoProxyListCurrentlyDisabled);
+                output.WithWarning(CliStrings.Network.Proxy.NoProxy.CurrentlyDisabled);
         }
 
         output.WriteLine();

@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.NTP;
@@ -12,9 +13,7 @@ internal sealed class NTPEnableCommand : ConfigCommandBase
     /// Initializes a new <see cref="NTPEnableCommand"/>.
     /// </summary>
     public NTPEnableCommand()
-        : base(
-            CommandLineStrings_Common.EnableCommandName,
-            CommandLineStrings_NTP.NTPEnableCommandDescription)
+        : base(CliStrings.Common.EnableCommandName, CliStrings.Network.NTP.EnableCommandDescription)
         => SetAction((parseResult, cancellationToken) => EnableHandler(cancellationToken));
 
     private static async Task EnableHandler(CancellationToken cancellationToken)
@@ -24,13 +23,13 @@ internal sealed class NTPEnableCommand : ConfigCommandBase
 
         if (config.NetworkNTPSettings.Enabled)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_NTP.ServersAlreadyEnabled);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.NTP.AlreadyEnabled);
             return;
         }
 
         if (config.NetworkNTPSettings.Servers.Count == 0)
         {
-            SimpleOutput.WriteLineError(CommandLineStrings_NTP.ServersNotConfigured);
+            SimpleOutput.WriteLineError(CliStrings.Network.NTP.NotConfigured);
             return;
         }
 
@@ -39,6 +38,6 @@ internal sealed class NTPEnableCommand : ConfigCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_NTP.ServersEnabled);
+        SimpleOutput.WriteLine(CliStrings.Network.NTP.Enabled);
     }
 }

@@ -1,4 +1,5 @@
 using System.CommandLine;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.PrimaryDNSSuffix;
 
@@ -10,9 +11,8 @@ internal sealed class PrimaryDNSSuffixCommand : Command
     /// <summary>
     /// Initializes a new <see cref="PrimaryDNSSuffixCommand"/>.
     /// </summary>
-    public PrimaryDNSSuffixCommand() : base(
-        CommandLineStrings_DNS.DNSSuffixCommandName,
-        CommandLineStrings_DNS.DNSSuffixCommandDescription)
+    public PrimaryDNSSuffixCommand()
+        : base(CliStrings.Network.DNS.Suffix.CommandName, CliStrings.Network.DNS.Suffix.CommandDescription)
     {
         Add(new PrimaryDNSSuffixStatusCommand());
         Add(new PrimaryDNSSuffixEnableCommand());

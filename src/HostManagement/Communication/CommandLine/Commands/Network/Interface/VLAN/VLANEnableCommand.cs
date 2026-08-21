@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Extensions;
@@ -15,9 +16,8 @@ internal sealed class VLANEnableCommand : ConfigCommandBase
     /// Initializes a new <see cref="VLANEnableCommand"/>.
     /// </summary>
     /// <param name="interfaceNameArgument">The interface name argument.</param>
-    public VLANEnableCommand(Argument<string> interfaceNameArgument) : base(
-        CommandLineStrings_Common.EnableCommandName,
-        CommandLineStrings_NetworkInterfaces.VLANEnableCommandDescription)
+    public VLANEnableCommand(Argument<string> interfaceNameArgument)
+        : base(CliStrings.Common.EnableCommandName, CliStrings.Network.Interface.VLAN.EnableCommandDescription)
     {
         Add(interfaceNameArgument);
 
@@ -32,13 +32,13 @@ internal sealed class VLANEnableCommand : ConfigCommandBase
 
         if (config.GetNetworkInterface(interfaceName) is not NetworkInterfaceDetail interfaceToConfigure)
         {
-            SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.InterfaceNotFound, interfaceName);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.NotFound, interfaceName);
             return;
         }
 
         if (interfaceToConfigure.VLAN.Enabled)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_NetworkInterfaces.VLANAlreadyEnabled, interfaceName);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.Interface.VLAN.AlreadyEnabled, interfaceName);
             return;
         }
 
@@ -47,6 +47,6 @@ internal sealed class VLANEnableCommand : ConfigCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_NetworkInterfaces.VLANEnabled, interfaceName);
+        SimpleOutput.WriteLine(CliStrings.Network.Interface.VLAN.Enabled, interfaceName);
     }
 }

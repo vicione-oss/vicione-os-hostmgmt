@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.NTP;
@@ -12,9 +13,7 @@ internal sealed class NTPClearCommand : ConfigCommandBase
     /// Initializes a new <see cref="NTPClearCommand"/>.
     /// </summary>
     public NTPClearCommand()
-        : base(
-            CommandLineStrings_Common.ClearCommandName,
-            CommandLineStrings_NTP.NTPClearCommandDescription)
+        : base(CliStrings.Common.ClearCommandName, CliStrings.Network.NTP.ClearCommandDescription)
         => SetAction((parseResult, cancellationToken) => ClearHandler(cancellationToken));
 
     private static async Task ClearHandler(CancellationToken cancellationToken)
@@ -24,7 +23,7 @@ internal sealed class NTPClearCommand : ConfigCommandBase
 
         if (config.NetworkNTPSettings.Servers.Count == 0)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_NTP.ServersNotConfigured);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.NTP.NotConfigured);
             return;
         }
 
@@ -34,7 +33,7 @@ internal sealed class NTPClearCommand : ConfigCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLineInformation(CommandLineStrings_NTP.ServersDisabled);
-        SimpleOutput.WriteLine(CommandLineStrings_NTP.ServersCleared);
+        SimpleOutput.WriteLineInformation(CliStrings.Network.NTP.Disabled);
+        SimpleOutput.WriteLine(CliStrings.Network.NTP.Cleared);
     }
 }

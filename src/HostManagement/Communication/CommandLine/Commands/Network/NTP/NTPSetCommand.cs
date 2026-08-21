@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.NTP;
@@ -13,9 +14,8 @@ internal sealed class NTPSetCommand : ConfigCommandBase
     /// Initializes a new <see cref="NTPSetCommand"/>.
     /// </summary>
     /// <param name="ntpServersArgument">The NTP servers argument.</param>
-    public NTPSetCommand(Argument<string[]> ntpServersArgument) : base(
-        CommandLineStrings_Common.SetCommandName,
-        CommandLineStrings_NTP.NTPSetCommandDescription)
+    public NTPSetCommand(Argument<string[]> ntpServersArgument)
+        : base(CliStrings.Common.SetCommandName, CliStrings.Network.NTP.SetCommandDescription)
     {
         Add(ntpServersArgument);
 
@@ -42,11 +42,11 @@ internal sealed class NTPSetCommand : ConfigCommandBase
             return;
 
         if (!config.NetworkNTPSettings.Enabled)
-            output.WithWarning(CommandLineStrings_NTP.ServersCurrentlyDisabled);
+            output.WithWarning(CliStrings.Network.NTP.CurrentlyDisabled);
 
         var title = output.ItemCount == 1
-            ? CommandLineStrings_NTP.ServerSet
-            : CommandLineStrings_NTP.ServersSet;
+            ? CliStrings.Network.NTP.Set
+            : CliStrings.Network.NTP.SetMultiple;
 
         output.WithTitle(title).WriteLine();
     }

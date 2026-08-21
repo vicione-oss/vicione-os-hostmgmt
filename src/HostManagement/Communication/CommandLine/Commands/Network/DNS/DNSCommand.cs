@@ -5,6 +5,7 @@ using HostManagement.Communication.CommandLine.Commands.Network.DNS.NameServers;
 using HostManagement.Communication.CommandLine.Commands.Network.DNS.PrimaryDNSSuffix;
 using HostManagement.Communication.CommandLine.Commands.Network.DNS.SearchDomains;
 using HostManagement.Communication.CommandLine.Commands.Network.DNS.StaticHosts;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS;
 
@@ -16,9 +17,7 @@ internal sealed class DNSCommand : Command
     /// <summary>
     /// Initializes a new <see cref="DNSCommand"/>.
     /// </summary>
-    public DNSCommand() : base(
-        CommandLineStrings_DNS.DNSCommandName,
-        CommandLineStrings_DNS.DNSCommandDescription)
+    public DNSCommand() : base(CliStrings.Network.DNS.CommandName, CliStrings.Network.DNS.CommandDescription)
     {
         Add(new DNSHostnameCommand());
         Add(new DNSMulticastCommand());

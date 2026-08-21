@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy.NoProxy;
@@ -12,9 +13,7 @@ internal sealed class NoProxyDisableCommand : ConfigCommandBase
     /// Initializes a new <see cref="NoProxyDisableCommand"/>.
     /// </summary>
     public NoProxyDisableCommand()
-        : base(
-            CommandLineStrings_Common.DisableCommandName,
-            CommandLineStrings_Proxy.NoProxyListDisableCommandDescription)
+        : base(CliStrings.Common.DisableCommandName, CliStrings.Network.Proxy.NoProxy.DisableCommandDescription)
         => SetAction((parseResult, cancellationToken) => DisableHandler(cancellationToken));
 
     private static async Task DisableHandler(CancellationToken cancellationToken)
@@ -24,7 +23,7 @@ internal sealed class NoProxyDisableCommand : ConfigCommandBase
 
         if (!config.NetworkProxySettings.NoProxy.Enabled)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_Proxy.NoProxyListAlreadyDisabled);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.Proxy.NoProxy.AlreadyDisabled);
             return;
         }
 
@@ -33,6 +32,6 @@ internal sealed class NoProxyDisableCommand : ConfigCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_Proxy.NoProxyListDisabled);
+        SimpleOutput.WriteLine(CliStrings.Network.Proxy.NoProxy.Disabled);
     }
 }

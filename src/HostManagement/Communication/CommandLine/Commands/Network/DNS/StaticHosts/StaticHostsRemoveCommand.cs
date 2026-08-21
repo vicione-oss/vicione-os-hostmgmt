@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.Net;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 
@@ -16,9 +17,8 @@ internal sealed class StaticHostsRemoveCommand : ConfigCommandBase
     /// </summary>
     /// <param name="addressOption">The IP address option.</param>
     /// <param name="hostnameOption">The hostname option.</param>
-    public StaticHostsRemoveCommand(Option<IPAddress> addressOption, Option<string> hostnameOption) : base(
-        CommandLineStrings_Common.RemoveCommandName,
-        CommandLineStrings_DNS.DNSStaticHostsRemoveCommandDescription)
+    public StaticHostsRemoveCommand(Option<IPAddress> addressOption, Option<string> hostnameOption)
+        : base(CliStrings.Common.RemoveCommandName, CliStrings.Network.DNS.StaticHosts.RemoveCommandDescription)
     {
         Add(addressOption);
         Add(hostnameOption);
@@ -43,13 +43,13 @@ internal sealed class StaticHostsRemoveCommand : ConfigCommandBase
 
         if (!config.NetworkDNSSettings.StaticHosts.Hosts.Contains(staticHostToRemove))
         {
-            SimpleOutput.WriteLineWarning(CommandLineStrings_DNS.StaticHostNotFound, address, hostname);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.DNS.StaticHosts.NotFound, address, hostname);
             return;
         }
 
         if (!config.NetworkDNSSettings.StaticHosts.Hosts.Remove(staticHostToRemove))
         {
-            SimpleOutput.WriteLineError(CommandLineStrings_DNS.StaticHostCouldNotBeRemoved, address, hostname);
+            SimpleOutput.WriteLineError(CliStrings.Network.DNS.StaticHosts.CouldNotBeRemoved, address, hostname);
             return;
         }
 
@@ -61,18 +61,18 @@ internal sealed class StaticHostsRemoveCommand : ConfigCommandBase
             {
                 config.NetworkDNSSettings.StaticHosts.Enabled = false;
 
-                output.WithInformation(CommandLineStrings_DNS.StaticHostsDisabled);
+                output.WithInformation(CliStrings.Network.DNS.StaticHosts.Disabled);
             }
         }
         else
         {
             if (config.NetworkDNSSettings.StaticHosts.Hosts.Count > 0)
-                output.WithWarning(CommandLineStrings_DNS.StaticHostsCurrentlyDisabled);
+                output.WithWarning(CliStrings.Network.DNS.StaticHosts.CurrentlyDisabled);
         }
 
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        output.WithTitle(CommandLineStrings_DNS.StaticHostRemoved).WriteLine();
+        output.WithTitle(CliStrings.Network.DNS.StaticHosts.Removed).WriteLine();
     }
 }

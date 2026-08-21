@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Extensions;
@@ -15,9 +16,8 @@ internal sealed class InterfaceEnableCommand : ConfigCommandBase
     /// Initializes a new <see cref="InterfaceEnableCommand"/>.
     /// </summary>
     /// <param name="interfaceNameArgument">The interface name argument.</param>
-    public InterfaceEnableCommand(Argument<string> interfaceNameArgument) : base(
-        CommandLineStrings_Common.EnableCommandName,
-        CommandLineStrings_NetworkInterfaces.NetworkInterfaceEnableCommandDescription)
+    public InterfaceEnableCommand(Argument<string> interfaceNameArgument)
+        : base(CliStrings.Common.EnableCommandName, CliStrings.Network.Interface.EnableCommandDescription)
     {
         Add(interfaceNameArgument);
 
@@ -32,13 +32,13 @@ internal sealed class InterfaceEnableCommand : ConfigCommandBase
 
         if (config.GetNetworkInterface(interfaceName) is not NetworkInterfaceDetail interfaceToConfigure)
         {
-            SimpleOutput.WriteLineWarning(CommandLineStrings_NetworkInterfaces.InterfaceNotFound, interfaceName);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.NotFound, interfaceName);
             return;
         }
 
         if (interfaceToConfigure.CommonInformation.Enabled)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_NetworkInterfaces.InterfaceAlreadyEnabled, interfaceName);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.Interface.AlreadyEnabled, interfaceName);
             return;
         }
 
@@ -47,6 +47,6 @@ internal sealed class InterfaceEnableCommand : ConfigCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_NetworkInterfaces.InterfaceEnabled, interfaceName);
+        SimpleOutput.WriteLine(CliStrings.Network.Interface.Enabled, interfaceName);
     }
 }

@@ -1,4 +1,5 @@
 using System.CommandLine;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.StaticHosts;
 
@@ -17,9 +18,8 @@ internal sealed class StaticHostsCommand : Command
     /// <summary>
     /// Initializes a new <see cref="StaticHostsCommand"/>.
     /// </summary>
-    public StaticHostsCommand() : base(
-        CommandLineStrings_DNS.DNSStaticHostsCommandName,
-        CommandLineStrings_DNS.DNSStaticHostsCommandDescription)
+    public StaticHostsCommand()
+        : base(CliStrings.Network.DNS.StaticHosts.CommandName, CliStrings.Network.DNS.StaticHosts.CommandDescription)
     {
         Add(new StaticHostsListCommand());
         Add(new StaticHostsEnableCommand());

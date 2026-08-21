@@ -1,6 +1,7 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine.Commands.Deployment.Redeploy;
 
@@ -13,9 +14,7 @@ internal sealed class RedeployCommand : Command
     /// Initializes a new <see cref="DeploymentCommand"/>.
     /// </summary>
     public RedeployCommand()
-        : base(
-            CommandLineStrings_Deployment.RedeployCommandName,
-            CommandLineStrings_Deployment.RedeployCommandDescription)
+        : base(CliStrings.Deployment.RedeployCommandName, CliStrings.Deployment.RedeployCommandDescription)
         => SetAction((parseResult, cancellationToken) => RedeployHandler(cancellationToken));
 
     private static async Task RedeployHandler(CancellationToken cancellationToken)
@@ -23,6 +22,6 @@ internal sealed class RedeployCommand : Command
         if (!await NamedPipeRequestHelper.RedeployScripts(cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_Deployment.ScriptsDeployed);
+        SimpleOutput.WriteLine(CliStrings.Deployment.ScriptsRedeployed);
     }
 }

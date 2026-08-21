@@ -2,6 +2,7 @@ using System.CommandLine;
 using HostManagement.Communication.CommandLine.Commands.Network.Interface.IPv4.DHCP;
 using HostManagement.Communication.CommandLine.Commands.Network.Interface.IPv4.Gateway;
 using HostManagement.Communication.CommandLine.Commands.Network.Interface.IPv4.IP;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Interface.IPv4;
 
@@ -14,9 +15,8 @@ internal sealed class IPv4Command : Command
     /// Initializes a new <see cref="IPv4Command"/>.
     /// </summary>
     /// <param name="interfaceNameArgument">The interface name argument.</param>
-    public IPv4Command(Argument<string> interfaceNameArgument) : base(
-        CommandLineStrings_NetworkInterfaces.IPv4CommandName,
-        CommandLineStrings_NetworkInterfaces.IPv4CommandDescription)
+    public IPv4Command(Argument<string> interfaceNameArgument)
+        : base(CliStrings.Network.Interface.IPv4.CommandName, CliStrings.Network.Interface.IPv4.CommandDescription)
     {
         Add(new DHCPCommand(interfaceNameArgument));
         Add(new IPCommand());

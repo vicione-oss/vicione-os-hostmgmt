@@ -1,6 +1,7 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 
 namespace HostManagement.Communication.CommandLine.Commands.System;
 
@@ -13,11 +14,12 @@ internal sealed class SystemRestartCommand : Command
     /// Initializes a new <see cref="SystemRestartCommand"/>.
     /// </summary>
     /// <param name="delayArgument">The delay argument.</param>
-    public SystemRestartCommand(Argument<int> delayArgument) : base(
-        CommandLineStrings_System.SystemRestartCommandName,
-        CommandLineStrings_System.SystemRestartCommandDescription +
-        " " +
-        CommandLineStrings_System.OptionalDelayCanBeSpecified)
+    public SystemRestartCommand(Argument<int> delayArgument)
+        : base(
+            CliStrings.System.RestartCommandName,
+            CliStrings.System.RestartCommandDescription +
+            " " +
+            CliStrings.System.OptionalDelayCanBeSpecified)
     {
         Add(delayArgument);
 

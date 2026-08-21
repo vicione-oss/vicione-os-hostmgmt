@@ -1,5 +1,6 @@
-﻿using HostManagement.Communication.CommandLine.Helper;
+using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Enums;
 
 namespace HostManagement.Communication.CommandLine.Commands.Service;
@@ -17,7 +18,7 @@ internal abstract class ServiceControlCommandBase(string name, string descriptio
     {
         if (string.IsNullOrWhiteSpace(systemdUnitName))
         {
-            SimpleOutput.WriteLineError(CommandLineStrings_Systemd.UnitEmpty, systemdUnitName);
+            SimpleOutput.WriteLineError(CliStrings.Service.Empty, systemdUnitName);
             return;
         }
 
@@ -28,9 +29,9 @@ internal abstract class ServiceControlCommandBase(string name, string descriptio
 
         var successMessage = controlAction switch
         {
-            ServiceControlAction.Start => CommandLineStrings_Systemd.UnitStarted,
-            ServiceControlAction.Stop => CommandLineStrings_Systemd.UnitStopped,
-            ServiceControlAction.Restart => CommandLineStrings_Systemd.UnitRestarted,
+            ServiceControlAction.Start => CliStrings.Service.Started,
+            ServiceControlAction.Stop => CliStrings.Service.Stopped,
+            ServiceControlAction.Restart => CliStrings.Service.Restarted,
             _ => throw new ArgumentOutOfRangeException(nameof(controlAction), controlAction, null)
         };
 

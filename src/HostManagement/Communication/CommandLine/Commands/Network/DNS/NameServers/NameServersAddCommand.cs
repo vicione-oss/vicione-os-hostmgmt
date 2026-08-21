@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.Net;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.NameServers;
@@ -14,9 +15,8 @@ internal sealed class NameServersAddCommand : ConfigCommandBase
     /// Initializes a new <see cref="NameServersAddCommand"/>.
     /// </summary>
     /// <param name="ipAddressesArgument">The IP addresses argument.</param>
-    public NameServersAddCommand(Argument<IPAddress[]> ipAddressesArgument) : base(
-        CommandLineStrings_Common.AddCommandName,
-        CommandLineStrings_DNS.DNSNameServersAddCommandDescription)
+    public NameServersAddCommand(Argument<IPAddress[]> ipAddressesArgument)
+        : base(CliStrings.Common.AddCommandName, CliStrings.Network.DNS.NameServers.AddCommandDescription)
     {
         Add(ipAddressesArgument);
 
@@ -36,7 +36,7 @@ internal sealed class NameServersAddCommand : ConfigCommandBase
         {
             if (config.NetworkDNSSettings.NameServers.Addresses.Contains(address))
             {
-                output.WithInformation(CommandLineStrings_DNS.NameServerAlreadyDefined, address);
+                output.WithInformation(CliStrings.Network.DNS.NameServers.AlreadyDefined, address);
                 continue;
             }
 
@@ -52,13 +52,13 @@ internal sealed class NameServersAddCommand : ConfigCommandBase
                 return;
 
             var title = output.ItemCount == 1
-                ? CommandLineStrings_DNS.NameServerAdded
-                : CommandLineStrings_DNS.NameServersAdded;
+                ? CliStrings.Network.DNS.NameServers.Added
+                : CliStrings.Network.DNS.NameServers.AddedMultiple;
 
             output.WithTitle(title);
 
             if (!config.NetworkDNSSettings.NameServers.Enabled)
-                output.WithWarning(CommandLineStrings_DNS.NameServersCurrentlyDisabled);
+                output.WithWarning(CliStrings.Network.DNS.NameServers.CurrentlyDisabled);
         }
 
         output.WriteLine();

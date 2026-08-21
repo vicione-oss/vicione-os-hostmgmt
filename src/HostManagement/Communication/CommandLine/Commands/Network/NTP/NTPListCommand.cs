@@ -1,5 +1,6 @@
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.NTP;
@@ -13,9 +14,7 @@ internal sealed class NTPListCommand : ConfigCommandBase
     /// Initializes a new <see cref="NTPListCommand"/>.
     /// </summary>
     public NTPListCommand()
-        : base(
-            CommandLineStrings_Common.ListCommandName,
-            CommandLineStrings_NTP.NTPListCommandDescription)
+        : base(CliStrings.Common.ListCommandName, CliStrings.Network.NTP.ListCommandDescription)
         => SetAction((parseResult, cancellationToken) => ListHandler(cancellationToken));
 
     private static async Task ListHandler(CancellationToken cancellationToken)
@@ -25,12 +24,12 @@ internal sealed class NTPListCommand : ConfigCommandBase
 
         if (config.NetworkNTPSettings.Servers.Count == 0)
         {
-            SimpleOutput.WriteLine(CommandLineStrings_NTP.ServersNotConfigured);
+            SimpleOutput.WriteLine(CliStrings.Network.NTP.NotConfigured);
         }
         else
         {
             new ListOutput()
-                .WithTitle(CommandLineStrings_NTP.Servers, config.NetworkNTPSettings.Enabled)
+                .WithTitle(CliStrings.Network.NTP.Servers, config.NetworkNTPSettings.Enabled)
                 .WithEach(config.NetworkNTPSettings.Servers.Select(CliOutputValue.Create))
                 .WriteLine();
         }
@@ -38,7 +37,7 @@ internal sealed class NTPListCommand : ConfigCommandBase
         var ntpFallbackServers = await NamedPipeRequestHelper.GetNTPFallbackInformation(cancellationToken);
 
         new ListOutput()
-            .WithTitle(CommandLineStrings_NTP.FallbackServers)
+            .WithTitle(CliStrings.Network.NTP.FallbackServers)
             .WithEach(ntpFallbackServers.Select(CliOutputValue.Create))
             .WriteLine();
     }

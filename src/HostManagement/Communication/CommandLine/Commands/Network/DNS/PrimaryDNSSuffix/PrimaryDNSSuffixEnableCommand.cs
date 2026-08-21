@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.PrimaryDNSSuffix;
@@ -12,9 +13,7 @@ internal sealed class PrimaryDNSSuffixEnableCommand : ConfigCommandBase
     /// Initializes a new <see cref="PrimaryDNSSuffixEnableCommand"/>.
     /// </summary>
     public PrimaryDNSSuffixEnableCommand()
-        : base(
-            CommandLineStrings_Common.EnableCommandName,
-            CommandLineStrings_DNS.DNSSuffixEnableCommandDescription)
+        : base(CliStrings.Common.EnableCommandName, CliStrings.Network.DNS.Suffix.EnableCommandDescription)
         => SetAction((parseResult, cancellationToken) => EnableHandler(cancellationToken));
 
     private static async Task EnableHandler(CancellationToken cancellationToken)
@@ -24,13 +23,13 @@ internal sealed class PrimaryDNSSuffixEnableCommand : ConfigCommandBase
 
         if (config.NetworkDNSSettings.PrimaryDNSSuffix.Enabled)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.SuffixAlreadyEnabled);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.DNS.Suffix.AlreadyEnabled);
             return;
         }
 
         if (string.IsNullOrEmpty(config.NetworkDNSSettings.PrimaryDNSSuffix.Suffix))
         {
-            SimpleOutput.WriteLineWarning(CommandLineStrings_DNS.SuffixNotConfigured);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.DNS.Suffix.NotConfigured);
             return;
         }
 
@@ -39,6 +38,6 @@ internal sealed class PrimaryDNSSuffixEnableCommand : ConfigCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLine(CommandLineStrings_DNS.SuffixEnabled);
+        SimpleOutput.WriteLine(CliStrings.Network.DNS.Suffix.Enabled);
     }
 }

@@ -1,4 +1,5 @@
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.StaticHosts;
@@ -12,9 +13,7 @@ internal sealed class StaticHostsClearCommand : ConfigCommandBase
     /// Initializes a new <see cref="StaticHostsClearCommand"/>.
     /// </summary>
     public StaticHostsClearCommand()
-        : base(
-            CommandLineStrings_Common.ClearCommandName,
-            CommandLineStrings_DNS.DNSStaticHostsClearCommandDescription)
+        : base(CliStrings.Common.ClearCommandName, CliStrings.Network.DNS.StaticHosts.ClearCommandDescription)
         => SetAction((parseResult, cancellationToken) => ClearHandler(cancellationToken));
 
     private static async Task ClearHandler(CancellationToken cancellationToken)
@@ -24,7 +23,7 @@ internal sealed class StaticHostsClearCommand : ConfigCommandBase
 
         if (config.NetworkDNSSettings.StaticHosts.Hosts.Count == 0)
         {
-            SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.StaticHostsNotConfigured);
+            SimpleOutput.WriteLineInformation(CliStrings.Network.DNS.StaticHosts.NotConfigured);
             return;
         }
 
@@ -34,7 +33,7 @@ internal sealed class StaticHostsClearCommand : ConfigCommandBase
         if (!await SetConfiguration(config, cancellationToken))
             return;
 
-        SimpleOutput.WriteLineInformation(CommandLineStrings_DNS.StaticHostsDisabled);
-        SimpleOutput.WriteLine(CommandLineStrings_DNS.StaticHostsCleared);
+        SimpleOutput.WriteLineInformation(CliStrings.Network.DNS.StaticHosts.Disabled);
+        SimpleOutput.WriteLine(CliStrings.Network.DNS.StaticHosts.Cleared);
     }
 }

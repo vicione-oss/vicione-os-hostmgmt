@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy;
@@ -14,13 +15,14 @@ internal sealed class ProxyTypeStatusCommand : ProxyTypeCommandBase
     /// Initializes a new <see cref="ProxyTypeStatusCommand"/>.
     /// </summary>
     /// <param name="proxyType">The proxy type.</param>
-    public ProxyTypeStatusCommand(ProxyType proxyType) : base(
-        CommandLineStrings_Common.StatusCommandName,
-        string.Format(
-            CultureInfo.InvariantCulture,
-            CompositeFormat.Parse(CommandLineStrings_Proxy.ProxyTypeStatusCommandDescription),
-            proxyType))
-                => SetAction((parseResult, cancellationToken) => ListHandler(proxyType, cancellationToken));
+    public ProxyTypeStatusCommand(ProxyType proxyType)
+        : base(
+            CliStrings.Common.StatusCommandName,
+            string.Format(
+                CultureInfo.InvariantCulture,
+                CompositeFormat.Parse(CliStrings.Network.Proxy.StatusCommandDescription),
+                proxyType))
+        => SetAction((parseResult, cancellationToken) => ListHandler(proxyType, cancellationToken));
 
     private static async Task ListHandler(ProxyType proxyType, CancellationToken cancellationToken)
     {

@@ -1,5 +1,6 @@
 using System.CommandLine;
 using HostManagement.Communication.CommandLine.Output;
+using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.DNS.SearchDomains;
@@ -13,9 +14,8 @@ internal sealed class SearchDomainsSetCommand : ConfigCommandBase
     /// Initializes a new <see cref="SearchDomainsSetCommand"/>.
     /// </summary>
     /// <param name="searchDomainsArgument">The search domains argument.</param>
-    public SearchDomainsSetCommand(Argument<string[]> searchDomainsArgument) : base(
-        CommandLineStrings_Common.SetCommandName,
-        CommandLineStrings_DNS.DNSSearchDomainsSetCommandDescription)
+    public SearchDomainsSetCommand(Argument<string[]> searchDomainsArgument)
+        : base(CliStrings.Common.SetCommandName, CliStrings.Network.DNS.SearchDomains.SetCommandDescription)
     {
         Add(searchDomainsArgument);
 
@@ -42,13 +42,13 @@ internal sealed class SearchDomainsSetCommand : ConfigCommandBase
             return;
 
         var title = output.ItemCount == 1
-            ? CommandLineStrings_DNS.SearchDomainSet
-            : CommandLineStrings_DNS.SearchDomainsSet;
+            ? CliStrings.Network.DNS.SearchDomains.Set
+            : CliStrings.Network.DNS.SearchDomains.SetMultiple;
 
         output.WithTitle(title);
 
         if (!config.NetworkDNSSettings.SearchDomains.Enabled)
-            output.WithWarning(CommandLineStrings_DNS.SearchDomainsCurrentlyDisabled);
+            output.WithWarning(CliStrings.Network.DNS.SearchDomains.CurrentlyDisabled);
 
         output.WriteLine();
     }
