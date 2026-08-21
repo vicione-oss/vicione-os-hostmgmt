@@ -1,14 +1,11 @@
-﻿namespace HostManagement.Configuration;
+namespace HostManagement.Configuration;
 
 /// <summary>
 /// Provides shared information for managing Linux systemd units.
 /// </summary>
 public static class SystemdUnits
 {
-    /// <summary>
-    /// List of known Linux systemd unit types.
-    /// </summary>
-    internal static readonly HashSet<string> s_knownUnitTypes =
+    private static readonly HashSet<string> s_knownUnitTypes =
     [
         ".service",
         ".socket",
@@ -31,6 +28,6 @@ public static class SystemdUnits
     /// <returns>
     /// <see langword="true"/> if the string ends with a recognized unit type suffix; otherwise <see langword="false"/>.
     /// </returns>
-    public static bool HasKnownUnitTypeSuffix(string name) =>
-        s_knownUnitTypes.Any(unit => name.EndsWith(unit, StringComparison.Ordinal));
+    public static bool HasKnownUnitTypeSuffix(string name)
+        => s_knownUnitTypes.Any(unit => name.EndsWith(unit, StringComparison.Ordinal));
 }
