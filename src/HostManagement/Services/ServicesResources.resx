@@ -147,6 +147,12 @@
   <data name="GetOriginalPhysicalAddressFailed" xml:space="preserve">
     <value>Getting original physical address failed.</value>
   </data>
+  <data name="GetSupportedCapabilitiesCanceled" xml:space="preserve">
+    <value>Getting supported capabilities was canceled.</value>
+  </data>
+  <data name="GetSupportedCapabilitiesFailed" xml:space="preserve">
+    <value>Getting supported capabilities failed.</value>
+  </data>
   <data name="GetSystemdUnitActiveStateCanceled" xml:space="preserve">
     <value>Getting active state of systemd unit '{0}' was canceled.</value>
   </data>

@@ -191,14 +191,29 @@ The project is divided into several main components:
 %%{ init: { 'flowchart': { 'curve': 'stepAfter' } } }%%
 flowchart TD
 
-  HostManagement ---> HostManagement.Common
-  HostManagement ---> HostManagement.Configuration
-  HostManagement ---> HostManagement.Scripts
-  HostManagement --> HostManagement.Shared.Communication --> HostManagement.Shared
+  HostManagement --> HostManagementCommon["HostManagement.Common"]
+  HostManagement --> HostManagementConfiguration["HostManagement.Configuration"]
+  HostManagement --> HostManagementScripts["HostManagement.Scripts"]
+  HostManagement --> HostManagementSharedCommunication["HostManagement.Shared.Communication"]
+  HostManagement --> HostManagementSharedCommunicationCapabilitySerialization["HostManagement.Shared.Communication.CapabilitySerialization"]
+
+  HostManagementSharedCommunication --> HostManagementShared["HostManagement.Shared"]
+  HostManagementSharedCommunicationCapabilitySerialization --> HostManagementSharedCommunication
 
   %% Compile‑time dependencies (source generators)
-  HostManagement.Shared.Communication -.-> HostManagement.Shared.Communication.SourceGeneration
+  HostManagementShared -.->|Analyzer| HostManagementSharedSourceGeneration["HostManagement.Shared.SourceGeneration"]
+  HostManagementSharedCommunication -.->|Analyzer| HostManagementSharedCommunicationSourceGeneration["HostManagement.Shared.Communication.SourceGeneration"]
 
+  %% NuGets
+  HostManagementShared -.->|NuGet package| HostManagementSharedNuGet["NuGet: HostManagement.Shared"]
+  HostManagementSharedCommunication -.->|NuGet package| HostManagementSharedCommunicationNuGet["NuGet: HostManagement.Shared.Communication"]
+  HostManagementSharedCommunicationCapabilitySerialization -.->|Additional assembly in same package| HostManagementSharedCommunicationNuGet
+
+  classDef nuGet stroke:#000,stroke-width:1px
+  class HostManagementSharedNuGet,HostManagementSharedCommunicationNuGet nuGet
+
+  classDef generator stroke:#bbb,stroke-width:1px,stroke-dasharray: 5 5
+  class HostManagementSharedSourceGeneration,HostManagementSharedCommunicationSourceGeneration generator
 ```
 
 <details>
@@ -209,75 +224,80 @@ flowchart TD
   </summary>
 
   <pre>
-  HostManagement                           <-- HostManagement Solution
-  ├── HostManagement                       <-- Main project for Host Management (HM)
-  │   ├── Communication                    <-- All communication channels are defined here
-  │   │   ├── CommandLine                  <-- CLI implementation (communication via named pipes)
-  │   │   │   ├── Commands                 <-- CLI commands
-  │   │   │   ├── Output                   <-- Output formatting for the CLI
-  │   │   │   └── Validators               <-- Validators for the CLI
-  │   │   └── NamedPipes                   <-- Named pipes implementation (for communication with the ViciOne Suite)
-  │   │       ├── Client                   <-- Client implementation
-  │   │       └── RequestHandlers          <-- Request handlers for the named pipes (for loading/applying settings etc.)
-  │   ├── Services                         <-- Services for DHCP, network status information, NTP, physical addresses, system and systemd units
-  │   ├── SystemConfig                     <-- Classes to modify the system configuration
-  │   │   ├── Contracts                    <-- Internally used contracts (DTOs) for reading and applying of a configuration
-  │   │   ├── Migrations                   <-- Contract migration logic and archived older contract versions
-  │   │   ├── Network                      <-- Network configuration adapter
-  │   │   └── Service                      <-- Service configuration adapter
-  │   ├── ViciOneSuite                     <-- ViciOne Suite-specific functions (version, installation)
+  HostManagement                                                   <-- HostManagement Solution
+  ├── HostManagement                                               <-- Main project for Host Management (HM)
+  │   ├── Communication                                            <-- All communication channels are defined here
+  │   │   ├── CommandLine                                          <-- CLI implementation (communication via named pipes)
+  │   │   │   ├── Commands                                         <-- CLI commands
+  │   │   │   ├── Output                                           <-- Output formatting for the CLI
+  │   │   │   └── Validators                                       <-- Validators for the CLI
+  │   │   └── NamedPipes                                           <-- Named pipes implementation (for communication with the ViciOne Suite)
+  │   │       ├── Client                                           <-- Client implementation
+  │   │       └── RequestHandlers                                  <-- Request handlers for the named pipes (for loading/applying settings etc.)
+  │   ├── Services                                                 <-- Services for DHCP, network status information, NTP, physical addresses, system and systemd units
+  │   ├── SystemConfig                                             <-- Classes to modify the system configuration
+  │   │   ├── Contracts                                            <-- Internally used contracts (DTOs) for reading and applying of a configuration
+  │   │   ├── Migrations                                           <-- Contract migration logic and archived older contract versions
+  │   │   ├── Network                                              <-- Network configuration adapter
+  │   │   └── Service                                              <-- Service configuration adapter
+  │   ├── ViciOneSuite                                             <-- ViciOne Suite-specific functions (version, installation)
   │   │
-  │   └── Program.cs                       <-- Entry point of the tool
+  │   └── Program.cs                                               <-- Entry point of the tool
   │
   │
-  ├── HostManagement.Common                <-- Subproject for helpers, utilities, abstractions, etc.
-  │   ├── Utilities                        <-- Utility classes
-  │   └── Wrappers                         <-- Wrappers for system functions
+  ├── HostManagement.Common                                        <-- Subproject for helpers, utilities, abstractions, etc.
+  │   └── Utilities                                                <-- Utility classes
   │
   │
-  ├── HostManagement.Configuration         <-- Subproject for application configurations (environment variables, application-specific paths, etc.)
+  ├── HostManagement.Configuration                                 <-- Subproject for application configurations (environment variables, application-specific paths, etc.)
   │
   │
-  ├── HostManagement.Scripts               <-- Subproject for the scripts that communicate with the base system
-  │   ├── Enums                            <-- Collection folder for enums
-  │   ├── Extensions                       <-- Extensions (e.g. for string adjustments regarding Unix line endings)
-  │   ├── Resources                        <-- All deployable resources (scripts, etc.)
-  │   │   └── Scripts                      <-- Shell scripts - all scripts for communicating with the base system
+  ├── HostManagement.Scripts                                       <-- Subproject for the scripts that communicate with the base system
+  │   ├── Enums                                                    <-- Collection folder for enums
+  │   ├── Extensions                                               <-- Extensions (e.g. for string adjustments regarding Unix line endings)
+  │   ├── Resources                                                <-- All deployable resources (scripts, etc.)
+  │   │   └── Scripts                                              <-- Shell scripts - all scripts for communicating with the base system
   │   │       ├── shared
-  │   │       │   ├── Common               <-- Scripts for general use
-  │   │       │   ├── System               <-- Scripts for system operations
-  │   │       │   └── SystemdUnit          <-- Scripts to control systemd units
+  │   │       │   ├── Common                                       <-- Scripts for general use
+  │   │       │   ├── System                                       <-- Scripts for system operations
+  │   │       │   └── SystemdUnit                                  <-- Scripts to control systemd units
   │   │       └── targets
   │   │           ├── debian
-  │   │           │   ├── Common           <-- Symlink to scripts from shared
-  │   │           │   ├── System           <-- Debian-specific system scripts
-  │   │           │   └── SystemdUnit      <-- Symlink to scripts from shared
+  │   │           │   ├── Common                                   <-- Symlink to scripts from shared
+  │   │           │   ├── System                                   <-- Debian-specific system scripts
+  │   │           │   └── SystemdUnit                              <-- Symlink to scripts from shared
   │   │           └── edges-vicione
-  │   │               ├── Common           <-- Symlink to scripts from shared
-  │   │               ├── Network          <-- Subgroup for network scripts
-  │   │               ├── System           <-- EdgeS ViciOne-specific system scripts
-  │   │               ├── SystemdUnit      <-- Symlink to scripts from shared
-  │   │               └── ViciOne          <-- ViciOne-specific scripts
+  │   │               ├── Common                                   <-- Symlink to scripts from shared
+  │   │               ├── Network                                  <-- Subgroup for network scripts
+  │   │               ├── System                                   <-- EdgeS ViciOne-specific system scripts
+  │   │               ├── SystemdUnit                              <-- Symlink to scripts from shared
+  │   │               └── ViciOne                                  <-- ViciOne-specific scripts
   │   │
-  │   ├── ResourceManager.cs               <-- Responsible for deployment/invokability of the scripts
-  │   ├── ScriptOptionNames.cs             <-- All option names for the respective scripts (e.g. "--ip-address")
-  │   ├── ScriptResponse.cs                <-- The script response incl. exit code and warnings/errors
-  │   └── ScriptRunner.cs                  <-- Executes all scripts
+  │   ├── ResourceManager.cs                                       <-- Responsible for deployment/invokability of the scripts
+  │   ├── ScriptOptionNames.cs                                     <-- All option names for the respective scripts (e.g. "--ip-address")
+  │   ├── ScriptResponse.cs                                        <-- The script response incl. exit code and warnings/errors
+  │   └── ScriptRunner.cs                                          <-- Executes all scripts
   │
   │
-  ├── HostManagement.Shared                <-- Subproject for the components used in HostManagement and in the ViciOne Suite
-  │   ├── Contracts                        <-- Public data model of the system configuration
-  │   ├── Serialization                    <-- Serialization logic
-  │   └── Validation                       <-- Validation of the system configuration
-  │       └── Validators                   <-- Folder for validation classes
+  ├── HostManagement.Shared                                        <-- Subproject for the components used in HostManagement and in the ViciOne Suite
+  │   ├── Contracts                                                <-- Public data model of the system configuration
+  │   ├── Serialization                                            <-- Serialization logic
+  │   └── Validation                                               <-- Validation of the system configuration
+  │       └── Validators                                           <-- Folder for validation classes
   │
   │
-  ├── HostManagement.Shared.Communication  <-- Subproject for named pipe communication between HostManagement and ViciOne Suite
-  │   ├── Contracts                        <-- Data model for communication
-  │   └── Serialization                    <-- Serialization logic
+  ├── HostManagement.Shared.SourceGeneration                       <-- Source generator for 'SupportedSettings'
   │
   │
-  └── HostManagement.Shared.Communication.SourceGeneration  <-- Source generator for communication
+  ├── HostManagement.Shared.Communication                          <-- Subproject for named pipe communication between HostManagement and ViciOne Suite
+  │   ├── Contracts                                                <-- Data model for communication
+  │   └── Serialization                                            <-- Serialization logic
+  │
+  │
+  ├── HostManagement.Shared.Communication.CapabilitySerialization  <-- Capability serialization for capability-related types, e.g. 'GetSupportedCapabilitiesResult'
+  │
+  │
+  └── HostManagement.Shared.Communication.SourceGeneration         <-- Source generator for communication, 'SupportedTopics' and 'SupportedCapabilities'
   </pre>
 
 </details>
@@ -287,6 +307,12 @@ flowchart TD
 This is the main project of the tool and contains the **core logic** for **system configuration**.
 
 It includes the definitions of the commands for the **command line** and the logic for communication via **named pipes**.
+
+#### SupportedCapabilities
+
+The `SupportedCapabilities` of **HM** describe which **settings** and/or **topics** the current system supports.
+
+Details about this functionality are documented in [docs/SupportedCapabilities.md].
 
 #### System configuration contract migrations
 
@@ -318,6 +344,11 @@ When a **shell script** is executed, it returns a response indicating whether th
 ### HostManagement.Shared.Communication
 
 `HostManagement.Shared.Communication` contains a shared **library** for **communication** via **named pipes**. This library is used by both **HostManagement** and the **ViciOne Suite**.
+
+### HostManagement.Shared.Communication.CapabilitySerialization
+
+`HostManagement.Shared.Communication.CapabilitySerialization` is included as an additional assembly in the existing `HostManagement.Shared.Communication` NuGet package.\
+It is needed, because JSON source generation must be done after our own source generation. Here in particular for `GetSupportedCapabilitiesResult`.
 
 ## Contributing
 
@@ -431,6 +462,7 @@ The full license text is available in [`LICENSE.txt`](./LICENSE.txt).
 [docs/EnvironmentVariables.md]: docs/EnvironmentVariables.md
 [docs/HostManagementServiceStartup.md]: docs/HostManagementServiceStartup.md
 [docs/ScriptResponse.md]: docs/ScriptResponse.md
+[docs/SupportedCapabilities.md]: docs/SupportedCapabilities.md
 [docs/SystemConfigurationMigrations.md]: docs/SystemConfigurationMigrations.md
 [InstallNetSdk]: https://learn.microsoft.com/en-us/dotnet/core/install/linux-debian#install-the-sdk
 [`tests/AGENTS.md`]: tests/AGENTS.md

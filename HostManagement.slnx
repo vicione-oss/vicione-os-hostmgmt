@@ -21,8 +21,10 @@
     <Project Path="src/HostManagement.Common/HostManagement.Common.csproj" />
     <Project Path="src/HostManagement.Configuration/HostManagement.Configuration.csproj" />
     <Project Path="src/HostManagement.Scripts/HostManagement.Scripts.csproj" />
+    <Project Path="src/HostManagement.Shared.Communication.CapabilitySerialization/HostManagement.Shared.Communication.CapabilitySerialization.csproj" Id="1cf1e2c1-4516-4ef1-b5cc-29fe16336d38" />
     <Project Path="src/HostManagement.Shared.Communication.SourceGeneration/HostManagement.Shared.Communication.SourceGeneration.csproj" />
     <Project Path="src/HostManagement.Shared.Communication/HostManagement.Shared.Communication.csproj" />
+    <Project Path="src/HostManagement.Shared.SourceGeneration/HostManagement.Shared.SourceGeneration.csproj" />
     <Project Path="src/HostManagement.Shared/HostManagement.Shared.csproj" />
     <Project Path="src/HostManagement/HostManagement.csproj" />
   </Folder>

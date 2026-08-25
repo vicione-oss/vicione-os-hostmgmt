@@ -28,6 +28,7 @@ internal static partial class CommandLineRunner
                 CliHelpExtractor.ExtractHelp(CommandInterface.CreateRootCommand());
                 return 0;
             }
+
             if (args[0].Equals("--create-configuration-template"))
             {
                 SystemConfigurationTemplate.CreateAndOutput();
@@ -49,6 +50,12 @@ internal static partial class CommandLineRunner
                 }
 
                 await SystemConfigurationTemplate.Validate(args[2]);
+                return 0;
+            }
+
+            if (args[0].Equals("--create-supported-capabilities-template"))
+            {
+                SupportedCapabilitiesTemplate.CreateAndOutput();
                 return 0;
             }
             #endregion

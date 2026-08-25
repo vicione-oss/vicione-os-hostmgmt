@@ -15,6 +15,7 @@
     <ProjectReference Include="..\HostManagement.Configuration\HostManagement.Configuration.csproj" />
     <ProjectReference Include="..\HostManagement.Scripts\HostManagement.Scripts.csproj" />
     <ProjectReference Include="..\HostManagement.Shared.Communication\HostManagement.Shared.Communication.csproj" />
+    <ProjectReference Include="..\HostManagement.Shared.Communication.CapabilitySerialization\HostManagement.Shared.Communication.CapabilitySerialization.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -26,6 +26,11 @@ public static partial class AppPaths
     public const string SystemConfigurationFile = "SystemConfiguration.json";
 
     /// <summary>
+    /// The supported capabilities file ('SupportedCapabilities.conf').
+    /// </summary>
+    public const string SupportedCapabilitiesFile = "SupportedCapabilities.conf";
+
+    /// <summary>
     /// The path of the temp directory.
     /// </summary>
     public const string TempPath = "/tmp";
@@ -59,4 +64,10 @@ public static partial class AppPaths
     /// </summary>
     public static readonly string SystemConfigurationFilePath =
         Path.Combine(EnvironmentVariables.SystemConfigurationDirectory.Value, SystemConfigurationFile);
+
+    /// <summary>
+    /// The path of the 'SupportedCapabilities.conf' file.
+    /// </summary>
+    public static readonly string SupportedCapabilitiesFilePath =
+        Path.Combine(EnvironmentVariables.DefaultSystemConfigurationDirectory.Value, SupportedCapabilitiesFile);
 }

@@ -1,8 +1,12 @@
+using System.IO.Abstractions;
 using System.Reflection;
 using AwesomeAssertions;
 using HostManagement.Communication.NamedPipes.RequestHandlers;
+using HostManagement.Services;
 using HostManagement.Shared.Communication;
 using HostManagement.SystemConfig;
+using Microsoft.Extensions.Logging;
+using NSubstitute;
 using Xunit;
 
 namespace HostManagement.Tests;
@@ -18,6 +22,7 @@ public sealed class ServiceRunnerTests
             // Arrange
             var expectedTopics = new[]
             {
+                Topics.GetSupportedCapabilities,
                 Topics.InstallSignedDebianPackage,
                 Topics.RedeployScripts,
                 Topics.RenewDHCPLease,
@@ -42,8 +47,13 @@ public sealed class ServiceRunnerTests
                 Topics.UpdateSystem
             };
 
+            using var capabilitiesService = CreateSupportedCapabilitiesService();
+            var configurationService = CreateSystemConfigurationService();
+
             // Act
-            var registry = CreateRequestHandlerRegistry();
+            var registry = CreateRequestHandlerRegistry(
+                capabilitiesService,
+                configurationService);
 
             // Assert
             registry.Handlers
@@ -55,48 +65,63 @@ public sealed class ServiceRunnerTests
         public void ShouldUseSharedSystemConfigurationServiceInstance_WhenRegisteringSystemConfigurationHandlers()
         {
             // Arrange
-            var expectedConfigurationService = GetSystemConfigurationService();
-            var registry = CreateRequestHandlerRegistry();
+            using var capabilitiesService = CreateSupportedCapabilitiesService();
+            var expectedConfigurationService = CreateSystemConfigurationService();
+
+            var registry = CreateRequestHandlerRegistry(
+                capabilitiesService,
+                expectedConfigurationService);
 
             // Act
-
-            // Assert
             var systemConfigurationHandlers = registry.Handlers.Where(handler =>
                 handler.Topic == Topics.GetSystemConfiguration ||
                 handler.Topic == Topics.SetSystemConfiguration ||
                 handler.Topic == Topics.ResetNetworkInterface);
 
+            // Assert
             foreach (var handler in systemConfigurationHandlers)
                 ShouldReferenceConfigurationService(handler, expectedConfigurationService);
         }
 
-        private static RequestHandlerRegistry CreateRequestHandlerRegistry()
+        private static RequestHandlerRegistry CreateRequestHandlerRegistry(
+            SupportedCapabilitiesService capabilitiesService,
+            SystemConfigurationService configurationService)
         {
+            var initializationContextType = typeof(ServiceRunner)
+                .GetNestedType("InitializationContext", BindingFlags.NonPublic);
+
+            initializationContextType.Should().NotBeNull();
+
+            var initializationContextConstructor = initializationContextType
+                .GetConstructor(
+                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                    binder: null,
+                    [typeof(SupportedCapabilitiesService), typeof(SystemConfigurationService)],
+                    modifiers: null);
+
+            initializationContextConstructor.Should().NotBeNull();
+
+            var initializationContext = initializationContextConstructor
+                .Invoke([capabilitiesService, configurationService]);
+
             var getRequestHandlerRegistryMethod = typeof(ServiceRunner).GetMethod(
                 "GetRequestHandlerRegistry",
-                BindingFlags.NonPublic | BindingFlags.Static);
+                BindingFlags.NonPublic | BindingFlags.Static,
+                [initializationContextType]);
 
             getRequestHandlerRegistryMethod.Should().NotBeNull();
 
-            var result = getRequestHandlerRegistryMethod.Invoke(null, null);
+            var result = getRequestHandlerRegistryMethod.Invoke(null, [initializationContext]);
             result.Should().BeOfType<RequestHandlerRegistry>();
 
             return (RequestHandlerRegistry)result;
         }
 
-        private static SystemConfigurationService GetSystemConfigurationService()
-        {
-            var configurationServiceField = typeof(ServiceRunner).GetField(
-                "s_configurationService",
-                BindingFlags.NonPublic | BindingFlags.Static);
+        private static SupportedCapabilitiesService CreateSupportedCapabilitiesService()
+            => new(Substitute.For<IFileSystem>(), Substitute.For<ILogger>());
 
-            configurationServiceField.Should().NotBeNull();
-
-            var value = configurationServiceField.GetValue(null);
-            value.Should().BeOfType<SystemConfigurationService>();
-
-            return (SystemConfigurationService)value;
-        }
+        private static SystemConfigurationService CreateSystemConfigurationService()
+            => new(Substitute.For<IPersistence>(), Substitute.For<IScriptHandler>(), Substitute.For<ILogger>());
 
         private static void ShouldReferenceConfigurationService(
             IRequestHandler handler,

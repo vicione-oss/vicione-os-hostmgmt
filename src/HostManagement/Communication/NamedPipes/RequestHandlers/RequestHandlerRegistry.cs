@@ -178,6 +178,8 @@ internal sealed partial class RequestHandlerRegistry
                 Topics.StopService => true,
                 Topics.RestartService => true,
 
+                Topics.GetSupportedCapabilities => true,
+
                 Topics.InstallSignedDebianPackage => true,
 
                 _ => false
@@ -194,6 +196,7 @@ internal sealed partial class RequestHandlerRegistry
                 Topics.GetSystemConfiguration => true,
                 Topics.SetSystemConfiguration => true,
 
+                Topics.GetSupportedCapabilities => true,
                 Topics.GetOriginalPhysicalAddress => true,
                 Topics.GetNetworkStatusInformation => true,
                 Topics.GetDHCPLeaseInformation => true,

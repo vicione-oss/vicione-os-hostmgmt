@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Provides source-generated JSON metadata for capability related communication contracts.</Description>
+    <RootNamespace>HostManagement.Shared.Communication.CapabilitySerialization</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HostManagement.Shared.Communication\HostManagement.Shared.Communication.csproj" />
+  </ItemGroup>
+
+</Project>

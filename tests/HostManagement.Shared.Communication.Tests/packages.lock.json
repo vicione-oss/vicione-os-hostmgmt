@@ -193,6 +193,12 @@
           "HostManagement.Shared": "[1.0.0, )"
         }
       },
+      "hostmanagement.shared.communication.capabilityserialization": {
+        "type": "Project",
+        "dependencies": {
+          "HostManagement.Shared.Communication": "[1.0.0, )"
+        }
+      },
       "Microsoft.Extensions.Logging.Abstractions": {
         "type": "CentralTransitive",
         "requested": "[10.0.11, )",
