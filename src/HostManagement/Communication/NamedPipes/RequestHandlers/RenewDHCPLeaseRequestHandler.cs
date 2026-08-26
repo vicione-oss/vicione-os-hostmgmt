@@ -27,7 +27,7 @@ internal sealed class RenewDHCPLeaseRequestHandler(ILogger logger) : RequestHand
     /// <exception cref="InvalidOperationException"/>
     public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
     {
-        var service = new DHCPLeaseService(logger);
+        var service = new DHCPLeaseService(logger, new ScriptHandler());
         var result = await service.RenewDHCPLease(messageContent, cancellationToken).ConfigureAwait(false);
 
         return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
