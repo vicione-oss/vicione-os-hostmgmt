@@ -94,25 +94,27 @@ include:
     file: '/CI-Templates/v2/dotnet.yml'
 
   # Registry components for artifact storage
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/upload@v0.1.2
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/upload@v0.1.5
     inputs:
       name: "Upload binaries arm64"
+      build_job_name: "Pack binaries"
       stage: packaging
       file: "artifacts.tar.gz"
       remote_name: "${ARTIFACT_PREFIX}-${CI_PIPELINE_ID}-linux-arm64.tar.gz"
       package_name: $PACKAGE_NAME
       rules: *rules_manual_tag
 
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/upload@v0.1.2
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/upload@v0.1.5
     inputs:
       name: "Upload binaries x64"
+      build_job_name: "Pack binaries"
       stage: packaging
       file: "artifacts.tar.gz"
       remote_name: "${ARTIFACT_PREFIX}-${CI_PIPELINE_ID}-linux-x64.tar.gz"
       package_name: $PACKAGE_NAME
       rules: *rules_manual_tag
 
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/cleanup@v0.1.2
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/cleanup@v0.1.5
     inputs:
       name: "Cleanup old packages"
       stage: cleanup
@@ -130,7 +132,7 @@ include:
         - echo "APP_PIPELINE=${CI_PIPELINE_ID}" >> version.env
         - echo "APP_VERSION=$(cat VERSION)" >> version.env
         - echo "APP_TAG=${CI_COMMIT_TAG}" >> version.env
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-restore@2.6
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-restore@v2.6.1
     inputs:
       image: $VICIONE_IMAGE
       rules: *rules
@@ -147,7 +149,7 @@ include:
           ARCH: arm64
           RUNNER_ARCH: arm64
         - PLACEHOLDER: all
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-build@2.6
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-build@v2.6.1
     inputs:
       image: $VICIONE_IMAGE
       rules: *rules
@@ -156,7 +158,7 @@ include:
         - echo "$Version"
       tags:
         - $RUNNER_TAG
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-publish@2.6
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-publish@v2.6.1
     inputs:
       image: $VICIONE_IMAGE
       rules: *rules_manual
@@ -167,7 +169,7 @@ include:
       project: src/HostManagement/HostManagement.csproj
       execution_matrix: *publish_matrix
       self_contained: true
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-test@2.6
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-test@v2.6.1
     inputs:
       image: $VICIONE_IMAGE
       rules: *rules_manual_tag
@@ -179,7 +181,7 @@ include:
       coverage: true
 
   # NuGet Packages
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-pack@2.6
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-pack@v2.6.1
     inputs:
       image: $VICIONE_IMAGE
       stage: packaging
@@ -189,7 +191,7 @@ include:
         - echo "${PackageVersion}"
       tags:
         - $RUNNER_TAG
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-nuget-push@2.6
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-nuget-push@v2.6.1
     inputs:
       image: $VICIONE_IMAGE
       stage: publish
