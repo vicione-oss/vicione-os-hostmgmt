@@ -1,34 +1,37 @@
-﻿using AwesomeAssertions;
+using AwesomeAssertions;
 using Xunit;
 
 namespace HostManagement.Configuration.Tests;
 
 public class SystemdUnitsTests
 {
-    public class KnownUnitTypes
+    public class HasKnownUnitTypeSuffix
     {
-        [Fact]
-        public void KnownUnitTypes_ShouldReturnExpectedValues()
-        {
-            // Arrange
-            var expectedUnitTypes = new HashSet<string>
-            {
-                ".service",
-                ".socket",
-                ".timer",
-                ".mount",
-                ".automount",
-                ".target",
-                ".path",
-                ".slice",
-                ".scope"
-            };
+        public static TheoryData<string> KnownUnitTypesData =>
+        [
+            ".service",
+            ".socket",
+            ".timer",
+            ".mount",
+            ".automount",
+            ".target",
+            ".path",
+            ".slice",
+            ".scope"
+        ];
 
-            // Act
-            var actualUnitTypes = SystemdUnits.s_knownUnitTypes;
+        [Theory]
+        [MemberData(nameof(KnownUnitTypesData))]
+        public void ShouldReturnTrue_WhenKnownUnitTypeFound(string knownUnitType)
+            => SystemdUnits.HasKnownUnitTypeSuffix(knownUnitType).Should().BeTrue();
 
-            // Assert
-            actualUnitTypes.Should().BeEquivalentTo(expectedUnitTypes);
-        }
+        [Theory]
+        [InlineData(".unknown")]
+        [InlineData(".dll")]
+        [InlineData(".exe")]
+        [InlineData(".services")]
+        [InlineData("none")]
+        public void ShouldReturnFalse_WhenUnknownUnitTypeFound(string unknownUnitType)
+            => SystemdUnits.HasKnownUnitTypeSuffix(unknownUnitType).Should().BeFalse();
     }
 }
