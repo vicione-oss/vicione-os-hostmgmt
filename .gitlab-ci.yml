@@ -93,6 +93,11 @@ include:
   - project: 'vicione-oss/tooling/templates'
     file: '/CI-Templates/v2/dotnet.yml'
 
+  # Validate Renovate Configuration
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/renovate/configuration-validation@v1.0.1
+    inputs:
+      renovate_ignore_bom: true
+
   # Registry components for artifact storage
   - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/upload@v0.1.5
     inputs:
