@@ -5,7 +5,7 @@
     ],
     "dependencyDashboard": true,
     "dependencyDashboardApproval": true,
-    "enabledManagers": [ "nuget" ],
+    "enabledManagers": [ "nuget", "mise" ],
     "vulnerabilityAlerts": {
         "enabled": true,
         "dependencyDashboardApproval": true
@@ -29,6 +29,28 @@
             "commitMessageAction": "Update to",
             "commitMessageExtra": "{{newVersion}}",
             "branchTopic": "update-to-net-{{newMajor}}-{{newMinor}}-{{newPatch}}",
+            "addLabels": [ "dependency" ]
+        },
+        {
+            "matchManagers": [ "nuget" ],
+            "matchJsonata": [ "managerData.itemGroupLabel = 'Test'" ],
+            "enabled": true,
+            "groupName": "Test packages",
+            "separateMajorMinor": true,
+            "semanticCommits": "disabled",
+            "branchTopic": "update-test-packages",
+            "addLabels": [ "dependency" ]
+        },
+        {
+            "matchManagers": [ "mise" ],
+            "enabled": false
+        },
+        {
+            "matchManagers": [ "mise" ],
+            "matchPackageNames": [ "dotnet" ],
+            "enabled": true,
+            "groupName": "mise dotnet",
+            "branchTopic": "update-dotnet-sdk",
             "addLabels": [ "dependency" ]
         }
     ]
