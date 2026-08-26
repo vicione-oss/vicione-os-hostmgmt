@@ -5,16 +5,28 @@
     ],
     "dependencyDashboard": true,
     "dependencyDashboardApproval": true,
-    "enabledManagers": [ "nuget", "mise" ],
+    "enabledManagers": [ "nuget", "custom.regex" ],
     "vulnerabilityAlerts": {
         "enabled": true,
         "dependencyDashboardApproval": true
     },
     "osvVulnerabilityAlerts": true,
+    "customManagers": [
+        {
+            "customType": "regex",
+            "managerFilePatterns": [ "/(^|/)mise\\.toml$/" ],
+            "matchStrings": [
+                "dotnet\\s*=\\s*\"(?<currentValue>[^\"]+)\""
+            ],
+            "depNameTemplate": "dotnet-sdk",
+            "datasourceTemplate": "dotnet"
+        }
+    ],
     "packageRules": [
         {
             "matchManagers": [ "nuget" ],
-            "enabled": false
+            "enabled": true,
+            "addLabels": [ "dependency" ]
         },
         {
             "matchManagers": [ "nuget" ],
@@ -32,22 +44,8 @@
             "addLabels": [ "dependency" ]
         },
         {
-            "matchManagers": [ "nuget" ],
-            "matchJsonata": [ "managerData.itemGroupLabel = 'Test'" ],
-            "enabled": true,
-            "groupName": "Test packages",
-            "separateMajorMinor": true,
-            "semanticCommits": "disabled",
-            "branchTopic": "update-test-packages",
-            "addLabels": [ "dependency" ]
-        },
-        {
-            "matchManagers": [ "mise" ],
-            "enabled": false
-        },
-        {
-            "matchManagers": [ "mise" ],
-            "matchPackageNames": [ "dotnet" ],
+            "matchManagers": [ "custom.regex" ],
+            "matchPackageNames": [ "dotnet-sdk" ],
             "enabled": true,
             "groupName": "mise dotnet",
             "branchTopic": "update-dotnet-sdk",
