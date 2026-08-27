@@ -8,7 +8,7 @@ using Xunit;
 
 namespace HostManagement.Tests.SystemConfig.Network;
 
-public class ProxyConfigurationAdapterTests
+public sealed class ProxyConfigurationAdapterTests
 {
     private const int ProxyPort = 8080;
     private const int ProxyPortChanged = 4040;
@@ -39,7 +39,7 @@ public class ProxyConfigurationAdapterTests
         IScriptHandler handler,
         bool bypassHasChanges = false,
         bool bypassApply = false)
-            => new(current, handler, bypassHasChanges, bypassApply);
+           => new(current, handler, bypassHasChanges, bypassApply);
 
     private static SystemConfiguration CreateSystemConfig(NetworkProxySettings? proxy = null)
         => new() { NetworkProxySettings = proxy };
@@ -58,10 +58,8 @@ public class ProxyConfigurationAdapterTests
         public async Task ShouldReturnError_WhenScriptFails()
         {
             // Arrange
-            var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler
-                .ExecuteGetNetworkProxySettingsScript()
-                .Returns((Result.ErrorResult, new NetworkProxySettings()));
+            var handler = Substitute.For<IScriptHandler>();
+            handler.ExecuteGetNetworkProxySettingsScript().Returns((Result.ErrorResult, new NetworkProxySettings()));
 
             var originalProxySettings = new NetworkProxySettings()
             {
@@ -73,7 +71,7 @@ public class ProxyConfigurationAdapterTests
             };
 
             var config = CreateSystemConfig(originalProxySettings);
-            var sut = CreateSut(CreateSystemConfig(new()), scriptHandler);
+            var sut = CreateSut(CreateSystemConfig(new()), handler);
 
             // Act
             var result = await sut.GetConfiguration(config, CancellationToken.None);
@@ -83,13 +81,13 @@ public class ProxyConfigurationAdapterTests
             result.Messages.Should().Contain(Result.ErrorMessage);
             config.NetworkProxySettings.Should().BeSameAs(originalProxySettings);
 
-            await scriptHandler.Received(1).ExecuteGetNetworkProxySettingsScript();
+            await handler.Received(1).ExecuteGetNetworkProxySettingsScript();
         }
 
         [Theory]
         [InlineData("user%25", "user%", "p%40ss%20word", "p@ss word")]
         [InlineData("user%4042", "user@42", "pa%24%24word", "pa$$word")]
-        public async Task ShouldUnescapeSpecialCharacters_ForUsernameAndPassword(
+        public async Task ShouldUnescapeUsernameAndPassword_WhenTheyContainSpecialCharacters(
             string escapedUsername,
             string expectedUsername,
             string escapedPassword,
@@ -108,13 +106,11 @@ public class ProxyConfigurationAdapterTests
                 }
             };
 
-            var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler
-                .ExecuteGetNetworkProxySettingsScript()
-                .Returns((Result.SuccessResult, proxySettings));
+            var handler = Substitute.For<IScriptHandler>();
+            handler.ExecuteGetNetworkProxySettingsScript().Returns((Result.SuccessResult, proxySettings));
 
             var config = CreateSystemConfig();
-            var sut = CreateSut(CreateSystemConfig(new()), scriptHandler);
+            var sut = CreateSut(CreateSystemConfig(new()), handler);
 
             // Act
             var result = await sut.GetConfiguration(config, CancellationToken.None);
@@ -124,11 +120,11 @@ public class ProxyConfigurationAdapterTests
             result.Messages.Should().BeEmpty();
 
             config.NetworkProxySettings.Should().NotBeNull();
-            config.NetworkProxySettings!.HTTPS.Should().NotBeNull();
+            config.NetworkProxySettings.HTTPS.Should().NotBeNull();
             config.NetworkProxySettings.HTTPS.Username.Should().Be(expectedUsername);
             config.NetworkProxySettings.HTTPS.Password.Should().Be(expectedPassword);
 
-            await scriptHandler.Received(1).ExecuteGetNetworkProxySettingsScript();
+            await handler.Received(1).ExecuteGetNetworkProxySettingsScript();
         }
 
         [Theory]
@@ -136,7 +132,7 @@ public class ProxyConfigurationAdapterTests
         [InlineData("fe80::/10%2525", "fe80::/10%25")]
         [InlineData("[fe80::/10%25lan1]:8080", "[fe80::/10%lan1]:8080")]
         [InlineData("[fe80::/10%2525]:8080", "[fe80::/10%25]:8080")]
-        public async Task ShouldUnescapeLinkLocalIPv6ZoneIdentifier_ForNoProxyEntries(
+        public async Task ShouldUnescapeLinkLocalIPv6ZoneIdentifier_WhenReadingNoProxyEntries(
             string escapedNoProxyEntry,
             string expectedNoProxyEntry)
         {
@@ -151,9 +147,7 @@ public class ProxyConfigurationAdapterTests
             };
 
             var handler = Substitute.For<IScriptHandler>();
-            handler
-                .ExecuteGetNetworkProxySettingsScript()
-                .Returns((Result.SuccessResult, proxySettings));
+            handler.ExecuteGetNetworkProxySettingsScript().Returns((Result.SuccessResult, proxySettings));
 
             var config = CreateSystemConfig();
             var sut = CreateSut(CreateSystemConfig(new()), handler);
@@ -176,7 +170,7 @@ public class ProxyConfigurationAdapterTests
 
     public sealed class HasChanges
     {
-        public static TheoryData<bool, string, int> ProxyDifferentTestData => new TheoryData<bool, string, int>()
+        public static TheoryData<bool, string, int> ProxyDifferentTestData => new()
         {
             // Single property changed
             {true, HTTPProxy, ProxyPortChanged },
@@ -193,44 +187,218 @@ public class ProxyConfigurationAdapterTests
         };
 
         [Fact]
-        public void ShouldBeFalse_WhenSettingsEqual()
+        public void ShouldReturnFalse_WhenSettingsEqual()
         {
-            var scriptHandler = Substitute.For<IScriptHandler>();
+            // Arrange
+            var handler = Substitute.For<IScriptHandler>();
             var current = CreateSystemConfig(new() { HTTP = CreateProxyDetail(true, HTTPProxy, ProxyPort) });
             var proposed = CreateSystemConfig(new() { HTTP = CreateProxyDetail(true, HTTPProxy, ProxyPort) });
-            var sut = CreateSut(current, scriptHandler);
+            var sut = CreateSut(current, handler);
 
-            sut.HasChanges(current, proposed).Should().BeFalse();
+            // Act
+            var result = sut.HasChanges(current, proposed);
+
+            // Assert
+            result.Should().BeFalse();
         }
 
         [Theory]
         [MemberData(nameof(ProxyDifferentTestData))]
-        public void ShouldBeTrue_WhenSettingsDifferent(bool enabled, string server, int port)
+        public void ShouldReturnTrue_WhenSettingsDiffer(bool enabled, string server, int port)
         {
-            var scriptHandler = Substitute.For<IScriptHandler>();
+            // Arrange
+            var handler = Substitute.For<IScriptHandler>();
             var current = CreateSystemConfig(new() { HTTP = CreateProxyDetail(true, HTTPProxy, ProxyPort) });
             var proposed = CreateSystemConfig(new() { HTTP = CreateProxyDetail(enabled, server, port) });
-            var sut = CreateSut(current, scriptHandler);
+            var sut = CreateSut(current, handler);
 
-            sut.HasChanges(current, proposed).Should().BeTrue();
+            // Act
+            var result = sut.HasChanges(current, proposed);
+
+            // Assert
+            result.Should().BeTrue();
         }
 
         [Theory]
         [MemberData(nameof(ProxyDifferentTestData))]
         [InlineData(true, HTTPProxy, ProxyPort)]
-        public void ShouldBeTrue_WhenBypassHasChangesFlagTrue(bool enabled, string server, int port)
+        public void ShouldReturnTrue_WhenChangeCheckBypassed(bool enabled, string server, int port)
         {
-            var scriptHandler = Substitute.For<IScriptHandler>();
+            // Arrange
+            var handler = Substitute.For<IScriptHandler>();
             var current = CreateSystemConfig(new() { HTTP = CreateProxyDetail(true, HTTPProxy, ProxyPort) });
             var proposed = CreateSystemConfig(new() { HTTP = CreateProxyDetail(enabled, server, port) });
-            var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
+            var sut = CreateSut(current, handler, bypassHasChanges: true);
 
-            sut.HasChanges(current, proposed).Should().BeTrue();
+            // Act
+            var result = sut.HasChanges(current, proposed);
+
+            // Assert
+            result.Should().BeTrue();
         }
     }
 
     public sealed class SetConfiguration
     {
+        [Theory]
+        [ClassData(typeof(NetworkProxyData))]
+        internal async Task ShouldOnlyCallScripts_WhenProxyDetailsConfigured(
+            NetworkProxySettings? currentProxySettings,
+            NetworkProxySettings proposedProxySettings,
+            int expectedReceiveCount)
+        {
+            // Arrange
+            var handler = Substitute.For<IScriptHandler>();
+            handler.ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>()).Returns(Result.SuccessResult);
+
+            var current = CreateSystemConfig(currentProxySettings);
+            var proposed = CreateSystemConfig(proposedProxySettings);
+
+            var sut = CreateSut(current, handler, bypassHasChanges: true);
+
+            // Act
+            var result = await sut.SetConfiguration(proposed, CancellationToken.None);
+
+            // Assert
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
+
+            await handler
+                .Received(expectedReceiveCount)
+                .ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>());
+        }
+
+        [Theory]
+        [ClassData(typeof(NoProxyEntriesData))]
+        internal async Task ShouldOnlyCallScript_WhenNoProxySettingsConfigured(
+            NetworkProxySettings? currentProxySettings,
+            NetworkProxySettings proposedProxySettings,
+            int expectedReceiveCount)
+        {
+            // Arrange
+            var handler = Substitute.For<IScriptHandler>();
+            handler.ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>()).Returns(Result.SuccessResult);
+
+            var current = CreateSystemConfig(currentProxySettings);
+            var proposed = CreateSystemConfig(proposedProxySettings);
+
+            var sut = CreateSut(current, handler, bypassHasChanges: true);
+
+            // Act
+            var result = await sut.SetConfiguration(proposed, CancellationToken.None);
+
+            // Assert
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
+
+            await handler
+                .Received(expectedReceiveCount)
+                .ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>());
+        }
+
+        [Fact]
+        public async Task ShouldCallScriptWithNonePlaceholder_WhenNoProxyEntriesEmpty()
+        {
+            // Arrange
+            ScriptOptions? capturedOptions = null;
+            var handler = Substitute.For<IScriptHandler>();
+            handler.ExecuteSetNetworkProxySettingsScript(Arg.Do<ScriptOptions>(so => capturedOptions = so))
+                .Returns(Result.SuccessResult);
+
+            var current = CreateSystemConfig(new() { NoProxy = new() { Enabled = true, Entries = [NoProxyEntry] } });
+            var proposed = CreateSystemConfig(new() { NoProxy = new() { Enabled = true, Entries = [] } });
+
+            var sut = CreateSut(current, handler, bypassHasChanges: true);
+
+            // Act
+            var result = await sut.SetConfiguration(proposed, CancellationToken.None);
+
+            // Assert
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
+
+            capturedOptions.Should().NotBeNull();
+            capturedOptions.Options.Should().ContainInOrder(
+                ScriptOptionNames.Proxy.NoProxyList, "NONE",
+                ScriptOptionNames.Proxy.NoProxyListEnabled, "true");
+        }
+
+        [Theory]
+        [InlineData("user%", "user%25", "p@ss word", "p%40ss%20word")]
+        [InlineData("user@42", "user%4042", "pa$$word", "pa%24%24word")]
+        public async Task ShouldPercentEncodeUsernameAndPassword_WhenTheyContainSpecialCharacters(
+            string username,
+            string escapedUsername,
+            string password,
+            string escapedPassword)
+        {
+            // Arrange
+            List<ScriptOptions> capturedOptions = [];
+            var handler = Substitute.For<IScriptHandler>();
+            handler.ExecuteSetNetworkProxySettingsScript(Arg.Do<ScriptOptions>(capturedOptions.Add))
+                .Returns(Result.SuccessResult);
+
+            var current = CreateSystemConfig(new());
+            var proposed = CreateSystemConfig(new()
+            {
+                HTTP = CreateProxyDetail(true, HTTPProxy, ProxyPort, username, password)
+            });
+
+            var sut = CreateSut(current, handler, bypassHasChanges: true);
+
+            // Act
+            var result = await sut.SetConfiguration(proposed, CancellationToken.None);
+
+            // Assert
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
+
+            await handler.Received(1).ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>());
+
+            capturedOptions.Should().SatisfyRespectively(
+                so => so.Options.Should().ContainInOrder(
+                    ScriptOptionNames.Proxy.Enabled, "true",
+                    ScriptOptionNames.Proxy.URL, HTTPProxy,
+                    ScriptOptionNames.Proxy.Port, ProxyPort.ToString(),
+                    ScriptOptionNames.Proxy.Username, escapedUsername,
+                    ScriptOptionNames.Proxy.Password, escapedPassword));
+        }
+
+        [Theory]
+        [InlineData("fe80::/10%lan1", "fe80::/10%25lan1")]
+        [InlineData("fe80::/10%25", "fe80::/10%2525")]
+        [InlineData("[fe80::/10%lan1]:8080", "[fe80::/10%25lan1]:8080")]
+        [InlineData("[fe80::/10%25]:8080", "[fe80::/10%2525]:8080")]
+        public async Task ShouldPercentEncodeLinkLocalIPv6ZoneIdentifier_WhenWritingNoProxyEntry(
+            string noProxyEntry,
+            string escapedNoProxyEntry)
+        {
+            // Arrange
+            List<ScriptOptions> capturedOptions = [];
+            var handler = Substitute.For<IScriptHandler>();
+            handler.ExecuteSetNetworkProxySettingsScript(Arg.Do<ScriptOptions>(capturedOptions.Add))
+                .Returns(Result.SuccessResult);
+
+            var current = CreateSystemConfig(new());
+            var proposed = CreateSystemConfig(new() { NoProxy = new() { Enabled = true, Entries = [noProxyEntry] } });
+
+            var sut = CreateSut(current, handler, bypassHasChanges: true);
+
+            // Act
+            var result = await sut.SetConfiguration(proposed, CancellationToken.None);
+
+            // Assert
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
+
+            await handler.Received(1).ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>());
+
+            capturedOptions.Should().SatisfyRespectively(
+                so => so.Options.Should().ContainInOrder(
+                    ScriptOptionNames.Proxy.NoProxyList, escapedNoProxyEntry,
+                    ScriptOptionNames.Proxy.NoProxyListEnabled, "true"));
+        }
+
 #pragma warning disable CA1812
         internal sealed class NetworkProxyData : TheoryData<NetworkProxySettings?, NetworkProxySettings, int>
         {
@@ -379,166 +547,5 @@ public class ProxyConfigurationAdapterTests
             }
         }
 #pragma warning restore CA1812
-
-        [Theory]
-        [ClassData(typeof(NetworkProxyData))]
-        internal async Task ShouldOnlyCallScripts_WhenProxyDetailsConfigured(
-            NetworkProxySettings? currentProxySettings,
-            NetworkProxySettings proposedProxySettings,
-            int expectedReceiveCount)
-        {
-            // Arrange
-            var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler
-                .ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>())
-                .Returns(Result.SuccessResult);
-
-            var current = CreateSystemConfig(currentProxySettings);
-            var proposed = CreateSystemConfig(proposedProxySettings);
-
-            var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
-
-            // Act + Assert
-            var result = await sut.SetConfiguration(proposed, CancellationToken.None);
-
-            result.OperationStatus.Should().Be(OperationStatus.Success);
-            result.Messages.Should().BeEmpty();
-
-            await scriptHandler
-                .Received(expectedReceiveCount)
-                .ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>());
-        }
-
-        [Theory]
-        [ClassData(typeof(NoProxyEntriesData))]
-        internal async Task ShouldOnlyCallScript_WhenNoProxySettingsConfigured(
-            NetworkProxySettings? currentProxySettings,
-            NetworkProxySettings proposedProxySettings,
-            int expectedReceiveCount)
-        {
-            // Arrange
-            var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler
-                .ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>())
-                .Returns(Result.SuccessResult);
-
-            var current = CreateSystemConfig(currentProxySettings);
-            var proposed = CreateSystemConfig(proposedProxySettings);
-
-            var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
-
-            // Act + Assert
-            var result = await sut.SetConfiguration(proposed, CancellationToken.None);
-
-            result.OperationStatus.Should().Be(OperationStatus.Success);
-            result.Messages.Should().BeEmpty();
-
-            await scriptHandler
-                .Received(expectedReceiveCount)
-                .ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>());
-        }
-
-        [Fact]
-        public async Task ShouldCallScriptWithNonePlaceholder_WhenEmptyNoProxyEntries()
-        {
-            // Arrange
-            ScriptOptions? captured = null;
-            var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler
-                .ExecuteSetNetworkProxySettingsScript(Arg.Do<ScriptOptions>(so => captured = so))
-                .Returns(Result.SuccessResult);
-
-            var current = CreateSystemConfig(new() { NoProxy = new() { Enabled = true, Entries = [NoProxyEntry] } });
-            var proposed = CreateSystemConfig(new() { NoProxy = new() { Enabled = true, Entries = [] } });
-            var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
-
-            // Act
-            var result = await sut.SetConfiguration(proposed, CancellationToken.None);
-
-            // Assert
-            result.OperationStatus.Should().Be(OperationStatus.Success);
-            result.Messages.Should().BeEmpty();
-
-            captured.Should().NotBeNull();
-            captured!.Options.Should().ContainInOrder(
-                ScriptOptionNames.Proxy.NoProxyList, "NONE",
-                ScriptOptionNames.Proxy.NoProxyListEnabled, "true");
-        }
-
-        [Theory]
-        [InlineData("user%", "user%25", "p@ss word", "p%40ss%20word")]
-        [InlineData("user@42", "user%4042", "pa$$word", "pa%24%24word")]
-        public async Task ShouldPercentEncodeSpecialCharacters_ForUsernameAndPassword(
-            string username,
-            string escapedUsername,
-            string password,
-            string escapedPassword)
-        {
-            // Arrange
-            List<ScriptOptions> captured = [];
-            var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler
-                .ExecuteSetNetworkProxySettingsScript(Arg.Do<ScriptOptions>(captured.Add))
-                .Returns(Result.SuccessResult);
-
-            var current = CreateSystemConfig(new());
-            var proposed = CreateSystemConfig(new()
-            {
-                HTTP = CreateProxyDetail(true, HTTPProxy, ProxyPort, username, password)
-            });
-            var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
-
-            // Act
-            var result = await sut.SetConfiguration(proposed, CancellationToken.None);
-
-            // Assert
-            result.OperationStatus.Should().Be(OperationStatus.Success);
-            result.Messages.Should().BeEmpty();
-
-            await scriptHandler.Received(1).ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>());
-
-            captured.Should().SatisfyRespectively(
-                so => so.Options.Should().ContainInOrder(
-                    ScriptOptionNames.Proxy.Enabled, "true",
-                    ScriptOptionNames.Proxy.URL, HTTPProxy,
-                    ScriptOptionNames.Proxy.Port, ProxyPort.ToString(),
-                    ScriptOptionNames.Proxy.Username, escapedUsername,
-                    ScriptOptionNames.Proxy.Password, escapedPassword));
-        }
-
-        [Theory]
-        [InlineData("fe80::/10%lan1", "fe80::/10%25lan1")]
-        [InlineData("fe80::/10%25", "fe80::/10%2525")]
-        [InlineData("[fe80::/10%lan1]:8080", "[fe80::/10%25lan1]:8080")]
-        [InlineData("[fe80::/10%25]:8080", "[fe80::/10%2525]:8080")]
-        public async Task ShouldPercentEncodeLinkLocalIPv6ZoneIdentifier_ForNoProxyEntry(
-            string noProxyEntry,
-            string escapedNoProxyEntry)
-        {
-            // Arrange
-            List<ScriptOptions> captured = [];
-            var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler
-                .ExecuteSetNetworkProxySettingsScript(Arg.Do<ScriptOptions>(captured.Add))
-                .Returns(Result.SuccessResult);
-
-            var current = CreateSystemConfig(new());
-            var proposed = CreateSystemConfig(new() { NoProxy = new() { Enabled = true, Entries = [noProxyEntry] } });
-            var sut = CreateSut(current, scriptHandler, bypassHasChanges: true);
-
-            // Act
-            var result = await sut.SetConfiguration(proposed, CancellationToken.None);
-
-            // Assert
-            result.OperationStatus.Should().Be(OperationStatus.Success);
-            result.Messages.Should().BeEmpty();
-
-            await scriptHandler.Received(1).ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>());
-
-            captured.Should().SatisfyRespectively(
-                so => so.Options.Should().ContainInOrder(
-                    ScriptOptionNames.Proxy.NoProxyList, escapedNoProxyEntry,
-                    ScriptOptionNames.Proxy.NoProxyListEnabled, "true"));
-        }
     }
 }

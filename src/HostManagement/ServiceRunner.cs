@@ -6,6 +6,7 @@ using HostManagement.Communication.NamedPipes.RequestHandlers;
 using HostManagement.Configuration;
 using HostManagement.Scripts;
 using HostManagement.Services;
+using HostManagement.Shared.Communication.Capabilities;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Contracts;
 using HostManagement.SystemConfig;
@@ -181,14 +182,17 @@ internal static partial class ServiceRunner
 
         try
         {
-            _ = await capabilitiesService.InitializeSupportedCapabilities(cancellationToken).ConfigureAwait(false);
+            var supportedCapabilities = await capabilitiesService
+                .InitializeSupportedCapabilities(cancellationToken)
+                .ConfigureAwait(false);
 
             var configurationService = new SystemConfigurationService(
                 new SystemConfigurationPersistence(s_fileSystem),
                 new ScriptHandler(),
-                s_logger);
+                s_logger,
+                supportedCapabilities.Settings);
 
-            return new InitializationContext(capabilitiesService, configurationService);
+            return new(capabilitiesService, supportedCapabilities, configurationService);
         }
         catch
         {
@@ -268,7 +272,11 @@ internal static partial class ServiceRunner
             .. GetSystemRequestHandlers()
         ];
 
-        return new RequestHandlerRegistry(EnvironmentVariables.Environment.Value, handlers, s_logger);
+        return new RequestHandlerRegistry(
+            EnvironmentVariables.Environment.Value,
+            initializationContext.SupportedCapabilities.Topics,
+            handlers,
+            s_logger);
 
 
         static IEnumerable<IRequestHandler> GetServiceRequestHandlers()
@@ -306,10 +314,13 @@ internal static partial class ServiceRunner
 
     private sealed class InitializationContext(
         SupportedCapabilitiesService capabilitiesService,
+        SupportedCapabilities supportedCapabilities,
         SystemConfigurationService configurationService)
             : IDisposable
     {
         public SupportedCapabilitiesService CapabilitiesService { get; } = capabilitiesService;
+
+        public SupportedCapabilities SupportedCapabilities { get; } = supportedCapabilities;
 
         public SystemConfigurationService ConfigurationService { get; } = configurationService;
 

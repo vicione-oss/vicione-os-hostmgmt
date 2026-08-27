@@ -2,7 +2,9 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using HostManagement.Communication.NamedPipes.Extensions;
 using HostManagement.Configuration;
+using HostManagement.Shared.Capabilities;
 using HostManagement.Shared.Communication;
+using HostManagement.Shared.Communication.Capabilities;
 using HostManagement.Shared.Communication.Contracts;
 using Microsoft.Extensions.Logging;
 
@@ -15,6 +17,7 @@ internal sealed partial class RequestHandlerRegistry
 {
     private const string MessageContentRequired = "Request requires a message content.";
     private const string NoHandlerRegistered = "No handler registered.";
+    private const string TopicDisabled = "Topic cannot be used because its capability is disabled.";
     private const string TopicInvalid = "Topic is invalid.";
     private const string TopicNotAvailable = "Topic not available on this platform.";
     private const string TopicNull = "Topic is null.";
@@ -22,8 +25,9 @@ internal sealed partial class RequestHandlerRegistry
     private static readonly List<string> s_validTopics = [.. Topics.GetAllTopics()];
     private static readonly List<string> s_topicsWithRequiredContent = [.. Topics.GetTopicsWithRequiredContent()];
 
-    private readonly ConcurrentDictionary<string, IRequestHandler> _handlers = [];
     private readonly TargetEnvironment _targetEnvironment;
+    private readonly SupportedTopics _supportedTopics;
+    private readonly ConcurrentDictionary<string, IRequestHandler> _handlers = [];
     private readonly ILogger _logger;
 
     /// <summary>
@@ -32,14 +36,14 @@ internal sealed partial class RequestHandlerRegistry
     /// <param name="targetEnvironment">The target environment.</param>
     /// <param name="handlers">The request handlers to register.</param>
     /// <param name="logger">An <see cref="ILogger"/> implementation.</param>
+    /// <param name="supportedTopics">The supported topics.</param>
     public RequestHandlerRegistry(
         TargetEnvironment targetEnvironment,
+        SupportedTopics supportedTopics,
         IEnumerable<IRequestHandler> handlers,
         ILogger logger)
     {
-        ArgumentNullException.ThrowIfNull(handlers);
-        ArgumentNullException.ThrowIfNull(logger);
-
+        _supportedTopics = supportedTopics;
         _targetEnvironment = targetEnvironment;
         _logger = logger;
 
@@ -107,6 +111,14 @@ internal sealed partial class RequestHandlerRegistry
             if (IsRequiredContentForTopicMissing(topic, content))
             {
                 var errorMessage = GetRequestFailedMessage(message, MessageContentRequired);
+
+                HandleRequestFailedWithMessage(_logger, errorMessage);
+                return CreateErrorResponse(message, handler, errorMessage);
+            }
+
+            if (!IsTopicEnabled(topic))
+            {
+                var errorMessage = GetRequestFailedMessage(message, TopicDisabled);
 
                 HandleRequestFailedWithMessage(_logger, errorMessage);
                 return CreateErrorResponse(message, handler, errorMessage);
@@ -215,6 +227,29 @@ internal sealed partial class RequestHandlerRegistry
             },
             TargetEnvironment.Unknown => false,
             _ => false
+        };
+    }
+
+    private bool IsTopicEnabled(string topic)
+    {
+        return topic switch
+        {
+            Topics.GetSupportedCapabilities => true, // always available
+
+            Topics.InstallSignedDebianPackage => _supportedTopics.InstallSignedDebianPackage is CapabilityStatus.Enabled,
+            Topics.ResetNetworkInterface => _supportedTopics.ResetNetworkInterface is CapabilityStatus.Enabled,
+            Topics.RenewDHCPLease => _supportedTopics.RenewDHCPLease is CapabilityStatus.Enabled,
+
+            Topics.StartService => _supportedTopics.StartService is CapabilityStatus.Enabled,
+            Topics.StopService => _supportedTopics.StopService is CapabilityStatus.Enabled,
+            Topics.RestartService => _supportedTopics.RestartService is CapabilityStatus.Enabled,
+
+            Topics.ShutdownSystem => _supportedTopics.ShutdownSystem is CapabilityStatus.Enabled,
+            Topics.RestartSystem => _supportedTopics.RestartSystem is CapabilityStatus.Enabled,
+            Topics.ResetSystem => _supportedTopics.ResetSystem is CapabilityStatus.Enabled,
+            Topics.UpdateSystem => _supportedTopics.UpdateSystem is CapabilityStatus.Enabled,
+
+            _ => true // all other topics are available
         };
     }
 

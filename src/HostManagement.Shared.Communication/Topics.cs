@@ -1,3 +1,4 @@
+using HostManagement.Shared.Communication.Capabilities;
 using HostManagement.Shared.Contracts.System;
 
 namespace HostManagement.Shared.Communication;
@@ -28,6 +29,7 @@ public static partial class Topics
     /// The name of the network interface must be specified as the message content.
     /// The default configuration is taken from 'DefaultSystemConfiguration.json'.
     /// </remarks>
+    [SupportedTopic]
     [RequiresContent]
     public const string ResetNetworkInterface = "ResetNetworkInterface";
     #endregion
@@ -88,6 +90,7 @@ public static partial class Topics
     /// The package and signature file paths must be specified with the <see cref="SignedDebianPackage"/>
     /// type as the message content.
     /// </remarks>
+    [SupportedTopic]
     [RequiresContent]
     public const string InstallSignedDebianPackage = "InstallSignedDebianPackage";
 
@@ -99,6 +102,7 @@ public static partial class Topics
     /// <summary>
     /// The topic to request a renewal of the DHCP lease.
     /// </summary>
+    [SupportedTopic]
     [RequiresContent]
     public const string RenewDHCPLease = "RenewDHCPLease";
 
@@ -108,6 +112,7 @@ public static partial class Topics
     /// <remarks>
     /// The name of the service must be specified as the message content.
     /// </remarks>
+    [SupportedTopic]
     [RequiresContent]
     public const string StartService = "StartService";
 
@@ -117,6 +122,7 @@ public static partial class Topics
     /// <remarks>
     /// The name of the service must be specified as the message content.
     /// </remarks>
+    [SupportedTopic]
     [RequiresContent]
     public const string StopService = "StopService";
 
@@ -126,12 +132,14 @@ public static partial class Topics
     /// <remarks>
     /// The name of the service must be specified as the message content.
     /// </remarks>
+    [SupportedTopic]
     [RequiresContent]
     public const string RestartService = "RestartService";
 
     /// <summary>
     /// The topic to reset the system.
     /// </summary>
+    [SupportedTopic]
     public const string ResetSystem = "ResetSystem";
 
     /// <summary>
@@ -140,6 +148,7 @@ public static partial class Topics
     /// <remarks>
     /// A delay in seconds can be specified as the message content.
     /// </remarks>
+    [SupportedTopic]
     public const string RestartSystem = "RestartSystem";
 
     /// <summary>
@@ -148,11 +157,13 @@ public static partial class Topics
     /// <remarks>
     /// A delay in seconds can be specified as the message content.
     /// </remarks>
+    [SupportedTopic]
     public const string ShutdownSystem = "ShutdownSystem";
 
     /// <summary>
     /// The topic to update the system.
     /// </summary>
+    [SupportedTopic]
     [RequiresContent]
     public const string UpdateSystem = "UpdateSystem";
     #endregion

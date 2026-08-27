@@ -6,61 +6,38 @@ using Xunit;
 
 namespace HostManagement.Tests.SystemConfig;
 
-public class ConfigurationAdapterTests
+public sealed class ConfigurationAdapterTests
 {
-    private sealed class TestConfigurationAdapter(
-        bool bypassHasChanges,
-        bool bypassApplyConfig)
-        : ConfigurationAdapter(bypassHasChanges, bypassApplyConfig)
-    {
-        public string AdapterPhase { get; private set; } = string.Empty;
+    private const string TestHostname = "GetConfiguration-Test";
 
-        private protected override Task<Result> PrepareConfiguration(
-            SystemConfiguration config,
-            CancellationToken cancellationToken)
-        {
-            AdapterPhase = "Prepare";
-
-            return Task.FromResult(Result.SuccessResult);
-        }
-        private protected override Task<Result> ApplyConfiguration(
-            SystemConfiguration config,
-            CancellationToken cancellationToken)
-        {
-            AdapterPhase = "Apply";
-
-            return Task.FromResult(Result.SuccessResult);
-        }
-
-        protected internal override Task<Result> GetConfiguration(
-            SystemConfiguration config,
-            CancellationToken cancellationToken)
-        {
-            config.NetworkDNSSettings ??= new()
-            {
-                Hostname = "GetConfiguration-Test",
-            };
-
-            return Task.FromResult(Result.SuccessResult);
-        }
-
-        private protected override bool HasConfigurationChanges(
-            SystemConfiguration currentConfig,
-            SystemConfiguration proposedConfig)
-                => !currentConfig.Equals(proposedConfig);
-    }
-
-    public class HasChanges
+    public sealed class GetConfiguration
     {
         [Fact]
-        public void ShouldReturnTrue_WhenBypassIsTrue()
+        public async Task ShouldPopulateConfiguration_WhenCalled()
+        {
+            // Arrange
+            var config = new SystemConfiguration();
+            var sut = new TestConfigurationAdapter(bypassHasChanges: false, bypassApplyConfig: false);
+
+            // Act
+            var result = await sut.GetConfiguration(config, CancellationToken.None);
+
+            // Assert
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            config.NetworkDNSSettings.Should().NotBeNull();
+            config.NetworkDNSSettings.Hostname.Should().Be(TestHostname);
+        }
+    }
+
+    public sealed class HasChanges
+    {
+        [Fact]
+        public void ShouldReturnTrue_WhenChangeCheckBypassed()
         {
             // Arrange
             var currentConfig = new SystemConfiguration();
             var proposedConfig = new SystemConfiguration();
-            var sut = new TestConfigurationAdapter(
-                bypassHasChanges: true,
-                bypassApplyConfig: false);
+            var sut = new TestConfigurationAdapter(bypassHasChanges: true, bypassApplyConfig: false);
 
             // Act
             var result = sut.HasChanges(currentConfig, proposedConfig);
@@ -70,14 +47,12 @@ public class ConfigurationAdapterTests
         }
 
         [Fact]
-        public void ShouldReturnFalse_WhenBypassIsFalseAndConfigsAreEqual()
+        public void ShouldReturnFalse_WhenConfigurationsEqual()
         {
             // Arrange
             var currentConfig = new SystemConfiguration();
             var proposedConfig = new SystemConfiguration();
-            var sut = new TestConfigurationAdapter(
-                bypassHasChanges: false,
-                bypassApplyConfig: false);
+            var sut = new TestConfigurationAdapter(bypassHasChanges: false, bypassApplyConfig: false);
 
             // Act
             var result = sut.HasChanges(currentConfig, proposedConfig);
@@ -87,7 +62,7 @@ public class ConfigurationAdapterTests
         }
 
         [Fact]
-        public void ShouldReturnTrue_WhenBypassIsFalseAndConfigsAreNotEqual()
+        public void ShouldReturnTrue_WhenConfigurationsDiffer()
         {
             // Arrange
             SystemConfiguration currentConfig = new();
@@ -99,9 +74,7 @@ public class ConfigurationAdapterTests
                 },
             };
 
-            var sut = new TestConfigurationAdapter(
-                bypassHasChanges: false,
-                bypassApplyConfig: false);
+            var sut = new TestConfigurationAdapter(bypassHasChanges: false, bypassApplyConfig: false);
 
             // Act
             var result = sut.HasChanges(currentConfig, proposedConfig);
@@ -111,45 +84,17 @@ public class ConfigurationAdapterTests
         }
     }
 
-    public class GetConfiguration
+    public sealed class SetConfiguration
     {
         [Fact]
-        public async Task ShouldExecuteOverwrite_WhenBaseCalled()
+        public async Task ShouldExecuteApplyConfiguration_WhenApplyNotBypassed()
         {
             // Arrange
             var config = new SystemConfiguration();
-            var sut = new TestConfigurationAdapter(
-                bypassHasChanges: false,
-                bypassApplyConfig: false);
+            var sut = new TestConfigurationAdapter(bypassHasChanges: false, bypassApplyConfig: false);
 
             // Act
-            using var cts = new CancellationTokenSource();
-            async Task<Result> GetAction() => await sut.GetConfiguration(config, cts.Token);
-
-            // Assert
-            config.NetworkDNSSettings.Should().BeNull();
-
-            var result = await GetAction();
-
-            result.OperationStatus.Should().Be(OperationStatus.Success);
-            config.NetworkDNSSettings.Hostname.Should().Be("GetConfiguration-Test");
-        }
-    }
-
-    public class SetConfiguration
-    {
-        [Fact]
-        public async Task ShouldExecuteOverwrite_WhenBaseCalled()
-        {
-            // Arrange
-            var config = new SystemConfiguration();
-            var sut = new TestConfigurationAdapter(
-                bypassHasChanges: false,
-                bypassApplyConfig: false);
-
-            // Act
-            using var cts = new CancellationTokenSource();
-            var result = await sut.SetConfiguration(config, cts.Token);
+            var result = await sut.SetConfiguration(config, CancellationToken.None);
 
             // Assert
             result.OperationStatus.Should().Be(OperationStatus.Success);
@@ -161,17 +106,52 @@ public class ConfigurationAdapterTests
         {
             // Arrange
             var config = new SystemConfiguration();
-            var sut = new TestConfigurationAdapter(
-                bypassHasChanges: false,
-                bypassApplyConfig: true);
+            var sut = new TestConfigurationAdapter(bypassHasChanges: false, bypassApplyConfig: true);
 
             // Act
-            using var cts = new CancellationTokenSource();
-            var result = await sut.SetConfiguration(config, cts.Token);
+            var result = await sut.SetConfiguration(config, CancellationToken.None);
 
             // Assert
             result.OperationStatus.Should().Be(OperationStatus.Success);
             sut.AdapterPhase.Should().Be("Prepare");
         }
+    }
+
+    private sealed class TestConfigurationAdapter(bool bypassHasChanges, bool bypassApplyConfig)
+        : ConfigurationAdapter(bypassHasChanges, bypassApplyConfig)
+    {
+        public string AdapterPhase { get; private set; } = string.Empty;
+
+        private protected override Task<Result> PrepareConfiguration(
+            SystemConfiguration config,
+            CancellationToken cancellationToken)
+        {
+            AdapterPhase = "Prepare";
+            return Task.FromResult(Result.SuccessResult);
+        }
+        private protected override Task<Result> ApplyConfiguration(
+            SystemConfiguration config,
+            CancellationToken cancellationToken)
+        {
+            AdapterPhase = "Apply";
+            return Task.FromResult(Result.SuccessResult);
+        }
+
+        protected internal override Task<Result> GetConfiguration(
+            SystemConfiguration config,
+            CancellationToken cancellationToken)
+        {
+            config.NetworkDNSSettings ??= new()
+            {
+                Hostname = TestHostname
+            };
+
+            return Task.FromResult(Result.SuccessResult);
+        }
+
+        private protected override bool HasConfigurationChanges(
+            SystemConfiguration currentConfig,
+            SystemConfiguration proposedConfig)
+                => !currentConfig.Equals(proposedConfig);
     }
 }

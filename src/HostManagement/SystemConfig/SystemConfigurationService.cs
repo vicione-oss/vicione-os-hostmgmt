@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using HostManagement.Configuration;
+using HostManagement.Shared.Capabilities;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Contracts;
@@ -19,14 +20,17 @@ namespace HostManagement.SystemConfig;
 /// <param name="persistence">The persistence to load and save configurations.</param>
 /// <param name="scriptHandler">A script handler to execute scripts.</param>
 /// <param name="logger">An <see cref="ILogger"/> implementation.</param>
+/// <param name="supportedSettings">The supported settings.</param>
 internal sealed partial class SystemConfigurationService(
     IPersistence persistence,
     IScriptHandler scriptHandler,
-    ILogger logger)
+    ILogger logger,
+    SupportedSettings supportedSettings)
 {
     private readonly IPersistence _persistence = persistence;
     private readonly IScriptHandler _scriptHandler = scriptHandler;
     private readonly ILogger _logger = logger;
+    private readonly SupportedSettings _supportedSettings = supportedSettings;
 
     /// <summary>
     /// Prepares the system by writing changes of the '<c>SystemConfiguration.json</c>' or
@@ -167,32 +171,16 @@ internal sealed partial class SystemConfigurationService(
             return SetSystemConfigurationResult.CreateErrorResult(message);
         }
 
-        var validationResult = await new SystemConfigurationValidator()
-            .ValidateAsync(proposedConfig, cancellationToken)
-            .ConfigureAwait(false);
+        var validationMessage =
+            await ValidateConfigurationChangeAsync(configResult.Configuration, proposedConfig, cancellationToken)
+                .ConfigureAwait(false);
 
-        if (!validationResult.IsValid)
+        if (validationMessage is not null)
         {
-            var message =
-                SystemConfigResources.SetConfigFailed +
-                Environment.NewLine +
-                validationResult.EntriesString;
+            validationMessage = SystemConfigResources.SetConfigFailed + Environment.NewLine + validationMessage;
 
-            SetConfigurationFailedWithMessage(_logger, message);
-            return SetSystemConfigurationResult.CreateErrorResult(message);
-        }
-
-        var policyValidationResult = SystemConfigurationPolicyValidator.Validate(proposedConfig);
-
-        if (!policyValidationResult.IsValid)
-        {
-            var message =
-                SystemConfigResources.SetConfigFailed +
-                Environment.NewLine +
-                policyValidationResult.FormattedMessages;
-
-            SetConfigurationFailedWithMessage(_logger, message);
-            return SetSystemConfigurationResult.CreateErrorResult(message);
+            SetConfigurationFailedWithMessage(_logger, validationMessage);
+            return SetSystemConfigurationResult.CreateErrorResult(validationMessage);
         }
 
         var warningMessage = configResult.Status == OperationStatus.Warning
@@ -207,6 +195,32 @@ internal sealed partial class SystemConfigurationService(
                 shouldPersistConfiguration,
                 cancellationToken)
             .ConfigureAwait(false);
+    }
+
+    private async Task<string?> ValidateConfigurationChangeAsync(
+        SystemConfiguration currentConfig,
+        SystemConfiguration proposedConfig,
+        CancellationToken cancellationToken)
+    {
+        var validationResult = await new SystemConfigurationValidator()
+            .ValidateAsync(proposedConfig, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (!validationResult.IsValid)
+            return validationResult.EntriesString;
+
+        var policyValidationResult = SystemConfigurationPolicyValidator.Validate(proposedConfig);
+
+        if (!policyValidationResult.IsValid)
+            return policyValidationResult.FormattedMessages;
+
+        var supportedSettingsValidationResult = SupportedSettingsValidator
+            .Validate(currentConfig, proposedConfig, _supportedSettings);
+
+        if (!supportedSettingsValidationResult.IsValid)
+            return supportedSettingsValidationResult.FormattedMessages;
+
+        return null;
     }
 
     /// <summary>

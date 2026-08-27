@@ -9,15 +9,15 @@ using Xunit;
 
 namespace HostManagement.Tests.SystemConfig.Network;
 
-public class NetworkInterfacesConfigurationAdapterTests
+public sealed class NetworkInterfacesConfigurationAdapterTests
 {
     private const string Lan1 = "lan1";
 
     private static NetworkInterfacesConfigurationAdapter CreateSut(
-        IScriptHandler scriptHandler,
+        IScriptHandler handler,
         bool bypassHasChanges = false,
         bool bypassApply = false)
-            => new(scriptHandler, bypassHasChanges, bypassApply);
+           => new(handler, bypassHasChanges, bypassApply);
 
     private static NetworkInterfaceCommonInformation CreateCommonInformation(string name, bool enabled = true)
         => new() { Name = name, Enabled = enabled };
@@ -31,16 +31,15 @@ public class NetworkInterfacesConfigurationAdapterTests
         public async Task ShouldReturnError_WhenGetInterfacesScriptFails()
         {
             // Arrange
-            var scriptHandler = Substitute.For<IScriptHandler>();
+            var handler = Substitute.For<IScriptHandler>();
+            handler.ExecuteGetNetworkInterfacesScript().Returns((Result.ErrorResult, ""));
 
-            scriptHandler
-                .ExecuteGetNetworkInterfacesScript()
-                .Returns((Result.ErrorResult, ""));
+            var sut = CreateSut(handler);
 
-            var sut = CreateSut(scriptHandler);
-
-            // Act + Assert
+            // Act
             var result = await sut.GetConfiguration(new(), CancellationToken.None);
+
+            // Assert
             result.OperationStatus.Should().Be(OperationStatus.Error);
             result.Messages.Should().Contain(Result.ErrorMessage);
         }
@@ -49,20 +48,22 @@ public class NetworkInterfacesConfigurationAdapterTests
         public async Task ShouldReturnError_WhenCommonInfoScriptFails()
         {
             // Arrange
-            var scriptHandler = Substitute.For<IScriptHandler>();
+            var handler = Substitute.For<IScriptHandler>();
 
-            scriptHandler
+            handler
                 .ExecuteGetNetworkInterfacesScript()
                 .Returns((Result.SuccessResult, ""));
 
-            scriptHandler
+            handler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
                 .Returns((Result.ErrorResult, []));
 
-            var sut = CreateSut(scriptHandler);
+            var sut = CreateSut(handler);
 
-            // Act + Assert
+            // Act
             var result = await sut.GetConfiguration(new(), CancellationToken.None);
+
+            // Assert
             result.OperationStatus.Should().Be(OperationStatus.Error);
             result.Messages.Should().Contain(Result.ErrorMessage);
         }
@@ -71,24 +72,26 @@ public class NetworkInterfacesConfigurationAdapterTests
         public async Task ShouldReturnError_WhenInterfaceSettingsScriptFails()
         {
             // Arrange
-            var scriptHandler = Substitute.For<IScriptHandler>();
+            var handler = Substitute.For<IScriptHandler>();
 
-            scriptHandler
+            handler
                 .ExecuteGetNetworkInterfacesScript()
                 .Returns((Result.SuccessResult, RawInterfacesString));
 
-            scriptHandler
+            handler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
                 .Returns((Result.SuccessResult, [CreateCommonInformation(Lan1)]));
 
-            scriptHandler
+            handler
                 .ExecuteGetInterfaceSettingsScript(Lan1)
                 .Returns((Result.ErrorResult, new(), new()));
 
-            var sut = CreateSut(scriptHandler);
+            var sut = CreateSut(handler);
 
-            // Act + Assert
+            // Act
             var result = await sut.GetConfiguration(new(), CancellationToken.None);
+
+            // Assert
             result.OperationStatus.Should().Be(OperationStatus.Error);
             result.Messages.Should().Contain(Result.ErrorMessage);
         }
@@ -98,14 +101,14 @@ public class NetworkInterfacesConfigurationAdapterTests
         [InlineData(OperationStatus.Success, false)]
         [InlineData(OperationStatus.Warning, true)]
         [InlineData(OperationStatus.Success, true)]
-        public async Task ShouldPopulateInterfaces_WhenSuccessOrWarning(
+        public async Task ShouldPopulateInterfaces_WhenScriptSucceedsOrWarns(
             OperationStatus operationStatusFromCommonInfoScript,
             bool dhcpEnabled)
         {
             // Arrange
-            var scriptHandler = Substitute.For<IScriptHandler>();
+            var handler = Substitute.For<IScriptHandler>();
 
-            scriptHandler
+            handler
                 .ExecuteGetNetworkInterfacesScript()
                 .Returns((Result.SuccessResult, RawInterfacesString));
 
@@ -113,16 +116,16 @@ public class NetworkInterfacesConfigurationAdapterTests
                 ? Result.WarningResult
                 : Result.SuccessResult;
 
-            scriptHandler
+            handler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
                 .Returns((expectedResult, [CreateCommonInformation(Lan1),]));
 
-            scriptHandler
+            handler
                 .ExecuteGetInterfaceSettingsScript(Lan1)
                 .Returns((Result.SuccessResult, new() { DHCPEnabled = dhcpEnabled }, new()));
 
-            var sut = CreateSut(scriptHandler);
             var config = new SystemConfiguration();
+            var sut = CreateSut(handler);
 
             // Act
             var result = await sut.GetConfiguration(config, CancellationToken.None);
@@ -142,28 +145,33 @@ public class NetworkInterfacesConfigurationAdapterTests
             networkInterface.CommonInformation.Name.Should().Be(Lan1);
             networkInterface.IPv4.Should().NotBeNull();
 
-            _ = await scriptHandler.DidNotReceive().ExecuteGetInterfaceIPv4DHCPLeaseScript(Lan1);
+            _ = await handler.DidNotReceive().ExecuteGetInterfaceIPv4DHCPLeaseScript(Lan1);
         }
     }
 
     public sealed class HasChanges
     {
         [Fact]
-        public void ShouldBeFalse_WhenEqual()
+        public void ShouldReturnFalse_WhenConfigurationsEqual()
         {
-            var scriptHandler = Substitute.For<IScriptHandler>();
-            var sut = CreateSut(scriptHandler);
+            // Arrange
+            var handler = Substitute.For<IScriptHandler>();
             var current = new SystemConfiguration();
             var proposed = new SystemConfiguration();
+            var sut = CreateSut(handler);
 
-            sut.HasChanges(current, proposed).Should().BeFalse();
+            // Act
+            var result = sut.HasChanges(current, proposed);
+
+            // Assert
+            result.Should().BeFalse();
         }
 
         [Fact]
-        public void ShouldBeTrue_WhenInterfacesDifferent()
+        public void ShouldReturnTrue_WhenNetworkInterfacesDiffer()
         {
-            var scriptHandler = Substitute.For<IScriptHandler>();
-            var sut = CreateSut(scriptHandler);
+            // Arrange
+            var handler = Substitute.For<IScriptHandler>();
             var current = new SystemConfiguration();
             var proposed = new SystemConfiguration()
             {
@@ -178,14 +186,20 @@ public class NetworkInterfacesConfigurationAdapterTests
                 ]
             };
 
-            sut.HasChanges(current, proposed).Should().BeTrue();
+            var sut = CreateSut(handler);
+
+            // Act
+            var result = sut.HasChanges(current, proposed);
+
+            // Assert
+            result.Should().BeTrue();
         }
 
         [Fact]
-        public void ShouldBeTrue_WhenDNSDifferent()
+        public void ShouldReturnTrue_WhenNetworkDNSSettingsDiffer()
         {
-            var scriptHandler = Substitute.For<IScriptHandler>();
-            var sut = CreateSut(scriptHandler);
+            // Arrange
+            var handler = Substitute.For<IScriptHandler>();
             var current = new SystemConfiguration();
             var proposed = new SystemConfiguration()
             {
@@ -195,23 +209,68 @@ public class NetworkInterfacesConfigurationAdapterTests
                 }
             };
 
-            sut.HasChanges(current, proposed).Should().BeTrue();
+            var sut = CreateSut(handler);
+
+            // Act
+            var result = sut.HasChanges(current, proposed);
+
+            // Assert
+            result.Should().BeTrue();
         }
 
         [Fact]
-        public void ShouldBeTrue_WhenBypassHasChangesFlagTrue()
+        public void ShouldReturnTrue_WhenChangeCheckBypassed()
         {
-            var scriptHandler = Substitute.For<IScriptHandler>();
-            var sut = CreateSut(scriptHandler, bypassHasChanges: true);
+            // Arrange
+            var handler = Substitute.For<IScriptHandler>();
             var current = new SystemConfiguration();
             var proposed = new SystemConfiguration();
+            var sut = CreateSut(handler, bypassHasChanges: true);
 
-            sut.HasChanges(current, proposed).Should().BeTrue();
+            // Act
+            var result = sut.HasChanges(current, proposed);
+
+            // Assert
+            result.Should().BeTrue();
         }
     }
 
     public sealed class SetConfiguration
     {
+        private static readonly SystemConfiguration s_proposedConfig = new()
+        {
+            NetworkInterfaces =
+            [
+                new()
+                {
+                    CommonInformation = new()
+                    {
+                        Enabled = false,
+                        Name = Lan1,
+                        PhysicalAddress = "00:11:22:33:44:55"
+                    },
+                    IPv4 = new()
+                    {
+                        DHCPEnabled = true,
+                        Gateway = IPAddress.Parse("192.168.0.1"),
+                        IPv4Details =
+                        [
+                            new()
+                            {
+                                IPAddress = IPAddress.Parse("192.168.0.10"),
+                                Netmask = IPAddress.Parse("255.255.255.0")
+                            }
+                        ]
+                    },
+                    VLAN = new()
+                    {
+                        Enabled = true,
+                        ID = 100
+                    }
+                }
+            ]
+        };
+
         [Theory]
         [InlineData(OperationStatus.Warning)]
         [InlineData(OperationStatus.Error)]
@@ -219,17 +278,15 @@ public class NetworkInterfacesConfigurationAdapterTests
             OperationStatus operationStatusFromInterfaceAvailableScript)
         {
             // Arrange
-            var scriptHandler = Substitute.For<IScriptHandler>();
+            var handler = Substitute.For<IScriptHandler>();
 
             var (expectedResult, expectedMessage) = operationStatusFromInterfaceAvailableScript is OperationStatus.Warning
                 ? (Result.WarningResult, Result.WarningMessage)
                 : (Result.ErrorResult, Result.ErrorMessage);
 
-            scriptHandler
+            handler
                 .ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>())
                 .Returns(expectedResult);
-
-            var sut = CreateSut(scriptHandler, bypassHasChanges: true);
 
             var config = new SystemConfiguration()
             {
@@ -244,29 +301,24 @@ public class NetworkInterfacesConfigurationAdapterTests
                 ]
             };
 
-            // Act + Assert
+            var sut = CreateSut(handler, bypassHasChanges: true);
+
+            // Act
             var result = await sut.SetConfiguration(config, CancellationToken.None);
             result.OperationStatus.Should().Be(OperationStatus.Error);
             result.Messages.Should().Contain(expectedMessage);
 
-            _ = await scriptHandler.DidNotReceive().ExecuteSetInterfaceSettingsScript(Arg.Any<ScriptOptions>());
+            // Assert
+            _ = await handler.DidNotReceive().ExecuteSetInterfaceSettingsScript(Arg.Any<ScriptOptions>());
         }
 
         [Fact]
         public async Task ShouldReturnError_WhenSetInterfaceSettingsScriptFails()
         {
             // Arrange
-            var scriptHandler = Substitute.For<IScriptHandler>();
-
-            scriptHandler
-                .ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>())
-                .Returns(Result.SuccessResult);
-
-            scriptHandler
-                .ExecuteSetInterfaceSettingsScript(Arg.Any<ScriptOptions>())
-                .Returns(Result.ErrorResult);
-
-            var sut = CreateSut(scriptHandler, bypassHasChanges: true);
+            var handler = Substitute.For<IScriptHandler>();
+            handler.ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>()).Returns(Result.SuccessResult);
+            handler.ExecuteSetInterfaceSettingsScript(Arg.Any<ScriptOptions>()).Returns(Result.ErrorResult);
 
             var config = new SystemConfiguration()
             {
@@ -281,74 +333,39 @@ public class NetworkInterfacesConfigurationAdapterTests
                 ]
             };
 
-            // Act + Assert
-            var result = await sut.SetConfiguration(config, CancellationToken.None);
-            result.OperationStatus.Should().Be(OperationStatus.Error);
-            result.Messages.Should().Contain(Result.ErrorMessage);
-        }
-
-        [Fact]
-        public async Task ShouldSetInterfaceSettings_WhenCalled()
-        {
-            // Arrange
-            ScriptOptions? captured = default;
-            var scriptHandler = Substitute.For<IScriptHandler>();
-
-            scriptHandler
-                .ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>())
-                .Returns(Result.SuccessResult);
-
-            scriptHandler
-                .ExecuteSetInterfaceSettingsScript(Arg.Do<ScriptOptions>(so => captured = so))
-                .Returns(Result.SuccessResult);
-
-            var sut = CreateSut(scriptHandler, bypassHasChanges: true);
-
-            var config = new SystemConfiguration()
-            {
-                NetworkInterfaces =
-                [
-                    new()
-                    {
-                        CommonInformation = new()
-                        {
-                            Enabled = false,
-                            Name = Lan1,
-                            PhysicalAddress = "00:11:22:33:44:55"
-                        },
-                        IPv4 = new()
-                        {
-                            DHCPEnabled = true,
-                            Gateway = IPAddress.Parse("192.168.0.1"),
-                            IPv4Details =
-                            [
-                                new()
-                                {
-                                    IPAddress = IPAddress.Parse("192.168.0.10"),
-                                    Netmask = IPAddress.Parse("255.255.255.0")
-                                }
-                            ]
-                        },
-                        VLAN = new()
-                        {
-                            Enabled = true,
-                            ID = 100
-                        }
-                    }
-                ]
-            };
+            var sut = CreateSut(handler, bypassHasChanges: true);
 
             // Act
             var result = await sut.SetConfiguration(config, CancellationToken.None);
 
             // Assert
+            result.OperationStatus.Should().Be(OperationStatus.Error);
+            result.Messages.Should().Contain(Result.ErrorMessage);
+        }
+
+        [Fact]
+        public async Task ShouldSetInterfaceSettings_WhenConfigurationValid()
+        {
+            // Arrange
+            ScriptOptions? capturedOptions = default;
+            var handler = Substitute.For<IScriptHandler>();
+            handler.ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>()).Returns(Result.SuccessResult);
+            handler.ExecuteSetInterfaceSettingsScript(Arg.Do<ScriptOptions>(so => capturedOptions = so))
+                .Returns(Result.SuccessResult);
+
+            var sut = CreateSut(handler, bypassHasChanges: true);
+
+            // Act
+            var result = await sut.SetConfiguration(s_proposedConfig, CancellationToken.None);
+
+            // Assert
             result.OperationStatus.Should().Be(OperationStatus.Success);
             result.Messages.Should().BeEmpty();
 
-            await scriptHandler.Received(1).ExecuteSetInterfaceSettingsScript(Arg.Any<ScriptOptions>());
+            await handler.Received(1).ExecuteSetInterfaceSettingsScript(Arg.Any<ScriptOptions>());
 
-            captured.Should().NotBeNull();
-            captured!.Options.Should().ContainInOrder(
+            capturedOptions.Should().NotBeNull();
+            capturedOptions!.Options.Should().ContainInOrder(
                 ScriptOptionNames.Network.VLANID, "100",
                 ScriptOptionNames.Network.InterfaceName, Lan1,
                 ScriptOptionNames.Network.MACAddress, "00:11:22:33:44:55",
