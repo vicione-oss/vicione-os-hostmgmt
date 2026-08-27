@@ -8,9 +8,11 @@ namespace HostManagement.Services;
 /// Represents the NTP service.
 /// </summary>
 /// <param name="logger">An <see cref="ILogger"/> implementation.</param>
-internal sealed partial class NTPService(ILogger logger)
+/// <param name="scriptHandler">An <see cref="IScriptHandler"/> implementation.</param>
+internal sealed partial class NTPService(ILogger logger, IScriptHandler scriptHandler)
 {
     private readonly ILogger _logger = logger;
+    private readonly IScriptHandler _scriptHandler = scriptHandler;
 
     /// <summary>
     /// Gets the NTP fallback servers.
@@ -23,12 +25,11 @@ internal sealed partial class NTPService(ILogger logger)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var (result, fallbackNTPServers) = await new ScriptHandler()
-                    .ExecuteGetNetworkNTPFallbackInformationScript()
-                    .ConfigureAwait(false);
+            var (result, fallbackNTPServers) = await _scriptHandler.ExecuteGetNetworkNTPFallbackInformationScript()
+                .ConfigureAwait(false);
 
             if (result.OperationStatus is OperationStatus.Error)
-                LogAndReturnGetNTPFallbackServersFailed(result.FormattedMessages);
+                return LogAndReturnGetNTPFallbackServersFailed(result.FormattedMessages);
 
             return new GetNTPFallbackInformationResult
             {
@@ -52,16 +53,23 @@ internal sealed partial class NTPService(ILogger logger)
         }
         catch (Exception ex)
         {
-            return LogAndReturnGetNTPFallbackServersFailed(ex.Message);
+            return LogAndReturnGetNTPFallbackServersFailed(exception: ex);
         }
     }
 
-    private GetNTPFallbackInformationResult LogAndReturnGetNTPFallbackServersFailed(string additionalMessage)
+    private GetNTPFallbackInformationResult LogAndReturnGetNTPFallbackServersFailed(
+        string? additionalMessage = null,
+        Exception? exception = null)
     {
         var simpleMessage = ServicesResources.GetNTPFallbackServersFailed;
-        var message = simpleMessage + Environment.NewLine + additionalMessage;
 
-        GetNTPFallbackServersFailed(_logger, message);
+        var message =
+            simpleMessage +
+            (additionalMessage is not null
+                ? Environment.NewLine + additionalMessage
+                : string.Empty);
+
+        GetNTPFallbackServersFailed(_logger, message, exception);
 
         return new GetNTPFallbackInformationResult
         {
@@ -75,5 +83,5 @@ internal sealed partial class NTPService(ILogger logger)
     private static partial void GetNTPFallbackServersCanceled(ILogger logger, string? innerMessage);
 
     [LoggerMessage(LogLevel.Error, "{InnerMessage}")]
-    private static partial void GetNTPFallbackServersFailed(ILogger logger, string? innerMessage);
+    private static partial void GetNTPFallbackServersFailed(ILogger logger, string? innerMessage, Exception? exception);
 }

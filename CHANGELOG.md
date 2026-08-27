@@ -104,6 +104,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed a potential shell injection vulnerability in `ScriptRunner`
 - Fixed `PhysicalAddressService` not returning correct result on error and incorrect operation status when canceled
 - Fixed `DHCPLeaseService` not returning correct results on error
+- Fixed `NTPService` not returning correct result on error
 
 ## [1.3.0] - 2026-03-23
 
