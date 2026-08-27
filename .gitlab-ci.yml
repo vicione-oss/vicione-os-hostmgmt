@@ -219,6 +219,7 @@ include:
       rules:
         - *rule_mr_manual
         - *rule_web_manual
+        - *rule_default_branch_manual
 
   - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/jfrog/release@v0.1.0
     inputs:
