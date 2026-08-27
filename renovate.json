@@ -5,23 +5,12 @@
     ],
     "dependencyDashboard": true,
     "dependencyDashboardApproval": true,
-    "enabledManagers": [ "nuget", "custom.regex" ],
+    "enabledManagers": [ "nuget", "mise" ],
     "vulnerabilityAlerts": {
         "enabled": true,
         "dependencyDashboardApproval": true
     },
     "osvVulnerabilityAlerts": true,
-    "customManagers": [
-        {
-            "customType": "regex",
-            "managerFilePatterns": [ "/(^|/)mise\\.toml$/" ],
-            "matchStrings": [
-                "dotnet\\s*=\\s*\"(?<currentValue>[^\"]+)\""
-            ],
-            "depNameTemplate": "dotnet-sdk",
-            "datasourceTemplate": "dotnet"
-        }
-    ],
     "packageRules": [
         {
             "matchManagers": [ "nuget" ],
@@ -44,8 +33,8 @@
             "addLabels": [ "dependency" ]
         },
         {
-            "matchManagers": [ "custom.regex" ],
-            "matchPackageNames": [ "dotnet-sdk" ],
+            "matchManagers": [ "mise" ],
+            "matchDatasources": [ "dotnet-version" ],
             "enabled": true,
             "groupName": "mise dotnet",
             "branchTopic": "update-dotnet-sdk",
