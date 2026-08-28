@@ -13,7 +13,7 @@ internal sealed class DNSHostnameCommand : ConfigCommandBase
     private static readonly Argument<string> s_hostnameArgument = new("name")
     {
         Description = "The new hostname.",
-        Arity = ArgumentArity.ExactlyOne
+        Arity = ArgumentArity.ZeroOrOne
     };
 
     /// <summary>
