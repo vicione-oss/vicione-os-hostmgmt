@@ -1,4 +1,4 @@
-﻿namespace HostManagement.Shared.Validation.Validators.Proxy;
+namespace HostManagement.Shared.Validation.Validators.Proxy;
 
 /// <summary>
 /// Represents the type of a proxy.

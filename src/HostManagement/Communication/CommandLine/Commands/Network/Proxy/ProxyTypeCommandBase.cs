@@ -1,4 +1,4 @@
-﻿using HostManagement.Shared.Contracts;
+using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy;

@@ -1,4 +1,4 @@
-﻿namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy;
+namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy;
 
 /// <summary>
 /// Represents a proxy type.

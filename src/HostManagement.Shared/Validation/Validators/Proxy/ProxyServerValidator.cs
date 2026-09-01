@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Text;
 
 namespace HostManagement.Shared.Validation.Validators.Proxy;
