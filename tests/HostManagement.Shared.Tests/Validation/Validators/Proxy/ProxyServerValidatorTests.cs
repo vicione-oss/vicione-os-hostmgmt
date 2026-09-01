@@ -102,16 +102,10 @@ public class ProxyServerValidatorTests
     [InlineData("https://test.de", ProxyType.HTTP)]
     [InlineData("ftp://test.de", ProxyType.HTTPS)]
     [InlineData("sftp://test.de", ProxyType.FTP)]
-    [InlineData("socks://test.de", ProxyType.SFTP)]
-    [InlineData("socks5://test.de", ProxyType.SFTP)]
-    [InlineData("http://test.de", ProxyType.SOCKS)]
-    [InlineData("http://test.de", ProxyType.SOCKS5)]
     [InlineData("htpp://test.de", ProxyType.HTTP)]
     [InlineData("htts://test.de", ProxyType.HTTPS)]
     [InlineData("fpt://test.de", ProxyType.FTP)]
     [InlineData("sfpt://test.de", ProxyType.SFTP)]
-    [InlineData("scoks://test.de", ProxyType.SOCKS)]
-    [InlineData("sock5://test.de", ProxyType.SOCKS5)]
     public async Task ShouldReturnValidationError_WhenTransportProtocolSpecifiedButInvalid(
         string server,
         ProxyType proxyType)
@@ -138,10 +132,7 @@ public class ProxyServerValidatorTests
         // Arrange
         var invalidProtocol = "htts";
         var invalidServer = $"{invalidProtocol}://test.de";
-
-        var expectedTransportProtocols = string.Join(
-            ", ",
-            ["http", "https", "ftp", "sftp", "socks", "socks5"]);
+        var expectedTransportProtocols = string.Join(", ", ["http", "https", "ftp", "sftp"]);
 
         var expectedValidationEntry = new ValidationEntry(
             "Proxy server transport protocol is invalid. " +
@@ -180,8 +171,6 @@ public class ProxyServerValidatorTests
     [InlineData("https://test1.de")]
     [InlineData("ftp://test2.de")]
     [InlineData("sftp://test3.de")]
-    [InlineData("socks://test4.de")]
-    [InlineData("socks5://test5.de")]
     public async Task ShouldReturnValid_WhenServerValid(string server)
     {
         // Act

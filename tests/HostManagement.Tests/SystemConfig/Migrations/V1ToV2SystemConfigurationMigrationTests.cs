@@ -220,7 +220,6 @@ public class V1ToV2SystemConfigurationMigrationTests
             proxySettings.FTP.Should().BeNull();
             proxySettings.HTTPS.Should().BeNull();
             proxySettings.SFTP.Should().BeNull();
-            proxySettings.SOCKS.Should().BeNull();
 
             proxySettings.NoProxy.Should().NotBeNull();
             proxySettings.NoProxy.Enabled.Should().BeTrue();

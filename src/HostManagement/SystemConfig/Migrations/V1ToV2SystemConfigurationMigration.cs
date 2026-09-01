@@ -145,7 +145,8 @@ internal sealed class V1ToV2SystemConfigurationMigration
                 HTTPS = source.HTTPS.MapOrNull(MigrateNetworkProxyDetail),
                 FTP = source.FTP.MapOrNull(MigrateNetworkProxyDetail),
                 SFTP = source.SFTP.MapOrNull(MigrateNetworkProxyDetail),
-                SOCKS = source.SOCKS.MapOrNull(MigrateNetworkProxyDetail),
+
+                // SOCKS proxy was removed.
 
                 // DoNotProxyListEnabled and DoNotProxyList were grouped into NoProxy.
                 NoProxy = source.MapOrNull(MigrateNoProxySettings)

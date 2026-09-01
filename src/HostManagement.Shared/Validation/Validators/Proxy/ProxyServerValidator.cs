@@ -8,7 +8,7 @@ namespace HostManagement.Shared.Validation.Validators.Proxy;
 /// </summary>
 public sealed class ProxyServerValidator : IValidator<string, ProxyType>
 {
-    private static readonly HashSet<string> s_transportProtocols = ["http", "https", "ftp", "sftp", "socks", "socks5"];
+    private static readonly HashSet<string> s_transportProtocols = ["http", "https", "ftp", "sftp"];
 
     /// <summary>
     /// Validates the specified proxy server asynchronously.
@@ -62,8 +62,6 @@ public sealed class ProxyServerValidator : IValidator<string, ProxyType>
                 case ProxyType.HTTPS:
                 case ProxyType.FTP:
                 case ProxyType.SFTP:
-                case ProxyType.SOCKS:
-                case ProxyType.SOCKS5:
 
                     if (!transportProtocol.Equals(proxyType.ToString().ToLowerInvariant()))
                     {

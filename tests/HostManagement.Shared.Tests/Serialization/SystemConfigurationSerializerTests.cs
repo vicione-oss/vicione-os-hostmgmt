@@ -112,14 +112,6 @@ public class SystemConfigurationSerializerTests
                 Server = "sftpServer",
                 Username = "sftpUser"
             },
-            SOCKS = new()
-            {
-                Enabled = true,
-                Password = "socksPassword",
-                Port = 1080,
-                Server = "socksServer",
-                Username = "socksUser"
-            },
             NoProxy = new()
             {
                 Enabled = true,
@@ -230,13 +222,6 @@ public class SystemConfigurationSerializerTests
               "Port": 22,
               "Username": "sftpUser",
               "Password": "sftpPassword"
-            },
-            "SOCKS": {
-              "Enabled": true,
-              "Server": "socksServer",
-              "Port": 1080,
-              "Username": "socksUser",
-              "Password": "socksPassword"
             },
             "NoProxy": {
               "Enabled": true,

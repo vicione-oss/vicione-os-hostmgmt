@@ -23,10 +23,5 @@ internal enum ProxyType
     /// <summary>
     /// The SFTP proxy.
     /// </summary>
-    SFTP,
-
-    /// <summary>
-    /// The SOCKS proxy.
-    /// </summary>
-    SOCKS
+    SFTP
 }

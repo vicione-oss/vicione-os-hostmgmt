@@ -222,10 +222,6 @@ public class SystemConfigurationPersistenceTests
                 {
                     Enabled = false
                 },
-                SOCKS = new()
-                {
-                    Enabled = false
-                },
                 NoProxy = new()
                 {
                     Enabled = false,
@@ -549,14 +545,6 @@ public class SystemConfigurationPersistenceTests
                         Server = "sftpServer",
                         Username = "sftpUser"
                     },
-                    SOCKS = new()
-                    {
-                        Enabled = true,
-                        Password = "socksPassword",
-                        Port = 1080,
-                        Server = "socksServer",
-                        Username = "socksUser"
-                    },
                     NoProxy = new()
                     {
                         Enabled = true,
@@ -662,13 +650,6 @@ public class SystemConfigurationPersistenceTests
                   "Port": 22,
                   "Username": "sftpUser",
                   "Password": "sftpPassword"
-                },
-                "SOCKS": {
-                  "Enabled": true,
-                  "Server": "socksServer",
-                  "Port": 1080,
-                  "Username": "socksUser",
-                  "Password": "socksPassword"
                 },
                 "NoProxy": {
                   "Enabled": true,

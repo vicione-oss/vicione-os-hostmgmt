@@ -135,11 +135,6 @@ internal static class SystemConfigurationTemplate
                     Server = "sftp://proxy.example.com",
                     Port = 22
                 },
-                SOCKS = new()
-                {
-                    Server = "socks://proxy.example.com",
-                    Port = 1080
-                },
                 NoProxy = new()
                 {
                     Entries = ["company.com", "192.168.178.42"]
