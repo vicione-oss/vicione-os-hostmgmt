@@ -293,6 +293,40 @@ public sealed class EnvironmentVariableTests
         }
 
         [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ShouldReturnValue_WhenValueIsNull(bool isRequired)
+        {
+            var invalidIndexedKey = "HOSTMANAGEMENT:PUBLIC_KEYS:42";
+            var invalidIndexedKeyString = "HOSTMANAGEMENT__PUBLIC_KEYS__42";
+
+            var config = CreateConfiguration(
+            [
+                new(EnvironmentVariableIndexedKey0, EnvironmentVariableIndexedValue0),
+                new(EnvironmentVariableIndexedKey1, EnvironmentVariableIndexedValue1),
+                new(invalidIndexedKey, null),
+            ]);
+
+            IReadOnlyCollection<string> expectedValue =
+            [
+                EnvironmentVariableIndexedValue0,
+                EnvironmentVariableIndexedValue1,
+                string.Empty
+            ];
+
+            var variable = new EnvironmentVariable<IReadOnlyCollection<string>>(
+                config,
+                EnvironmentVariableBaseKey,
+                s_configuredDefaultValue,
+                isRequired,
+                isIndexed: true);
+
+            variable.IsInvalid.Should().Be(isRequired);
+            variable.Value.Should().Equal(expectedValue);
+            AssertInvalidVariableString(variable, isRequired, invalidIndexedKeyString);
+        }
+
+        [Theory]
         [InlineData(false, "")]
         [InlineData(false, "  ")]
         [InlineData(true, "")]
