@@ -1,4 +1,4 @@
-﻿using HostManagement.Shared.Enums;
+using HostManagement.Shared.Enums;
 
 namespace HostManagement.Shared.Contracts.Service;
 
