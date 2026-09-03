@@ -10,12 +10,6 @@ namespace HostManagement.Shared.Contracts.Network;
 public sealed record IPv4Settings
 {
     /// <summary>
-    /// Represents the empty IPv4 settings.
-    /// </summary>
-    [JsonIgnore]
-    public static IPv4Settings Empty { get; } = new IPv4Settings();
-
-    /// <summary>
     /// The IP address of the default gateway.
     /// </summary>
     [JsonConverter(typeof(IPAddressConverter))]

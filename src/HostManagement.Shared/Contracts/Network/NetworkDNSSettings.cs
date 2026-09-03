@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using HostManagement.Shared.Capabilities;
 
 namespace HostManagement.Shared.Contracts.Network;
@@ -8,12 +7,6 @@ namespace HostManagement.Shared.Contracts.Network;
 /// </summary>
 public sealed record NetworkDNSSettings
 {
-    /// <summary>
-    /// Represents the empty DNS settings.
-    /// </summary>
-    [JsonIgnore]
-    public static NetworkDNSSettings Empty { get; } = new NetworkDNSSettings();
-
     /// <summary>
     /// The hostname.
     /// </summary>
