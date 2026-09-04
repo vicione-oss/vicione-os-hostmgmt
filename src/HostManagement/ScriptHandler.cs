@@ -23,6 +23,14 @@ internal partial class CommonInformationListJsonSerializerContext : JsonSerializ
 /// <inheritdoc cref="IScriptHandler"/>
 internal sealed class ScriptHandler : IScriptHandler
 {
+    private readonly Func<int?, ScriptIdentifier, IEnumerable<string>, Task<ScriptResponse>> _runScript;
+
+    internal ScriptHandler() : this(RunScriptUsingDefaultRunnerAsync) { }
+
+    internal ScriptHandler(Func<int?, ScriptIdentifier, IEnumerable<string>, Task<ScriptResponse>> runScript)
+        => _runScript = runScript
+        ?? throw new ArgumentNullException(nameof(runScript));
+
     public async Task<Result> ExecuteApplyNetplanConfigurationScript()
         => await ExecuteScript(ScriptIdentifier.ApplyNetplanConfiguration, includeWarnings: false);
 
@@ -316,36 +324,25 @@ internal sealed class ScriptHandler : IScriptHandler
         if (result.OperationStatus is OperationStatus.Error)
             return (result, []);
 
-        var values = (scriptResponse.StandardOutput ?? string.Empty)
+        var values = scriptResponse.StandardOutput
             .Split(separator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .AsEnumerable();
 
         return (result, values);
     }
 
-    private async Task<(Result, ScriptResponse)> RunScriptAsync(
+    private static async Task<ScriptResponse> RunScriptUsingDefaultRunnerAsync(
+        int? timeoutInMilliseconds,
         ScriptIdentifier scriptIdentifier,
-        IEnumerable<string> scriptArguments,
-        bool includeWarnings,
-        int? timeoutInMilliseconds = null)
+        IEnumerable<string> scriptArguments)
     {
-        var scriptResponse = timeoutInMilliseconds.HasValue
+        return timeoutInMilliseconds.HasValue
             ? await ScriptRunner.GetInstance()
                 .Run(timeoutInMilliseconds.Value, scriptIdentifier, scriptArguments)
                 .ConfigureAwait(false)
             : await ScriptRunner.GetInstance()
                 .Run(scriptIdentifier, scriptArguments)
                 .ConfigureAwait(false);
-
-        var result = new Result();
-
-        if (scriptResponse.HasErrors)
-            result.AddScriptError(scriptIdentifier, scriptResponse.StandardError);
-
-        if (includeWarnings && scriptResponse.HasWarnings)
-            result.AddScriptWarning(scriptIdentifier, scriptResponse.StandardError);
-
-        return (result, scriptResponse);
     }
 
     private static T DeserializeStandardOutputSection<T>(
@@ -366,4 +363,24 @@ internal sealed class ScriptHandler : IScriptHandler
         => typeof(T).Name.EndsWith("Settings", StringComparison.Ordinal)
             ? typeof(T).Name[..^"Settings".Length]
             : typeof(T).Name;
+
+    private async Task<(Result, ScriptResponse)> RunScriptAsync(
+        ScriptIdentifier scriptIdentifier,
+        IEnumerable<string> scriptArguments,
+        bool includeWarnings,
+        int? timeoutInMilliseconds = null)
+    {
+        var scriptResponse = await _runScript(timeoutInMilliseconds, scriptIdentifier, scriptArguments)
+            .ConfigureAwait(false);
+
+        var result = new Result();
+
+        if (scriptResponse.HasErrors)
+            result.AddScriptError(scriptIdentifier, scriptResponse.StandardError);
+
+        if (includeWarnings && scriptResponse.HasWarnings)
+            result.AddScriptWarning(scriptIdentifier, scriptResponse.StandardError);
+
+        return (result, scriptResponse);
+    }
 }
