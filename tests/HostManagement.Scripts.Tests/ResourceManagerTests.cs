@@ -312,11 +312,9 @@ public class ResourceManagerTests
                 new List<string>
                 {
                     // Common
-                    "check_group_exists",
-                    "check_user_exists",
                     "get_system_architecture",
                     "set_execute_permission",
-                    "set_ownership",
+                    "set_pipe_ownership",
 
                     // System
                     "install_deb_package",
@@ -336,11 +334,9 @@ public class ResourceManagerTests
                 new List<string>
                 {
                     // Common
-                    "check_group_exists",
-                    "check_user_exists",
                     "get_system_architecture",
                     "set_execute_permission",
-                    "set_ownership",
+                    "set_pipe_ownership",
 
                     // Network
                     "apply_netplan_configuration",

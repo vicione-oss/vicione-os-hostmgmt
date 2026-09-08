@@ -4,8 +4,10 @@
 #
 # Set Ownership Script
 #
-# The script returns 0 if ok or warning, non zero for error.
+# The script returns 0 if ok, non zero for error.
 # ###
+
+# shellcheck disable=SC2059
 
 set -eEuo pipefail
 
@@ -21,22 +23,24 @@ trap 'err "Unknown error in line $LINENO: Command: $BASH_COMMAND (Exit-Code: $?)
 #######################################
 
 readonly ERR_CODE_1="Unsupported flag '%s'."
-readonly ERR_CODE_2="No user was specified."
-readonly ERR_CODE_3="No group was specified."
-readonly ERR_CODE_4="No file was specified."
-readonly ERR_CODE_5="Setting ownership for '%s' failed."
+readonly ERR_CODE_2="No file was specified."
+readonly ERR_CODE_3="Setting ownership for '%s' failed."
+
+#######################################
+# Variables
+#######################################
+
+PIPE_USER="${HOSTMANAGEMENT__PIPE__USER:-vicione-suite}"
+PIPE_GROUP="${HOSTMANAGEMENT__PIPE__GROUP:-vicione-suite}"
 
 #######################################
 # Methods
 #######################################
 
 usage() {
-    echo "The order of the parameters must be observed!"
-    echo "Usage: $0 --user <user> --group <group> --file <file>"
+    echo "Usage: $0 --file <file>"
     echo
     echo "Options:"
-    echo "  --user  - Specifies the owner (user) of the file."
-    echo "  --group - Specifies the group for the file."
     echo "  --file  - Path to the file whose ownership should be changed."
     exit 0
 }
@@ -47,7 +51,7 @@ set_ownership() {
     local file=$3
 
     if ! chown "${user}:${group}" "$file" &>/dev/null; then
-        err "$(printf "$ERR_CODE_5" "$file")" 5
+        err "$(printf "$ERR_CODE_3" "$file")" 3
     fi
 }
 
@@ -60,7 +64,7 @@ main() {
         usage
     fi
 
-    if [[ "$1" != "--user" ]]; then
+    if [[ "$1" != "--file" ]]; then
         err "$(printf "$ERR_CODE_1" "$1")" 1
     fi
 
@@ -68,31 +72,18 @@ main() {
         err "$ERR_CODE_2" 2
     fi
 
-    if [[ $# -lt 3 ]]; then
-        err "$ERR_CODE_3" 3
+    local user="$PIPE_USER"
+    local group="$PIPE_GROUP"
+
+    if ! id "$user" &>/dev/null; then
+        user="root"
     fi
 
-    if [[ "$3" != "--group" ]]; then
-        err "$(printf "$ERR_CODE_1" "$3")" 1
+    if ! getent group "$group" &>/dev/null; then
+        group="root"
     fi
 
-    if [[ -z "${4:-}" ]]; then
-        err "$ERR_CODE_3" 3
-    fi
-
-    if [[ $# -lt 5 ]]; then
-        err "$ERR_CODE_4" 4
-    fi
-
-    if [[ "$5" != "--file" ]]; then
-        err "$(printf "$ERR_CODE_1" "$5")" 1
-    fi
-
-    if [[ -z "${6:-}" ]]; then
-        err "$ERR_CODE_4" 4
-    fi
-
-    set_ownership "$2" "$4" "$6"
+    set_ownership "$user" "$group" "$2"
 }
 
 main "$@"

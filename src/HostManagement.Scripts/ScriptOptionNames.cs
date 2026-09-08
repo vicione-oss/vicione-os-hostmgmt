@@ -13,34 +13,10 @@ public static class ScriptOptionNames
 {
     private const string EnabledFlag = "--enabled";
     private const string FileFlag = "--file";
-    private const string GroupFlag = "--group";
     private const string InterfacesFlag = "--interfaces";
     private const string InterfaceNameFlag = "--interface-name";
     private const string IpAddressFlag = "--ip-address";
     private const string NameFlag = "--name";
-    private const string UserFlag = "--user";
-
-    /// <summary>
-    /// Option names for the check group exists script.
-    /// </summary>
-    public static class CheckGroupExists
-    {
-        /// <summary>
-        /// The script argument for the group.
-        /// </summary>
-        public const string Group = GroupFlag;
-    }
-
-    /// <summary>
-    /// Option names for the check user exists script.
-    /// </summary>
-    public static class CheckUserExists
-    {
-        /// <summary>
-        /// The script argument for the user.
-        /// </summary>
-        public const string User = UserFlag;
-    }
 
     /// <summary>
     /// Option names for the get network status information script.
@@ -292,31 +268,16 @@ public static class ScriptOptionNames
     public static class SetExecutePermission
     {
         /// <summary>
-        /// The script argument for the permission (chmod).
-        /// </summary>
-        public const string Permission = "--permission";
-
-        /// <summary>
         /// The script argument for the file.
         /// </summary>
         public const string File = FileFlag;
     }
 
     /// <summary>
-    /// Option names for the set ownership script.
+    /// Option names for the set pipe ownership script.
     /// </summary>
-    public static class SetOwnership
+    public static class SetPipeOwnership
     {
-        /// <summary>
-        /// The script argument for the user.
-        /// </summary>
-        public const string User = UserFlag;
-
-        /// <summary>
-        /// The script argument for the group.
-        /// </summary>
-        public const string Group = GroupFlag;
-
         /// <summary>
         /// The script argument for the file.
         /// </summary>
