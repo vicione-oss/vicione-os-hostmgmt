@@ -79,6 +79,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Moved `set` command after `remove` command for `VLAN`
   - Improved naming of options and their descriptions
 - CLI: Updates list of supported features in cli help export
+- CLI: Aligned `hostname` command description with its functionality
 
 ### Removed
 

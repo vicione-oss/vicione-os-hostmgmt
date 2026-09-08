@@ -18,7 +18,9 @@ internal static partial class CliStrings
             /// </summary>
             internal static class Hostname
             {
-                internal const string CommandDescription = "Configure hostname.";
+                internal const string CommandDescription =
+                    "Show the current hostname. An optional new name can be specified to change the hostname.";
+
                 internal const string CommandName = "hostname";
                 internal const string Label = "Hostname";
 
