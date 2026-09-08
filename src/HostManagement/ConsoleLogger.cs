@@ -17,11 +17,14 @@ internal sealed class ConsoleLogger(LogLevel minimumLevel, bool useShortLogLevel
     public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
 
     /// <inheritdoc/>
-    public bool IsEnabled(LogLevel logLevel)
-        => logLevel >= minimumLevel;
+    public bool IsEnabled(LogLevel logLevel) => logLevel >= minimumLevel;
 
     /// <inheritdoc/>
-    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
+    public void Log<TState>(
+        LogLevel logLevel,
+        EventId eventId,
+        TState state,
+        Exception? exception,
         Func<TState, Exception?, string> formatter)
     {
         if (!IsEnabled(logLevel))
@@ -32,19 +35,7 @@ internal sealed class ConsoleLogger(LogLevel minimumLevel, bool useShortLogLevel
         if (exception is null && (state is null || formattedMessage == "[null]"))
             return;
 
-        var logLevelString = logLevel switch
-        {
-            LogLevel.Trace => useShortLogLevels ? "TRC" : "TRACE",
-            LogLevel.Debug => useShortLogLevels ? "DBG" : "DEBUG",
-            LogLevel.Information => useShortLogLevels ? "INF" : "INFORMATION",
-            LogLevel.Warning => useShortLogLevels ? "WRN" : "WARNING",
-            LogLevel.Error => useShortLogLevels ? "ERR" : "ERROR",
-            LogLevel.Critical => useShortLogLevels ? "CRI" : "CRITICAL",
-            LogLevel.None => useShortLogLevels ? "NON" : "NONE",
-            _ => useShortLogLevels ? "UNK" : "UNKNOWN"
-        };
-
-        var output = $"{logLevelString}: {formattedMessage}";
+        var output = formattedMessage;
 
         if (exception is not null &&
             !output.Contains(exception.ToString()))
@@ -56,10 +47,38 @@ internal sealed class ConsoleLogger(LogLevel minimumLevel, bool useShortLogLevel
 
         if (Console.IsOutputRedirected)
         {
-            Console.WriteLine(output);
+            var journalPriority = logLevel switch
+            {
+                LogLevel.Trace => 7,       // debug
+                LogLevel.Debug => 7,       // debug
+                LogLevel.Information => 6, // info
+                LogLevel.Warning => 4,     // warning
+                LogLevel.Error => 3,       // err
+                LogLevel.Critical => 2,    // crit
+                _ => 6                     // info
+            };
+
+            foreach (var line in output.ReplaceLineEndings("\n").Split('\n'))
+            {
+                Console.WriteLine($"<{journalPriority}>{line}");
+            }
         }
         else
         {
+            var logLevelString = logLevel switch
+            {
+                LogLevel.Trace => useShortLogLevels ? "TRC" : "TRACE",
+                LogLevel.Debug => useShortLogLevels ? "DBG" : "DEBUG",
+                LogLevel.Information => useShortLogLevels ? "INF" : "INFORMATION",
+                LogLevel.Warning => useShortLogLevels ? "WRN" : "WARNING",
+                LogLevel.Error => useShortLogLevels ? "ERR" : "ERROR",
+                LogLevel.Critical => useShortLogLevels ? "CRI" : "CRITICAL",
+                LogLevel.None => useShortLogLevels ? "NON" : "NONE",
+                _ => useShortLogLevels ? "UNK" : "UNKNOWN"
+            };
+
+            output = $"{logLevelString}: {output}";
+
             var indicatorLength = logLevelString.Length + 1;
             var indicator = output[..indicatorLength];
             var text = output[indicatorLength..];

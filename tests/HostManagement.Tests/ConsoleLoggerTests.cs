@@ -1,4 +1,4 @@
-﻿using AwesomeAssertions;
+using AwesomeAssertions;
 using Microsoft.Extensions.Logging;
 using Xunit;
 
@@ -8,8 +8,7 @@ public class ConsoleLoggerTests
 {
     private const string SampleLogMessage = "This is a test message";
 
-    private readonly ILogger _loggerWithShortLogLevels = new ConsoleLogger(LogLevel.Trace);
-    private readonly ILogger _loggerWithLongLogLevels = new ConsoleLogger(LogLevel.Trace, false);
+    private readonly ILogger _sut = new ConsoleLogger(LogLevel.Trace);
     private readonly Exception _sampleLogException = new InvalidOperationException("This is a test exception");
 
     public static TheoryData<Exception?> SampleLogException =>
@@ -27,7 +26,7 @@ public class ConsoleLoggerTests
         {
             // Act
             var consoleOutput = CaptureConsoleOutput(
-                () => _loggerWithShortLogLevels.Log(LogLevel.None, null));
+                () => _sut.Log(LogLevel.None, null));
 
             // Assert
             consoleOutput.Should().BeNullOrEmpty();
@@ -38,10 +37,10 @@ public class ConsoleLoggerTests
         {
             // Act
             var consoleOutput = CaptureConsoleOutput(
-                () => _loggerWithShortLogLevels.Log(LogLevel.Information, _sampleLogException, null));
+                () => _sut.Log(LogLevel.Information, _sampleLogException, null));
 
             // Assert
-            consoleOutput.Should().Contain("INF:");
+            consoleOutput.Should().StartWith("<6>");
             consoleOutput.Should().Contain(_sampleLogException.ToString());
         }
 
@@ -50,10 +49,10 @@ public class ConsoleLoggerTests
         {
             // Act
             var consoleOutput = CaptureConsoleOutput(
-                () => _loggerWithShortLogLevels.Log(LogLevel.Information, SampleLogMessage));
+                () => _sut.Log(LogLevel.Information, SampleLogMessage));
 
             // Assert
-            consoleOutput.Should().Be($"INF: {SampleLogMessage}{Environment.NewLine}");
+            consoleOutput.Should().Be($"<6>{SampleLogMessage}{Environment.NewLine}");
         }
 
         [Fact]
@@ -61,10 +60,12 @@ public class ConsoleLoggerTests
         {
             // Act
             var consoleOutput = CaptureConsoleOutput(
-                () => _loggerWithShortLogLevels.LogInformation(_sampleLogException, SampleLogMessage));
+                () => _sut.LogInformation(_sampleLogException, SampleLogMessage));
 
             // Assert
-            consoleOutput.Should().Be($"INF: {SampleLogMessage}{Environment.NewLine}{_sampleLogException}{Environment.NewLine}");
+            consoleOutput.Should().Be(
+                $"<6>{SampleLogMessage}{Environment.NewLine}" +
+                $"<6>{_sampleLogException}{Environment.NewLine}");
         }
 
         [Theory]
@@ -76,55 +77,37 @@ public class ConsoleLoggerTests
         [InlineData(LogLevel.Critical)]
         [InlineData(LogLevel.None)]
         [InlineData((LogLevel)42)]
-        public void ShouldAddCorrectShortLogLevel_WhenLogTypeIsGiven(LogLevel logLevel)
+        public void ShouldAddCorrectJournalPriority_WhenOutputIsRedirected(LogLevel logLevel)
         {
+            // Arrange
+            var expectedPriority = GetExpectedJournalPriority(logLevel);
+            var message = $"First line{Environment.NewLine}Second line";
+
+            var expectedOutput =
+                $"<{expectedPriority}>First line{Environment.NewLine}" +
+                $"<{expectedPriority}>Second line{Environment.NewLine}";
+
             // Act
-            var consoleOutput = CaptureConsoleOutput(
-                () => _loggerWithShortLogLevels.Log(logLevel, SampleLogMessage));
+            var consoleOutput = CaptureConsoleOutput(() => _sut.Log(logLevel, message));
 
             // Assert
-            var shortLogLevel = logLevel switch
-            {
-                LogLevel.Trace => "TRC",
-                LogLevel.Debug => "DBG",
-                LogLevel.Information => "INF",
-                LogLevel.Warning => "WRN",
-                LogLevel.Error => "ERR",
-                LogLevel.Critical => "CRI",
-                LogLevel.None => "NON",
-                _ => "UNK"
-            };
-            consoleOutput.Should().Be($"{shortLogLevel}: {SampleLogMessage}{Environment.NewLine}");
+            consoleOutput.Should().Be(expectedOutput);
         }
 
         [Theory]
-        [InlineData(LogLevel.Trace)]
-        [InlineData(LogLevel.Debug)]
-        [InlineData(LogLevel.Information)]
-        [InlineData(LogLevel.Warning)]
-        [InlineData(LogLevel.Error)]
-        [InlineData(LogLevel.Critical)]
-        [InlineData(LogLevel.None)]
-        [InlineData((LogLevel)42)]
-        public void ShouldAddCorrectLongLogLevel_WhenLogTypeIsGiven(LogLevel logLevel)
+        [InlineData(true)]
+        [InlineData(false)]
+        public void ShouldNotAddTextualLogLevel_WhenOutputIsRedirected(bool useShortLogLevels)
         {
+            // Arrange
+            var logger = new ConsoleLogger(LogLevel.Trace, useShortLogLevels);
+
             // Act
             var consoleOutput = CaptureConsoleOutput(
-                () => _loggerWithLongLogLevels.Log(logLevel, SampleLogMessage));
+                () => logger.Log(LogLevel.Information, SampleLogMessage));
 
             // Assert
-            var longLogLevel = logLevel switch
-            {
-                LogLevel.Trace => "TRACE",
-                LogLevel.Debug => "DEBUG",
-                LogLevel.Information => "INFORMATION",
-                LogLevel.Warning => "WARNING",
-                LogLevel.Error => "ERROR",
-                LogLevel.Critical => "CRITICAL",
-                LogLevel.None => "NONE",
-                _ => "UNKNOWN"
-            };
-            consoleOutput.Should().Be($"{longLogLevel}: {SampleLogMessage}{Environment.NewLine}");
+            consoleOutput.Should().Be($"<6>{SampleLogMessage}{Environment.NewLine}");
         }
 
         [Fact]
@@ -152,7 +135,7 @@ public class ConsoleLoggerTests
                 () => logger.Log(LogLevel.Error, SampleLogMessage));
 
             // Assert
-            consoleOutput.Should().Be($"ERR: {SampleLogMessage}{Environment.NewLine}");
+            consoleOutput.Should().Be($"<3>{SampleLogMessage}{Environment.NewLine}");
         }
 
         [Fact]
@@ -166,7 +149,7 @@ public class ConsoleLoggerTests
                 () => logger.Log(LogLevel.Critical, SampleLogMessage));
 
             // Assert
-            consoleOutput.Should().Be($"CRI: {SampleLogMessage}{Environment.NewLine}");
+            consoleOutput.Should().Be($"<2>{SampleLogMessage}{Environment.NewLine}");
         }
 
         [Fact]
@@ -174,10 +157,10 @@ public class ConsoleLoggerTests
         {
             // Act
             var consoleOutput = CaptureConsoleOutput(
-                () => _loggerWithShortLogLevels.Log(LogLevel.Information, 0, SampleLogMessage));
+                () => _sut.Log(LogLevel.Information, 0, SampleLogMessage));
 
             // Assert
-            consoleOutput.Should().Be($"INF: {SampleLogMessage}{Environment.NewLine}");
+            consoleOutput.Should().Be($"<6>{SampleLogMessage}{Environment.NewLine}");
         }
 
         [Fact]
@@ -188,7 +171,7 @@ public class ConsoleLoggerTests
 
             // Act
             var consoleOutput = CaptureConsoleOutput(
-                () => _loggerWithShortLogLevels.Log(
+                () => _sut.Log(
                     LogLevel.Information,
                     0,
                     SampleLogMessage,
@@ -196,7 +179,9 @@ public class ConsoleLoggerTests
                     MessageFormatter));
 
             // Assert
-            consoleOutput.Should().Be($"INF: CustomFormatter: {SampleLogMessage}{Environment.NewLine}{_sampleLogException}{Environment.NewLine}");
+            consoleOutput.Should().Be(
+                $"<6>CustomFormatter: {SampleLogMessage}{Environment.NewLine}" +
+                $"<6>{_sampleLogException}{Environment.NewLine}");
         }
 
         [Theory]
@@ -208,7 +193,7 @@ public class ConsoleLoggerTests
 
             // Act
             var consoleOutput = CaptureConsoleOutput(
-                () => _loggerWithShortLogLevels.Log(
+                () => _sut.Log(
                     LogLevel.Information,
                     0,
                     SampleLogMessage,
@@ -216,9 +201,10 @@ public class ConsoleLoggerTests
                     MessageFormatter));
 
             // Assert
-            consoleOutput.Should().Be(exception is null
-                ? $"INF: CustomFormatter: {Environment.NewLine}"
-                : $"INF: CustomFormatter: {exception}{Environment.NewLine}");
+            consoleOutput.Should().Be(
+                exception is null
+                ? $"<6>CustomFormatter: {Environment.NewLine}"
+                : $"<6>CustomFormatter: {exception}{Environment.NewLine}");
         }
 
         [Theory]
@@ -230,7 +216,7 @@ public class ConsoleLoggerTests
 
             // Act
             var consoleOutput = CaptureConsoleOutput(
-                () => _loggerWithShortLogLevels.Log(
+                () => _sut.Log(
                     LogLevel.Information,
                     0,
                     SampleLogMessage,
@@ -238,10 +224,24 @@ public class ConsoleLoggerTests
                     MessageFormatter));
 
             // Assert
-            consoleOutput.Should().Be(exception is null
-                ? $"INF: {SampleLogMessage}{Environment.NewLine}{Environment.NewLine}"
-                : $"INF: {SampleLogMessage}{Environment.NewLine}{_sampleLogException}{Environment.NewLine}");
+            consoleOutput.Should().Be(
+                exception is null
+                ? $"<6>{SampleLogMessage}{Environment.NewLine}" +
+                  $"<6>{Environment.NewLine}"
+                : $"<6>{SampleLogMessage}{Environment.NewLine}" +
+                  $"<6>{_sampleLogException}{Environment.NewLine}");
         }
+
+        private static int GetExpectedJournalPriority(LogLevel logLevel) => logLevel switch
+        {
+            LogLevel.Trace => 7,       // debug
+            LogLevel.Debug => 7,       // debug
+            LogLevel.Information => 6, // info
+            LogLevel.Warning => 4,     // warning
+            LogLevel.Error => 3,       // err
+            LogLevel.Critical => 2,    // crit
+            _ => 6                     // info
+        };
 
         private static string CaptureConsoleOutput(Action action)
         {
