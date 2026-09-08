@@ -105,6 +105,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed `PhysicalAddressService` not returning correct result on error and incorrect operation status when canceled
 - Fixed `DHCPLeaseService` not returning correct results on error
 - Fixed `NTPService` not returning correct result on error
+- Fixed not removing empty "HostManagement" section in `etc/hosts` when removing the last static host entry or performing a general reset
 
 ## [1.3.0] - 2026-03-23
 

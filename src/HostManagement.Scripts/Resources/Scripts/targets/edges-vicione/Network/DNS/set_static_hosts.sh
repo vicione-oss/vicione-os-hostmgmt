@@ -5,7 +5,7 @@
 # Set Static Hosts Script
 #
 # The script sets the given static hosts to the /etc/hosts file.
-# The script returns 0 if ok or warning, non zero for error.
+# The script returns 0 if ok, non zero for error.
 # ###
 
 set -eEuo pipefail
@@ -109,9 +109,8 @@ main() {
 
     load_current_hosts_file
 
-    HOSTS_FILE_CONTENT+="$START_MARKER"$'\n'
-
     local enabled_marker=""
+    local static_hosts_content=""
 
     while (("$#")); do
         case "$1" in
@@ -134,7 +133,7 @@ main() {
                     err "$ERR_CODE_3" 3
                 fi
 
-                HOSTS_FILE_CONTENT+="${enabled_marker}${ip_address} ${hostname}"$'\n'
+                static_hosts_content+="${enabled_marker}${ip_address} ${hostname}"$'\n'
 
                 ip_address=""
                 hostname=""
@@ -147,7 +146,11 @@ main() {
         shift 2
     done
 
-    HOSTS_FILE_CONTENT+="$END_MARKER"$'\n'
+    if [[ -n "$static_hosts_content" ]]; then
+        HOSTS_FILE_CONTENT+="$START_MARKER"$'\n'
+        HOSTS_FILE_CONTENT+="$static_hosts_content"
+        HOSTS_FILE_CONTENT+="$END_MARKER"$'\n'
+    fi
 
     write_new_hosts_file
 }
