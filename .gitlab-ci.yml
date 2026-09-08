@@ -137,7 +137,7 @@ include:
         - echo "APP_PIPELINE=${CI_PIPELINE_ID}" >> version.env
         - echo "APP_VERSION=$(cat VERSION)" >> version.env
         - echo "APP_TAG=${CI_COMMIT_TAG}" >> version.env
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-restore@v2.6.1
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-restore@v2.7.0
     inputs:
       image: $VICIONE_IMAGE
       rules: *rules
@@ -154,7 +154,7 @@ include:
           ARCH: arm64
           RUNNER_ARCH: arm64
         - PLACEHOLDER: all
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-build@v2.6.1
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-build@v2.7.0
     inputs:
       image: $VICIONE_IMAGE
       rules: *rules
@@ -163,7 +163,7 @@ include:
         - echo "$Version"
       tags:
         - $RUNNER_TAG
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-publish@v2.6.1
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-publish@v2.7.0
     inputs:
       image: $VICIONE_IMAGE
       rules: *rules_manual
@@ -174,7 +174,7 @@ include:
       project: src/HostManagement/HostManagement.csproj
       execution_matrix: *publish_matrix
       self_contained: true
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-test@v2.6.1
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-test@v2.7.0
     inputs:
       image: $VICIONE_IMAGE
       rules: *rules_manual_tag
@@ -186,7 +186,7 @@ include:
       coverage: true
 
   # NuGet Packages
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-pack@v2.6.1
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-pack@v2.7.0
     inputs:
       image: $VICIONE_IMAGE
       stage: packaging
@@ -196,7 +196,7 @@ include:
         - echo "${PackageVersion}"
       tags:
         - $RUNNER_TAG
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-nuget-push@v2.6.1
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/dotnet-component/dotnet-nuget-push@v2.7.0
     inputs:
       image: $VICIONE_IMAGE
       stage: publish
