@@ -21,6 +21,8 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
     bool bypassApplyConfig)
         : ConfigurationAdapter<NetworkConfigurationAdapter>(bypassHasChanges, bypassApplyConfig)
 {
+    private const string BypassMACAddress = "bypass";
+
     private readonly IScriptHandler _scriptHandler = scriptHandler;
     private readonly bool _bypassApplyConfig = bypassApplyConfig;
 
@@ -167,13 +169,12 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
 
     private void AddMACAddressScriptOption(ScriptOptions scriptOptions, string? physicalAddress)
     {
-        if (_bypassApplyConfig)
+        var address = _bypassApplyConfig ? BypassMACAddress : physicalAddress;
+
+        if (string.IsNullOrWhiteSpace(address))
             return;
 
-        if (string.IsNullOrWhiteSpace(physicalAddress))
-            return;
-
-        scriptOptions.Add(ScriptOptionNames.Network.MACAddress, physicalAddress);
+        scriptOptions.Add(ScriptOptionNames.Network.MACAddress, address);
     }
 
     private static void AddInterfaceEnabledScriptOption(ScriptOptions scriptOptions, bool? enabled)

@@ -36,6 +36,7 @@ readonly ERR_CODE_8="Please enter the required parameters."
 readonly DIRECTORY_NETPLAN="/etc/netplan"
 readonly VALUE_TRUE="true"
 readonly VALUE_FALSE="false"
+readonly VALUE_BYPASS="bypass"
 
 readonly FLAG_VLAN_ID="--vlan-id"
 readonly FLAG_INTERFACE_NAME="--interface-name"
@@ -152,18 +153,21 @@ add_netplan_base_configuration() {
 }
 
 add_mac_address() {
-    if [[ -n "$USER_DEFINED_MAC_ADDRESS" ]]; then
-        FILE_CONTENT+="      macaddress: "
+    local effective_mac_address="$USER_DEFINED_MAC_ADDRESS"
+    local comment=""
 
-        if [[ "$USER_DEFINED_MAC_ADDRESS_ENABLED" == "$VALUE_FALSE" ]]; then
-            local original_mac_address
-
-            original_mac_address=$(./Scripts/Network/get_original_physical_address.sh "$INTERFACE_NAME")
-            FILE_CONTENT+="${original_mac_address} # "
-        fi
-
-        FILE_CONTENT+="$USER_DEFINED_MAC_ADDRESS"$'\n'
+    if [[ "$USER_DEFINED_MAC_ADDRESS" == "$VALUE_BYPASS" ]]; then
+        return
     fi
+
+    if [[ -z "$USER_DEFINED_MAC_ADDRESS" ]]; then
+        effective_mac_address=$(./Scripts/Network/get_original_physical_address.sh "$INTERFACE_NAME")
+    elif [[ "$USER_DEFINED_MAC_ADDRESS_ENABLED" == "$VALUE_FALSE" ]]; then
+        effective_mac_address=$(./Scripts/Network/get_original_physical_address.sh "$INTERFACE_NAME")
+        comment=" # ${USER_DEFINED_MAC_ADDRESS}"
+    fi
+
+    FILE_CONTENT+="      macaddress: ${effective_mac_address}${comment}"$'\n'
 }
 
 assert_flag_has_arguments() {
@@ -253,7 +257,11 @@ main() {
             "$FLAG_USER_DEFINED_MAC_ADDRESS")
                 assert_flag_has_arguments "$#" "${1:-}" "$flag_name"
                 USER_DEFINED_MAC_ADDRESS="$1"
-                check_mac_address
+
+                if [[ "$USER_DEFINED_MAC_ADDRESS" != "$VALUE_BYPASS" ]]; then
+                    check_mac_address
+                fi
+
                 ;;
             "$FLAG_USER_DEFINED_MAC_ADDRESS_ENABLED")
                 check_bool_value "$1"
