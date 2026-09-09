@@ -23,7 +23,10 @@ internal sealed class GetOriginalPhysicalAddressRequestHandler(ILogger logger)
     /// </summary>
     /// <inheritdoc/>
     /// <exception cref="InvalidOperationException"/>
-    public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
+    public override async Task<string> HandleAsync(
+        string messageContent,
+        Guid correlationId,
+        CancellationToken cancellationToken)
     {
         var service = new PhysicalAddressService(logger, new ScriptHandler());
         var result = await service.GetOriginalPhysicalAddress(messageContent, cancellationToken).ConfigureAwait(false);

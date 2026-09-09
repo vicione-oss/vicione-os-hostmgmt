@@ -191,10 +191,13 @@ internal sealed class Program
     {
         try
         {
+            var knownActionTracker = new KnownActionTracker(TimeSpan.FromMinutes(5));
             var registry = new CallbackHandlerRegistry();
+
+            registry.RegisterHandler(new TestCallbackHandler(knownActionTracker));
             registry.RegisterHandler(new SystemConfigurationChangedCallbackHandler());
 
-            await using var client = new PipeClient(PipeName, s_logger);
+            await using var client = new PipeClient(PipeName, s_logger, registry);
             _ = await client.TryConnectAsync();
 
             var response = await client.SendRequestAsync(topic, content);
@@ -212,8 +215,10 @@ internal sealed class Program
     {
         try
         {
+            var knownActionTracker = new KnownActionTracker(TimeSpan.FromMinutes(5));
+
             var registry = new CallbackHandlerRegistry();
-            registry.RegisterHandler(new TestCallbackHandler());
+            registry.RegisterHandler(new TestCallbackHandler(knownActionTracker));
             registry.RegisterHandler(new SystemConfigurationChangedCallbackHandler());
 
             await using var client = new PipeClient(PipeName, s_logger, registry);
@@ -233,7 +238,15 @@ internal sealed class Program
             await Task.Delay(200);
 
             Console.WriteLine("Client says: 'trigger'");
-            var response3 = await client.SendRequestAsync(Topics.Echo, "trigger");
+
+            var correlationId = Guid.NewGuid();
+
+            // Register before sending because correlated events may arrive
+            // before the request response is received.
+            knownActionTracker.Add(correlationId);
+
+            var response3 = await client.SendRequestAsync(Topics.Echo, "trigger", correlationId);
+
             Console.WriteLine($"Server says: '{response3.Content}'");
             Console.ReadKey();
         }

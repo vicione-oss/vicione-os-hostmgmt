@@ -25,7 +25,10 @@ internal sealed class RedeployScriptsRequestHandler : RequestHandler<RedeployScr
     /// </summary>
     /// <inheritdoc/>
     /// <exception cref="InvalidOperationException"/>
-    public override Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
+    public override Task<string> HandleAsync(
+        string messageContent,
+        Guid correlationId,
+        CancellationToken cancellationToken)
     {
         RedeployScriptsResult result;
 

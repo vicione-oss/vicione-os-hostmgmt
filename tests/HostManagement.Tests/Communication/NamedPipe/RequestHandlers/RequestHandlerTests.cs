@@ -75,7 +75,10 @@ public sealed class RequestHandlerTests
         public override JsonTypeInfo<ServiceControlResult> TypedJsonTypeInfo
             => SourceGenerationContext.Default.ServiceControlResult;
 
-        public override Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
+        public override Task<string> HandleAsync(
+            string messageContent,
+            Guid correlationId,
+            CancellationToken cancellationToken)
             => Task.FromResult(string.Empty);
     }
 

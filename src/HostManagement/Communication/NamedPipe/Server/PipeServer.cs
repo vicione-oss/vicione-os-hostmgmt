@@ -166,9 +166,13 @@ internal sealed partial class PipeServer : IPipeServer
     /// The published event is sent through <see cref="PipeStreamWrapper"/> and is therefore subject to the configured
     /// maximum serialized payload size.
     /// </remarks>
-    public Task PublishEvent(string topic, string content, CancellationToken cancellationToken = default)
+    public Task PublishEvent(
+        string topic,
+        string content,
+        Guid correlationId = default,
+        CancellationToken cancellationToken = default)
     {
-        EnqueueEventForActiveConnections(topic, content, EnqueueMode.Normal, cancellationToken);
+        EnqueueEventForActiveConnections(topic, content, EnqueueMode.Normal, cancellationToken, correlationId);
         return Task.CompletedTask;
     }
 
@@ -251,6 +255,7 @@ internal sealed partial class PipeServer : IPipeServer
             args.Content,
             EnqueueMode.Normal,
             _internalCancellationSource.Token,
+            args.CorrelationId,
             excludedConnection);
     }
 
@@ -358,8 +363,8 @@ internal sealed partial class PipeServer : IPipeServer
                 .SendMessageAsync(pipeEvent, cancellationToken)
                 .ConfigureAwait(false);
 
-            EventSent(_logger, pipeEvent.Topic);
-            EventContentWas(_logger, pipeEvent.Content);
+            EventSent(_logger, pipeEvent.Topic, pipeEvent.ConversationId);
+            EventContentWas(_logger, pipeEvent.ConversationId, pipeEvent.Content);
         }
 
         async Task SendDefaultResponse(NamedPipeMessage message, IPipeStreamWrapper pipeWrapper)
@@ -682,11 +687,12 @@ internal sealed partial class PipeServer : IPipeServer
         string content,
         EnqueueMode enqueueMode,
         CancellationToken cancellationToken,
+        Guid correlationId = default,
         IPipeStreamWrapper? excludedConnection = null)
     {
         var eventMessage = new NamedPipeMessage()
         {
-            ConversationId = Guid.Empty, // No conversation ID for events
+            ConversationId = correlationId,
             Topic = topic,
             Content = content,
             Type = MessageType.Event
@@ -843,11 +849,11 @@ internal sealed partial class PipeServer : IPipeServer
     [LoggerMessage(LogLevel.Debug, "Default response content for conversation ID '{ConversationId}' was: {Content}")]
     private static partial void DefaultResponseContentWas(ILogger logger, Guid conversationId, string content);
 
-    [LoggerMessage(LogLevel.Information, "Event with topic '{Topic}' sent.")]
-    private static partial void EventSent(ILogger logger, string topic);
+    [LoggerMessage(LogLevel.Information, "Event with topic '{Topic}' sent (Correlation ID: {CorrelationId}).")]
+    private static partial void EventSent(ILogger logger, string topic, Guid correlationId);
 
-    [LoggerMessage(LogLevel.Debug, "Event content was: {Content}")]
-    private static partial void EventContentWas(ILogger logger, string content);
+    [LoggerMessage(LogLevel.Debug, "Event content for correlation ID '{CorrelationId}' was: {Content}")]
+    private static partial void EventContentWas(ILogger logger, Guid correlationId, string content);
 
     [LoggerMessage(LogLevel.Error, "Tried to send response to a disposed pipe.")]
     private static partial void TriedToSendToDisposedPipe(ILogger logger, Exception exception);

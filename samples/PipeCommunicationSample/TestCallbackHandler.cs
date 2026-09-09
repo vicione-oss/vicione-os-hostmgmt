@@ -1,14 +1,19 @@
-﻿using HostManagement.Shared.Communication.NamedPipe.Client;
+using HostManagement.Shared.Communication.NamedPipe.Client;
 
 namespace PipeCommunicationSample;
 
-internal sealed class TestCallbackHandler : ICallbackHandler
+internal sealed class TestCallbackHandler(KnownActionTracker knownActionTracker) : ICallbackHandler
 {
     public string Topic => "test";
 
-    public Task HandleAsync(string messageContent, CancellationToken cancellationToken)
+    public Task HandleAsync(string messageContent, Guid correlationId, CancellationToken cancellationToken)
     {
-        Console.WriteLine(messageContent);
+        var isKnownAction = knownActionTracker.Contains(correlationId);
+
+        Console.WriteLine(
+            $"{(isKnownAction ? "Known" : "Unexpected")} event " +
+            $"[{correlationId}]: {messageContent}");
+
         return Task.CompletedTask;
     }
 }

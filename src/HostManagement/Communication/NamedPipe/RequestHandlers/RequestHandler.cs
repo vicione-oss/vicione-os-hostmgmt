@@ -15,7 +15,7 @@ internal abstract class RequestHandler<T> : IRequestHandler<T> where T : Operati
 
     public JsonTypeInfo JsonTypeInfo => TypedJsonTypeInfo;
 
-    public abstract Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken);
+    public abstract Task<string> HandleAsync(string messageContent, Guid correlationId, CancellationToken cancellationToken);
     public virtual T CreateTypedErrorInstance(string message) => T.CreateErrorResult(message);
     OperationResult IRequestHandler.CreateErrorInstance(string message) => CreateTypedErrorInstance(message);
 }

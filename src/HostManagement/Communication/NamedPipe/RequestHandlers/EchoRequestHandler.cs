@@ -26,14 +26,17 @@ internal sealed partial class EchoRequestHandler(ILogger logger) : IRequestHandl
     /// Handles the echo request.
     /// </summary>
     /// <inheritdoc/>
-    public Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken = default)
+    public Task<string> HandleAsync(
+        string messageContent,
+        Guid correlationId,
+        CancellationToken cancellationToken = default)
     {
         switch (messageContent)
         {
             case "ping":
                 return Task.FromResult("pong");
             case "trigger":
-                _ = FireEventMessages(cancellationToken);
+                _ = FireEventMessages(correlationId, cancellationToken);
                 return Task.FromResult("Wait for it!");
             default:
                 if (messageContent.Contains("stress"))
@@ -43,7 +46,7 @@ internal sealed partial class EchoRequestHandler(ILogger logger) : IRequestHandl
         }
     }
 
-    private async Task FireEventMessages(CancellationToken cancellationToken)
+    private async Task FireEventMessages(Guid correlationId, CancellationToken cancellationToken)
     {
         try
         {
@@ -55,12 +58,12 @@ internal sealed partial class EchoRequestHandler(ILogger logger) : IRequestHandl
 
                 PublishEventRequested?.Invoke(
                     this,
-                    new PublishEventRequestedEventArgs(TestTopic, $"{Duration - i}..."));
+                    new PublishEventRequestedEventArgs(TestTopic, $"{Duration - i}...", correlationId));
             }
 
             PublishEventRequested?.Invoke(
                 this,
-                new PublishEventRequestedEventArgs(TestTopic, "tadaaaaa!"));
+                new PublishEventRequestedEventArgs(TestTopic, "tadaaaaa!", correlationId));
         }
         catch (OperationCanceledException)
         {

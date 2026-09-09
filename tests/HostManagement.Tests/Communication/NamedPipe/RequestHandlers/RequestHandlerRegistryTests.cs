@@ -385,6 +385,7 @@ public sealed class RequestHandlerRegistryTests
             response.Should().NotBeNull();
             response.Content.Should().Be("handled");
             handler.WasHandleCalled.Should().BeTrue();
+            handler.CorrelationId.Should().Be(request.ConversationId);
         }
 
         private static string GetRequestFailedMessage(NamedPipeMessage message, string error)
@@ -400,6 +401,7 @@ public sealed class RequestHandlerRegistryTests
         private readonly bool _handleThrows = handleThrows;
         private readonly Exception? _handleException = handleException;
 
+        public Guid CorrelationId { get; private set; }
         public string HandleResult { get; } = handleResult ?? string.Empty;
         public bool WasHandleCalled { get; private set; }
         public override string Topic { get; } = topic;
@@ -410,10 +412,14 @@ public sealed class RequestHandlerRegistryTests
         public override GetNetworkStatusInformationResult CreateTypedErrorInstance(string message)
             => GetNetworkStatusInformationResult.CreateErrorResult(message);
 
-        public override Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
+        public override Task<string> HandleAsync(
+            string messageContent,
+            Guid correlationId,
+            CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            CorrelationId = correlationId;
             WasHandleCalled = true;
 
             if (_handleException is not null)

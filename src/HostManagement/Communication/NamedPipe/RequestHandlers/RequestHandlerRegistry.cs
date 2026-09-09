@@ -73,6 +73,7 @@ internal sealed partial class RequestHandlerRegistry
     {
         var topic = message.Topic;
         var content = message.Content;
+        var conversationId = message.ConversationId;
 
         if (topic is null)
         {
@@ -124,7 +125,7 @@ internal sealed partial class RequestHandlerRegistry
                 return CreateErrorResponse(message, handler, errorMessage);
             }
 
-            var response = await handler.HandleAsync(content, cancellationToken).ConfigureAwait(false);
+            var response = await handler.HandleAsync(content, conversationId, cancellationToken).ConfigureAwait(false);
 
             return message.CreateResponse(response);
         }

@@ -31,7 +31,10 @@ internal sealed class SetSystemConfigurationRequestHandler(SystemConfigurationSe
     /// </summary>
     /// <inheritdoc/>
     /// <exception cref="InvalidOperationException"/>
-    public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
+    public override async Task<string> HandleAsync(
+        string messageContent,
+        Guid correlationId,
+        CancellationToken cancellationToken)
     {
         var configToApply = SystemConfigurationSerializer.Deserialize(messageContent);
 
@@ -48,6 +51,7 @@ internal sealed class SetSystemConfigurationRequestHandler(SystemConfigurationSe
                 new PublishEventRequestedEventArgs(
                     EventTopics.SystemConfigurationChanged,
                     messageContent,
+                    correlationId,
                     ExcludeRequestingClient: true));
         }
 

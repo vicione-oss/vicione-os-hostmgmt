@@ -11,10 +11,14 @@ public interface ICallbackHandler
     string Topic { get; }
 
     /// <summary>
-    /// The method handling a message.
+    /// Handles an event received from the pipe server.
     /// </summary>
-    /// <param name="messageContent">The JSON serialized message content.</param>
-    /// <param name="cancellationToken">The cancellation token</param>
-    /// <returns></returns>
-    Task HandleAsync(string messageContent, CancellationToken cancellationToken);
+    /// <param name="messageContent">The event content.</param>
+    /// <param name="correlationId">
+    /// The correlation ID associated with the event.
+    /// If the event was caused by a request, this can contain the request's conversation ID.
+    /// <see cref="Guid.Empty"/> indicates that the event is not correlated to a request.
+    /// </param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    Task HandleAsync(string messageContent, Guid correlationId, CancellationToken cancellationToken);
 }

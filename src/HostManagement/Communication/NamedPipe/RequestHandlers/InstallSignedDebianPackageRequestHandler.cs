@@ -30,7 +30,10 @@ internal sealed class InstallSignedDebianPackageRequestHandler(ILogger logger) :
     /// </summary>
     /// <inheritdoc/>
     /// <exception cref="InvalidOperationException"/>
-    public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
+    public override async Task<string> HandleAsync(
+        string messageContent,
+        Guid correlationId,
+        CancellationToken cancellationToken)
     {
         var signedDebianPackage = JsonSerializer
             .Deserialize(messageContent, SharedJsonContext.Default.SignedDebianPackage)

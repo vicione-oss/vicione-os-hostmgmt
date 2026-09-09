@@ -30,7 +30,10 @@ internal sealed class ResetNetworkInterfaceRequestHandler(SystemConfigurationSer
     /// </summary>
     /// <inheritdoc/>
     /// <exception cref="InvalidOperationException"/>
-    public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken = default)
+    public override async Task<string> HandleAsync(
+        string messageContent,
+        Guid correlationId,
+        CancellationToken cancellationToken = default)
     {
         var result = await configurationService
             .ResetNetworkInterface(messageContent, cancellationToken)
@@ -45,6 +48,7 @@ internal sealed class ResetNetworkInterfaceRequestHandler(SystemConfigurationSer
                 new PublishEventRequestedEventArgs(
                     EventTopics.SystemConfigurationChanged,
                     messageContent,
+                    correlationId,
                     ExcludeRequestingClient: true));
         }
 

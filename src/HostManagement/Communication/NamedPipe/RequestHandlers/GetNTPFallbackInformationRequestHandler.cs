@@ -26,7 +26,10 @@ internal sealed class GetNTPFallbackInformationRequestHandler(ILogger logger)
     /// </summary>
     /// <inheritdoc/>
     /// <exception cref="InvalidOperationException"/>
-    public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
+    public override async Task<string> HandleAsync(
+        string messageContent,
+        Guid correlationId,
+        CancellationToken cancellationToken)
     {
         var service = new NTPService(logger, new ScriptHandler());
         var result = await service.GetNTPFallbackInformation(cancellationToken).ConfigureAwait(false);

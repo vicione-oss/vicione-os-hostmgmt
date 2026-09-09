@@ -48,7 +48,11 @@ internal interface IRequestHandler
     /// The method handling a message.
     /// </summary>
     /// <param name="messageContent">The message content (can be JSON serialized).</param>
+    /// <param name="correlationId">
+    /// The conversation ID of the request being handled.
+    /// Event messages caused by this request can use this value as their correlation ID.
+    /// </param>
     /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <returns>The result to be sent as a response to the caller.</returns>
-    Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken);
+    Task<string> HandleAsync(string messageContent, Guid correlationId, CancellationToken cancellationToken);
 }

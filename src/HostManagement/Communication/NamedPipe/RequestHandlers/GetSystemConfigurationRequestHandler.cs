@@ -26,7 +26,10 @@ internal sealed class GetSystemConfigurationRequestHandler(SystemConfigurationSe
     /// </summary>
     /// <inheritdoc/>
     /// <exception cref="InvalidOperationException"/>
-    public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
+    public override async Task<string> HandleAsync(
+        string messageContent,
+        Guid correlationId,
+        CancellationToken cancellationToken)
     {
         var result = await configurationService.GetConfiguration(cancellationToken).ConfigureAwait(false);
 

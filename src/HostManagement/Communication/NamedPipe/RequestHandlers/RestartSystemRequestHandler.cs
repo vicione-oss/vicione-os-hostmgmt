@@ -26,7 +26,10 @@ internal sealed class RestartSystemRequestHandler(ILogger logger) : RequestHandl
     /// </summary>
     /// <inheritdoc/>
     /// <exception cref="InvalidOperationException"/>
-    public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken = default)
+    public override async Task<string> HandleAsync(
+        string messageContent,
+        Guid correlationId,
+        CancellationToken cancellationToken = default)
     {
         var scriptHandler = new ScriptHandler();
         var signatureValidator = new MinisignSignedDebianPackageSignatureValidator();

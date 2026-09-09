@@ -100,11 +100,29 @@ public sealed partial class PipeClient(
         string topic,
         string content = "",
         CancellationToken cancellationToken = default)
+        => await SendRequestAsync(topic, content, Guid.NewGuid(), cancellationToken);
+
+    /// <inheritdoc/>
+    public async Task<NamedPipeMessage> SendRequestAsync(
+        string topic,
+        string content,
+        Guid correlationId,
+        CancellationToken cancellationToken = default)
     {
+        if (correlationId == Guid.Empty)
+            throw new ArgumentException("Correlation ID must not be empty.", nameof(correlationId));
+
         await EnsureConnectedForRequestAsync(cancellationToken).ConfigureAwait(false);
 
         var expectedResponse = new ExpectedResponse();
-        var message = new NamedPipeMessage() { Topic = topic, Type = MessageType.Request, Content = content };
+
+        var message = new NamedPipeMessage
+        {
+            ConversationId = correlationId,
+            Topic = topic,
+            Type = MessageType.Request,
+            Content = content
+        };
 
         RegisterExpectedResponse(message.ConversationId, expectedResponse);
 

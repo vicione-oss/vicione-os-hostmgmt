@@ -26,7 +26,10 @@ internal sealed class GetDHCPLeaseInformationRequestHandler(ILogger logger)
     /// </summary>
     /// <inheritdoc/>
     /// <exception cref="InvalidOperationException"/>
-    public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
+    public override async Task<string> HandleAsync(
+        string messageContent,
+        Guid correlationId,
+        CancellationToken cancellationToken)
     {
         var service = new DHCPLeaseService(logger, new ScriptHandler());
         var result = await service.GetDHCPLeaseInformation(messageContent, cancellationToken).ConfigureAwait(false);

@@ -24,11 +24,12 @@ internal sealed class GetSupportedCapabilitiesRequestHandler(SupportedCapabiliti
     /// <summary>
     /// Handles the get supported capabilities request.
     /// </summary>
-    /// <param name="messageContent">The message content.</param>
-    /// <param name="cancellationToken">A token to cancel the request.</param>
-    /// <returns>The response.</returns>
+    /// <inheritdoc/>
     /// <exception cref="InvalidOperationException"/>
-    public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
+    public override async Task<string> HandleAsync(
+        string messageContent,
+        Guid correlationId,
+        CancellationToken cancellationToken)
     {
         var result = await capabilitiesService.GetSupportedCapabilities(cancellationToken);
         return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);

@@ -225,6 +225,22 @@ public class PipeClientTests
         }
 
         [Fact]
+        public async Task ShouldThrow_WhenCorrelationIdIsEmpty()
+        {
+            // Arrange
+            var loggerSubstitute = GetLoggerSubstitute();
+            await using var client = new PipeClient(TestPipeName, loggerSubstitute, new CallbackHandlerRegistry());
+
+            // Act
+            var act = () => client.SendRequestAsync(Topics.Echo, TestRequestContent, Guid.Empty);
+
+            // Assert
+            await act.Should()
+                .ThrowAsync<ArgumentException>()
+                .WithParameterName("correlationId");
+        }
+
+        [Fact]
         public async Task ShouldThrow_WhenNotConnectedAndConnectFails()
         {
             // Arrange
@@ -409,6 +425,56 @@ public class PipeClientTests
             finally
             {
                 // Cleanup
+                processingTaskCompletionSource.TrySetResult();
+            }
+        }
+
+        [Fact]
+        public async Task ShouldUseProvidedCorrelationId_WhenRequestIsSent()
+        {
+            // Arrange
+            var loggerSubstitute = GetLoggerSubstitute();
+            var correlationId = Guid.NewGuid();
+
+            await using var client = new PipeClient(TestPipeName, loggerSubstitute, new CallbackHandlerRegistry());
+            using var wrapper = new PassiveWrapper();
+
+            var processingTaskCompletionSource =
+                new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            PipeClientTestAccessors.SetStateConnected(client);
+            PipeClientTestAccessors.SetWrapper(client, wrapper);
+            PipeClientTestAccessors.SetProcessingTask(client, processingTaskCompletionSource.Task);
+
+            try
+            {
+                // Act
+                var sendTask = client.SendRequestAsync(
+                    Topics.Echo,
+                    TestRequestContent,
+                    correlationId,
+                    CancellationToken.None);
+
+                var pendingResponse = await WaitForSingleExpectedResponseAsync(client, TimeSpan.FromSeconds(2));
+
+                // Assert
+                pendingResponse.Should().NotBeNull();
+                var (pendingCorrelationId, expectedResponse) = pendingResponse!.Value;
+                pendingCorrelationId.Should().Be(correlationId);
+
+                var response = new NamedPipeMessage
+                {
+                    ConversationId = correlationId,
+                    Topic = Topics.Echo,
+                    Type = MessageType.Response,
+                    Content = TestRequestContent
+                };
+
+                expectedResponse.TaskCompletionSource.TrySetResult(response);
+                (await sendTask).ConversationId.Should().Be(correlationId);
+            }
+            finally
+            {
                 processingTaskCompletionSource.TrySetResult();
             }
         }
@@ -815,7 +881,8 @@ public class PipeClientTests
             using var cts = new CancellationTokenSource();
 
             var registry = new CallbackHandlerRegistry();
-            registry.RegisterHandler(new TestCallbackHandler(tcs));
+            var callbackHandler = new TestCallbackHandler(tcs);
+            registry.RegisterHandler(callbackHandler);
 
             await using var client = new PipeClient(TestPipeName, loggerSubstitute, registry);
 
@@ -839,6 +906,7 @@ public class PipeClientTests
             // Assert
             // Wait until callback is executed
             await tcs.Task.WaitAsync(TimeSpan.FromSeconds(2), CancellationToken.None);
+            callbackHandler.CorrelationId.Should().Be(namedPipeEvent.ConversationId);
 
             // Cleanup/Assert final state after cancel
             await cts.CancelAsync();
@@ -899,10 +967,13 @@ public class PipeClientTests
 
         private sealed class TestCallbackHandler(TaskCompletionSource tcs) : ICallbackHandler
         {
+            public Guid CorrelationId { get; private set; }
+
             public string Topic => TestTopic;
 
-            public Task HandleAsync(string messageContent, CancellationToken cancellationToken)
+            public Task HandleAsync(string messageContent, Guid correlationId, CancellationToken cancellationToken)
             {
+                CorrelationId = correlationId;
                 tcs.TrySetResult();
                 return Task.CompletedTask;
             }
@@ -912,7 +983,7 @@ public class PipeClientTests
         {
             public string Topic => TestTopic;
 
-            public Task HandleAsync(string messageContent, CancellationToken cancellationToken)
+            public Task HandleAsync(string messageContent, Guid correlationId, CancellationToken cancellationToken)
                 => throw new InvalidOperationException("Callback handler failed.");
         }
 

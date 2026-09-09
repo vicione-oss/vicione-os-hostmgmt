@@ -227,6 +227,32 @@ public class PipeServerTests
         }
 
         [Fact]
+        public async Task ShouldUseCorrelationId_WhenProvided()
+        {
+            // Arrange
+            await using var context = new ConnectedPipeServerContext();
+            var correlationId = Guid.NewGuid();
+
+            // Act
+            await using (var scope = new QueueProcessingScope(context.Server))
+            {
+                await context.Server.PublishEvent(
+                    EventTopic,
+                    EventContent,
+                    correlationId,
+                    CancellationToken.None);
+
+                await PipeServerTestAccessors.InvokeEnqueueShutdownBarrierAndWaitAsync(
+                    context.Server,
+                    s_defaultBarrierTimeout);
+            }
+
+            // Assert
+            context.Client.TryDequeueSent(out var namedPipeMessage).Should().BeTrue();
+            AssertExpectedNamedPipeEvent(namedPipeMessage, EventTopic, correlationId, EventContent);
+        }
+
+        [Fact]
         public async Task ShouldSendEventToExistingClient_WhenAllListenersAreDegraded()
         {
             // Arrange
@@ -250,7 +276,7 @@ public class PipeServerTests
 
         private static async Task PublishEventAndDrainAsync(PipeServer server, CancellationToken cancellationToken)
         {
-            await server.PublishEvent(EventTopic, EventContent, cancellationToken);
+            await server.PublishEvent(EventTopic, EventContent, cancellationToken: cancellationToken);
             await PipeServerTestAccessors.InvokeEnqueueShutdownBarrierAndWaitAsync(server, s_defaultBarrierTimeout);
         }
     }
@@ -663,8 +689,11 @@ public class PipeServerTests
             var expectedServerResponseLog = CreateResponseSentLog(request.Topic, request.ConversationId);
             var expectedServerResponseDebugLog = CreateResponseContentLog(request.ConversationId, responseContent);
 
-            var expectedServerEventLog = $"Event with topic '{EventTopic}' sent.";
-            var expectedServerEventDebugLog = $"Event content was: {EventContent}";
+            var expectedServerEventLog =
+                $"Event with topic '{EventTopic}' sent (Correlation ID: {request.ConversationId}).";
+
+            var expectedServerEventDebugLog =
+                $"Event content for correlation ID '{request.ConversationId}' was: {EventContent}";
 
             // Act
             await using (var scope = new QueueProcessingScope(context.Server))
@@ -693,7 +722,7 @@ public class PipeServerTests
             responseAndEventMessages.Should().ContainSingle(namedPipeMessage =>
                 namedPipeMessage.Type == MessageType.Event &&
                 namedPipeMessage.Topic == EventTopic &&
-                namedPipeMessage.ConversationId == Guid.Empty &&
+                namedPipeMessage.ConversationId == request.ConversationId &&
                 namedPipeMessage.Content == EventContent);
 
             // Server has logged response and event
@@ -775,7 +804,7 @@ public class PipeServerTests
             AssertExpectedNamedPipeEvent(
                 pipeEvent,
                 EventTopic,
-                Guid.Empty,
+                request.ConversationId,
                 EventContent);
 
             otherClient.TryDequeueSent(out _).Should().BeFalse();
@@ -941,7 +970,10 @@ public class PipeServerTests
 
             public OperationResult CreateErrorInstance(string message) => throw new NotImplementedException();
 
-            public Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
+            public Task<string> HandleAsync(
+                string messageContent,
+                Guid correlationId,
+                CancellationToken cancellationToken)
                 => throw new InvalidOperationException("Handler failed.");
         }
     }
@@ -1325,7 +1357,10 @@ public class PipeServerTests
 
         public OperationResult CreateErrorInstance(string message) => throw new NotImplementedException();
 
-        public Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
+        public Task<string> HandleAsync(
+            string messageContent,
+            Guid correlationId,
+            CancellationToken cancellationToken)
             => Task.FromResult(CreateEchoResponseContent(messageContent));
     }
 
@@ -1338,11 +1373,18 @@ public class PipeServerTests
 
         public JsonTypeInfo JsonTypeInfo => throw new NotImplementedException();
 
-        public Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
+        public Task<string> HandleAsync(
+            string messageContent,
+            Guid correlationId,
+            CancellationToken cancellationToken)
         {
             PublishEventRequested?.Invoke(
                 this,
-                new PublishEventRequestedEventArgs(EventTopic, EventContent, excludeRequestingClient));
+                new PublishEventRequestedEventArgs(
+                    EventTopic,
+                    EventContent,
+                    correlationId,
+                    ExcludeRequestingClient: excludeRequestingClient));
 
             return Task.FromResult(CreateEchoResponseContent(messageContent));
         }

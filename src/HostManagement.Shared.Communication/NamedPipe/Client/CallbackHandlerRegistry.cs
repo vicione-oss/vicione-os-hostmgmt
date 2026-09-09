@@ -1,4 +1,4 @@
-﻿using HostManagement.Shared.Communication.Contracts;
+using HostManagement.Shared.Communication.Contracts;
 
 namespace HostManagement.Shared.Communication.NamedPipe.Client;
 
@@ -28,7 +28,7 @@ public sealed class CallbackHandlerRegistry
             return false;
         }
 
-        await handler.HandleAsync(message.Content, cancellationToken).ConfigureAwait(false);
+        await handler.HandleAsync(message.Content, message.ConversationId, cancellationToken).ConfigureAwait(false);
         return true;
     }
 

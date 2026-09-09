@@ -27,7 +27,10 @@ internal sealed class GetNetworkStatusInformationRequestHandler(ILogger logger)
     /// </summary>
     /// <inheritdoc/>
     /// <exception cref="InvalidOperationException"/>
-    public override async Task<string> HandleAsync(string messageContent, CancellationToken cancellationToken)
+    public override async Task<string> HandleAsync(
+        string messageContent,
+        Guid correlationId,
+        CancellationToken cancellationToken)
     {
         var scriptHandler = new ScriptHandler();
         var service = new NetworkStatusService(logger, scriptHandler);
