@@ -200,7 +200,8 @@ include:
     inputs:
       image: $VICIONE_IMAGE
       stage: publish
-      source: "JFrogViciOne"
+      sources:
+        - "JFrogViciOne"
       filename_pattern: "./src/*"
       rules: *rules_manual
       before_script:
