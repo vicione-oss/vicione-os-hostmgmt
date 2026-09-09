@@ -89,13 +89,21 @@ main() {
             fi
 
             mac_address_information=$(sed -n "/^[[:space:]]*${name}:/,/macaddress:/p" <<< "$netplan_config_content")
-            user_defined_mac_address=$(grep -w "macaddress:" <<< "$mac_address_information" | sed -E 's/.*(#|macaddress:)[[:space:]]*//')
-            original_mac_address=$(./Scripts/Network/get_original_physical_address.sh "$name")
 
-            if [[ "$user_defined_mac_address" == "$original_mac_address" ]]; then
-                user_defined_mac_address=""
-            elif [[ "$mac_address_information" != *macaddress:*#* ]]; then
-                user_defined_mac_address_enabled="true"
+            user_defined_mac_address=$(
+                grep -w "macaddress:" <<< "$mac_address_information" |
+                    sed -E 's/.*(#|macaddress:)[[:space:]]*//' ||
+                    true
+            )
+
+            if [[ -n "$user_defined_mac_address" ]]; then
+                original_mac_address=$(./Scripts/Network/get_original_physical_address.sh "$name")
+
+                if [[ "$user_defined_mac_address" == "$original_mac_address" ]]; then
+                    user_defined_mac_address=""
+                elif [[ "$mac_address_information" != *macaddress:*#* ]]; then
+                    user_defined_mac_address_enabled="true"
+                fi
             fi
         fi
 
