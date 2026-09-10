@@ -90,6 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed obsolete `SystemConfigurationSerializer` methods (marked obsolete in [1.0.0](#100---2025-07-17))
 - Removed obsolete result types `InstallSignedDebianPackageResult`, `ResetSystemResult`, `RestartSystemResult`, `ShutdownSystemResult` and `UpdateSystemResult` (new `ControlSystemResult` was added in [1.3.0](#130---2026-03-23))
 - Shared: Removed shared `IEnumerableExtensions` with `GetSequenceHashCode` (replaced by `HashCodeExtensions`)
+- Shared: Removed redundant properties `IPv4Settings.Empty`, `NetworkDNSSettings.Empty`, `NetworkNTPSettings.Empty`, `ServiceDetail.Empty`
 
 ### Fixed
 
