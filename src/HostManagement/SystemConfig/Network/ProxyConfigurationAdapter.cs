@@ -81,7 +81,6 @@ internal sealed class ProxyConfigurationAdapter(
             UnescapeNetworkProxyDetailAuthentication(networkProxySettings.HTTPS);
             UnescapeNetworkProxyDetailAuthentication(networkProxySettings.FTP);
             UnescapeNetworkProxyDetailAuthentication(networkProxySettings.SFTP);
-            UnescapeNetworkProxyDetailAuthentication(networkProxySettings.SOCKS);
         }
 
         static void UnescapeNetworkProxyDetailAuthentication(NetworkProxyDetail? networkProxyDetail)
@@ -120,8 +119,7 @@ internal sealed class ProxyConfigurationAdapter(
             (proposedProxySettings.HTTP, currentProxySettings?.HTTP),
             (proposedProxySettings.HTTPS, currentProxySettings?.HTTPS),
             (proposedProxySettings.FTP, currentProxySettings?.FTP),
-            (proposedProxySettings.SFTP, currentProxySettings?.SFTP),
-            (proposedProxySettings.SOCKS, currentProxySettings?.SOCKS)
+            (proposedProxySettings.SFTP, currentProxySettings?.SFTP)
         };
 
         var combinedResult = Result.SuccessResult;

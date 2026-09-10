@@ -1,4 +1,4 @@
-﻿using HostManagement.Shared.Contracts;
+using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 
 namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy;
@@ -16,7 +16,6 @@ internal abstract class ProxyTypeCommandBase(string name, string description) : 
             ProxyType.HTTPS => config.NetworkProxySettings.HTTPS,
             ProxyType.FTP => config.NetworkProxySettings.FTP,
             ProxyType.SFTP => config.NetworkProxySettings.SFTP,
-            ProxyType.SOCKS => config.NetworkProxySettings.SOCKS,
             _ => throw new InvalidOperationException($"{proxyType} is not a valid proxy type.")
         };
     }

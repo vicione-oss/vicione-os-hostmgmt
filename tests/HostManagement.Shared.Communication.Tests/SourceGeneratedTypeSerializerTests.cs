@@ -158,13 +158,6 @@ public class SourceGeneratedTypeSerializerTests
               "Username": "sftpUser",
               "Password": "sftpPassword"
             },
-            "SOCKS": {
-              "Enabled": true,
-              "Server": "socksServer",
-              "Port": 1080,
-              "Username": "socksUser",
-              "Password": "socksPassword"
-            },
             "NoProxy": {
               "Enabled": true,
               "Entries": [

@@ -224,9 +224,6 @@ internal static class ContractsTranslator
         if (intern.SFTP is { } sftp)
             networkProxySettings.SFTP = sftp.ToSharedContracts();
 
-        if (intern.SOCKS is { } socks)
-            networkProxySettings.SOCKS = socks.ToSharedContracts();
-
         if (intern.NoProxy is { } noProxy)
             networkProxySettings.NoProxy = noProxy.ToSharedContracts();
 
@@ -394,7 +391,6 @@ internal static class ContractsTranslator
             HTTP = shared.HTTP.ToInternalContracts(),
             HTTPS = shared.HTTPS.ToInternalContracts(),
             SFTP = shared.SFTP.ToInternalContracts(),
-            SOCKS = shared.SOCKS.ToInternalContracts(),
             NoProxy = shared.NoProxy.ToInternalContracts()
         };
 

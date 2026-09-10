@@ -28,9 +28,6 @@ public sealed class ProxyConfigurationAdapterTests
     private const string SFTPProxy = "sftp://proxy";
     private const string SFTPProxyChanged = "sftp://proxy-changed";
 
-    private const string SocksProxy = "socks://proxy";
-    private const string SocksProxyChanged = "socks://proxy-changed";
-
     private const string NoProxyEntry = "localhost";
     private const string NoProxyEntryChanged = "127.0.0.1";
 
@@ -409,8 +406,7 @@ public sealed class ProxyConfigurationAdapterTests
                     HTTP = CreateProxyDetail(true, HTTPProxy, ProxyPort, ProxyUser, ProxyPassword),
                     HTTPS = CreateProxyDetail(false, HTTPSProxy, ProxyPort),
                     FTP = CreateProxyDetail(true, FTPProxy, ProxyPort),
-                    SFTP = CreateProxyDetail(false, SFTPProxy, ProxyPort, ProxyUser, ProxyPassword),
-                    SOCKS = CreateProxyDetail(true, SocksProxy, ProxyPort)
+                    SFTP = CreateProxyDetail(false, SFTPProxy, ProxyPort, ProxyUser, ProxyPassword)
                 };
 
                 // Null proposed proxy details
@@ -421,8 +417,7 @@ public sealed class ProxyConfigurationAdapterTests
                         HTTP = null,
                         HTTPS = null,
                         FTP = null,
-                        SFTP = null,
-                        SOCKS = null
+                        SFTP = null
                     },
                     0);
 
@@ -434,8 +429,7 @@ public sealed class ProxyConfigurationAdapterTests
                         HTTP = new(),
                         HTTPS = new(),
                         FTP = new(),
-                        SFTP = new(),
-                        SOCKS = new()
+                        SFTP = new()
                     },
                     0);
 
@@ -447,8 +441,7 @@ public sealed class ProxyConfigurationAdapterTests
                         HTTP = currentProxySettings.HTTP,
                         HTTPS = currentProxySettings.HTTPS,
                         FTP = currentProxySettings.FTP,
-                        SFTP = currentProxySettings.SFTP,
-                        SOCKS = currentProxySettings.SOCKS
+                        SFTP = currentProxySettings.SFTP
                     },
                     0);
 
@@ -468,10 +461,9 @@ public sealed class ProxyConfigurationAdapterTests
                         HTTP = CreateProxyDetail(true, HTTPProxyChanged, ProxyPort, ProxyUser, ProxyPassword),
                         HTTPS = CreateProxyDetail(false, HTTPSProxyChanged, ProxyPort),
                         FTP = CreateProxyDetail(true, FTPProxyChanged, ProxyPort),
-                        SFTP = CreateProxyDetail(false, SFTPProxyChanged, ProxyPort, ProxyUser, ProxyPassword),
-                        SOCKS = CreateProxyDetail(true, SocksProxyChanged, ProxyPort)
+                        SFTP = CreateProxyDetail(false, SFTPProxyChanged, ProxyPort, ProxyUser, ProxyPassword)
                     },
-                    5);
+                    4);
 
                 // currentProxySettings null
                 Add(
@@ -481,10 +473,9 @@ public sealed class ProxyConfigurationAdapterTests
                         HTTP = CreateProxyDetail(true, HTTPProxyChanged, ProxyPort, ProxyUser, ProxyPassword),
                         HTTPS = CreateProxyDetail(false, HTTPSProxyChanged, ProxyPort),
                         FTP = CreateProxyDetail(true, FTPProxyChanged, ProxyPort),
-                        SFTP = CreateProxyDetail(false, SFTPProxyChanged, ProxyPort, ProxyUser, ProxyPassword),
-                        SOCKS = CreateProxyDetail(true, SocksProxyChanged, ProxyPort)
+                        SFTP = CreateProxyDetail(false, SFTPProxyChanged, ProxyPort, ProxyUser, ProxyPassword)
                     },
-                    5);
+                    4);
             }
         }
 

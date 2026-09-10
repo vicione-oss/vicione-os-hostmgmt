@@ -26,11 +26,6 @@ public sealed record NetworkProxySettings
     public NetworkProxyDetail SFTP { get; set; } = new();
 
     /// <summary>
-    /// The SOCKS proxy settings.
-    /// </summary>
-    public NetworkProxyDetail SOCKS { get; set; } = new();
-
-    /// <summary>
     /// The no proxy settings.
     /// </summary>
     public NoProxySettings NoProxy { get; set; } = new();

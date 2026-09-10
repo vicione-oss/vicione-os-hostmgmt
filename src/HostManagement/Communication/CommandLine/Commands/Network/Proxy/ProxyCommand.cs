@@ -18,7 +18,6 @@ internal sealed class ProxyCommand : Command
         Add(new ProxyTypeCommand(ProxyType.HTTPS));
         Add(new ProxyTypeCommand(ProxyType.FTP));
         Add(new ProxyTypeCommand(ProxyType.SFTP));
-        Add(new ProxyTypeCommand(ProxyType.SOCKS));
         Add(new NoProxyCommand());
     }
 }

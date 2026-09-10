@@ -1,4 +1,4 @@
-﻿namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy;
+namespace HostManagement.Communication.CommandLine.Commands.Network.Proxy;
 
 /// <summary>
 /// Represents a proxy type.
@@ -23,10 +23,5 @@ internal enum ProxyType
     /// <summary>
     /// The SFTP proxy.
     /// </summary>
-    SFTP,
-
-    /// <summary>
-    /// The SOCKS proxy.
-    /// </summary>
-    SOCKS
+    SFTP
 }

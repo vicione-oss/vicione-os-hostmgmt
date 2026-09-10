@@ -47,11 +47,6 @@ public sealed class NetworkProxySettingsValidator
                     .ValidateAsync(proxySettings.SFTP, ProxyType.SFTP, cancellationToken)
                     .ConfigureAwait(false));
 
-            result.AddResult(
-                await proxyValidator
-                    .ValidateAsync(proxySettings.SOCKS, ProxyType.SOCKS, cancellationToken)
-                    .ConfigureAwait(false));
-
             if (proxySettings.NoProxy.Enabled)
             {
                 result.AddResult(

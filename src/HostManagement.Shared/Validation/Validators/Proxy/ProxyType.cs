@@ -1,4 +1,4 @@
-﻿namespace HostManagement.Shared.Validation.Validators.Proxy;
+namespace HostManagement.Shared.Validation.Validators.Proxy;
 
 /// <summary>
 /// Represents the type of a proxy.
@@ -33,17 +33,5 @@ public enum ProxyType
     /// SFTP proxy.
     /// </summary>
     /// <remarks>Typically used for secure file transfers over SSH.</remarks>
-    SFTP,
-
-    /// <summary>
-    /// SOCKS proxy.
-    /// </summary>
-    /// <remarks>Typically used for general-purpose proxying of any kind of traffic.</remarks>
-    SOCKS,
-
-    /// <summary>
-    /// SOCKS5 proxy.
-    /// </summary>
-    /// <remarks>An enhanced version of SOCKS that supports more features and authentication methods.</remarks>
-    SOCKS5
+    SFTP
 }
