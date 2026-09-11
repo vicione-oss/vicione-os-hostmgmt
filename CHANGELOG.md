@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Correlated events reuse the originating request's conversation ID
   - Callback handlers receive the event correlation ID
 - Pipe Sample: Added stress test with configurable parallelism and request counts
+- Added enable/disable functionality for the user-defined MAC address
+  - Adopts V1 system configuration migration handling so that factory MAC addresses are not treated as user-defined MAC overrides
 
 ### Changed
 
@@ -97,6 +99,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `ICallbackHandler`
   - `IPipeClient`
   - `PipeMessageProcessor`
+- Shared: Moved `PhysicalAddress` to new `UserDefinedMACAddressSettings`
+  - Renamed `PhysicalAddress` to `Address` (which is now of .NET type `PhysicalAddress`)
+  - Added `Enabled`
+- Shared Validation: Added optional related value (original MAC addresses) to `NetworkInterfacesValidator` and `SystemConfigurationValidator`
+- CLI: Changed `mac` command to support status, enable, disable, set and reset
 
 ### Removed
 
@@ -113,6 +120,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Shared: Removed redundant properties `IPv4Settings.Empty`, `NetworkDNSSettings.Empty`, `NetworkNTPSettings.Empty`, `ServiceDetail.Empty`
 - Shared Communication: Removed `MessageProcessorBase`
 - Pipe Sample: Removed `EventCallbackRegistry`, `ICallbackHandler`, `IPipeClient`, `PipeMessageProcessor` (moved to `Shared.Communication`)
+- Shared: Removed obsolete `MACAddressValidatorUtils`
 
 ### Fixed
 
