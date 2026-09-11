@@ -80,6 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Improved naming of options and their descriptions
 - CLI: Updates list of supported features in cli help export
 - CLI: Aligned `hostname` command description with its functionality
+- Modified logging to use appropriate journal priority instead of the custom prefix string
 
 ### Removed
 
@@ -92,6 +93,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed obsolete result types `InstallSignedDebianPackageResult`, `ResetSystemResult`, `RestartSystemResult`, `ShutdownSystemResult` and `UpdateSystemResult` (new `ControlSystemResult` was added in [1.3.0](#130---2026-03-23))
 - Shared: Removed shared `IEnumerableExtensions` with `GetSequenceHashCode` (replaced by `HashCodeExtensions`)
 - Removed `SOCKS` proxy feature
+- Removed custom log level prefix string from log messages (replaced with journal priority)
 
 ### Fixed
 

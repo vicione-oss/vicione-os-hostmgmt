@@ -165,16 +165,19 @@ A list of environment variables defined for **HostManagement** can be found in [
 
 ### Logging
 
-By default, **HostManagement** logs messages from log level `Warning`. The log level can be adjusted via the environment variable `LOGGING__LOGLEVEL__DEFAULT`.
+By default, **HostManagement** logs messages with log level `Warning` or higher. The default log level can be adjusted via the environment variable `LOGGING__LOGLEVEL__DEFAULT`.
 
 > [!note]
 > Possible log levels are `Trace`, `Debug`, `Information`, `Warning`, `Error`, `Critical`, `None`.
 
-Logs can be viewed using the `journalctl` command:
+Logs can be viewed using the `journalctl` command and can be filtered by log priority, using the `-p` flag. For example the following command shows logs with error level or higher (`emerg`, `alert`, `crit`).
 
 ```bash
-sudo journalctl -u hostmanagement --output=short-precise
+sudo journalctl -u hostmanagement --output=short-precise -p err
 ```
+
+> [!note]
+> Possible log priorities supported by **HM** are `crit` (2), `err` (3), `warning` (4), `info` (6) and `debug` (7).
 
 ## Architecture
 
