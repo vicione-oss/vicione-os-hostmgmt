@@ -46,11 +46,15 @@ internal sealed class SetSystemConfigurationRequestHandler(SystemConfigurationSe
 
         if (result.Status != OperationStatus.Error)
         {
+            var serializedGetResult = SourceGeneratedTypeSerializer.Serialize(
+                GetSystemConfigurationResult.CreateSuccessResult("System configuration changed", configToApply),
+                SourceGenerationContext.Default.GetSystemConfigurationResult);
+
             PublishEventRequested?.Invoke(
                 this,
                 new PublishEventRequestedEventArgs(
                     EventTopics.SystemConfigurationChanged,
-                    messageContent,
+                    serializedGetResult,
                     correlationId,
                     ExcludeRequestingClient: true));
         }

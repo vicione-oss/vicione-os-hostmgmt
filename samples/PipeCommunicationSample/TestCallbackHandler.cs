@@ -6,7 +6,7 @@ internal sealed class TestCallbackHandler(KnownActionTracker knownActionTracker)
 {
     public string Topic => "test";
 
-    public Task HandleAsync(string messageContent, Guid correlationId, CancellationToken cancellationToken)
+    public Task HandleRawAsync(string messageContent, Guid correlationId, CancellationToken cancellationToken)
     {
         var isKnownAction = knownActionTracker.Contains(correlationId);
 

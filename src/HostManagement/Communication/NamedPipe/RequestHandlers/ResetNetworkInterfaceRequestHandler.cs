@@ -43,13 +43,22 @@ internal sealed class ResetNetworkInterfaceRequestHandler(SystemConfigurationSer
 
         if (result.Status != OperationStatus.Error)
         {
-            PublishEventRequested?.Invoke(
-                this,
-                new PublishEventRequestedEventArgs(
-                    EventTopics.SystemConfigurationChanged,
-                    messageContent,
-                    correlationId,
-                    ExcludeRequestingClient: true));
+            var getResult = await configurationService.GetConfiguration(cancellationToken).ConfigureAwait(false);
+
+            if (getResult.Status != OperationStatus.Error)
+            {
+                var serializedGetResult = SourceGeneratedTypeSerializer.Serialize(
+                    getResult,
+                    SourceGenerationContext.Default.GetSystemConfigurationResult);
+
+                PublishEventRequested?.Invoke(
+                    this,
+                    new PublishEventRequestedEventArgs(
+                        EventTopics.SystemConfigurationChanged,
+                        serializedGetResult,
+                        correlationId,
+                        ExcludeRequestingClient: true));
+            }
         }
 
         return serializedResult;

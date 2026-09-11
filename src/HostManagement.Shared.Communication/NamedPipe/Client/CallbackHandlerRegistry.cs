@@ -28,7 +28,7 @@ public sealed class CallbackHandlerRegistry
             return false;
         }
 
-        await handler.HandleAsync(message.Content, message.ConversationId, cancellationToken).ConfigureAwait(false);
+        await handler.HandleRawAsync(message.Content, message.ConversationId, cancellationToken).ConfigureAwait(false);
         return true;
     }
 

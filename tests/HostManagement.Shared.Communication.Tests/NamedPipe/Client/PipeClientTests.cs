@@ -971,7 +971,7 @@ public class PipeClientTests
 
             public string Topic => TestTopic;
 
-            public Task HandleAsync(string messageContent, Guid correlationId, CancellationToken cancellationToken)
+            public Task HandleRawAsync(string messageContent, Guid correlationId, CancellationToken cancellationToken)
             {
                 CorrelationId = correlationId;
                 tcs.TrySetResult();
@@ -983,7 +983,7 @@ public class PipeClientTests
         {
             public string Topic => TestTopic;
 
-            public Task HandleAsync(string messageContent, Guid correlationId, CancellationToken cancellationToken)
+            public Task HandleRawAsync(string messageContent, Guid correlationId, CancellationToken cancellationToken)
                 => throw new InvalidOperationException("Callback handler failed.");
         }
 
