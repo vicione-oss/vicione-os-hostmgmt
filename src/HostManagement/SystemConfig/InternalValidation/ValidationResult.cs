@@ -31,21 +31,4 @@ internal sealed class ValidationResult
         _messages.Add(message);
         IsValid = false;
     }
-
-    /// <summary>
-    /// Adds a <see cref="ValidationResult"/> to the current validation result.
-    /// </summary>
-    /// <param name="validationResult">The validation result to add.</param>
-    /// <returns>The modified validation result.</returns>
-    internal ValidationResult AddResult(ValidationResult validationResult)
-    {
-        ArgumentNullException.ThrowIfNull(validationResult);
-
-        foreach (var message in validationResult.Messages)
-            _messages.Add(message);
-
-        IsValid = IsValid && validationResult.IsValid;
-
-        return this;
-    }
 }
