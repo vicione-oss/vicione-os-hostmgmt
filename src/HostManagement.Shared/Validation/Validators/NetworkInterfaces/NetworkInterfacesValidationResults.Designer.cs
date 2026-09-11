@@ -197,6 +197,15 @@ namespace HostManagement.Shared.Validation.Validators.NetworkInterfaces {
         }
         
         /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Network interfaces have reserved original MAC addresses defined as user-defined MAC address. Affected MAC addresses are: {0}. ähnelt.
+        /// </summary>
+        internal static string InterfacesHaveReservedOriginalMACs {
+            get {
+                return ResourceManager.GetString("InterfacesHaveReservedOriginalMACs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die VLAN ID &apos;{0}&apos; of {1} is invalid (expected 1 to 4094). ähnelt.
         /// </summary>
         internal static string InterfaceVLANIDInvalid {

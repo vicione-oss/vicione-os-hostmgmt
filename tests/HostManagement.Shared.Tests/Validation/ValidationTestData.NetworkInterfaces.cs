@@ -1,5 +1,5 @@
-﻿using HostManagement.Shared.Contracts.Network;
 using System.Net;
+using HostManagement.Shared.Contracts.Network;
 
 namespace HostManagement.Shared.Tests.Validation;
 
@@ -30,7 +30,11 @@ internal static partial class ValidationTestData
             {
                 Enabled = true,
                 Name = InterfaceName.Static,
-                PhysicalAddress = "02-23-45-67-89-AB"
+                UserDefinedMACAddress = new()
+                {
+                    Enabled = true,
+                    Address = "02-23-45-67-89-AB"
+                }
             },
             IPv4 = new()
             {
@@ -53,7 +57,11 @@ internal static partial class ValidationTestData
             {
                 Enabled = true,
                 Name = InterfaceName.DHCP,
-                PhysicalAddress = "02-23-45-67-89-AC"
+                UserDefinedMACAddress = new()
+                {
+                    Enabled = true,
+                    Address = "02-23-45-67-89-AC"
+                }
             },
             IPv4 = new()
             {

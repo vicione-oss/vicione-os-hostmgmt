@@ -82,7 +82,10 @@ public class SourceGeneratedTypeSerializerTests
               "CommonInformation": {
                 "Enabled": true,
                 "Name": "lan1",
-                "PhysicalAddress": "01:23:45:67:89:AB"
+                "UserDefinedMACAddress": {
+                  "Enabled": true,
+                  "Address": "01:23:45:67:89:AB"
+                }
               },
               "IPv4": {
                 "Gateway": "120.86.52.18",

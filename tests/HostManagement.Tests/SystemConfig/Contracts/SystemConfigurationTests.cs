@@ -401,7 +401,11 @@ public class SystemConfigurationTests
                     {
                         Enabled = true,
                         Name = "eth0",
-                        PhysicalAddress = "00:11:22:33:44:55",
+                        UserDefinedMACAddress = new UserDefinedMACAddressSettings
+                        {
+                            Enabled = true,
+                            Address = "00:11:22:33:44:55"
+                        }
                     },
                     IPv4 = new IPv4Settings
                     {

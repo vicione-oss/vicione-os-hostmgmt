@@ -247,7 +247,11 @@ public sealed class NetworkInterfacesConfigurationAdapterTests
                     {
                         Enabled = false,
                         Name = Lan1,
-                        PhysicalAddress = "00:11:22:33:44:55"
+                        UserDefinedMACAddress = new()
+                        {
+                            Enabled = true,
+                            Address = "00:11:22:33:44:55"
+                        }
                     },
                     IPv4 = new()
                     {
@@ -368,7 +372,8 @@ public sealed class NetworkInterfacesConfigurationAdapterTests
             capturedOptions!.Options.Should().ContainInOrder(
                 ScriptOptionNames.Network.VLANID, "100",
                 ScriptOptionNames.Network.InterfaceName, Lan1,
-                ScriptOptionNames.Network.MACAddress, "00:11:22:33:44:55",
+                ScriptOptionNames.Network.UserDefinedMACAddressEnabled, "true",
+                ScriptOptionNames.Network.UserDefinedMACAddress, "00:11:22:33:44:55",
                 ScriptOptionNames.Network.Enabled, "false",
                 ScriptOptionNames.Network.DHCPEnabled, "true",
                 ScriptOptionNames.Network.IPAddress, "192.168.0.10/24",

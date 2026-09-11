@@ -31,11 +31,17 @@ public class NetworkInterfaceValidatorTests
     public async Task ShouldAddValidationResult_WhenMACAddressConfigured()
     {
         // Arrange
-        var interfaceWithInvalidMAC = ValidationTestData.Interface.Static with
+        var staticInterface = ValidationTestData.Interface.Static;
+
+        var interfaceWithInvalidMAC = staticInterface with
         {
-            CommonInformation = ValidationTestData.Interface.Static.CommonInformation with
+            CommonInformation = staticInterface.CommonInformation with
             {
-                PhysicalAddress = "01-23-45-67-89-XX"
+                UserDefinedMACAddress = staticInterface.CommonInformation.UserDefinedMACAddress with
+                {
+                    Enabled = true,
+                    Address = "01-23-45-67-89-XX"
+                }
             }
         };
 

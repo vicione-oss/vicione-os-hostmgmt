@@ -19,6 +19,7 @@ internal static partial class CliStrings
         internal const string ListCommandName = "list";
         internal const string ModifyCommandName = "modify";
         internal const string RemoveCommandName = "remove";
+        internal const string ResetCommandName = "reset";
         internal const string SetCommandName = "set";
         internal const string StatusCommandName = "status";
 

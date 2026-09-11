@@ -49,8 +49,27 @@ internal sealed class V1ToV2SystemConfigurationMigration
             {
                 Name = source.Name,
                 Enabled = source.Enabled,
-                PhysicalAddress = source.PhysicalAddress
+                UserDefinedMACAddress = source.MapOrNull(MigrateUserDefinedMACAddress)
             };
+
+    private static CurrentContracts.UserDefinedMACAddressSettings MigrateUserDefinedMACAddress(
+        V1Contracts.NetworkInterfaceCommonInformation source)
+    {
+        if (string.IsNullOrWhiteSpace(source.PhysicalAddress))
+        {
+            return new()
+            {
+                Enabled = false,
+                Address = string.Empty
+            };
+        }
+
+        return new()
+        {
+            Enabled = true,
+            Address = source.PhysicalAddress
+        };
+    }
 
     private static CurrentContracts.IPv4Settings MigrateIPv4Settings(V1Contracts.IPv4Settings source)
         => new()

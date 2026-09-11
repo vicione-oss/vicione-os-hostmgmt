@@ -20,7 +20,7 @@ public class NetworkInterfacesValidatorTests
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync();
 
-        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces, cts.Token);
+        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces, cancellationToken: cts.Token);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -36,7 +36,8 @@ public class NetworkInterfacesValidatorTests
         var expectedValidationEntry = new ValidationEntry("No network interfaces specified.");
 
         // Act
-        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces, CancellationToken.None);
+        var result = await new NetworkInterfacesValidator()
+            .ValidateAsync(interfaces, cancellationToken: CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -65,7 +66,8 @@ public class NetworkInterfacesValidatorTests
             $"Network interfaces have duplicate names. Affected interfaces are: '{duplicateName}'.");
 
         // Act
-        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces, CancellationToken.None);
+        var result = await new NetworkInterfacesValidator()
+            .ValidateAsync(interfaces, cancellationToken: CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -77,15 +79,22 @@ public class NetworkInterfacesValidatorTests
     public async Task ShouldReturnValidationError_WhenDuplicateMACAddressesFound()
     {
         // Arrange
-        var duplicateMACAddress = ValidationTestData.Interface.Static.CommonInformation.PhysicalAddress;
+        var dhcpInterface = ValidationTestData.Interface.DHCP;
+        var staticInterface = ValidationTestData.Interface.Static;
+
+        var duplicateMACAddress = staticInterface.CommonInformation.UserDefinedMACAddress.Address;
         var interfaces = new List<NetworkInterfaceDetail>
         {
-            ValidationTestData.Interface.Static,
-            ValidationTestData.Interface.DHCP with
+            staticInterface,
+            dhcpInterface with
             {
-                CommonInformation = ValidationTestData.Interface.DHCP.CommonInformation with
+                CommonInformation = dhcpInterface.CommonInformation with
                 {
-                    PhysicalAddress = duplicateMACAddress
+                    UserDefinedMACAddress = dhcpInterface.CommonInformation.UserDefinedMACAddress with
+                    {
+                        Enabled = true,
+                        Address = duplicateMACAddress
+                    }
                 }
             }
         };
@@ -94,7 +103,47 @@ public class NetworkInterfacesValidatorTests
             $"Network interfaces have duplicate MAC addresses. Affected MAC addresses are: '{duplicateMACAddress}'.");
 
         // Act
-        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces, CancellationToken.None);
+        var result = await new NetworkInterfacesValidator()
+            .ValidateAsync(interfaces, cancellationToken: CancellationToken.None);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Entries.Count.Should().Be(1);
+        result.Entries.Should().Contain(expectedValidationEntry);
+    }
+
+    [Fact]
+    public async Task ShouldReturnValidationError_WhenReservedMACAddressesFound()
+    {
+        // Arrange
+        var dhcpInterface = ValidationTestData.Interface.DHCP;
+        var staticInterface = ValidationTestData.Interface.Static;
+
+        var reservedOriginalMACAddress = "02-23-45-67-89-AD";
+        var originalMACAddresses = new List<string>() { reservedOriginalMACAddress };
+
+        var interfaces = new List<NetworkInterfaceDetail>
+        {
+            staticInterface,
+            dhcpInterface with
+            {
+                CommonInformation = dhcpInterface.CommonInformation with
+                {
+                    UserDefinedMACAddress = dhcpInterface.CommonInformation.UserDefinedMACAddress with
+                    {
+                        Enabled = true,
+                        Address = reservedOriginalMACAddress
+                    }
+                }
+            }
+        };
+
+        var expectedValidationEntry = new ValidationEntry(
+            $"Network interfaces have reserved original MAC addresses defined as user-defined MAC address. Affected MAC addresses are: '{reservedOriginalMACAddress}'.");
+
+        // Act
+        var result = await new NetworkInterfacesValidator()
+            .ValidateAsync(interfaces, originalMACAddresses, cancellationToken: CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -126,7 +175,8 @@ public class NetworkInterfacesValidatorTests
             $"'{interfaces[1].CommonInformation.Name}' ({secondDefaultGateway}).");
 
         // Act
-        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces, CancellationToken.None);
+        var result = await new NetworkInterfacesValidator()
+            .ValidateAsync(interfaces, cancellationToken: CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -163,7 +213,8 @@ public class NetworkInterfacesValidatorTests
             $"Affected interfaces are: '{interfaces[0].CommonInformation.Name}'.");
 
         // Act
-        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces, CancellationToken.None);
+        var result = await new NetworkInterfacesValidator()
+            .ValidateAsync(interfaces, cancellationToken: CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -201,7 +252,8 @@ public class NetworkInterfacesValidatorTests
             $"Affected IP addresses are: '{duplicateIPAddress}'.");
 
         // Act
-        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces, CancellationToken.None);
+        var result = await new NetworkInterfacesValidator()
+            .ValidateAsync(interfaces, cancellationToken: CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -236,7 +288,8 @@ public class NetworkInterfacesValidatorTests
         };
 
         // Act
-        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces, CancellationToken.None);
+        var result = await new NetworkInterfacesValidator()
+            .ValidateAsync(interfaces, cancellationToken: CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeTrue();
@@ -275,7 +328,8 @@ public class NetworkInterfacesValidatorTests
             $"'{interfaces[1].CommonInformation.Name}'.");
 
         // Act
-        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces, CancellationToken.None);
+        var result = await new NetworkInterfacesValidator()
+            .ValidateAsync(interfaces, cancellationToken: CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -294,7 +348,8 @@ public class NetworkInterfacesValidatorTests
         };
 
         // Act
-        var result = await new NetworkInterfacesValidator().ValidateAsync(interfaces, CancellationToken.None);
+        var result = await new NetworkInterfacesValidator()
+            .ValidateAsync(interfaces, cancellationToken: CancellationToken.None);
 
         // Assert
         result.IsValid.Should().BeTrue();

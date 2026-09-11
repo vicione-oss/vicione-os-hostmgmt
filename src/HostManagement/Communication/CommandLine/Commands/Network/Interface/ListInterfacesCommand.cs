@@ -50,12 +50,15 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
         {
             var listOutput = output
                 .AddListOutput(1)
-                .WithTitle(networkInterface.CommonInformation.Name, useTitleDelimiter: !showNamesOnly);
+                .WithTitle(
+                    networkInterface.CommonInformation.Name,
+                    networkInterface.CommonInformation.Enabled,
+                    useTitleDelimiter: !showNamesOnly);
 
             if (showNamesOnly)
                 continue;
 
-            await AppendOutputForCommonInformation(listOutput, 2, networkInterface.CommonInformation);
+            await AppendOutputForMACAddress(listOutput, 2, networkInterface.CommonInformation);
 
             DHCPLease? dhcpLease = null;
 
@@ -75,31 +78,26 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
         output.WriteLine();
     }
 
-    private static async Task AppendOutputForCommonInformation(
+    private static async Task AppendOutputForMACAddress(
         CliComplexOutputBase output,
         int indentationLevel,
         NetworkInterfaceCommonInformation commonInformation)
     {
-        var physicalAddress = commonInformation.PhysicalAddress;
-        var originalPhysicalAddress =
-            await NamedPipeRequestHelper.GetOriginalPhysicalAddress(commonInformation.Name, CancellationToken.None)
+        var userDefinedMACAddressEnabled = commonInformation.UserDefinedMACAddress.Enabled;
+        var userDefinedMACAddress = commonInformation.UserDefinedMACAddress.Address;
+
+        var originalMACAddress = await NamedPipeRequestHelper
+            .GetOriginalPhysicalAddress(commonInformation.Name, CancellationToken.None)
             ?? CliStrings.Network.Interface.Unknown;
 
-        var multiKeyValueOutput = output
-            .AddMultiKeyValueOutput(indentationLevel)
-            .WithTitle(CliStrings.Network.Interface.CommonInfo)
-            .With(new(CliStrings.Common.EnabledLabel, commonInformation.Enabled));
-
-        if (physicalAddress.Equals(originalPhysicalAddress))
-        {
-            multiKeyValueOutput.With(new(CliStrings.Network.Interface.PhysicalAddress, commonInformation.PhysicalAddress));
-        }
-        else
-        {
-            multiKeyValueOutput.With(
-                new(CliStrings.Network.Interface.PhysicalAddress, physicalAddress),
-                new(CliStrings.Network.Interface.OriginalPhysicalAddress, originalPhysicalAddress));
-        }
+        output.AddListOutput(indentationLevel)
+            .WithTitle("MAC")
+            .AddListOutput(indentationLevel + 1)
+                .WithTitle(CliStrings.Network.Interface.MAC.UserDefinedAddress, userDefinedMACAddressEnabled)
+                .With(userDefinedMACAddress)
+            .AddListOutput(indentationLevel + 1)
+                .WithTitle(CliStrings.Network.Interface.MAC.OriginalAddress, !userDefinedMACAddressEnabled)
+                .With(originalMACAddress);
     }
 
     private static void AppendOutputForIPv4(

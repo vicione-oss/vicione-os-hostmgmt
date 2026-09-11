@@ -8,16 +8,19 @@ namespace HostManagement.Shared.Validation.Validators.NetworkInterfaces;
 /// <summary>
 /// Represents the validator for a list of network interfaces.
 /// </summary>
-public sealed class NetworkInterfacesValidator : IValidator<IReadOnlyList<NetworkInterfaceDetail>>
+public sealed class NetworkInterfacesValidator : IValidator<IReadOnlyList<NetworkInterfaceDetail>, IReadOnlyList<string>>
 {
     /// <summary>
     /// Validates a list of network interfaces asynchronously.
     /// </summary>
     /// <param name="networkInterfaces">The list of network interfaces.</param>
+    /// <param name="originalMACAddresses">A list of factory-assigned original MAC addresses,
+    /// that can't be used as a user-defined MAC address.</param>
     /// <param name="cancellationToken">A token to cancel the validation.</param>
     /// <inheritdoc/>
     public async Task<ValidationResult> ValidateAsync(
         IReadOnlyList<NetworkInterfaceDetail> networkInterfaces,
+        IReadOnlyList<string>? originalMACAddresses = null,
         CancellationToken cancellationToken = default)
     {
         try
@@ -45,6 +48,16 @@ public sealed class NetworkInterfacesValidator : IValidator<IReadOnlyList<Networ
                         CompositeFormat.Parse(
                             NetworkInterfacesValidationResults.InterfacesHaveDuplicateMACs),
                         duplicateMACAddressesString));
+            }
+
+            if (HasReservedMACAddresses(networkInterfaces, originalMACAddresses, out var reservedMACAddressesString))
+            {
+                return ValidationResult.CreateWithError(
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        CompositeFormat.Parse(
+                            NetworkInterfacesValidationResults.InterfacesHaveReservedOriginalMACs),
+                        reservedMACAddressesString));
             }
 
             if (HasMultipleDefaultGateways(networkInterfaces, out var interfacesWithDefaultGatewayString))
@@ -138,8 +151,10 @@ public sealed class NetworkInterfacesValidator : IValidator<IReadOnlyList<Networ
         duplicateMACAddressesString = null;
 
         var duplicateMACAddresses = networkInterfaces
-            .Where(detail => !string.IsNullOrEmpty(detail.CommonInformation.PhysicalAddress))
-            .GroupBy(detail => detail.CommonInformation.PhysicalAddress)
+            .Where(detail
+                => detail.CommonInformation.UserDefinedMACAddress.Enabled
+                && !string.IsNullOrEmpty(detail.CommonInformation.UserDefinedMACAddress.Address))
+            .GroupBy(detail => detail.CommonInformation.UserDefinedMACAddress.Address)
             .Where(group => group.Count() > 1)
             .Select(group => group.Key)
             .ToList();
@@ -149,6 +164,35 @@ public sealed class NetworkInterfacesValidator : IValidator<IReadOnlyList<Networ
             duplicateMACAddressesString = string.Join(
                 ", ",
                 duplicateMACAddresses.Select(address => $"'{address}'"));
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool HasReservedMACAddresses(
+        IReadOnlyList<NetworkInterfaceDetail> networkInterfaces,
+        IReadOnlyList<string>? originalMACAddresses,
+        [NotNullWhen(true)] out string? reservedMACAddressesString)
+    {
+        reservedMACAddressesString = null;
+        originalMACAddresses ??= [];
+
+        var reservedMACAddresses = networkInterfaces
+            .Where(detail
+                => detail.CommonInformation.UserDefinedMACAddress.Enabled
+                && !string.IsNullOrEmpty(detail.CommonInformation.UserDefinedMACAddress.Address)
+                && originalMACAddresses.Contains(detail.CommonInformation.UserDefinedMACAddress.Address))
+            .GroupBy(detail => detail.CommonInformation.UserDefinedMACAddress.Address)
+            .Select(group => group.Key)
+            .ToList();
+
+        if (reservedMACAddresses.Count > 0)
+        {
+            reservedMACAddressesString = string.Join(
+                ", ",
+                reservedMACAddresses.Select(address => $"'{address}'"));
 
             return true;
         }

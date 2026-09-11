@@ -202,8 +202,19 @@ internal sealed partial class SystemConfigurationService(
         SystemConfiguration proposedConfig,
         CancellationToken cancellationToken)
     {
+        var originalMACAddresses = new List<string>();
+
+        foreach (var proposedInterface in proposedConfig.NetworkInterfaces)
+        {
+            var (scriptResult, originalAddress) = await _scriptHandler
+                .ExecuteGetOriginalPhysicalAddressScript(proposedInterface.CommonInformation.Name);
+
+            if (scriptResult.OperationStatus == OperationStatus.Success)
+                originalMACAddresses.Add(originalAddress);
+        }
+
         var validationResult = await new SystemConfigurationValidator()
-            .ValidateAsync(proposedConfig, cancellationToken)
+            .ValidateAsync(proposedConfig, originalMACAddresses, cancellationToken)
             .ConfigureAwait(false);
 
         if (!validationResult.IsValid)
@@ -654,11 +665,16 @@ internal sealed partial class SystemConfigurationService(
 
         if (defaultCommon is not null)
         {
-            if (defaultCommon.Enabled.HasValue)
-                currentInterface.CommonInformation.Enabled = defaultCommon.Enabled.Value;
+            var currentCommon = currentInterface.CommonInformation;
 
-            if (defaultCommon.PhysicalAddress is not null)
-                currentInterface.CommonInformation.PhysicalAddress = defaultCommon.PhysicalAddress;
+            if (defaultCommon.Enabled.HasValue)
+                currentCommon.Enabled = defaultCommon.Enabled.Value;
+
+            if (defaultCommon.UserDefinedMACAddress is { } userDefinedMACAddress)
+            {
+                currentCommon.UserDefinedMACAddress.Enabled = defaultCommon.UserDefinedMACAddress.Enabled;
+                currentCommon.UserDefinedMACAddress.Address = defaultCommon.UserDefinedMACAddress.Address;
+            }
         }
 
         var defaultIpv4 = defaultInterface.IPv4;

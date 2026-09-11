@@ -62,7 +62,11 @@ public class SystemConfigurationServiceTests
                     {
                         Name = interfaceName,
                         Enabled = enabled,
-                        PhysicalAddress = physicalAddress
+                        UserDefinedMACAddress = new()
+                        {
+                            Enabled = true,
+                            Address = physicalAddress
+                        }
                     },
                     IPv4 = new()
                     {
@@ -978,7 +982,18 @@ public class SystemConfigurationServiceTests
                 .ReturnsForAnyArgs(
                 (
                     Result.SuccessResult,
-                    [new() { Name = Lan1, Enabled = true, PhysicalAddress = "11:22:33:44:55:66" }]
+                    [
+                        new()
+                        {
+                            Name = Lan1,
+                            Enabled = true,
+                            UserDefinedMACAddress = new()
+                            {
+                                Enabled = true,
+                                Address = "11:22:33:44:55:66"
+                            }
+                        }
+                    ]
                 ));
 
             var result = await context.Sut.ResetNetworkInterface(Lan1, CancellationToken.None);
@@ -1002,7 +1017,18 @@ public class SystemConfigurationServiceTests
                 .ReturnsForAnyArgs(
                 (
                     Result.SuccessResult,
-                    [new() { Name = Lan1, Enabled = true, PhysicalAddress = "11:22:33:44:55:66" }]
+                    [
+                        new()
+                        {
+                            Name = Lan1,
+                            Enabled = true,
+                            UserDefinedMACAddress = new()
+                            {
+                                Enabled = true,
+                                Address = "11:22:33:44:55:66"
+                            }
+                        }
+                    ]
                 ));
 
             var result = await context.Sut.ResetNetworkInterface(Lan1, CancellationToken.None);
@@ -1030,7 +1056,18 @@ public class SystemConfigurationServiceTests
                 .ReturnsForAnyArgs(
                 (
                     Result.SuccessResult,
-                    [new() { Name = Lan1, Enabled = true, PhysicalAddress = "11:22:33:44:55:66" }]
+                    [
+                        new()
+                        {
+                            Name = Lan1,
+                            Enabled = true,
+                            UserDefinedMACAddress = new()
+                            {
+                                Enabled = true,
+                                Address = "11:22:33:44:55:66"
+                            }
+                        }
+                    ]
                 ));
 
             context.ScriptHandler
@@ -1062,7 +1099,8 @@ public class SystemConfigurationServiceTests
             await context.Persistence.Received(1).SaveUserConfiguration(
                 Arg.Is<InternalSystemConfiguration>(static config =>
                     config.NetworkInterfaces![0].CommonInformation!.Enabled == false &&
-                    config.NetworkInterfaces![0].CommonInformation!.PhysicalAddress == "aa:bb:cc:dd:ee:ff" &&
+                    config.NetworkInterfaces![0].CommonInformation!.UserDefinedMACAddress!.Enabled &&
+                    config.NetworkInterfaces![0].CommonInformation!.UserDefinedMACAddress!.Address == "aa:bb:cc:dd:ee:ff" &&
                     config.NetworkInterfaces![0].IPv4!.DHCPEnabled == false &&
                     config.NetworkInterfaces![0].IPv4!.Gateway!.ToString() == "192.168.1.1" &&
                     config.NetworkInterfaces![0].IPv4!.IPv4Details![0].IPAddress!.ToString() == "192.168.1.2" &&
@@ -1204,6 +1242,7 @@ public class SystemConfigurationServiceTests
             const string RawInterfacesString = $"{Lan1}            UP             00:50:56:36:6d:33 <BROADCAST,MULTICAST,UP,LOWER_UP>";
 
             ScriptHandler.ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>()).Returns(Result.SuccessResult);
+            ScriptHandler.ExecuteGetOriginalPhysicalAddressScript(Arg.Any<string>()).Returns((Result.SuccessResult, "00:50:56:36:6d:aa"));
             ScriptHandler.ExecuteGetNetworkInterfacesScript().ReturnsForAnyArgs((Result.SuccessResult, RawInterfacesString));
             ScriptHandler.ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs((Result.SuccessResult, []));
             ScriptHandler.ExecuteGetInterfaceSettingsScript(Arg.Any<string>()).ReturnsForAnyArgs((Result.SuccessResult, new(), new()));

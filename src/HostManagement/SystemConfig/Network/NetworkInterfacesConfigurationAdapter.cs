@@ -126,13 +126,13 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
             AddVLANScriptOptions(scriptOptions, proposedInterface.VLAN);
             AddInterfaceNameScriptOption(scriptOptions, interfaceName);
 
-            if (!string.IsNullOrWhiteSpace(proposedInterface.CommonInformation?.PhysicalAddress))
+            if (!string.IsNullOrWhiteSpace(proposedInterface.CommonInformation?.UserDefinedMACAddress?.Address))
             {
-                proposedInterface.CommonInformation.PhysicalAddress = MACUtilities
-                    .ConvertToColonNotation(proposedInterface.CommonInformation.PhysicalAddress);
+                proposedInterface.CommonInformation.UserDefinedMACAddress.Address = MACUtilities
+                    .ConvertToColonNotation(proposedInterface.CommonInformation.UserDefinedMACAddress.Address);
             }
 
-            AddMACAddressScriptOption(scriptOptions, proposedInterface.CommonInformation?.PhysicalAddress);
+            AddMACAddressScriptOption(scriptOptions, proposedInterface.CommonInformation?.UserDefinedMACAddress);
             AddInterfaceEnabledScriptOption(scriptOptions, proposedInterface.CommonInformation?.Enabled);
             AddIPv4ScriptOptions(scriptOptions, proposedInterface.IPv4);
 
@@ -167,14 +167,20 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
     private static void AddInterfaceNameScriptOption(ScriptOptions scriptOptions, string interfaceName)
         => scriptOptions.Add(ScriptOptionNames.Network.InterfaceName, interfaceName);
 
-    private void AddMACAddressScriptOption(ScriptOptions scriptOptions, string? physicalAddress)
+    private void AddMACAddressScriptOption(
+        ScriptOptions scriptOptions,
+        UserDefinedMACAddressSettings? userDefinedMACAddressSettings)
     {
-        var address = _bypassApplyConfig ? BypassMACAddress : physicalAddress;
+        if (userDefinedMACAddressSettings is not { } userDefinedMACAddress)
+            return;
+
+        var address = _bypassApplyConfig ? BypassMACAddress : userDefinedMACAddress.Address;
 
         if (string.IsNullOrWhiteSpace(address))
             return;
 
-        scriptOptions.Add(ScriptOptionNames.Network.MACAddress, address);
+        scriptOptions.Add(ScriptOptionNames.Network.UserDefinedMACAddressEnabled, userDefinedMACAddress.Enabled);
+        scriptOptions.Add(ScriptOptionNames.Network.UserDefinedMACAddress, address);
     }
 
     private static void AddInterfaceEnabledScriptOption(ScriptOptions scriptOptions, bool? enabled)

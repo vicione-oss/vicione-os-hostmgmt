@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -197,5 +197,8 @@
   </data>
   <data name="NoNetworkInterfaces" xml:space="preserve">
     <value>No network interfaces specified.</value>
+  </data>
+  <data name="InterfacesHaveReservedOriginalMACs" xml:space="preserve">
+    <value>Network interfaces have reserved original MAC addresses defined as user-defined MAC address. Affected MAC addresses are: {0}.</value>
   </data>
 </root>

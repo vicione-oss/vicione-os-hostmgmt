@@ -131,7 +131,11 @@ public class SystemConfigurationPersistenceTests
                     {
                         Enabled = true,
                         Name = "lan1",
-                        PhysicalAddress = "00:02:01:ac:52:33"
+                        UserDefinedMACAddress = new()
+                        {
+                            Enabled = true,
+                            Address = "00:02:01:ac:52:33"
+                        }
                     },
                     IPv4 = new()
                     {
@@ -158,7 +162,11 @@ public class SystemConfigurationPersistenceTests
                     {
                         Enabled = true,
                         Name = "lan2",
-                        PhysicalAddress = "00:02:01:ac:52:34"
+                        UserDefinedMACAddress = new()
+                        {
+                            Enabled = true,
+                            Address = "00:02:01:ac:52:34"
+                        }
                     },
                     IPv4 = new()
                     {
@@ -457,7 +465,11 @@ public class SystemConfigurationPersistenceTests
                         {
                             Enabled = true,
                             Name = "lan1",
-                            PhysicalAddress = "01:23:45:67:89:AB"
+                            UserDefinedMACAddress = new()
+                            {
+                                Enabled = true,
+                                Address = "01:23:45:67:89:AB"
+                            }
                         },
                         IPv4 = new()
                         {
@@ -575,7 +587,10 @@ public class SystemConfigurationPersistenceTests
                   "CommonInformation": {
                     "Name": "lan1",
                     "Enabled": true,
-                    "PhysicalAddress": "01:23:45:67:89:AB"
+                    "UserDefinedMACAddress": {
+                      "Enabled": true,
+                      "Address": "01:23:45:67:89:AB"
+                    }
                   },
                   "IPv4": {
                     "Gateway": "120.86.52.18",
