@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -46,9 +46,7 @@ public class IPAddressListConverter : JsonConverter<List<IPAddress>>
         writer.WriteStartArray();
 
         foreach (var ipAddress in value)
-        {
-            writer.WriteStringValue(ipAddress.ToString() ?? string.Empty);
-        }
+            writer.WriteStringValue(ipAddress.ToString());
 
         writer.WriteEndArray();
     }

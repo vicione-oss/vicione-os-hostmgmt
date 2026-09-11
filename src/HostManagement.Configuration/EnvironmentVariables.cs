@@ -125,23 +125,7 @@ public static class EnvironmentVariables
         // Normalizes values only. Does not perform validation.
         return configurableServices with
         {
-            Value = NormalizeConfigurableServiceNames(configurableServices.Value)
+            Value = ConfigurableServiceNamesNormalizer.Normalize(configurableServices.Value)
         };
-    }
-
-    private static IReadOnlyCollection<string> NormalizeConfigurableServiceNames(IReadOnlyCollection<string> names)
-    {
-        var uniqueServiceNames = new HashSet<string>(StringComparer.Ordinal);
-
-        foreach (var name in names)
-        {
-            var finalName = SystemdUnits.HasKnownUnitTypeSuffix(name)
-                ? name
-                : name + ".service";
-
-            uniqueServiceNames.Add(finalName);
-        }
-
-        return [.. uniqueServiceNames];
     }
 }

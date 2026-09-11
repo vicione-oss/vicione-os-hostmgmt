@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -9,18 +9,17 @@ internal sealed class IPAddressConverter : JsonConverter<IPAddress>
     /// <inheritdoc/>
     public override IPAddress? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        if (reader.TokenType is JsonTokenType.String or JsonTokenType.Null)
-        {
-            IPAddress? value = null;
-            var text = reader.GetString();
-            if (text is not null)
-                value = IPAddress.Parse(text);
-            return value;
-        }
-        else
-        {
+        if (reader.TokenType is not JsonTokenType.String and not JsonTokenType.Null)
             throw new JsonException("Expected string or null as the JSON token type.");
-        }
+
+        IPAddress? value = null;
+
+        var text = reader.GetString();
+
+        if (text is not null)
+            value = IPAddress.Parse(text);
+
+        return value;
     }
 
     /// <inheritdoc/>

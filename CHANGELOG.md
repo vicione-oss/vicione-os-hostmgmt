@@ -94,6 +94,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Shared: Removed shared `IEnumerableExtensions` with `GetSequenceHashCode` (replaced by `HashCodeExtensions`)
 - Removed `SOCKS` proxy feature
 - Removed custom log level prefix string from log messages (replaced with journal priority)
+- Shared: Removed redundant properties `IPv4Settings.Empty`, `NetworkDNSSettings.Empty`, `NetworkNTPSettings.Empty`, `ServiceDetail.Empty`
 
 ### Fixed
 

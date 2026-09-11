@@ -11,6 +11,37 @@ public class SystemConfigurationTests
     public class EqualsMethod
     {
         [Fact]
+        public void ShouldReturnFalse_WhenDifferentObjectsCompared()
+        {
+            // Arrange
+            object currentConfig = new SystemConfiguration();
+            object proposedConfig = new string("different");
+
+            // Act
+            var result = currentConfig.Equals(proposedConfig);
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public void ShouldReturnFalse_WhenDifferentConfigurationsComparedAsObjects()
+        {
+            // Arrange
+            object currentConfig = new SystemConfiguration();
+            object proposedConfig = new SystemConfiguration()
+            {
+                NetworkDNSSettings = new() { Hostname = "different" }
+            };
+
+            // Act
+            var result = currentConfig.Equals(proposedConfig);
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [Fact]
         public void ShouldReturnTrue_WhenEqualConfigurationsComparedAsObjects()
         {
             // Arrange
@@ -22,6 +53,25 @@ public class SystemConfigurationTests
 
             // Assert
             result.Should().BeTrue();
+        }
+
+        [Fact]
+        public void ShouldReturnFalse_WhenDifferentConfigurationsComparedByDefaultComparer()
+        {
+            // Arrange
+            var currentConfig = new SystemConfiguration();
+            var proposedConfig = new SystemConfiguration()
+            {
+                NetworkDNSSettings = new() { Hostname = "different" }
+            };
+
+            // Act
+            var result = EqualityComparer<SystemConfiguration>.Default.Equals(
+                currentConfig,
+                proposedConfig);
+
+            // Assert
+            result.Should().BeFalse();
         }
 
         [Fact]

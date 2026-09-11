@@ -1,4 +1,4 @@
-﻿using HostManagement.Shared.Enums;
+using HostManagement.Shared.Enums;
 
 namespace HostManagement.Shared.Contracts.Service;
 
@@ -7,12 +7,6 @@ namespace HostManagement.Shared.Contracts.Service;
 /// </summary>
 public sealed record ServiceDetail
 {
-    /// <summary>
-    /// Represents the empty or unknown ServiceDetail.
-    /// </summary>
-    public static ServiceDetail Empty { get; } =
-        new ServiceDetail() { Name = "Empty", State = ServiceState.Unknown };
-
     /// <summary>
     /// The service name.
     /// </summary>

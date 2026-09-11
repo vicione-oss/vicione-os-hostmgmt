@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using HostManagement.Shared.Extensions;
 
 namespace HostManagement.Shared.Contracts.Network;
@@ -8,12 +7,6 @@ namespace HostManagement.Shared.Contracts.Network;
 /// </summary>
 public sealed record NetworkNTPSettings
 {
-    /// <summary>
-    /// Represents the empty NTP settings.
-    /// </summary>
-    [JsonIgnore]
-    public static NetworkNTPSettings Empty { get; } = new NetworkNTPSettings();
-
     /// <summary>
     /// Determines whether NTP servers are enabled.
     /// </summary>
