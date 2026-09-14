@@ -16,6 +16,50 @@ public class SystemConfigurationPersistenceTests
 
     public SystemConfigurationPersistenceTests() => _persistence = new(_fileSystem);
 
+    public sealed class ExistsPreparationConfiguration : SystemConfigurationPersistenceTests
+    {
+        [Fact]
+        public void ShouldReturnFalse_WhenFileDoesNotExist()
+            => _persistence.ExistsPreparationConfiguration().Should().BeFalse();
+
+        [Fact]
+        public void ShouldReturnTrue_WhenFileExists()
+        {
+            _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new(string.Empty));
+
+            _persistence.ExistsPreparationConfiguration().Should().BeTrue();
+        }
+    }
+
+    public sealed class ExistsUserConfiguration : SystemConfigurationPersistenceTests
+    {
+        [Fact]
+        public void ShouldReturnFalse_WhenFileDoesNotExist()
+            => _persistence.ExistsUserConfiguration().Should().BeFalse();
+
+        [Fact]
+        public void ShouldReturnTrue_WhenFileExists()
+        {
+            _fileSystem.AddFile(AppPaths.SystemConfigurationFilePath, new(string.Empty));
+
+            _persistence.ExistsUserConfiguration().Should().BeTrue();
+        }
+    }
+
+    public sealed class GetPreparationConfigurationPath : SystemConfigurationPersistenceTests
+    {
+        [Fact]
+        public void ShouldReturnDefaultSystemConfigurationFilePath()
+            => _persistence.GetPreparationConfigurationPath().Should().Be(AppPaths.DefaultSystemConfigurationFilePath);
+    }
+
+    public sealed class GetUserConfigurationPath : SystemConfigurationPersistenceTests
+    {
+        [Fact]
+        public void ShouldReturnSystemConfigurationFilePath()
+            => _persistence.GetUserConfigurationPath().Should().Be(AppPaths.SystemConfigurationFilePath);
+    }
+
     public sealed class LoadPreparationConfiguration : SystemConfigurationPersistenceTests
     {
         // DO NOT modify!
@@ -374,50 +418,6 @@ public class SystemConfigurationPersistenceTests
             var result = await _persistence.LoadPreparationConfiguration(CancellationToken.None);
             result.Should().BeEquivalentTo(s_configV1_3_0_AfterMigration);
         }
-    }
-
-    public sealed class PreparationConfigurationExists : SystemConfigurationPersistenceTests
-    {
-        [Fact]
-        public void ShouldReturnFalse_WhenFileDoesNotExist()
-            => _persistence.ExistsPreparationConfiguration().Should().BeFalse();
-
-        [Fact]
-        public void ShouldReturnTrue_WhenFileExists()
-        {
-            _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new(string.Empty));
-
-            _persistence.ExistsPreparationConfiguration().Should().BeTrue();
-        }
-    }
-
-    public sealed class UserConfigurationExists : SystemConfigurationPersistenceTests
-    {
-        [Fact]
-        public void ShouldReturnFalse_WhenFileDoesNotExist()
-            => _persistence.ExistsUserConfiguration().Should().BeFalse();
-
-        [Fact]
-        public void ShouldReturnTrue_WhenFileExists()
-        {
-            _fileSystem.AddFile(AppPaths.SystemConfigurationFilePath, new(string.Empty));
-
-            _persistence.ExistsUserConfiguration().Should().BeTrue();
-        }
-    }
-
-    public sealed class GetPreparationConfigurationPath : SystemConfigurationPersistenceTests
-    {
-        [Fact]
-        public void ShouldReturnDefaultSystemConfigurationFilePath()
-            => _persistence.GetPreparationConfigurationPath().Should().Be(AppPaths.DefaultSystemConfigurationFilePath);
-    }
-
-    public sealed class GetUserConfigurationPath : SystemConfigurationPersistenceTests
-    {
-        [Fact]
-        public void ShouldReturnSystemConfigurationFilePath()
-            => _persistence.GetUserConfigurationPath().Should().Be(AppPaths.SystemConfigurationFilePath);
     }
 
     public sealed class SaveUserConfiguration : SystemConfigurationPersistenceTests
