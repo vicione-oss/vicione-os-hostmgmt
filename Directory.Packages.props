@@ -2,26 +2,40 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <DotNetVersion>10.0.11</DotNetVersion>
+    <TestableIOVersion>22.2.0</TestableIOVersion>
   </PropertyGroup>
 
+  <!-- .NET packages managed by renovate.json -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="$(DotNetVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="$(DotNetVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(DotNetVersion)" />
+  </ItemGroup>
+
+  <!-- Other packages managed by renovate.json -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />
+    <PackageVersion Include="minisign-net" Version="1.0.0" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.11" />
+  </ItemGroup>
+
+  <!-- TestableIO packages managed by renovate.json -->
+  <ItemGroup>
+    <PackageVersion Include="TestableIO.System.IO.Abstractions" Version="$(TestableIOVersion)" />
+    <PackageVersion Include="TestableIO.System.IO.Abstractions.Wrappers" Version="$(TestableIOVersion)" />
+    <PackageVersion Include="TestableIO.System.IO.Abstractions.TestingHelpers" Version="$(TestableIOVersion)" />
+  </ItemGroup>
+
+  <!-- Test packages managed by renovate.json -->
   <ItemGroup>
     <PackageVersion Include="AwesomeAssertions" Version="9.5.0" />
     <PackageVersion Include="AwesomeAssertions.Analyzers" Version="9.0.8">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageVersion>
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="$(DotNetVersion)" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="$(DotNetVersion)" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(DotNetVersion)" />
     <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.9.0" />
-    <PackageVersion Include="minisign-net" Version="1.0.0" />
     <PackageVersion Include="NSubstitute" Version="6.2.0" />
     <PackageVersion Include="NSubstitute.Analyzers.CSharp" Version="1.0.17" />
-    <PackageVersion Include="System.CommandLine" Version="2.0.11" />
-    <PackageVersion Include="TestableIO.System.IO.Abstractions" Version="22.2.0" />
-    <PackageVersion Include="TestableIO.System.IO.Abstractions.TestingHelpers" Version="22.2.0" />
-    <PackageVersion Include="TestableIO.System.IO.Abstractions.Wrappers" Version="22.2.0" />
     <PackageVersion Include="xunit.v3.mtp-v2" Version="3.2.2" />
   </ItemGroup>
 </Project>
