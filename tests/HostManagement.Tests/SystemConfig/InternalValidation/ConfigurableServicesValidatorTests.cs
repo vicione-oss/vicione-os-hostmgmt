@@ -11,6 +11,25 @@ public class ConfigurableServicesValidatorTests
     public class Validate
     {
         [Fact]
+        public void ShouldAddValidationError_WhenExceptionOccurs()
+        {
+            // Arrange
+            var proposed = new SystemConfiguration();
+            proposed.Services.Add(new() { Name = "allowed.service", State = ServiceState.Enabled });
+
+            // Act
+            var validationResult = ConfigurableServicesValidator.Validate(proposed, null!);
+
+            // Assert
+            validationResult.IsValid.Should().BeFalse();
+            validationResult.Messages.Count.Should().Be(1);
+            validationResult.FormattedMessages.Should().Contain(
+                "Internal validation failed." +
+                Environment.NewLine +
+                "Value cannot be null.");
+        }
+
+        [Fact]
         public void ShouldAddValidationError_WhenNotAllowedServicesFound()
         {
             // Arrange
@@ -22,7 +41,6 @@ public class ConfigurableServicesValidatorTests
             proposed.Services.Add(new() { Name = notAllowedServiceName2, State = ServiceState.Disabled });
 
             List<string> configurableServices = ["ssh.service", "remoteconnect.service"];
-            var validationResult = new ValidationResult();
 
             var expectedValidationMessage = string.Join(
                 ' ',
@@ -30,7 +48,7 @@ public class ConfigurableServicesValidatorTests
                 $"'{notAllowedServiceName1}', '{notAllowedServiceName2}'.");
 
             // Act
-            ConfigurableServicesValidator.Validate(proposed, configurableServices, validationResult);
+            var validationResult = ConfigurableServicesValidator.Validate(proposed, configurableServices);
 
             // Assert
             validationResult.IsValid.Should().BeFalse();
@@ -50,7 +68,6 @@ public class ConfigurableServicesValidatorTests
             proposed.Services.Add(new() { Name = wildcardServiceName2, State = ServiceState.Disabled });
 
             List<string> configurableServices = ["ssh.service", "remoteconnect.service", "wildcard@*.service"];
-            var validationResult = new ValidationResult();
 
             var expectedValidationMessage = string.Join(
                 ' ',
@@ -58,7 +75,7 @@ public class ConfigurableServicesValidatorTests
                 $"'{wildcardServiceName1}', '{wildcardServiceName2}'.");
 
             // Act
-            ConfigurableServicesValidator.Validate(proposed, configurableServices, validationResult);
+            var validationResult = ConfigurableServicesValidator.Validate(proposed, configurableServices);
 
             // Assert
             validationResult.IsValid.Should().BeFalse();
@@ -78,10 +95,9 @@ public class ConfigurableServicesValidatorTests
             proposed.Services.Add(new() { Name = allowedServiceName2, State = ServiceState.Disabled });
 
             List<string> configurableServices = [allowedServiceName1, allowedServiceName2];
-            var validationResult = new ValidationResult();
 
             // Act
-            ConfigurableServicesValidator.Validate(proposed, configurableServices, validationResult);
+            var validationResult = ConfigurableServicesValidator.Validate(proposed, configurableServices);
 
             // Assert
             validationResult.IsValid.Should().BeTrue();

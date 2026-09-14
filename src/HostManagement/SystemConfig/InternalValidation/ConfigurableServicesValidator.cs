@@ -15,33 +15,48 @@ internal sealed class ConfigurableServicesValidator
     /// </summary>
     /// <param name="proposed">The proposed system configuration.</param>
     /// <param name="configurableServices">The collection of configurable service names.</param>
-    /// <param name="result">The validation result to which errors are added.</param>
-    internal static void Validate(
+    /// <returns>The validation result.</returns>
+    internal static ValidationResult Validate(
         SystemConfiguration proposed,
-        IReadOnlyCollection<string> configurableServices,
-        ValidationResult result)
+        IReadOnlyCollection<string> configurableServices)
     {
-        const char WildcardChar = '*';
+        var result = new ValidationResult();
 
-        var configurableServicesWithoutWildcard = configurableServices
-            .Where(service => !service.Contains(WildcardChar))
-            .ToList();
-
-        var notAllowedServices = proposed.Services
-            .Where(serviceDetail => !configurableServicesWithoutWildcard.Contains(serviceDetail.Name))
-            .ToList();
-
-        if (notAllowedServices.Count > 0)
+        try
         {
-            var invalidServicesString = string.Join(
-                ", ",
-                notAllowedServices.Select(serviceDetail => $"'{serviceDetail.Name}'"));
+            const char WildcardChar = '*';
 
+            var configurableServicesWithoutWildcard = configurableServices
+                .Where(service => !service.Contains(WildcardChar))
+                .ToList();
+
+            var notAllowedServices = proposed.Services
+                .Where(serviceDetail => !configurableServicesWithoutWildcard.Contains(serviceDetail.Name))
+                .ToList();
+
+            if (notAllowedServices.Count > 0)
+            {
+                var invalidServicesString = string.Join(
+                    ", ",
+                    notAllowedServices.Select(serviceDetail => $"'{serviceDetail.Name}'"));
+
+                result.AddError(
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        CompositeFormat.Parse(InternalValidationResultMessages.ServicesNotAllowed),
+                        invalidServicesString));
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
             result.AddError(
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    CompositeFormat.Parse(InternalValidationResultMessages.ServicesNotAllowed),
-                    invalidServicesString));
+                InternalValidationResultMessages.InternalValidationFailed +
+                Environment.NewLine +
+                ex.Message);
+
+            return result;
         }
     }
 }
