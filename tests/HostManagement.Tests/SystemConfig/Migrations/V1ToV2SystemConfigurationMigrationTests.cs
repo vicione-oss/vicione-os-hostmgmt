@@ -191,6 +191,13 @@ public class V1ToV2SystemConfigurationMigrationTests
                       "Username": "proxy-user",
                       "Password": "proxy-password"
                     },
+                    "SOCKS": {
+                      "Enabled": true,
+                      "Server": "socks://proxy.example.com",
+                      "Port": 1080,
+                      "Username": "proxy-user",
+                      "Password": "proxy-password"
+                    },
                     "DoNotProxyListEnabled": true,
                     "DoNotProxyList": [
                       "localhost",
@@ -220,6 +227,7 @@ public class V1ToV2SystemConfigurationMigrationTests
             proxySettings.FTP.Should().BeNull();
             proxySettings.HTTPS.Should().BeNull();
             proxySettings.SFTP.Should().BeNull();
+            // SOCKS proxy should be ignored on migration
 
             proxySettings.NoProxy.Should().NotBeNull();
             proxySettings.NoProxy.Enabled.Should().BeTrue();
