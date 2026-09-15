@@ -69,27 +69,13 @@
             "enabled": false
         },
         {
-            "description": "NuGet: .NET packages sharing $(DotNetVersion)",
+            "description": "NuGet: .NET packages pinned to $(DotNetVersion)",
             "matchManagers": [ "nuget" ],
             "matchFileNames": [ "Directory.Packages.props" ],
             "matchJsonata": [ "sharedVariableName = 'DotNetVersion'" ],
             "enabled": true,
             "groupName": ".NET",
             "groupSlug": "net",
-            "group": {
-                "branchTopic": "update-{{{replace '\\.' '-' (replace '^(major|minor|patch)-[0-9.]*-?' '' groupSlug)}}}-to-{{{newMajor}}}-{{{newMinor}}}-{{{newPatch}}}",
-                "commitMessageTopic": "{{{groupName}}}",
-                "commitMessageExtra": "to {{{newVersion}}}"
-            }
-        },
-        {
-            "description": "NuGet: TestableIO packages sharing $(TestableIOVersion)",
-            "matchManagers": [ "nuget" ],
-            "matchFileNames": [ "Directory.Packages.props" ],
-            "matchJsonata": [ "sharedVariableName = 'TestableIOVersion'" ],
-            "enabled": true,
-            "groupName": "TestableIO",
-            "groupSlug": "testableio",
             "group": {
                 "branchTopic": "update-{{{replace '\\.' '-' (replace '^(major|minor|patch)-[0-9.]*-?' '' groupSlug)}}}-to-{{{newMajor}}}-{{{newMinor}}}-{{{newPatch}}}",
                 "commitMessageTopic": "{{{groupName}}}",
@@ -119,7 +105,21 @@
             "stopUpdatingLabel": "Renovate::Frozen"
         },
         {
-            "description": "NuGet: libraries updated in separate merge requests",
+            "description": "NuGet: TestableIO packages pinned to $(TestableIOVersion)",
+            "matchManagers": [ "nuget" ],
+            "matchFileNames": [ "Directory.Packages.props" ],
+            "matchJsonata": [ "sharedVariableName = 'TestableIOVersion'" ],
+            "enabled": true,
+            "groupName": "TestableIO",
+            "groupSlug": "testableio",
+            "group": {
+                "branchTopic": "update-{{{replace '\\.' '-' (replace '^(major|minor|patch)-[0-9.]*-?' '' groupSlug)}}}-to-{{{newMajor}}}-{{{newMinor}}}-{{{newPatch}}}",
+                "commitMessageTopic": "{{{groupName}}}",
+                "commitMessageExtra": "to {{{newVersion}}}"
+            }
+        },
+        {
+            "description": "NuGet: packages which can be updated in individual MRs",
             "matchManagers": [ "nuget" ],
             "matchFileNames": [ "Directory.Packages.props" ],
             "matchPackageNames": [
@@ -127,11 +127,10 @@
                 "minisign-net",
                 "System.CommandLine"
             ],
-            "enabled": true,
-            "groupName": null
+            "enabled": true
         },
         {
-            "description": ".NET SDK managed in mise",
+            "description": "Mise: dotnet",
             "matchManagers": [ "mise" ],
             "matchDatasources": [ "dotnet-version" ],
             "enabled": true,
