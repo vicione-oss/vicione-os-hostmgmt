@@ -115,11 +115,8 @@
             "separateMultipleMajor": false,
             "separateMultipleMinor": false,
             "separateMinorPatch": false,
-            "group": {
-                "branchTopic": "update-test-tooling",
-                "commitMessageTopic": "{{{groupName}}}",
-                "commitMessageExtra": ""
-            }
+            "addLabels": [ "Renovate::Frozen" ],
+            "stopUpdatingLabel": "Renovate::Frozen"
         },
         {
             "description": "NuGet: libraries updated in separate merge requests",
