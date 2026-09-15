@@ -130,6 +130,11 @@
             "enabled": true
         },
         {
+            "description": "Mise: opt out of everything, then opt back in below",
+            "matchManagers": [ "mise" ],
+            "enabled": false
+        },
+        {
             "description": "Mise: dotnet",
             "matchManagers": [ "mise" ],
             "matchDatasources": [ "dotnet-version" ],
