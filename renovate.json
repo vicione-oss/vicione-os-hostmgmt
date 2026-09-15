@@ -136,8 +136,9 @@
             "matchDatasources": [ "dotnet-version" ],
             "enabled": true,
             "groupName": "mise dotnet",
+            "groupSlug": "mise-dotnet",
             "group": {
-                "branchTopic": "update-dotnet-sdk",
+                "branchTopic": "update-{{{replace '\\.' '-' (replace '^(major|minor|patch)-[0-9.]*-?' '' groupSlug)}}}-to-{{{newMajor}}}-{{{newMinor}}}-{{{newPatch}}}",
                 "commitMessageTopic": "{{{groupName}}}",
                 "commitMessageExtra": "to {{{newVersion}}}"
             }
