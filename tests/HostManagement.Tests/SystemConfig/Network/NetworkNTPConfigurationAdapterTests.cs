@@ -158,6 +158,45 @@ public sealed class NetworkNTPConfigurationAdapterTests
         }
 
         [Fact]
+        public async Task ShouldNotAddNTPScriptOptions_WhenEnabledNull()
+        {
+            // Arrange
+            ScriptOptions? ntpScriptOptions = null;
+            ScriptOptions? systemdScriptOptions = null;
+
+            var handler = Substitute.For<IScriptHandler>();
+
+            handler
+                .ExecuteSetNetworkNTPSettingsScript(Arg.Do<ScriptOptions>(so => ntpScriptOptions = so))
+                .Returns(Result.SuccessResult);
+
+            handler
+                .ExecuteSetSystemdUnitStateScript(Arg.Do<ScriptOptions>(so => systemdScriptOptions = so))
+                .Returns(Result.SuccessResult);
+
+            var config = new SystemConfiguration()
+            {
+                NetworkNTPSettings = new()
+                {
+                    Enabled = null,
+                    Servers = [Server1, Server2]
+                }
+            };
+
+            var sut = CreateSut(handler, bypassHasChanges: true, bypassApplyConfig: false);
+
+            // Act
+            var result = await sut.SetConfiguration(config, CancellationToken.None);
+
+            // Assert
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
+
+            await handler.DidNotReceive().ExecuteSetNetworkNTPSettingsScript(Arg.Any<ScriptOptions>());
+            ntpScriptOptions.Should().BeNull();
+        }
+
+        [Fact]
         public async Task ShouldPrepareAndApply_WhenApplyNotBypassed()
         {
             // Arrange
@@ -221,6 +260,47 @@ public sealed class NetworkNTPConfigurationAdapterTests
 
             // Apply was not executed
             await handler.DidNotReceive().ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>());
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task ShouldUseNonePlaceholder_WhenNTPServerListNull(bool bypassApplyConfig)
+        {
+            // Arrange
+            ScriptOptions? capturedOptions = null;
+
+            var handler = Substitute.For<IScriptHandler>();
+
+            handler
+                .ExecuteSetNetworkNTPSettingsScript(Arg.Do<ScriptOptions>(so => capturedOptions = so))
+                .Returns(Result.SuccessResult);
+            handler
+                .ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>())
+                .Returns(Result.SuccessResult);
+
+            var config = new SystemConfiguration()
+            {
+                NetworkNTPSettings = new()
+                {
+                    Enabled = true,
+                    Servers = null
+                }
+            };
+
+            var sut = CreateSut(handler, bypassHasChanges: true, bypassApplyConfig);
+
+            // Act
+            var result = await sut.SetConfiguration(config, CancellationToken.None);
+
+            // Assert
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
+
+            capturedOptions.Should().NotBeNull();
+            capturedOptions.Options.Should().ContainInOrder(
+                ScriptOptionNames.NetworkNTP.NTPServersEnabled, "true",
+                ScriptOptionNames.NetworkNTP.NTPServers, "none");
         }
 
         [Theory]
