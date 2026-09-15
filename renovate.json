@@ -10,7 +10,8 @@
     "prTitleStrict": true,
     "enabledManagers": [
         "nuget",
-        "mise"
+        "mise",
+        "gitlabci"
     ],
     "vulnerabilityAlerts": {
         "enabled": true,
@@ -20,7 +21,7 @@
     "packageRules": [
         {
             "description": "MR configuration",
-            "matchManagers": [ "nuget", "mise" ],
+            "matchManagers": [ "nuget", "mise", "gitlabci" ],
             "addLabels": [ "dependency" ],
             "rebaseWhen": "auto",
             "separateMajorMinor": true,
@@ -30,20 +31,20 @@
         },
         {
             "description": "MR / commit naming",
-            "matchManagers": [ "nuget", "mise" ],
+            "matchManagers": [ "nuget", "mise", "gitlabci" ],
             "semanticCommits": "disabled",
             "commitMessagePrefix": "",
             "commitMessageAction": "Update"
         },
         {
             "description": "MR / commit naming for ungrouped updates",
-            "matchManagers": [ "nuget", "mise" ],
+            "matchManagers": [ "nuget", "mise", "gitlabci" ],
             "commitMessageTopic": "{{{depName}}}",
             "commitMessageExtra": "to {{{newVersion}}}"
         },
         {
             "description": "MR / commit naming for grouped updates",
-            "matchManagers": [ "nuget", "mise" ],
+            "matchManagers": [ "nuget", "mise", "gitlabci" ],
             "groupSingleUpdates": true,
             "recreateWhen": "never",
             "group": {
@@ -53,12 +54,12 @@
         },
         {
             "description": "Branch naming for ungrouped updates",
-            "matchManagers": [ "nuget", "mise" ],
+            "matchManagers": [ "nuget", "mise", "gitlabci" ],
             "branchTopic": "update-{{{lowercase (replace '\\.' '-' (replace '([a-z0-9])([A-Z])' '$1-$2' (replace '([A-Z]+)([A-Z][a-z])' '$1-$2' depNameSanitized)))}}}-to-{{{newMajor}}}-{{{newMinor}}}-{{{newPatch}}}"
         },
         {
             "description": "Branch naming for grouped updates",
-            "matchManagers": [ "nuget", "mise" ],
+            "matchManagers": [ "nuget", "mise", "gitlabci" ],
             "group": {
                 "branchTopic": "update-{{{replace '\\.' '-' (replace '^(major|minor|patch)-[0-9.]*-?' '' groupSlug)}}}"
             }
@@ -146,6 +147,28 @@
                 "commitMessageTopic": "{{{groupName}}}",
                 "commitMessageExtra": "to {{{newVersion}}}"
             }
+        },
+        {
+            "description": "GitLab CI: opt out of everything, then opt back in below",
+            "matchManagers": [ "gitlabci" ],
+            "enabled": false
+        },
+        {
+            "description": "GitLab CI: track CI component versions",
+            "matchManagers": [ "gitlabci" ],
+            "matchDepTypes": [ "repository" ],
+            "enabled": true,
+            "groupName": "CI components",
+            "groupSlug": "ci-components",
+            "group": {
+                "commitMessageTopic": "{{{groupName}}} ({{#each upgrades}}{{{replace '^vicione-oss/tooling/' '' depName}}}@{{{newVersion}}}{{#unless @last}}, {{/unless}}{{/each}})"
+            },
+            "separateMajorMinor": false,
+            "separateMultipleMajor": false,
+            "separateMultipleMinor": false,
+            "separateMinorPatch": false,
+            "addLabels": [ "Renovate::Frozen" ],
+            "stopUpdatingLabel": "Renovate::Frozen"
         }
     ]
 }
