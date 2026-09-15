@@ -23,7 +23,6 @@
             "matchManagers": [ "nuget", "mise" ],
             "addLabels": [ "dependency" ],
             "rebaseWhen": "auto",
-            "recreateWhen": "never",
             "separateMajorMinor": true,
             "separateMultipleMajor": true,
             "separateMultipleMinor": true,
@@ -46,6 +45,7 @@
             "description": "MR / commit naming for grouped updates",
             "matchManagers": [ "nuget", "mise" ],
             "groupSingleUpdates": true,
+            "recreateWhen": "never",
             "group": {
                 "commitMessageTopic": "{{{groupName}}} ({{#each upgrades}}{{{depName}}}@{{{newVersion}}}{{#unless @last}}, {{/unless}}{{/each}})",
                 "commitMessageExtra": ""
