@@ -112,6 +112,8 @@
             "groupName": "test packages",
             "groupSlug": "test-packages",
             "separateMajorMinor": false,
+            "separateMultipleMajor": false,
+            "separateMultipleMinor": false,
             "separateMinorPatch": false,
             "group": {
                 "branchTopic": "update-test-packages",
