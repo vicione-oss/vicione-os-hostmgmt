@@ -32,7 +32,7 @@ public sealed class ServiceConfigurationAdapterTests
             var handler = Substitute.For<IScriptHandler>();
             handler.ExecuteGetSystemdUnitStateScript(Arg.Any<ScriptOptions>())
                 .Returns(
-                    (Result.ErrorResult, CreateDetail(Service1, ServiceState.Disabled)),
+                    (Result.TestErrorResult, CreateDetail(Service1, ServiceState.Disabled)),
                     (Result.SuccessResult, CreateDetail(Service2, ServiceState.Enabled)));
 
             var config = new SystemConfiguration();
@@ -43,7 +43,7 @@ public sealed class ServiceConfigurationAdapterTests
 
             // Assert
             result.OperationStatus.Should().Be(OperationStatus.Error);
-            result.Messages.Should().Contain(Result.ErrorMessage);
+            result.Messages.Should().Contain(Result.TestErrorMessage);
             config.Services.Should().ContainSingle().Which.Name.Should().Be(Service2);
         }
 
@@ -54,8 +54,8 @@ public sealed class ServiceConfigurationAdapterTests
             var handler = Substitute.For<IScriptHandler>();
             handler.ExecuteGetSystemdUnitStateScript(Arg.Any<ScriptOptions>())
                 .Returns(
-                    (Result.WarningResult, CreateDetail(Service1, ServiceState.Enabled)),
-                    (Result.ErrorResult, CreateDetail(Service2, ServiceState.Disabled)),
+                    (Result.TestWarningResult, CreateDetail(Service1, ServiceState.Enabled)),
+                    (Result.TestErrorResult, CreateDetail(Service2, ServiceState.Disabled)),
                     (Result.SuccessResult, CreateDetail(Service3, ServiceState.Enabled)));
 
             var config = new SystemConfiguration();
@@ -66,7 +66,7 @@ public sealed class ServiceConfigurationAdapterTests
 
             // Assert
             result.OperationStatus.Should().Be(OperationStatus.Error);
-            result.Messages.Should().ContainInOrder(Result.WarningMessage, Result.ErrorMessage);
+            result.Messages.Should().ContainInOrder(Result.TestWarningMessage, Result.TestErrorMessage);
             config.Services.Should().HaveCount(2)
                 .And.Contain(d => d.Name == Service1)
                 .And.Contain(d => d.Name == Service3);
@@ -80,7 +80,7 @@ public sealed class ServiceConfigurationAdapterTests
             handler.ExecuteGetSystemdUnitStateScript(Arg.Any<ScriptOptions>())
                 .Returns(
                     (Result.SuccessResult, CreateDetail(Service1, ServiceState.Enabled)),
-                    (Result.WarningResult, CreateDetail(Service2, ServiceState.Disabled)));
+                    (Result.TestWarningResult, CreateDetail(Service2, ServiceState.Disabled)));
 
             var config = new SystemConfiguration();
             var sut = CreateSut(handler, [Service1, Service2]);
@@ -90,7 +90,7 @@ public sealed class ServiceConfigurationAdapterTests
 
             // Assert
             result.OperationStatus.Should().Be(OperationStatus.Warning);
-            result.Messages.Should().Contain(Result.WarningMessage);
+            result.Messages.Should().Contain(Result.TestWarningMessage);
             config.Services.Should().HaveCount(2)
                 .And.Contain(d => d.Name == Service1)
                 .And.Contain(d => d.Name == Service2);
@@ -418,7 +418,7 @@ public sealed class ServiceConfigurationAdapterTests
             // Arrange
             var handler = Substitute.For<IScriptHandler>();
             handler.ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>())
-                .Returns(Result.SuccessResult, Result.ErrorResult);
+                .Returns(Result.SuccessResult, Result.TestErrorResult);
 
             var config = new SystemConfiguration()
             {
@@ -437,7 +437,7 @@ public sealed class ServiceConfigurationAdapterTests
             var result = await sut.SetConfiguration(config, CancellationToken.None);
 
             result.OperationStatus.Should().Be(OperationStatus.Error);
-            result.Messages.Should().Contain(Result.ErrorMessage);
+            result.Messages.Should().Contain(Result.TestErrorMessage);
 
             await handler.Received(2).ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>());
         }
@@ -448,7 +448,7 @@ public sealed class ServiceConfigurationAdapterTests
             // Arrange
             var handler = Substitute.For<IScriptHandler>();
             handler.ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>())
-                .Returns(Result.SuccessResult, Result.WarningResult);
+                .Returns(Result.SuccessResult, Result.TestWarningResult);
 
             var config = new SystemConfiguration()
             {
@@ -466,7 +466,7 @@ public sealed class ServiceConfigurationAdapterTests
 
             // Assert
             result.OperationStatus.Should().Be(OperationStatus.Warning);
-            result.Messages.Should().Contain(Result.WarningMessage);
+            result.Messages.Should().Contain(Result.TestWarningMessage);
 
             await handler.Received(2).ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>());
         }
@@ -582,7 +582,7 @@ public sealed class ServiceConfigurationAdapterTests
             // Arrange
             var handler = Substitute.For<IScriptHandler>();
             handler.ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>())
-                .Returns(Result.WarningResult, Result.WarningResult, Result.SuccessResult);
+                .Returns(Result.TestWarningResult, Result.TestWarningResult, Result.SuccessResult);
 
             var config = new SystemConfiguration()
             {
@@ -601,7 +601,7 @@ public sealed class ServiceConfigurationAdapterTests
 
             // Assert
             result.OperationStatus.Should().Be(OperationStatus.Warning);
-            result.Messages.Should().BeEquivalentTo([Result.WarningMessage, Result.WarningMessage]);
+            result.Messages.Should().BeEquivalentTo([Result.TestWarningMessage, Result.TestWarningMessage]);
 
             await handler.Received(3).ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>());
         }

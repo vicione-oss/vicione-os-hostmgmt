@@ -76,7 +76,7 @@ public sealed class NTPServiceTests
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteGetNetworkNTPFallbackInformationScript()
-                .Returns(Task.FromResult<(Result, IEnumerable<string>)>((Result.ErrorResult, [])));
+                .Returns(Task.FromResult<(Result, IEnumerable<string>)>((Result.TestErrorResult, [])));
 
             var sut = new NTPService(logger, scriptHandler);
 
@@ -84,7 +84,7 @@ public sealed class NTPServiceTests
             var result = await sut.GetNTPFallbackInformation(CancellationToken.None);
 
             // Assert
-            var expectedLogError = Result.ErrorMessage;
+            var expectedLogError = Result.TestErrorMessage;
             logger.Received(1).Log(
                 LogLevel.Error,
                 Arg.Any<EventId>(),

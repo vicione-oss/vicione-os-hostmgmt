@@ -78,7 +78,7 @@ public sealed class PhysicalAddressServiceTests
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteGetOriginalPhysicalAddressScript(Arg.Any<string>())
-                .Returns(Task.FromResult((Result.ErrorResult, string.Empty)));
+                .Returns(Task.FromResult((Result.TestErrorResult, string.Empty)));
 
             var sut = new PhysicalAddressService(logger, scriptHandler);
 
@@ -86,7 +86,7 @@ public sealed class PhysicalAddressServiceTests
             var result = await sut.GetOriginalPhysicalAddress(InterfaceName, CancellationToken.None);
 
             // Assert
-            var expectedLogError = Result.ErrorMessage;
+            var expectedLogError = Result.TestErrorMessage;
             logger.Received(1).Log(
                 LogLevel.Error,
                 Arg.Any<EventId>(),

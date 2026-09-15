@@ -32,7 +32,7 @@ public sealed class NetworkInterfacesConfigurationAdapterTests
         {
             // Arrange
             var handler = Substitute.For<IScriptHandler>();
-            handler.ExecuteGetNetworkInterfacesScript().Returns((Result.ErrorResult, ""));
+            handler.ExecuteGetNetworkInterfacesScript().Returns((Result.TestErrorResult, ""));
 
             var sut = CreateSut(handler);
 
@@ -41,7 +41,7 @@ public sealed class NetworkInterfacesConfigurationAdapterTests
 
             // Assert
             result.OperationStatus.Should().Be(OperationStatus.Error);
-            result.Messages.Should().Contain(Result.ErrorMessage);
+            result.Messages.Should().Contain(Result.TestErrorMessage);
         }
 
         [Fact]
@@ -56,7 +56,7 @@ public sealed class NetworkInterfacesConfigurationAdapterTests
 
             handler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
-                .Returns((Result.ErrorResult, []));
+                .Returns((Result.TestErrorResult, []));
 
             var sut = CreateSut(handler);
 
@@ -65,7 +65,7 @@ public sealed class NetworkInterfacesConfigurationAdapterTests
 
             // Assert
             result.OperationStatus.Should().Be(OperationStatus.Error);
-            result.Messages.Should().Contain(Result.ErrorMessage);
+            result.Messages.Should().Contain(Result.TestErrorMessage);
         }
 
         [Fact]
@@ -84,7 +84,7 @@ public sealed class NetworkInterfacesConfigurationAdapterTests
 
             handler
                 .ExecuteGetInterfaceSettingsScript(Lan1)
-                .Returns((Result.ErrorResult, new(), new()));
+                .Returns((Result.TestErrorResult, new(), new()));
 
             var sut = CreateSut(handler);
 
@@ -93,7 +93,7 @@ public sealed class NetworkInterfacesConfigurationAdapterTests
 
             // Assert
             result.OperationStatus.Should().Be(OperationStatus.Error);
-            result.Messages.Should().Contain(Result.ErrorMessage);
+            result.Messages.Should().Contain(Result.TestErrorMessage);
         }
 
         [Theory]
@@ -113,7 +113,7 @@ public sealed class NetworkInterfacesConfigurationAdapterTests
                 .Returns((Result.SuccessResult, RawInterfacesString));
 
             var expectedResult = operationStatusFromCommonInfoScript is OperationStatus.Warning
-                ? Result.WarningResult
+                ? Result.TestWarningResult
                 : Result.SuccessResult;
 
             handler
@@ -134,7 +134,7 @@ public sealed class NetworkInterfacesConfigurationAdapterTests
             result.OperationStatus.Should().Be(operationStatusFromCommonInfoScript);
 
             if (operationStatusFromCommonInfoScript is OperationStatus.Warning)
-                result.Messages.Should().Contain(Result.WarningMessage);
+                result.Messages.Should().Contain(Result.TestWarningMessage);
             else
                 result.Messages.Should().BeEmpty();
 
@@ -281,8 +281,8 @@ public sealed class NetworkInterfacesConfigurationAdapterTests
             var handler = Substitute.For<IScriptHandler>();
 
             var (expectedResult, expectedMessage) = operationStatusFromInterfaceAvailableScript is OperationStatus.Warning
-                ? (Result.WarningResult, Result.WarningMessage)
-                : (Result.ErrorResult, Result.ErrorMessage);
+                ? (Result.TestWarningResult, Result.TestWarningMessage)
+                : (Result.TestErrorResult, Result.TestErrorMessage);
 
             handler
                 .ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>())
@@ -318,7 +318,7 @@ public sealed class NetworkInterfacesConfigurationAdapterTests
             // Arrange
             var handler = Substitute.For<IScriptHandler>();
             handler.ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>()).Returns(Result.SuccessResult);
-            handler.ExecuteSetInterfaceSettingsScript(Arg.Any<ScriptOptions>()).Returns(Result.ErrorResult);
+            handler.ExecuteSetInterfaceSettingsScript(Arg.Any<ScriptOptions>()).Returns(Result.TestErrorResult);
 
             var config = new SystemConfiguration()
             {
@@ -340,7 +340,7 @@ public sealed class NetworkInterfacesConfigurationAdapterTests
 
             // Assert
             result.OperationStatus.Should().Be(OperationStatus.Error);
-            result.Messages.Should().Contain(Result.ErrorMessage);
+            result.Messages.Should().Contain(Result.TestErrorMessage);
         }
 
         [Fact]

@@ -135,8 +135,8 @@ public class SystemServiceTests
             var expectedMessage = $"{InstallFailedMessage} ('{signedPackage.FilePath}').";
 
             var expectedResult = operationStatus is OperationStatus.Warning
-                ? Result.WarningResult
-                : Result.ErrorResult;
+                ? Result.TestWarningResult
+                : Result.TestErrorResult;
 
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
@@ -228,7 +228,7 @@ public class SystemServiceTests
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteUpdateSystemScript(Arg.Any<ScriptOptions>())
-                .Returns(Task.FromResult(Result.ErrorResult));
+                .Returns(Task.FromResult(Result.TestErrorResult));
 
             var sut = new SystemService(logger, scriptHandler, GetSignatureValidatorSubstitute());
 
@@ -236,7 +236,7 @@ public class SystemServiceTests
             var systemControlResult = await sut.UpdateSystem(PathToUpdateFile);
 
             // Assert
-            var expectedLogError = Result.ErrorMessage;
+            var expectedLogError = Result.TestErrorMessage;
             logger.Received(1).Log(
                 LogLevel.Error,
                 Arg.Any<EventId>(),
@@ -249,7 +249,7 @@ public class SystemServiceTests
             systemControlResult.Status.Should().Be(OperationStatus.Error);
             systemControlResult.Message.Should()
                 .StartWith(SystemCouldNotBeUpdatedMessage).And
-                .Contain(Result.ErrorMessage);
+                .Contain(Result.TestErrorMessage);
         }
 
         [Fact]
@@ -316,7 +316,7 @@ public class SystemServiceTests
             // Arrange
             var logger = GetLoggerSubstitute();
             var scriptHandler = Substitute.For<IScriptHandler>();
-            scriptHandler.ExecuteResetSystemScript().Returns(Task.FromResult(Result.ErrorResult));
+            scriptHandler.ExecuteResetSystemScript().Returns(Task.FromResult(Result.TestErrorResult));
 
             var sut = new SystemService(logger, scriptHandler, GetSignatureValidatorSubstitute());
 
@@ -324,7 +324,7 @@ public class SystemServiceTests
             var systemControlResult = await sut.ResetSystem();
 
             // Assert
-            var expectedLogError = Result.ErrorMessage;
+            var expectedLogError = Result.TestErrorMessage;
             logger.Received(1).Log(
                 LogLevel.Error,
                 Arg.Any<EventId>(),
@@ -337,7 +337,7 @@ public class SystemServiceTests
             systemControlResult.Status.Should().Be(OperationStatus.Error);
             systemControlResult.Message.Should()
                 .StartWith(SystemCouldNotBeResetMessage).And
-                .Contain(Result.ErrorMessage);
+                .Contain(Result.TestErrorMessage);
         }
 
         [Fact]
@@ -352,7 +352,7 @@ public class SystemServiceTests
                 .Returns(Task.FromResult(Result.SuccessResult));
             scriptHandler
                 .ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>())
-                .Returns(Task.FromResult(Result.ErrorResult));
+                .Returns(Task.FromResult(Result.TestErrorResult));
 
             var sut = new SystemService(logger, scriptHandler, GetSignatureValidatorSubstitute());
 
@@ -360,7 +360,7 @@ public class SystemServiceTests
             var systemControlResult = await sut.ResetSystem();
 
             // Assert
-            var expectedLogError = Result.ErrorMessage;
+            var expectedLogError = Result.TestErrorMessage;
             logger.Received(1).Log(
                 LogLevel.Error,
                 Arg.Any<EventId>(),
@@ -373,7 +373,7 @@ public class SystemServiceTests
             systemControlResult.Status.Should().Be(OperationStatus.Error);
             systemControlResult.Message.Should()
                 .StartWith(SystemCouldNotBeResetMessage).And
-                .Contain(Result.ErrorMessage);
+                .Contain(Result.TestErrorMessage);
         }
 
         [Fact]
@@ -449,7 +449,7 @@ public class SystemServiceTests
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteShutdownSystemScript(Arg.Is<ScriptOptions>(so => so.Options.Contains(RestartFlag)))
-                .Returns(Task.FromResult(Result.ErrorResult));
+                .Returns(Task.FromResult(Result.TestErrorResult));
 
             var sut = new SystemService(logger, scriptHandler, GetSignatureValidatorSubstitute());
 
@@ -457,7 +457,7 @@ public class SystemServiceTests
             var systemControlResult = await sut.RestartSystem();
 
             // Assert
-            var expectedLogError = Result.ErrorMessage;
+            var expectedLogError = Result.TestErrorMessage;
             logger.Received(1).Log(
                 LogLevel.Error,
                 Arg.Any<EventId>(),
@@ -470,7 +470,7 @@ public class SystemServiceTests
             systemControlResult.Status.Should().Be(OperationStatus.Error);
             systemControlResult.Message.Should()
                 .StartWith(SystemCouldNotBeRestartedMessage).And
-                .Contain(Result.ErrorMessage);
+                .Contain(Result.TestErrorMessage);
         }
 
         [Theory]
@@ -552,7 +552,7 @@ public class SystemServiceTests
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteShutdownSystemScript(Arg.Is<ScriptOptions>(so => !so.Options.Contains(RestartFlag)))
-                .Returns(Task.FromResult(Result.ErrorResult));
+                .Returns(Task.FromResult(Result.TestErrorResult));
 
             var sut = new SystemService(logger, scriptHandler, GetSignatureValidatorSubstitute());
 
@@ -560,7 +560,7 @@ public class SystemServiceTests
             var systemControlResult = await sut.ShutdownSystem();
 
             // Assert
-            var expectedLogError = Result.ErrorMessage;
+            var expectedLogError = Result.TestErrorMessage;
             logger.Received(1).Log(
                 LogLevel.Error,
                 Arg.Any<EventId>(),
@@ -573,7 +573,7 @@ public class SystemServiceTests
             systemControlResult.Status.Should().Be(OperationStatus.Error);
             systemControlResult.Message.Should()
                 .StartWith(SystemCouldNotBeShutDownMessage).And
-                .Contain(Result.ErrorMessage);
+                .Contain(Result.TestErrorMessage);
         }
 
         [Theory]

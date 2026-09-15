@@ -56,7 +56,7 @@ public sealed class ProxyConfigurationAdapterTests
         {
             // Arrange
             var handler = Substitute.For<IScriptHandler>();
-            handler.ExecuteGetNetworkProxySettingsScript().Returns((Result.ErrorResult, new NetworkProxySettings()));
+            handler.ExecuteGetNetworkProxySettingsScript().Returns((Result.TestErrorResult, new NetworkProxySettings()));
 
             var originalProxySettings = new NetworkProxySettings()
             {
@@ -75,7 +75,7 @@ public sealed class ProxyConfigurationAdapterTests
 
             // Assert
             result.OperationStatus.Should().Be(OperationStatus.Error);
-            result.Messages.Should().Contain(Result.ErrorMessage);
+            result.Messages.Should().Contain(Result.TestErrorMessage);
             config.NetworkProxySettings.Should().BeSameAs(originalProxySettings);
 
             await handler.Received(1).ExecuteGetNetworkProxySettingsScript();

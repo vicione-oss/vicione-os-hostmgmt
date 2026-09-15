@@ -87,7 +87,7 @@ public sealed class DHCPLeaseServiceTests
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteGetInterfaceIPv4DHCPLeaseScript(Arg.Any<string>())
-                .Returns(Task.FromResult((Result.ErrorResult, new DHCPLease())));
+                .Returns(Task.FromResult((Result.TestErrorResult, new DHCPLease())));
 
             var sut = new DHCPLeaseService(logger, scriptHandler);
 
@@ -95,7 +95,7 @@ public sealed class DHCPLeaseServiceTests
             var result = await sut.GetDHCPLeaseInformation(InterfaceName, CancellationToken.None);
 
             // Assert
-            var expectedLogError = Result.ErrorMessage;
+            var expectedLogError = Result.TestErrorMessage;
             logger.Received(1).Log(
                 LogLevel.Error,
                 Arg.Any<EventId>(),
@@ -253,7 +253,7 @@ public sealed class DHCPLeaseServiceTests
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>())
-                .Returns(Task.FromResult(Result.ErrorResult));
+                .Returns(Task.FromResult(Result.TestErrorResult));
 
             var sut = new DHCPLeaseService(logger, scriptHandler);
 
@@ -261,7 +261,7 @@ public sealed class DHCPLeaseServiceTests
             var result = await sut.RenewDHCPLease(InterfaceName, CancellationToken.None);
 
             // Assert
-            var expectedLogError = Result.ErrorMessage;
+            var expectedLogError = Result.TestErrorMessage;
             logger.Received(1).Log(
                 LogLevel.Error,
                 Arg.Any<EventId>(),
@@ -291,7 +291,7 @@ public sealed class DHCPLeaseServiceTests
 
             scriptHandler
                 .ExecuteRenewDHCPLeaseScript(Arg.Any<string>())
-                .Returns(Task.FromResult(Result.ErrorResult));
+                .Returns(Task.FromResult(Result.TestErrorResult));
 
             var sut = new DHCPLeaseService(logger, scriptHandler);
 
@@ -299,7 +299,7 @@ public sealed class DHCPLeaseServiceTests
             var result = await sut.RenewDHCPLease(InterfaceName, CancellationToken.None);
 
             // Assert
-            var expectedLogError = Result.ErrorMessage;
+            var expectedLogError = Result.TestErrorMessage;
             logger.Received(1).Log(
                 LogLevel.Error,
                 Arg.Any<EventId>(),

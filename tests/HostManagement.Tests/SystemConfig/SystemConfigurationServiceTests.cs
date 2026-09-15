@@ -123,7 +123,7 @@ public class SystemConfigurationServiceTests
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
-                .ReturnsForAnyArgs((Result.ErrorResult, []));
+                .ReturnsForAnyArgs((Result.TestErrorResult, []));
 
             var result = await context.Sut.GetConfiguration(CancellationToken.None);
 
@@ -141,7 +141,7 @@ public class SystemConfigurationServiceTests
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
-                .ReturnsForAnyArgs((Result.WarningResult, []));
+                .ReturnsForAnyArgs((Result.TestWarningResult, []));
 
             var result = await context.Sut.GetConfiguration(CancellationToken.None);
 
@@ -544,7 +544,7 @@ public class SystemConfigurationServiceTests
 
             context.ScriptHandler
                 .ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>())
-                .ReturnsForAnyArgs(Result.ErrorResult);
+                .ReturnsForAnyArgs(Result.TestErrorResult);
 
             // Act
             var status = await context.Sut.PrepareConfigurationOnDeviceStartup(CancellationToken.None);
@@ -660,7 +660,7 @@ public class SystemConfigurationServiceTests
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesScript()
-                .ReturnsForAnyArgs((Result.ErrorResult, ""));
+                .ReturnsForAnyArgs((Result.TestErrorResult, ""));
 
             var proposedConfig = CreateSharedConfig();
 
@@ -684,7 +684,7 @@ public class SystemConfigurationServiceTests
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
-                .ReturnsForAnyArgs((Result.WarningResult, []));
+                .ReturnsForAnyArgs((Result.TestWarningResult, []));
 
             var proposedConfig = CreateSharedConfig();
             var expectedMessage = SetConfigCompletedWithWarnings + Environment.NewLine + GetConfigFromScriptsWarning;
@@ -900,7 +900,7 @@ public class SystemConfigurationServiceTests
             // Return error when 'SetConfiguration' is called; return success on 'RevertConfiguration' later
             context.ScriptHandler
                 .ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>())
-                .ReturnsForAnyArgs(Result.ErrorResult, Result.SuccessResult);
+                .ReturnsForAnyArgs(Result.TestErrorResult, Result.SuccessResult);
 
             var proposedConfig = CreateSharedConfig();
 
@@ -927,7 +927,7 @@ public class SystemConfigurationServiceTests
             var context = new SystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
-                .ReturnsForAnyArgs((Result.WarningResult, []));
+                .ReturnsForAnyArgs((Result.TestWarningResult, []));
 
             var proposedConfig = CreateSharedConfig();
             var expectedMessage = SetConfigCompletedWithWarnings + Environment.NewLine + GetConfigFromScriptsWarning;

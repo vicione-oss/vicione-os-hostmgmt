@@ -36,7 +36,7 @@ public sealed class NetworkNTPConfigurationAdapterTests
         {
             // Arrange
             var handler = Substitute.For<IScriptHandler>();
-            handler.ExecuteGetNetworkNTPSettingsScript().Returns((Result.ErrorResult, new()));
+            handler.ExecuteGetNetworkNTPSettingsScript().Returns((Result.TestErrorResult, new()));
 
             var config = CreateSystemConfig(false, [Server1, Server2]);
             var originalNTPSettings = config.NetworkNTPSettings;
@@ -47,7 +47,7 @@ public sealed class NetworkNTPConfigurationAdapterTests
 
             // Assert
             result.OperationStatus.Should().Be(OperationStatus.Error);
-            result.Messages.Should().Contain(Result.ErrorMessage);
+            result.Messages.Should().Contain(Result.TestErrorMessage);
             config.NetworkNTPSettings.Should().BeSameAs(originalNTPSettings);
         }
 
@@ -142,7 +142,7 @@ public sealed class NetworkNTPConfigurationAdapterTests
         {
             // Arrange
             var handler = Substitute.For<IScriptHandler>();
-            handler.ExecuteSetNetworkNTPSettingsScript(Arg.Any<ScriptOptions>()).Returns(Result.ErrorResult);
+            handler.ExecuteSetNetworkNTPSettingsScript(Arg.Any<ScriptOptions>()).Returns(Result.TestErrorResult);
 
             var config = CreateSystemConfig(true, Server1);
             var sut = CreateSut(handler, bypassHasChanges: true, bypassApplyConfig: false);
@@ -152,7 +152,7 @@ public sealed class NetworkNTPConfigurationAdapterTests
 
             // Assert
             result.OperationStatus.Should().Be(OperationStatus.Error);
-            result.Messages.Should().Contain(Result.ErrorMessage);
+            result.Messages.Should().Contain(Result.TestErrorMessage);
 
             await handler.DidNotReceive().ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>());
         }

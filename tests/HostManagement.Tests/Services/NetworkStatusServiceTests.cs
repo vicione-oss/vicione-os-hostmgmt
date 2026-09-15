@@ -79,7 +79,7 @@ public class NetworkStatusServiceTests
             var scriptHandler = Substitute.For<IScriptHandler>();
             scriptHandler
                 .ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>())
-                .Returns(Task.FromResult(Result.ErrorResult));
+                .Returns(Task.FromResult(Result.TestErrorResult));
 
             var sut = new NetworkStatusService(logger, scriptHandler);
 
@@ -87,7 +87,7 @@ public class NetworkStatusServiceTests
             var networkStatusResult = await sut.GetNetworkStatusInformation(InterfaceName, CancellationToken.None);
 
             // Assert
-            var expectedLogError = Result.ErrorMessage;
+            var expectedLogError = Result.TestErrorMessage;
             logger.Received(1).Log(
                 LogLevel.Error,
                 Arg.Any<EventId>(),
@@ -118,7 +118,7 @@ public class NetworkStatusServiceTests
 
             scriptHandler
                 .ExecuteGetNetworkStatusInformationScript(Arg.Any<ScriptOptions>())
-                .Returns(Task.FromResult((Result.ErrorResult, NetworkStatusInformation.Empty)));
+                .Returns(Task.FromResult((Result.TestErrorResult, NetworkStatusInformation.Empty)));
 
             var sut = new NetworkStatusService(logger, scriptHandler);
 
@@ -126,7 +126,7 @@ public class NetworkStatusServiceTests
             var networkStatusResult = await sut.GetNetworkStatusInformation(InterfaceName, CancellationToken.None);
 
             // Assert
-            var expectedLogError = Result.ErrorMessage;
+            var expectedLogError = Result.TestErrorMessage;
             logger.Received(1).Log(
                 LogLevel.Error,
                 Arg.Any<EventId>(),
