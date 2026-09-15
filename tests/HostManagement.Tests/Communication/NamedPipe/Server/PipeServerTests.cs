@@ -1059,6 +1059,13 @@ public class PipeServerTests
                 var message = await readableFake.WaitForSentAsync(TimeSpan.FromSeconds(2));
                 message.Should().NotBeNull();
 
+                // Wait until ProcessQueueAsync has completely processed the request,
+                // including logging the response, rather than only waiting until the
+                // response has been added to the fake wrapper's sent queue.
+                await PipeServerTestAccessors.InvokeEnqueueShutdownBarrierAndWaitAsync(
+                    context.Server,
+                    s_defaultBarrierTimeout);
+
                 // Assert
                 AssertExpectedNamedPipeResponse(message, request.Topic, request.ConversationId, responseContent);
 
