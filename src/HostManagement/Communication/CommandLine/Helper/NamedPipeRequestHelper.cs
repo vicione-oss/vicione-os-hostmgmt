@@ -425,7 +425,7 @@ internal static class NamedPipeRequestHelper
     {
         var namedPipeMessage = content is null
             ? await s_pipeClient.SendRequestAsync(topic, cancellationToken: cancellationToken)
-            : await s_pipeClient.SendRequestAsync(topic, content, cancellationToken);
+            : await s_pipeClient.SendRequestAsync(topic, content, cancellationToken: cancellationToken);
 
         return DeserializeNamedPipeMessageContent(jsonTypeInfo, namedPipeMessage);
     }

@@ -2,6 +2,8 @@ using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipes;
 using System.Net.Sockets;
+using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using Microsoft.Extensions.Logging;
@@ -99,17 +101,12 @@ public sealed partial class PipeClient(
     public async Task<NamedPipeMessage> SendRequestAsync(
         string topic,
         string content = "",
-        CancellationToken cancellationToken = default)
-        => await SendRequestAsync(topic, content, Guid.NewGuid(), cancellationToken);
-
-    /// <inheritdoc/>
-    public async Task<NamedPipeMessage> SendRequestAsync(
-        string topic,
-        string content,
-        Guid correlationId,
+        Guid? correlationId = null,
         CancellationToken cancellationToken = default)
     {
-        if (correlationId == Guid.Empty)
+        var conversationId = correlationId ?? Guid.NewGuid();
+
+        if (conversationId == Guid.Empty)
             throw new ArgumentException("Correlation ID must not be empty.", nameof(correlationId));
 
         await EnsureConnectedForRequestAsync(cancellationToken).ConfigureAwait(false);
@@ -118,7 +115,7 @@ public sealed partial class PipeClient(
 
         var message = new NamedPipeMessage
         {
-            ConversationId = correlationId,
+            ConversationId = conversationId,
             Topic = topic,
             Type = MessageType.Request,
             Content = content
@@ -151,6 +148,24 @@ public sealed partial class PipeClient(
         {
             await cancellationTokenRegister.DisposeAsync();
         }
+    }
+
+    /// <inheritdoc/>
+    public async Task<TResponse> SendRequestAsync<TResponse>(
+        PipeRequest<TResponse> request,
+        string content = "",
+        Guid? correlationId = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        var response = await SendRequestAsync(
+            request.Topic,
+            content,
+            correlationId,
+            cancellationToken).ConfigureAwait(false);
+
+        return DeserializeResponse(response, request.ResponseTypeInfo);
     }
 
     /// <inheritdoc/>
@@ -208,6 +223,14 @@ public sealed partial class PipeClient(
                 _connectLock.Release();
         }
     }
+
+    private static TResponse DeserializeResponse<TResponse>(
+        NamedPipeMessage response,
+        JsonTypeInfo<TResponse> typeInfo)
+        => JsonSerializer.Deserialize(response.Content, typeInfo)
+            ?? throw new JsonException(
+                $"Response for topic '{response.Topic}' (Conversation ID: {response.ConversationId}) " +
+                $"deserialized to null.");
 
     // Connection helpers
 

@@ -194,8 +194,10 @@ internal sealed class Program
             var knownActionTracker = new KnownActionTracker(TimeSpan.FromMinutes(5));
             var registry = new CallbackHandlerRegistry();
 
-            registry.RegisterHandler(new TestCallbackHandler(knownActionTracker));
-            registry.RegisterHandler(new SystemConfigurationChangedCallbackHandler());
+            registry.RegisterRawHandler("test", new TestCallbackHandler(knownActionTracker).HandleRawAsync);
+            registry.RegisterHandler(
+                PipeEvents.SystemConfigurationChanged,
+                new SystemConfigurationChangedCallbackHandler());
 
             await using var client = new PipeClient(PipeName, s_logger, registry);
             _ = await client.TryConnectAsync();
@@ -218,8 +220,10 @@ internal sealed class Program
             var knownActionTracker = new KnownActionTracker(TimeSpan.FromMinutes(5));
 
             var registry = new CallbackHandlerRegistry();
-            registry.RegisterHandler(new TestCallbackHandler(knownActionTracker));
-            registry.RegisterHandler(new SystemConfigurationChangedCallbackHandler());
+            registry.RegisterRawHandler("test", new TestCallbackHandler(knownActionTracker).HandleRawAsync);
+            registry.RegisterHandler(
+                PipeEvents.SystemConfigurationChanged,
+                new SystemConfigurationChangedCallbackHandler());
 
             await using var client = new PipeClient(PipeName, s_logger, registry);
 
@@ -404,7 +408,7 @@ internal sealed class Program
                     var stopwatch = Stopwatch.StartNew();
 
                     var response = await client
-                        .SendRequestAsync(Topics.Echo, $"stress-{name}-{ix}", perRequestCts.Token)
+                        .SendRequestAsync(Topics.Echo, $"stress-{name}-{ix}", cancellationToken: perRequestCts.Token)
                         .ConfigureAwait(false);
 
                     stopwatch.Stop();
