@@ -97,7 +97,7 @@
             }
         },
         {
-            "description": "NuGet: test packages",
+            "description": "NuGet: test tooling",
             "matchManagers": [ "nuget" ],
             "matchFileNames": [ "Directory.Packages.props" ],
             "matchPackageNames": [
@@ -109,14 +109,14 @@
                 "xunit.v3.mtp-v2"
             ],
             "enabled": true,
-            "groupName": "test packages",
-            "groupSlug": "test-packages",
+            "groupName": "test tooling",
+            "groupSlug": "test-tooling",
             "separateMajorMinor": false,
             "separateMultipleMajor": false,
             "separateMultipleMinor": false,
             "separateMinorPatch": false,
             "group": {
-                "branchTopic": "update-test-packages",
+                "branchTopic": "update-test-tooling",
                 "commitMessageTopic": "{{{groupName}}}",
                 "commitMessageExtra": ""
             }

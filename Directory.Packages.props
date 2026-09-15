@@ -26,7 +26,7 @@
     <PackageVersion Include="TestableIO.System.IO.Abstractions.TestingHelpers" Version="$(TestableIOVersion)" />
   </ItemGroup>
 
-  <!-- Test packages managed by renovate.json -->
+  <!-- Test tooling packages managed by renovate.json -->
   <ItemGroup>
     <PackageVersion Include="AwesomeAssertions" Version="9.5.0" />
     <PackageVersion Include="AwesomeAssertions.Analyzers" Version="9.0.8">
