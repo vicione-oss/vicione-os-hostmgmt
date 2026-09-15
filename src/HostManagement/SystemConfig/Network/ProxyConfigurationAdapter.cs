@@ -45,13 +45,9 @@ internal sealed class ProxyConfigurationAdapter(
 
         if (networkProxySettings.NoProxy?.Entries is { } entries)
         {
-            var modifiedNoProxyEntries = new List<string>();
-
-            foreach (var entry in entries)
+            for (var i = 0; i < entries.Count; i++)
             {
-                var modifiedEntry = entry;
-
-                if (modifiedEntry.Contains("%25"))
+                if (entries[i].Contains("%25"))
                 {
                     /*
                      * In URIs or /etc/environment we had to percent-encode '%' as '%25'
@@ -60,16 +56,12 @@ internal sealed class ProxyConfigurationAdapter(
                      * Now we need to reverse this, and remember that an interface could be
                      * named "25". So the zone id marker would have been escaped to "%2525".
                      */
-                    if (modifiedEntry.Contains("%2525"))
-                        modifiedEntry = modifiedEntry.Replace("%2525", "%25");
+                    if (entries[i].Contains("%2525"))
+                        entries[i] = entries[i].Replace("%2525", "%25");
                     else
-                        modifiedEntry = modifiedEntry.Replace("%25", "%");
+                        entries[i] = entries[i].Replace("%25", "%");
                 }
-
-                modifiedNoProxyEntries.Add(modifiedEntry);
             }
-
-            config.NetworkProxySettings.NoProxy?.Entries = modifiedNoProxyEntries;
         }
 
         return result;
