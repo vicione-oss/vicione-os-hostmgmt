@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added typed message contracts, so sending a request or handling an event no longer requires naming a `JsonTypeInfo`
   - Shared: `MessageTypeRegistry` maps a message contract type to its source-generated `JsonTypeInfo`. Every assembly registers its own `JsonSerializerContext`, so consumers never register one; `AddContext` remains available for their own contracts
   - Shared: `MessageSerializer` serializes and deserializes message contents, passing `string` through unchanged so raw text keeps its exact content
+  - Shared Communication: `TopicContracts` and `EventTopicContracts` bind every topic to its request and response contracts, letting the compiler infer the message types from the topic
   - Shared Communication: `PipeClientExtensions` provides `SendRequestAsync` and `SendOperationAsync`, the latter returning an error result instead of throwing when the response content is malformed. A caller-provided correlation ID is an optional argument rather than a separate overload
   - Shared Communication: `CallbackHandlerRegistry.RegisterHandler` and `RegisterRawHandler` take a callback, so an event handler class is only needed when the handler has state of its own
 
@@ -39,6 +40,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Shared: Moved `Topics`, `EventTopics` and `RequiresContentAttribute` to `HostManagement.Shared`, and `SupportedTopicAttribute` to `HostManagement.Shared.Capabilities`, so the capability schema is generated upstream of the JSON serializer context
   - The namespaces follow: `Topics`, `EventTopics` and `RequiresContentAttribute` move from `HostManagement.Shared.Communication` to `HostManagement.Shared`, and the generated `SupportedCapabilities` and `SupportedTopics` from `HostManagement.Shared.Communication.Capabilities` to `HostManagement.Shared.Capabilities`
 - Pipe Sample: Reads the strongly typed result when setting the system configuration and shows all three callback registration forms
+- CLI: Sends all named pipe requests via the typed topic contracts
+  - `InstallSignedDebianPackage` takes a `SignedDebianPackage` instead of pre-serialized JSON
+  - `SetConfiguration` sends the `SystemConfiguration` instead of pre-serialized JSON
+  - `ControlSystemdUnit` sends the `ServiceControlRequest` instead of pre-serialized JSON
 - Aligned every namespace with its folder, and removed the using directives that became unnecessary
 - `TopicsGenerator` reads the namespace of the `Topics` class it completes instead of hard-coding it, so moving the class can no longer turn the generated part into a separate class of the same name
 

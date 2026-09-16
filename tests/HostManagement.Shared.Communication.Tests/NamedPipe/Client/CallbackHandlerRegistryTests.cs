@@ -3,6 +3,7 @@ using AwesomeAssertions;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Communication.NamedPipe.Client;
+using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Serialization;
 using Xunit;
 
@@ -71,7 +72,7 @@ public class CallbackHandlerRegistryTests
             var registry = new CallbackHandlerRegistry();
 
             // Act
-            var act = () => registry.RegisterHandler<GetServiceStateResult>(null!, (_, _, _) => Task.CompletedTask);
+            var act = () => registry.RegisterHandler<GetServiceStateResult>((string)null!, (_, _, _) => Task.CompletedTask);
 
             // Assert
             act.Should().Throw<ArgumentNullException>().WithParameterName("topic");
@@ -131,6 +132,85 @@ public class CallbackHandlerRegistryTests
             result.Should().BeTrue();
             received!.ActiveState.Should().Be(ActiveState);
             receivedCorrelationId.Should().Be(correlationId);
+        }
+    }
+
+    public class RegisterHandlerWithEventContract
+    {
+        [Fact]
+        public void ShouldThrow_WhenTopicNull()
+        {
+            // Arrange
+            var registry = new CallbackHandlerRegistry();
+
+            // Act
+            var act = () => registry.RegisterHandler(
+                (EventContract<GetSystemConfigurationResult>)null!,
+                (_, _, _) => Task.CompletedTask);
+
+            // Assert
+            act.Should().Throw<ArgumentNullException>().WithParameterName("topic");
+        }
+
+        [Fact]
+        public async Task ShouldInvokeCallbackWithDeserializedMessage_WhenEventContractGiven()
+        {
+            // Arrange
+            var registry = new CallbackHandlerRegistry();
+            GetSystemConfigurationResult? received = null;
+
+            registry.RegisterHandler(EventTopicContracts.SystemConfigurationChanged, (message, _, _) =>
+            {
+                received = message;
+                return Task.CompletedTask;
+            });
+
+            var content = MessageSerializer.Serialize(
+                GetSystemConfigurationResult.CreateSuccessResult("changed", new SystemConfiguration()));
+
+            var message = new NamedPipeMessage
+            {
+                Topic = EventTopics.SystemConfigurationChanged,
+                Type = MessageType.Event,
+                Content = content
+            };
+
+            // Act
+            var result = await registry.HandleCallbackAsync(message, TestContext.Current.CancellationToken);
+
+            // Assert
+            result.Should().BeTrue();
+            received!.Message.Should().Be("changed");
+        }
+
+        [Theory]
+        [InlineData("Service is stopping")]
+        [InlineData("")]
+        public async Task ShouldInvokeCallbackWithUnchangedContent_WhenEventContractIsRawText(string reason)
+        {
+            // Arrange
+            var registry = new CallbackHandlerRegistry();
+            string? received = null;
+
+            registry.RegisterHandler(EventTopicContracts.PipeServerShutdown, (message, _, _) =>
+            {
+                received = message;
+                return Task.CompletedTask;
+            });
+
+            var message = new NamedPipeMessage
+            {
+                Topic = EventTopics.PipeServerShutdown,
+                Type = MessageType.Event,
+                Content = reason
+            };
+
+            // Act
+            var result = await registry.HandleCallbackAsync(message, TestContext.Current.CancellationToken);
+
+            // Assert
+            result.Should().BeTrue();
+            received.Should().Be(reason);
         }
     }
 

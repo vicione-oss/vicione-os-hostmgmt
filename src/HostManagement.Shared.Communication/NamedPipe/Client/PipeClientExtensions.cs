@@ -260,5 +260,141 @@ public static class PipeClientExtensions
                     cancellationToken)
                 .ConfigureAwait(false);
         }
+
+        /// <summary>
+        /// Sends a request on the specified <paramref name="topic"/> with raw <paramref name="content"/>
+        /// and deserializes the response content into the topic's response contract.
+        /// </summary>
+        /// <typeparam name="TResponse">The response contract type, inferred from <paramref name="topic"/>.</typeparam>
+        /// <param name="topic">The topic and its contracts (see <see cref="TopicContracts"/>).</param>
+        /// <param name="content">The raw request content.</param>
+        /// <param name="correlationId">
+        /// The optional correlation ID to use as the request's conversation ID. It can be used to associate
+        /// subsequent events with the request. When omitted, a new ID is generated. A provided value must not be
+        /// <see cref="Guid.Empty"/>.
+        /// </param>
+        /// <param name="cancellationToken">A token to cancel the operation.</param>
+        /// <returns>The deserialized response.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown when the pipe client or <paramref name="topic"/> is <see langword="null"/>.
+        /// </exception>
+        /// <inheritdoc cref="SendRequestAsync{TResponse}(IPipeClient, string, string, Guid?, CancellationToken)" path="/exception"/>
+        public async Task<TResponse> SendRequestAsync<TResponse>(
+            TopicContract<TResponse> topic,
+            string content = "",
+            Guid? correlationId = null,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(topic);
+
+            return await client
+                .SendRequestAsync<TResponse>(topic.Topic, content, correlationId, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Serializes <paramref name="content"/>, sends it on the specified <paramref name="topic"/> and deserializes
+        /// the response content into the topic's response contract.
+        /// </summary>
+        /// <typeparam name="TRequest">The request contract type, inferred from <paramref name="topic"/>.</typeparam>
+        /// <typeparam name="TResponse">The response contract type, inferred from <paramref name="topic"/>.</typeparam>
+        /// <param name="topic">The topic and its contracts (see <see cref="TopicContracts"/>).</param>
+        /// <param name="content">The request content.</param>
+        /// <param name="correlationId">
+        /// The optional correlation ID to use as the request's conversation ID. It can be used to associate
+        /// subsequent events with the request. When omitted, a new ID is generated. A provided value must not be
+        /// <see cref="Guid.Empty"/>.
+        /// </param>
+        /// <param name="cancellationToken">A token to cancel the operation.</param>
+        /// <returns>The deserialized response.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown when the pipe client, <paramref name="topic"/> or <paramref name="content"/>
+        /// is <see langword="null"/>.
+        /// </exception>
+        /// <inheritdoc cref="SendRequestAsync{TResponse}(IPipeClient, string, string, Guid?, CancellationToken)" path="/exception"/>
+        public async Task<TResponse> SendRequestAsync<TRequest, TResponse>(
+            TopicContract<TRequest, TResponse> topic,
+            TRequest content,
+            Guid? correlationId = null,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(topic);
+
+            return await client
+                .SendRequestAsync<TRequest, TResponse>(topic.Topic, content, correlationId, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Sends a request on the specified <paramref name="topic"/> with raw <paramref name="content"/>
+        /// and returns the topic's operation result.
+        /// </summary>
+        /// <typeparam name="TResponse">The operation result type, inferred from <paramref name="topic"/>.</typeparam>
+        /// <param name="topic">The topic and its contracts (see <see cref="TopicContracts"/>).</param>
+        /// <param name="content">The raw request content.</param>
+        /// <param name="correlationId">
+        /// The optional correlation ID to use as the request's conversation ID. It can be used to associate
+        /// subsequent events with the request. When omitted, a new ID is generated. A provided value must not be
+        /// <see cref="Guid.Empty"/>.
+        /// </param>
+        /// <param name="cancellationToken">A token to cancel the operation.</param>
+        /// <returns>
+        /// The deserialized operation result, or an error result created by
+        /// <see cref="IOperationResultFactory{T}.CreateErrorResult"/> if the response content could not be deserialized.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown when the pipe client or <paramref name="topic"/> is <see langword="null"/>.
+        /// </exception>
+        /// <inheritdoc cref="SendOperationAsync{TResponse}(IPipeClient, string, string, Guid?, CancellationToken)" path="/remarks|/exception"/>
+        public async Task<TResponse> SendOperationAsync<TResponse>(
+            TopicContract<TResponse> topic,
+            string content = "",
+            Guid? correlationId = null,
+            CancellationToken cancellationToken = default)
+                where TResponse : OperationResult, IOperationResultFactory<TResponse>
+        {
+            ArgumentNullException.ThrowIfNull(topic);
+
+            return await client
+                .SendOperationAsync<TResponse>(topic.Topic, content, correlationId, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Serializes <paramref name="content"/>, sends it on the specified <paramref name="topic"/>
+        /// and returns the topic's operation result.
+        /// </summary>
+        /// <typeparam name="TRequest">The request contract type, inferred from <paramref name="topic"/>.</typeparam>
+        /// <typeparam name="TResponse">The operation result type, inferred from <paramref name="topic"/>.</typeparam>
+        /// <param name="topic">The topic and its contracts (see <see cref="TopicContracts"/>).</param>
+        /// <param name="content">The request content.</param>
+        /// <param name="correlationId">
+        /// The optional correlation ID to use as the request's conversation ID. It can be used to associate
+        /// subsequent events with the request. When omitted, a new ID is generated. A provided value must not be
+        /// <see cref="Guid.Empty"/>.
+        /// </param>
+        /// <param name="cancellationToken">A token to cancel the operation.</param>
+        /// <returns>
+        /// The deserialized operation result, or an error result created by
+        /// <see cref="IOperationResultFactory{T}.CreateErrorResult"/> if the response content could not be deserialized.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown when the pipe client, <paramref name="topic"/> or <paramref name="content"/>
+        /// is <see langword="null"/>.
+        /// </exception>
+        /// <inheritdoc cref="SendOperationAsync{TResponse}(IPipeClient, string, string, Guid?, CancellationToken)" path="/remarks|/exception"/>
+        public async Task<TResponse> SendOperationAsync<TRequest, TResponse>(
+            TopicContract<TRequest, TResponse> topic,
+            TRequest content,
+            Guid? correlationId = null,
+            CancellationToken cancellationToken = default)
+                where TResponse : OperationResult, IOperationResultFactory<TResponse>
+        {
+            ArgumentNullException.ThrowIfNull(topic);
+
+            return await client
+                .SendOperationAsync<TRequest, TResponse>(topic.Topic, content, correlationId, cancellationToken)
+                .ConfigureAwait(false);
+        }
     }
 }

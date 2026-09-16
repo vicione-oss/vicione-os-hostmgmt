@@ -1,9 +1,11 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using HostManagement.Shared;
-using HostManagement.Shared.Communication.Contracts;
+using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Communication.NamedPipe.Client;
+using HostManagement.Shared.Contracts;
+using HostManagement.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace PipeCommunicationSample;
@@ -185,13 +187,13 @@ internal sealed class Program
         }
 
         Console.WriteLine();
-        await DoSetSystemConfiguration(topic, content).ConfigureAwait(false);
+        await DoSetSystemConfiguration(content).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Sends the system configuration and reads the strongly typed result.
     /// </summary>
-    private static async Task DoSetSystemConfiguration(string topic, string content)
+    private static async Task DoSetSystemConfiguration(string content)
     {
         try
         {
@@ -201,8 +203,10 @@ internal sealed class Program
             await using var client = new PipeClient(PipeName, s_logger, registry);
             _ = await client.TryConnectAsync();
 
-            // The topic is known, so the response is deserialized without naming a JsonTypeInfo.
-            var result = await client.SendOperationAsync<SetSystemConfigurationResult>(topic, content);
+            var configuration = MessageSerializer.Deserialize<SystemConfiguration>(content);
+
+            // The topic carries its request and response contracts, so neither type is named here.
+            var result = await client.SendOperationAsync(TopicContracts.SetSystemConfiguration, configuration);
 
             Console.WriteLine();
             Console.WriteLine($"{result.Status}: {result.Message}");
@@ -226,8 +230,9 @@ internal sealed class Program
         // A class handling a deserialized message.
         registry.RegisterHandler(new SystemConfigurationChangedCallbackHandler());
 
-        // A callback handling the raw message content, without implementing a handler class.
-        registry.RegisterRawHandler(EventTopics.PipeServerShutdown, (reason, _, _) =>
+        // A callback bound to a typed event topic, without implementing a handler class.
+        // The contract of this topic is raw text, so the message arrives unchanged.
+        registry.RegisterHandler(EventTopicContracts.PipeServerShutdown, (reason, _, _) =>
         {
             Console.WriteLine();
             Console.WriteLine($"Server is shutting down: {reason}");

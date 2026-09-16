@@ -256,6 +256,166 @@ public class PipeClientExtensionsTests
         }
     }
 
+    public class SendRequestAsyncWithTopicContract
+    {
+        [Fact]
+        public async Task ShouldThrow_WhenTopicNull()
+        {
+            // Arrange
+            await using var client = CreateClientReturning(SerializedServiceStateResult());
+
+            // Act
+            var act = async () => await client.SendRequestAsync(
+                (TopicContract<GetServiceStateResult>)null!,
+                TestServiceName,
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            // Assert
+            await act.Should().ThrowAsync<ArgumentNullException>().WithParameterName("topic");
+        }
+
+        [Fact]
+        public async Task ShouldSendContractTopicAndInferResponse_WhenTopicContractGiven()
+        {
+            // Arrange
+            await using var client = CreateClientReturning(SerializedServiceStateResult());
+
+            // Act
+            var result = await client.SendRequestAsync(
+                TopicContracts.GetServiceState,
+                TestServiceName,
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            // Assert
+            result.ActiveState.Should().Be(ActiveState);
+
+            await client
+                .Received(1)
+                .SendRequestAsync(Topics.GetServiceState, TestServiceName, cancellationToken: Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task ShouldReturnRawContent_WhenTopicContractIsRawText()
+        {
+            // Arrange
+            const string RawResponse = "pong";
+            await using var client = CreateClientReturning(RawResponse);
+
+            // Act
+            var result = await client.SendRequestAsync(
+                TopicContracts.Echo,
+                "ping",
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            // Assert
+            result.Should().Be(RawResponse);
+
+            await client.Received(1).SendRequestAsync(Topics.Echo, "ping", cancellationToken: Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task ShouldSendSerializedContent_WhenTopicContractHasRequestType()
+        {
+            // Arrange
+            var package = CreateSignedDebianPackage();
+            await using var client = CreateClientReturning(SerializedSystemControlResult());
+
+            // Act
+            var result = await client.SendRequestAsync(
+                TopicContracts.InstallSignedDebianPackage,
+                package,
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            // Assert
+            result.Status.Should().Be(OperationStatus.Success);
+
+            await client.Received(1).SendRequestAsync(
+                Topics.InstallSignedDebianPackage,
+                Arg.Is<string>(content => content.Contains(package.FilePath, StringComparison.Ordinal)),
+                cancellationToken: Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task ShouldForwardCorrelationId_WhenCorrelationIdGiven()
+        {
+            // Arrange
+            var correlationId = Guid.NewGuid();
+            await using var client = Substitute.For<IPipeClient>();
+
+            client
+                .SendRequestAsync(Topics.GetServiceState, TestServiceName, correlationId, Arg.Any<CancellationToken>())
+                .Returns(CreateResponse(SerializedServiceStateResult()));
+
+            // Act
+            var result = await client.SendRequestAsync(
+                TopicContracts.GetServiceState,
+                TestServiceName,
+                correlationId,
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            // Assert
+            result.ActiveState.Should().Be(ActiveState);
+        }
+    }
+
+    public class SendOperationAsyncWithTopicContract
+    {
+        [Fact]
+        public async Task ShouldThrow_WhenTopicNull()
+        {
+            // Arrange
+            await using var client = CreateClientReturning(SerializedServiceStateResult());
+
+            // Act
+            var act = async () => await client.SendOperationAsync(
+                (TopicContract<GetServiceStateResult>)null!,
+                TestServiceName,
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            // Assert
+            await act.Should().ThrowAsync<ArgumentNullException>().WithParameterName("topic");
+        }
+
+        [Fact]
+        public async Task ShouldReturnErrorResult_WhenResponseContentMalformed()
+        {
+            // Arrange
+            await using var client = CreateClientReturning("not json");
+
+            // Act
+            var result = await client.SendOperationAsync(
+                TopicContracts.GetServiceState,
+                TestServiceName,
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            // Assert
+            result.Status.Should().Be(OperationStatus.Error);
+            result.Message.Should().Contain("could not be deserialized");
+        }
+
+        [Fact]
+        public async Task ShouldSendSerializedContent_WhenTopicContractHasRequestType()
+        {
+            // Arrange
+            var package = CreateSignedDebianPackage();
+            await using var client = CreateClientReturning(SerializedSystemControlResult());
+
+            // Act
+            var result = await client.SendOperationAsync(
+                TopicContracts.InstallSignedDebianPackage,
+                package,
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            // Assert
+            result.Status.Should().Be(OperationStatus.Success);
+
+            await client.Received(1).SendRequestAsync(
+                Topics.InstallSignedDebianPackage,
+                Arg.Is<string>(content => content.Contains(package.FilePath, StringComparison.Ordinal)),
+                cancellationToken: Arg.Any<CancellationToken>());
+        }
+    }
+
     private static IPipeClient CreateClientReturning(string responseContent)
     {
         var client = Substitute.For<IPipeClient>();
@@ -279,6 +439,12 @@ public class PipeClientExtensionsTests
         Status = OperationStatus.Success,
         Message = "Service state read.",
         ActiveState = ActiveState
+    });
+
+    private static string SerializedSystemControlResult() => MessageSerializer.Serialize(new SystemControlResult
+    {
+        Status = OperationStatus.Success,
+        Message = "Package installed."
     });
 
     private static SignedDebianPackage CreateSignedDebianPackage() => new()

@@ -85,6 +85,33 @@ public sealed class CallbackHandlerRegistry
     }
 
     /// <summary>
+    /// Registers a callback for the specified event <paramref name="topic"/> that receives the deserialized message.
+    /// </summary>
+    /// <typeparam name="TMessage">
+    /// The event message contract type, inferred from <paramref name="topic"/>.
+    /// A <see cref="string"/> contract yields the raw message content.
+    /// </typeparam>
+    /// <param name="topic">The event topic and its contract (see <see cref="EventTopicContracts"/>).</param>
+    /// <param name="handleAsync">
+    /// The callback receiving the message, the correlation ID and a cancellation token.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> if the callback was registered,
+    /// <see langword="false"/> if a handler for the same topic already exists.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown when <paramref name="topic"/> or <paramref name="handleAsync"/> is <see langword="null"/>.
+    /// </exception>
+    public bool RegisterHandler<TMessage>(
+        EventContract<TMessage> topic,
+        Func<TMessage, Guid, CancellationToken, Task> handleAsync)
+    {
+        ArgumentNullException.ThrowIfNull(topic);
+
+        return RegisterHandler(topic.Topic, handleAsync);
+    }
+
+    /// <summary>
     /// Registers a callback for <paramref name="topic"/> that receives the raw message content.
     /// </summary>
     /// <param name="topic">The unique topic to be handled.</param>
