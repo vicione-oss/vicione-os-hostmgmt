@@ -1,14 +1,14 @@
-using System.Text.Json;
 using HostManagement.Shared.Communication.Contracts;
+using HostManagement.Shared.Serialization;
 
 namespace HostManagement.Shared.Communication.NamedPipe.Client;
 
 /// <summary>
-/// Represents a registry of named pipe callback handlers.
+/// Represents a <see cref="CallbackHandlerRegistry"/>.
 /// </summary>
 public sealed class CallbackHandlerRegistry
 {
-    private readonly Dictionary<string, Func<NamedPipeMessage, CancellationToken, Task>> _handlers = [];
+    private readonly Dictionary<string, ICallbackHandler> _handlers = [];
 
     /// <summary>
     /// Raised when a message arrives with no registered handler.
@@ -34,55 +34,97 @@ public sealed class CallbackHandlerRegistry
             return false;
         }
 
-        await handler(message, cancellationToken).ConfigureAwait(false);
+        await handler.HandleRawAsync(message.Content, message.ConversationId, cancellationToken).ConfigureAwait(false);
         return true;
     }
 
     /// <summary>
-    /// Registers a callback handler that consumes raw message content.
+    /// Registers an <see cref="ICallbackHandler"/>.
     /// </summary>
-    /// <param name="topic">The event topic handled by <paramref name="handler"/>.</param>
-    /// <param name="handler">The callback handler.</param>
-    /// <returns><see langword="true"/> if the handler was registered; otherwise <see langword="false"/>.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="topic"/> is empty or whitespace.</exception>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="topic"/> or <paramref name="handler"/> is null.</exception>
-    public bool RegisterRawHandler(
-        string topic,
-        Func<string, Guid, CancellationToken, Task> handler)
+    /// <param name="handler">The handler.</param>
+    /// <returns>
+    /// <see langword="true"/> if the handler was registered,
+    /// <see langword="false"/> if a handler for the same topic already exists.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown when <paramref name="handler"/> is <see langword="null"/>.
+    /// </exception>
+    public bool RegisterHandler(ICallbackHandler handler)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(topic);
         ArgumentNullException.ThrowIfNull(handler);
 
-        return _handlers.TryAdd(
-            topic,
-            (message, cancellationToken) => handler(message.Content, message.ConversationId, cancellationToken));
+        return _handlers.TryAdd(handler.Topic, handler);
     }
 
     /// <summary>
-    /// Registers a typed callback handler using the source-generated JSON metadata carried by
-    /// <paramref name="pipeEvent"/>.
+    /// Registers a callback for <paramref name="topic"/> that receives the deserialized event message.
     /// </summary>
-    /// <typeparam name="TMessage">The callback message type.</typeparam>
-    /// <param name="pipeEvent">The event descriptor.</param>
-    /// <param name="handler">The callback handler.</param>
-    /// <returns><see langword="true"/> if the handler was registered; otherwise <see langword="false"/>.</returns>
+    /// <typeparam name="TMessage">
+    /// The message contract type. Its JSON metadata is resolved through the <see cref="MessageTypeRegistry"/>.
+    /// Use <see cref="RegisterRawHandler"/> instead to receive the raw message content.
+    /// </typeparam>
+    /// <param name="topic">The unique topic to be handled.</param>
+    /// <param name="handleAsync">
+    /// The callback receiving the deserialized message, the correlation ID and a cancellation token.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> if the callback was registered,
+    /// <see langword="false"/> if a handler for the same topic already exists.
+    /// </returns>
     /// <exception cref="ArgumentNullException">
-    /// Thrown when <paramref name="pipeEvent"/> or <paramref name="handler"/> is null.
+    /// Thrown when <paramref name="topic"/> or <paramref name="handleAsync"/> is <see langword="null"/>.
     /// </exception>
-    public bool RegisterHandler<TMessage>(PipeEvent<TMessage> pipeEvent, ICallbackHandler<TMessage> handler)
+    public bool RegisterHandler<TMessage>(
+        string topic,
+        Func<TMessage, Guid, CancellationToken, Task> handleAsync)
     {
-        ArgumentNullException.ThrowIfNull(pipeEvent);
-        ArgumentNullException.ThrowIfNull(handler);
+        ArgumentNullException.ThrowIfNull(topic);
+        ArgumentNullException.ThrowIfNull(handleAsync);
 
-        return _handlers.TryAdd(
-            pipeEvent.Topic,
-            (message, cancellationToken) =>
-            {
-                var typedMessage = JsonSerializer
-                    .Deserialize(message.Content, pipeEvent.MessageTypeInfo)
-                    ?? throw new JsonException($"Deserialization of topic '{message.Topic}' returned null.");
+        return RegisterHandler(new DelegateCallbackHandler<TMessage>(topic, handleAsync));
+    }
 
-                return handler.HandleAsync(typedMessage, message.ConversationId, cancellationToken);
-            });
+    /// <summary>
+    /// Registers a callback for <paramref name="topic"/> that receives the raw message content.
+    /// </summary>
+    /// <param name="topic">The unique topic to be handled.</param>
+    /// <param name="handleRawAsync">
+    /// The callback receiving the raw message content, the correlation ID and a cancellation token.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> if the callback was registered,
+    /// <see langword="false"/> if a handler for the same topic already exists.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown when <paramref name="topic"/> or <paramref name="handleRawAsync"/> is <see langword="null"/>.
+    /// </exception>
+    public bool RegisterRawHandler(string topic, Func<string, Guid, CancellationToken, Task> handleRawAsync)
+    {
+        ArgumentNullException.ThrowIfNull(topic);
+        ArgumentNullException.ThrowIfNull(handleRawAsync);
+
+        return RegisterHandler(new DelegateRawCallbackHandler(topic, handleRawAsync));
+    }
+
+    private sealed class DelegateCallbackHandler<TMessage>(
+        string topic,
+        Func<TMessage, Guid, CancellationToken, Task> handleAsync)
+        : ICallbackHandler<TMessage>
+    {
+        public string Topic => topic;
+
+        public Task HandleAsync(TMessage message, Guid correlationId, CancellationToken cancellationToken)
+            => handleAsync(message, correlationId, cancellationToken);
+    }
+
+    private sealed class DelegateRawCallbackHandler(
+        string topic,
+        Func<string, Guid, CancellationToken, Task> handleRawAsync)
+        : ICallbackHandler
+    {
+        public string Topic => topic;
+
+        public Task HandleRawAsync(string messageContent, Guid correlationId, CancellationToken cancellationToken)
+            => handleRawAsync(messageContent, correlationId, cancellationToken);
     }
 }

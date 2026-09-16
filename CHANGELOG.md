@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added NTP sync status as topic (`GetNTPSyncStatus`) and in CLI (`ntp status` command)
 - **Breaking:** Added optional delay to service commands. Callers now need to send a serialized `ServiceControlRequest` in the message content.
 - Added the `restore-lock` mise task to regenerate the NuGet lock files without the host platform runtime identifier
+- Added typed message contracts, so sending a request or handling an event no longer requires naming a `JsonTypeInfo`
+  - Shared: `MessageTypeRegistry` maps a message contract type to its source-generated `JsonTypeInfo`. Every assembly registers its own `JsonSerializerContext`, so consumers never register one; `AddContext` remains available for their own contracts
+  - Shared: `MessageSerializer` serializes and deserializes message contents, passing `string` through unchanged so raw text keeps its exact content
+  - Shared Communication: `PipeClientExtensions` provides `SendRequestAsync` and `SendOperationAsync`, the latter returning an error result instead of throwing when the response content is malformed. A caller-provided correlation ID is an optional argument rather than a separate overload
+  - Shared Communication: `CallbackHandlerRegistry.RegisterHandler` and `RegisterRawHandler` take a callback, so an event handler class is only needed when the handler has state of its own
 
 ### Changed
 
@@ -33,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved compatibility when reading `SupportedCapabilities.conf` (unknown settings or topics no longer throw an exception)
 - Shared: Moved `Topics`, `EventTopics` and `RequiresContentAttribute` to `HostManagement.Shared`, and `SupportedTopicAttribute` to `HostManagement.Shared.Capabilities`, so the capability schema is generated upstream of the JSON serializer context
   - The namespaces follow: `Topics`, `EventTopics` and `RequiresContentAttribute` move from `HostManagement.Shared.Communication` to `HostManagement.Shared`, and the generated `SupportedCapabilities` and `SupportedTopics` from `HostManagement.Shared.Communication.Capabilities` to `HostManagement.Shared.Capabilities`
+- Pipe Sample: Reads the strongly typed result when setting the system configuration and shows all three callback registration forms
 - Aligned every namespace with its folder, and removed the using directives that became unnecessary
 - `TopicsGenerator` reads the namespace of the `Topics` class it completes instead of hard-coding it, so moving the class can no longer turn the generated part into a separate class of the same name
 

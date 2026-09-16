@@ -1,14 +1,22 @@
+using HostManagement.Shared;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.NamedPipe.Client;
-using HostManagement.Shared.Communication.Serialization;
+using HostManagement.Shared.Serialization;
 
 namespace PipeCommunicationSample;
 
 /// <summary>
 /// Handles notifications about changes to the system configuration.
 /// </summary>
+/// <remarks>
+/// A typed handler only declares its topic and how to handle the message. The JSON metadata for
+/// <see cref="GetSystemConfigurationResult"/> is resolved through the <see cref="MessageTypeRegistry"/>.
+/// </remarks>
 internal sealed class SystemConfigurationChangedCallbackHandler : ICallbackHandler<GetSystemConfigurationResult>
 {
+    /// <inheritdoc/>
+    public string Topic => EventTopics.SystemConfigurationChanged;
+
     /// <inheritdoc/>
     public Task HandleAsync(
         GetSystemConfigurationResult message,
@@ -16,14 +24,9 @@ internal sealed class SystemConfigurationChangedCallbackHandler : ICallbackHandl
         CancellationToken cancellationToken)
     {
         Console.WriteLine();
-        Console.WriteLine($"Server event received: '{PipeEvents.SystemConfigurationChanged.Topic}'");
+        Console.WriteLine($"Server event received: '{Topic}'");
         Console.WriteLine($"Correlation ID: {correlationId}");
-
-        var serializedResult = SourceGeneratedTypeSerializer.Serialize(
-            message,
-            PipeEvents.SystemConfigurationChanged.MessageTypeInfo);
-
-        Console.WriteLine(serializedResult);
+        Console.WriteLine(MessageSerializer.Serialize(message));
 
         return Task.CompletedTask;
     }

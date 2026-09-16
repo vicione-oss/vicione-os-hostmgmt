@@ -15,7 +15,7 @@
     <File Path="NuGet.Config" />
     <File Path="README.md" />
     <File Path="testconfig.json" />
-    <File Path="THIRD-PARTY-NOTICES.md" />
+    <File Path="THIRD-PARTY-NOTICES" />
     <File Path="VERSION" />
   </Folder>
   <Folder Name="/src/">
