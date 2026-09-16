@@ -1,6 +1,6 @@
 using AwesomeAssertions;
 using HostManagement.Communication.NamedPipe.RequestHandlers;
-using HostManagement.Shared.Communication;
+using HostManagement.Shared;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;

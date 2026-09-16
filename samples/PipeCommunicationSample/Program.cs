@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using HostManagement.Shared.Communication;
+using HostManagement.Shared;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Communication.NamedPipe.Client;
 using Microsoft.Extensions.Logging;

@@ -1,7 +1,7 @@
 using System.Text.Json;
 using AwesomeAssertions;
 using HostManagement.Communication.NamedPipe.RequestHandlers;
-using HostManagement.Shared.Communication;
+using HostManagement.Shared;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Communication.Serialization;
 using HostManagement.Shared.Contracts;

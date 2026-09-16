@@ -31,7 +31,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLI: Aligned `service` command description to other top-level commands
 - CLI: Swapped order of `system` and `deployment` command groups
 - Improved compatibility when reading `SupportedCapabilities.conf` (unknown settings or topics no longer throw an exception)
-- Shared: Moved `Topics`, `EventTopics`, `RequiresContentAttribute` and `SupportedTopicAttribute` to the `HostManagement.Shared` project, so the capability schema is generated upstream of the JSON serializer context
+- Shared: Moved `Topics`, `EventTopics` and `RequiresContentAttribute` to `HostManagement.Shared`, and `SupportedTopicAttribute` to `HostManagement.Shared.Capabilities`, so the capability schema is generated upstream of the JSON serializer context
+  - The namespaces follow: `Topics`, `EventTopics` and `RequiresContentAttribute` move from `HostManagement.Shared.Communication` to `HostManagement.Shared`, and the generated `SupportedCapabilities` and `SupportedTopics` from `HostManagement.Shared.Communication.Capabilities` to `HostManagement.Shared.Capabilities`
+- Aligned every namespace with its folder, and removed the using directives that became unnecessary
+- `TopicsGenerator` reads the namespace of the `Topics` class it completes instead of hard-coding it, so moving the class can no longer turn the generated part into a separate class of the same name
 
 ### Removed
 

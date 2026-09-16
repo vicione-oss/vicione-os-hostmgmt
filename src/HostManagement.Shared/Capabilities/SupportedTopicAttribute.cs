@@ -1,4 +1,4 @@
-namespace HostManagement.Shared.Communication.Capabilities;
+namespace HostManagement.Shared.Capabilities;
 
 /// <summary>
 /// Represents the attribute to specify that a field is a supported topic.

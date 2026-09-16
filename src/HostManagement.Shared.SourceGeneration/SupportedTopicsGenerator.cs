@@ -12,11 +12,10 @@ namespace HostManagement.Shared.SourceGeneration;
 [Generator]
 public partial class SupportedTopicsGenerator : IIncrementalGenerator
 {
-    private const string SharedCapabilitiesNamespace = "HostManagement.Shared.Capabilities";
+    private const string CapabilitiesNamespace = "HostManagement.Shared.Capabilities";
     private const string CapabilityTypeName = "CapabilityStatus";
 
-    private const string CommunicationCapabilitiesNamespace = "HostManagement.Shared.Communication.Capabilities";
-    private const string SupportedTopicAttributeFullName = CommunicationCapabilitiesNamespace + ".SupportedTopicAttribute";
+    private const string SupportedTopicAttributeFullName = CapabilitiesNamespace + ".SupportedTopicAttribute";
     private const string GeneratedSupportedTopicsTypeName = "SupportedTopics";
 
     /// <inheritdoc/>

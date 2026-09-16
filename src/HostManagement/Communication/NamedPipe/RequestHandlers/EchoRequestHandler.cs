@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization.Metadata;
-using HostManagement.Shared.Communication;
+using HostManagement.Shared;
 using HostManagement.Shared.Communication.Contracts;
 using Microsoft.Extensions.Logging;
 

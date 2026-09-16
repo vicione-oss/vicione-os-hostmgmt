@@ -1,8 +1,8 @@
-using HostManagement.Shared.Communication.Capabilities;
+using HostManagement.Shared.Capabilities;
 using HostManagement.Shared.Contracts.Service;
 using HostManagement.Shared.Contracts.System;
 
-namespace HostManagement.Shared.Communication;
+namespace HostManagement.Shared;
 
 /// <summary>
 /// Contains the topics used to identify a message handler.

@@ -1,4 +1,4 @@
-namespace HostManagement.Shared.Communication;
+namespace HostManagement.Shared;
 
 /// <summary>
 /// Contains the topics used for server events.

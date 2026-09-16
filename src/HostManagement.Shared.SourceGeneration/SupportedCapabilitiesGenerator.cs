@@ -10,8 +10,7 @@ namespace HostManagement.Shared.SourceGeneration;
 [Generator]
 public partial class SupportedCapabilitiesGenerator : IIncrementalGenerator
 {
-    private const string SharedCapabilitiesNamespace = "HostManagement.Shared.Capabilities";
-    private const string CommunicationCapabilitiesNamespace = "HostManagement.Shared.Communication.Capabilities";
+    private const string CapabilitiesNamespace = "HostManagement.Shared.Capabilities";
 
     private const string GeneratedSupportedCapabilitiesTypeName = "SupportedCapabilities";
     private const string SupportedSettingsPropertyName = "Settings";

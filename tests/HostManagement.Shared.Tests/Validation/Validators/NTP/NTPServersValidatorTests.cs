@@ -3,7 +3,7 @@ using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.NTP;
 using Xunit;
 
-namespace HostManagement.Shared.Tests.Validation.Validators;
+namespace HostManagement.Shared.Tests.Validation.Validators.NTP;
 
 public class NTPServersValidatorTests
 {

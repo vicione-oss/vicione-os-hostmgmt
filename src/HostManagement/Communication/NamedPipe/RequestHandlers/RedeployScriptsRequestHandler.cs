@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization.Metadata;
 using HostManagement.Scripts;
-using HostManagement.Shared.Communication;
+using HostManagement.Shared;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Communication.Serialization;

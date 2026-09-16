@@ -1,7 +1,7 @@
 using System.Net.NetworkInformation;
 using System.Text.Json.Serialization.Metadata;
 using HostManagement.Communication.CommandLine.Output;
-using HostManagement.Shared.Communication;
+using HostManagement.Shared;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Communication.NamedPipe.Client;

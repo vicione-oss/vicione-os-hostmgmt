@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -20,7 +20,7 @@ public class TopicsGenerator : IIncrementalGenerator
     /// <inheritdoc/>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var classDeclarations = context.SyntaxProvider
+        var topicsClasses = context.SyntaxProvider
             .CreateSyntaxProvider(
                 predicate: static (node, _) =>
                 {
@@ -28,70 +28,118 @@ public class TopicsGenerator : IIncrementalGenerator
                         node is ClassDeclarationSyntax syntax &&
                         syntax.Identifier.Text == TopicsClassName;
                 },
-                transform: static (context, _) => (ClassDeclarationSyntax)context.Node)
-            .Where(static syntax => syntax is not null);
+                transform: static (context, cancellationToken) => CreateModel(context, cancellationToken))
+            .Where(static model => model is not null);
 
-        var constFields = classDeclarations.Select((syntax, _) =>
-            syntax.Members
-                .OfType<FieldDeclarationSyntax>()
-                .Where(fieldSyntax =>
-                    fieldSyntax.Modifiers.Any(token => token.IsKind(SyntaxKind.ConstKeyword)) &&
-                    fieldSyntax.Declaration.Type.ToString() == TopicType)
-                .Select(fieldSyntax =>
-                {
-                    var variable = fieldSyntax.Declaration.Variables.First();
-                    var valueExpr = variable.Initializer?.Value;
-                    var value = valueExpr is LiteralExpressionSyntax literal && literal.IsKind(SyntaxKind.StringLiteralExpression)
-                        ? literal.Token.ValueText
-                        : valueExpr?.ToString() ?? "neverNull";
+        context.RegisterSourceOutput(topicsClasses, static (context, model) => GenerateSource(context, model!));
+    }
 
-                    return new
-                    {
-                        Value = value,
-                        HasRequiresContent = fieldSyntax.AttributeLists
-                            .SelectMany(attributeSyntax => attributeSyntax.Attributes)
-                            .Any(attributeSyntax => attributeSyntax.Name.ToString().Contains(RequiresContentAttribute))
-                    };
-                })
-                .ToList()
-        );
+    private static TopicsModel? CreateModel(GeneratorSyntaxContext context, CancellationToken cancellationToken)
+    {
+        var syntax = (ClassDeclarationSyntax)context.Node;
 
-        context.RegisterSourceOutput(constFields, (context, topics) =>
+        // The generated part has to be declared in the same namespace as the class it completes. Reading the namespace
+        // from the symbol instead of hard-coding it means moving the class cannot turn the generated part into a
+        // separate class that happens to share its name.
+        if (context.SemanticModel.GetDeclaredSymbol(syntax, cancellationToken) is not { } topicsSymbol)
+            return null;
+
+        var containingNamespace = topicsSymbol.ContainingNamespace.IsGlobalNamespace
+            ? null
+            : topicsSymbol.ContainingNamespace.ToDisplayString();
+
+        return new TopicsModel(containingNamespace, GetTopics(syntax));
+    }
+
+    private static List<TopicField> GetTopics(ClassDeclarationSyntax syntax)
+    {
+        return syntax.Members
+            .OfType<FieldDeclarationSyntax>()
+            .Where(fieldSyntax =>
+                fieldSyntax.Modifiers.Any(token => token.IsKind(SyntaxKind.ConstKeyword)) &&
+                fieldSyntax.Declaration.Type.ToString() == TopicType)
+            .Select(fieldSyntax =>
+            {
+                var variable = fieldSyntax.Declaration.Variables.First();
+                var valueExpr = variable.Initializer?.Value;
+                var value = valueExpr is LiteralExpressionSyntax literal && literal.IsKind(SyntaxKind.StringLiteralExpression)
+                    ? literal.Token.ValueText
+                    : valueExpr?.ToString() ?? "neverNull";
+
+                var hasRequiresContent = fieldSyntax.AttributeLists
+                    .SelectMany(attributeSyntax => attributeSyntax.Attributes)
+                    .Any(attributeSyntax => attributeSyntax.Name.ToString().Contains(RequiresContentAttribute));
+
+                return new TopicField(value, hasRequiresContent);
+            })
+            .ToList();
+    }
+
+    private static void GenerateSource(SourceProductionContext context, TopicsModel model)
+    {
+        var source = new StringBuilder();
+        var indent = model.ContainingNamespace is null ? string.Empty : "    ";
+
+        source.AppendLine("using System.Collections.Generic;");
+        source.AppendLine();
+
+        if (model.ContainingNamespace is not null)
         {
-            var source = new StringBuilder();
-
-            source.AppendLine("using System.Collections.Generic;");
-            source.AppendLine();
-            source.AppendLine("namespace HostManagement.Shared.Communication");
+            source.AppendLine($"namespace {model.ContainingNamespace}");
             source.AppendLine("{");
-            source.AppendLine("    public static partial class Topics");
-            source.AppendLine("    {");
-            source.AppendLine("        /// <summary>");
-            source.AppendLine("        /// Gets all topics used to identify a message handler.");
-            source.AppendLine("        /// </summary>");
-            source.AppendLine("        /// <returns><see cref=\"IEnumerable{String}\"/></returns>");
-            source.AppendLine("        public static IEnumerable<string> GetAllTopics()");
-            source.AppendLine("        {");
+        }
 
-            foreach (var topic in topics)
-                source.AppendLine($"            yield return {SymbolDisplay.FormatLiteral(topic.Value, true)};");
+        source.AppendLine($"{indent}public static partial class {TopicsClassName}");
+        source.AppendLine($"{indent}{{");
+        source.AppendLine($"{indent}    /// <summary>");
+        source.AppendLine($"{indent}    /// Gets all topics used to identify a message handler.");
+        source.AppendLine($"{indent}    /// </summary>");
+        source.AppendLine($"{indent}    /// <returns><see cref=\"IEnumerable{{String}}\"/></returns>");
+        source.AppendLine($"{indent}    public static IEnumerable<string> GetAllTopics()");
+        source.AppendLine($"{indent}    {{");
 
-            source.AppendLine("        }");
-            source.AppendLine();
-            source.AppendLine("        /// <summary>");
-            source.AppendLine("        /// Gets all topics used to identify a message handler, that require content passed with the named pipe request.");
-            source.AppendLine("        /// </summary>");
-            source.AppendLine("        public static IEnumerable<string> GetTopicsWithRequiredContent()");
-            source.AppendLine("        {");
+        foreach (var topic in model.Topics)
+            source.AppendLine($"{indent}        yield return {SymbolDisplay.FormatLiteral(topic.Value, true)};");
 
-            foreach (var topic in topics.Where(field => field.HasRequiresContent))
-                source.AppendLine($"            yield return {SymbolDisplay.FormatLiteral(topic.Value, true)};");
+        source.AppendLine($"{indent}    }}");
+        source.AppendLine();
+        source.AppendLine($"{indent}    /// <summary>");
+        source.AppendLine($"{indent}    /// Gets all topics used to identify a message handler, that require content passed with the named pipe request.");
+        source.AppendLine($"{indent}    /// </summary>");
+        source.AppendLine($"{indent}    public static IEnumerable<string> GetTopicsWithRequiredContent()");
+        source.AppendLine($"{indent}    {{");
 
-            source.AppendLine("        }");
-            source.AppendLine("    }");
+        foreach (var topic in model.Topics.Where(field => field.HasRequiresContent))
+            source.AppendLine($"{indent}        yield return {SymbolDisplay.FormatLiteral(topic.Value, true)};");
+
+        source.AppendLine($"{indent}    }}");
+        source.AppendLine($"{indent}}}");
+
+        if (model.ContainingNamespace is not null)
             source.AppendLine("}");
 
-            context.AddSource("Topics.GetAllTopics.g.cs", SourceText.From(source.ToString(), Encoding.UTF8));
-        });
+        // The hint name carries the namespace so several topic classes in one compilation cannot collide.
+        var hintName = model.ContainingNamespace is null
+            ? $"{TopicsClassName}.GetAllTopics.g.cs"
+            : $"{model.ContainingNamespace}.{TopicsClassName}.GetAllTopics.g.cs";
+
+        context.AddSource(hintName, SourceText.From(source.ToString(), Encoding.UTF8));
+    }
+
+    private sealed class TopicField(string value, bool hasRequiresContent)
+    {
+        public string Value { get; } = value;
+
+        public bool HasRequiresContent { get; } = hasRequiresContent;
+    }
+
+    private sealed class TopicsModel(string? containingNamespace, List<TopicField> topics)
+    {
+        /// <summary>
+        /// The namespace the "Topics" class is declared in, or <see langword="null"/> for the global namespace.
+        /// </summary>
+        public string? ContainingNamespace { get; } = containingNamespace;
+
+        public List<TopicField> Topics { get; } = topics;
     }
 }

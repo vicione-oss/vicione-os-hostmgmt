@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using HostManagement.Configuration;
 using HostManagement.Services;
-using HostManagement.Shared.Communication;
+using HostManagement.Shared;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Serialization;
 using HostManagement.Shared.Contracts.System;

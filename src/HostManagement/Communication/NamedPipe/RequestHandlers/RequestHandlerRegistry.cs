@@ -2,9 +2,8 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using HostManagement.Communication.NamedPipe.Extensions;
 using HostManagement.Configuration;
+using HostManagement.Shared;
 using HostManagement.Shared.Capabilities;
-using HostManagement.Shared.Communication;
-using HostManagement.Shared.Communication.Capabilities;
 using HostManagement.Shared.Communication.Contracts;
 using Microsoft.Extensions.Logging;
 

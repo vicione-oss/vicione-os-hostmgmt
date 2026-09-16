@@ -2,7 +2,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using HostManagement.Shared.Capabilities;
-using HostManagement.Shared.Communication.Capabilities;
 using HostManagement.Shared.Communication.Contracts;
 
 namespace HostManagement.Services;

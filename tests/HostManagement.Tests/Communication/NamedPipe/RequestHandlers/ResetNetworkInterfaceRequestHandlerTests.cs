@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using AwesomeAssertions;
 using HostManagement.Communication.NamedPipe.RequestHandlers;
-using HostManagement.Shared.Communication;
+using HostManagement.Shared;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Communication.Serialization;

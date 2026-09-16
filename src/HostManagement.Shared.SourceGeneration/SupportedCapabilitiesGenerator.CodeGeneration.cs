@@ -37,9 +37,8 @@ public partial class SupportedCapabilitiesGenerator
             builder.AppendLine("#nullable enable");
             builder.AppendLine("using System;");
             builder.AppendLine("using System.Text.Json;");
-            builder.AppendLine($"using {SharedCapabilitiesNamespace};");
             builder.AppendLine();
-            builder.AppendLine($"namespace {CommunicationCapabilitiesNamespace};");
+            builder.AppendLine($"namespace {CapabilitiesNamespace};");
             builder.AppendLine();
 
             return builder;
