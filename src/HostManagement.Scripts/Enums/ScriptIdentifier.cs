@@ -165,6 +165,18 @@ public enum ScriptIdentifier
     NetworkNTPSettingsSet,
     #endregion
 
+    #region Syslog
+    /// <summary>
+    /// Script to get syslog settings.
+    /// </summary>
+    SyslogSettingsGet,
+
+    /// <summary>
+    /// Script to set syslog settings.
+    /// </summary>
+    SyslogSettingsSet,
+    #endregion
+
     #region Test
     /// <summary>
     /// For unit testing purposes only.
