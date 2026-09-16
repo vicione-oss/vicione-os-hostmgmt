@@ -16,6 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added functionality to handle defective persisted JSON configs
 - Added documentation for HostManagement service startup
 - Added logging to `RequestHandlerRegistry`
+- Added `LoggerAdapter<T>` and logger extension methods for generic logger support
+- Added persistent pipe client connection (no dispose delay between requests needed)
+- Added event publishing interface `INotifyPublishEventRequested` for request handlers
+- Added correlation of named pipe events to originating requests
+  - Added support for caller-provided correlation IDs when sending requests
+  - Correlated events reuse the originating request's conversation ID
+  - Callback handlers receive the event correlation ID
+- Pipe Sample: Added stress test with configurable parallelism and request counts
 
 ### Changed
 
@@ -28,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated NuGet packages
   - `AwesomeAssertions` from `9.4.0` to `9.5.0`
   - `Microsoft.CodeAnalysis.CSharp` from `5.3.0` to `5.6.0`
-  - `Microsoft.Extensions.Configuration.EnvironmentVariables` from `10.0.5` to `10.011`
+  - `Microsoft.Extensions.Configuration.EnvironmentVariables` from `10.0.5` to `10.0.11`
   - `Microsoft.Extensions.Logging` from `10.0.5` to `10.0.11`
   - `Microsoft.Extensions.Logging.Abstractions` from `10.0.5` to `10.0.11`
   - `Microsoft.Testing.Extensions.CodeCoverage` from `18.5.2` to `18.9.0`
@@ -81,6 +89,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLI: Updates list of supported features in cli help export
 - CLI: Aligned `hostname` command description with its functionality
 - Modified logging to use appropriate journal priority instead of the custom prefix string
+- Refactored `PipeServer` to manage multiple listener instances with automatic recovery
+- Refactored `PipeClient` to correlate requests/responses via conversation IDs with background message processing
+- Shared Communication: Updated request and callback handler APIs to provide correlation IDs
+- Pipe Sample: Moved reusable pipe client and callback infrastructure to `Shared.Communication`
+  - `EventCallbackRegistry`
+  - `ICallbackHandler`
+  - `IPipeClient`
+  - `PipeMessageProcessor`
 
 ### Removed
 
@@ -95,11 +111,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed `SOCKS` proxy feature
 - Removed custom log level prefix string from log messages (replaced with journal priority)
 - Shared: Removed redundant properties `IPv4Settings.Empty`, `NetworkDNSSettings.Empty`, `NetworkNTPSettings.Empty`, `ServiceDetail.Empty`
+- Shared Communication: Removed `MessageProcessorBase`
+- Pipe Sample: Removed `EventCallbackRegistry`, `ICallbackHandler`, `IPipeClient`, `PipeMessageProcessor` (moved to `Shared.Communication`)
 
 ### Fixed
 
 - Fixed a bug where proxy settings were not cleared during a system reset.
-- Fixed `network status` command missing it's name argument description
+- Fixed `network status` command missing its name argument description
 - Fixed script for changing the MAC address when using VLAN
 - Fixed potential overwrite of an already invalid validation result, when adding an information message, resulting in a valid result.
 - Fixed potential overwrite of an error status of a result, when adding a warning message, resulting in a warning status.
@@ -111,6 +129,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed `DHCPLeaseService` not returning correct results on error
 - Fixed `NTPService` not returning correct result on error
 - Fixed not removing empty "HostManagement" section in `etc/hosts` when removing the last static host entry or performing a general reset
+- Fixed indefinite waiting for pipe response when exceptions occur (client now removes expected response on failure)
+- Fixed pipe resource cleanup during disconnects, cancellation, and disposal
 
 ## [1.3.0] - 2026-03-23
 

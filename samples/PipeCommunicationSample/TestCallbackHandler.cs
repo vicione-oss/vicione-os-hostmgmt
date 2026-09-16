@@ -1,13 +1,17 @@
-﻿
 namespace PipeCommunicationSample;
 
-internal sealed class TestCallbackHandler : ICallbackHandler
+internal sealed class TestCallbackHandler(KnownActionTracker knownActionTracker)
 {
-    public string Topic => "test";
-
-    public Task Handle(string messageContent, CancellationToken cancellationToken)
+    public Task HandleRawAsync(string messageContent, Guid correlationId, CancellationToken cancellationToken)
     {
-        Console.WriteLine(messageContent);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var isKnownAction = knownActionTracker.Contains(correlationId);
+
+        Console.WriteLine(
+            $"{(isKnownAction ? "Known" : "Unexpected")} event " +
+            $"[{correlationId}]: {messageContent}");
+
         return Task.CompletedTask;
     }
 }

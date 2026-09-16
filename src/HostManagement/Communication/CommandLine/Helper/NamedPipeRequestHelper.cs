@@ -1,9 +1,9 @@
 using System.Text.Json.Serialization.Metadata;
 using HostManagement.Communication.CommandLine.Output;
-using HostManagement.Communication.NamedPipes.Client;
 using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
+using HostManagement.Shared.Communication.NamedPipe.Client;
 using HostManagement.Shared.Communication.Serialization;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
@@ -20,11 +20,7 @@ namespace HostManagement.Communication.CommandLine.Helper;
 /// </summary>
 internal static class NamedPipeRequestHelper
 {
-    /*
-     * The only usage of the logger is the 'PipeClient'. Other console output uses 'SimpleOutput' class directly.
-     * We have to use 'LogLevel' directly because 'EnvironmentVariables.LogLevel' can't be used in a non-daemon context.
-    */
-    private static readonly ILogger s_logger = new CommandLineLogger(LogLevel.Warning);
+    private static readonly PipeClient s_pipeClient = CreatePipeClientAndConnectToServer();
 
     /// <summary>
     /// Sends a named pipe request to get the <see cref="SystemConfiguration"/> from the system.
@@ -427,35 +423,21 @@ internal static class NamedPipeRequestHelper
         CancellationToken cancellationToken)
             where T : OperationResult, IOperationResultFactory<T>
     {
-        PipeClient? client = null;
+        var namedPipeMessage = content is null
+            ? await s_pipeClient.SendRequestAsync(topic, cancellationToken: cancellationToken)
+            : await s_pipeClient.SendRequestAsync(topic, content, cancellationToken: cancellationToken);
 
-        try
-        {
-            client = new PipeClient("HostPipe", s_logger);
+        return DeserializeNamedPipeMessageContent(jsonTypeInfo, namedPipeMessage);
+    }
 
-            var namedPipeMessage = content is null
-                ? await client.SendRequest(topic, cancellationToken: cancellationToken)
-                : await client.SendRequest(topic, content, cancellationToken);
+    private static PipeClient CreatePipeClientAndConnectToServer()
+    {
+        // We have to use 'LogLevel' directly because CLI (non-daemon context) can't use environment variables.
+        var pipeClient = new PipeClient("HostPipe", new CommandLineLogger(LogLevel.Warning).As<PipeClient>());
 
-            return DeserializeNamedPipeMessageContent(jsonTypeInfo, namedPipeMessage);
-        }
-        finally
-        {
-            client?.Dispose();
+        _ = pipeClient.TryConnectAsync(5_000).Result;
 
-            // TODO This is a workaround for the following problem:
-            //
-            // If a client is finished and closes the remote end of the pipe the server registers this
-            // and begins to dispose itself and starts a new server instance.
-            //
-            // In this time (up to 40 ms, but depending on the actual system or available resources)
-            // a new client can still connect to the server which results in either
-            // "Already in a connected state", "Broken pipe" or a halt on the client side.
-            //
-            // As a workaround we give the pipe server some time to restart after a client finishes
-            // and a new one tries to connect.
-            await Task.Delay(250, cancellationToken);
-        }
+        return pipeClient;
     }
 
     private static T DeserializeNamedPipeMessageContent<T>(JsonTypeInfo<T> jsonTypeInfo, NamedPipeMessage message)

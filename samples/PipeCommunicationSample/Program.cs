@@ -1,12 +1,21 @@
-﻿using Microsoft.Extensions.Logging;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using HostManagement.Shared.Communication;
+using HostManagement.Shared.Communication.Enums;
+using HostManagement.Shared.Communication.NamedPipe.Client;
+using Microsoft.Extensions.Logging;
 
 namespace PipeCommunicationSample;
 
 internal sealed class Program
 {
+    private const string PipeName = "HostPipe";
+
     private const ConsoleColor ErrorColor = ConsoleColor.Red;
     private const ConsoleColor HighlightColor = ConsoleColor.DarkCyan;
+
+    private static readonly ILogger<PipeClient> s_logger =
+        new ConsoleLogger(LogLevel.Information).As<PipeClient>();
 
     private static async Task Main()
     {
@@ -35,6 +44,11 @@ internal sealed class Program
                 await ClientSays();
                 break;
 
+            case "4":
+                Console.WriteLine();
+                await StressTestTwoClients();
+                break;
+
             default:
                 Console.ForegroundColor = ErrorColor;
                 Console.WriteLine("Unknown mode provided.");
@@ -50,6 +64,7 @@ internal sealed class Program
         Console.WriteLine("1 - Send pipe request");
         Console.WriteLine("2 - Set JSON config");
         Console.WriteLine("3 - Client says...");
+        Console.WriteLine("4 - Stress test (2 clients)");
         Console.WriteLine();
     }
 
@@ -86,7 +101,7 @@ internal sealed class Program
 
     private static void PrintAllAvailableTopics(List<string> allTopics)
     {
-        var columnCount = 4;
+        var columnCount = 3;
         var maximumTopicLength = allTopics.Max(topic => topic.Length);
 
         for (var i = 0; i < allTopics.Count; i++)
@@ -174,14 +189,20 @@ internal sealed class Program
 
     private static async Task DoSendPipeRequest(string topic, string content)
     {
-        PipeClient? client = null;
-
         try
         {
-            client = new PipeClient("HostPipe", new ConsoleLogger(LogLevel.Information));
-            await client.Connect();
+            var knownActionTracker = new KnownActionTracker(TimeSpan.FromMinutes(5));
+            var registry = new CallbackHandlerRegistry();
 
-            var response = await client.SendRequest(topic, content);
+            registry.RegisterRawHandler("test", new TestCallbackHandler(knownActionTracker).HandleRawAsync);
+            registry.RegisterHandler(
+                PipeEvents.SystemConfigurationChanged,
+                new SystemConfigurationChangedCallbackHandler());
+
+            await using var client = new PipeClient(PipeName, s_logger, registry);
+            _ = await client.TryConnectAsync();
+
+            var response = await client.SendRequestAsync(topic, content);
 
             Console.WriteLine();
             Console.WriteLine(response.Content);
@@ -190,36 +211,46 @@ internal sealed class Program
         {
             Console.WriteLine(ex.ToString());
         }
-        finally
-        {
-            client?.Dispose();
-            await Task.Delay(250);
-        }
     }
 
     private static async Task ClientSays()
     {
-        PipeClient? client = null;
-
         try
         {
-            client = new PipeClient("HostPipe", new ConsoleLogger(LogLevel.Information));
-            await client.Connect();
+            var knownActionTracker = new KnownActionTracker(TimeSpan.FromMinutes(5));
+
+            var registry = new CallbackHandlerRegistry();
+            registry.RegisterRawHandler("test", new TestCallbackHandler(knownActionTracker).HandleRawAsync);
+            registry.RegisterHandler(
+                PipeEvents.SystemConfigurationChanged,
+                new SystemConfigurationChangedCallbackHandler());
+
+            await using var client = new PipeClient(PipeName, s_logger, registry);
+
+            _ = await client.TryConnectAsync();
 
             Console.WriteLine("Client says: 'ping'");
-            var response = await client.SendRequest(Topics.Echo, "ping");
+            var response = await client.SendRequestAsync(Topics.Echo, "ping");
             Console.WriteLine($"Server says: '{response.Content}'");
             Console.WriteLine();
             await Task.Delay(200);
 
             Console.WriteLine("Client says: 'love'");
-            var response2 = await client.SendRequest(Topics.Echo, "love");
+            var response2 = await client.SendRequestAsync(Topics.Echo, "love");
             Console.WriteLine($"Server says: '{response2.Content}'");
             Console.WriteLine();
             await Task.Delay(200);
 
             Console.WriteLine("Client says: 'trigger'");
-            var response3 = await client.SendRequest(Topics.Echo, "trigger");
+
+            var correlationId = Guid.NewGuid();
+
+            // Register before sending because correlated events may arrive
+            // before the request response is received.
+            knownActionTracker.Add(correlationId);
+
+            var response3 = await client.SendRequestAsync(Topics.Echo, "trigger", correlationId);
+
             Console.WriteLine($"Server says: '{response3.Content}'");
             Console.ReadKey();
         }
@@ -227,10 +258,193 @@ internal sealed class Program
         {
             Console.WriteLine(ex.ToString());
         }
+    }
+
+    private static async Task StressTestTwoClients()
+    {
+        var requestsPerClient = AskForInt("Requests per client [default 1000]: ", 1000);
+        var parallelismPerClient = AskForInt("Parallelism per client [default 16]: ", 16);
+        Console.WriteLine("Press Ctrl+C to cancel...");
+        Console.WriteLine();
+
+        using var cts = new CancellationTokenSource();
+
+        Console.CancelKeyPress += OnCancelKeyPressed;
+
+        var stats = new ConcurrentBag<long>();
+        long success = 0;
+        long failed = 0;
+
+        var stopwatchTotal = Stopwatch.StartNew();
+
+        try
+        {
+            // No client logger used here
+            await using var client1 = new PipeClient(PipeName, null, new CallbackHandlerRegistry());
+            await using var client2 = new PipeClient(PipeName, null, new CallbackHandlerRegistry());
+
+            var connected1 = await client1.TryConnectAsync(timeoutMs: 3_000, cancellationToken: cts.Token);
+            var connected2 = await client2.TryConnectAsync(timeoutMs: 3_000, cancellationToken: cts.Token);
+
+            if (!connected1 || !connected2)
+            {
+                Console.ForegroundColor = ErrorColor;
+                Console.WriteLine($"Failed to connect both clients to '{PipeName}'. Is the server running?");
+                Console.ResetColor();
+                return;
+            }
+
+            var task1 = RunLoadAsync(
+                "C1",
+                client1,
+                requestsPerClient,
+                parallelismPerClient,
+                stats,
+                () => Interlocked.Increment(ref success),
+                () => Interlocked.Increment(ref failed),
+                cts.Token);
+
+            var task2 = RunLoadAsync(
+                "C2",
+                client2,
+                requestsPerClient,
+                parallelismPerClient,
+                stats,
+                () => Interlocked.Increment(ref success),
+                () => Interlocked.Increment(ref failed),
+                cts.Token);
+
+            await Task.WhenAll(task1, task2);
+        }
+        catch (OperationCanceledException)
+        {
+            Console.ForegroundColor = HighlightColor;
+            Console.WriteLine("Stress test cancelled by user.");
+            Console.ResetColor();
+        }
+        catch (Exception ex)
+        {
+            Console.ForegroundColor = ErrorColor;
+            Console.WriteLine($"An error occurred: {ex}");
+            Console.ResetColor();
+        }
         finally
         {
-            client?.Dispose();
-            await Task.Delay(250);
+            stopwatchTotal.Stop();
+            Console.CancelKeyPress -= OnCancelKeyPressed;
         }
+
+        // Results
+        var total = success + failed;
+        var duration = stopwatchTotal.Elapsed;
+        var throughput = total > 0 ? total / Math.Max(0.001, duration.TotalSeconds) : 0.0;
+        var latencies = stats.ToArray();
+        Array.Sort(latencies);
+
+        var avg = latencies.Length > 0
+            ? TicksToMs((long)latencies.Average(x => (double)x))
+            : 0;
+
+        // The pN percentile is the value below which N % of all measured values lie.
+        var p50 = GetMillisecondsForPercentile(latencies, 50); // p50 ~ Median: 50 % of requests are faster than this value
+        var p95 = GetMillisecondsForPercentile(latencies, 95); // p95: 95 % are faster; the slowest 5% (tail) are above
+        var p99 = GetMillisecondsForPercentile(latencies, 99); // p99: 99 % are faster ("tail latency")
+
+        Console.ForegroundColor = HighlightColor;
+        Console.WriteLine("Stress test summary");
+        Console.ResetColor();
+        Console.WriteLine($"Total:      {total} (success: {success}, failed: {failed})");
+        Console.WriteLine($"Duration:   {duration}");
+        Console.WriteLine($"Throughput: {throughput:F1} requests/s");
+        Console.WriteLine($"Latency:    avg={avg:F2} ms | p50={p50:F2} ms | p95={p95:F2} ms | p99={p99:F2} ms");
+
+
+        void OnCancelKeyPressed(object? sender, ConsoleCancelEventArgs args)
+        {
+            args.Cancel = true;
+            cts.Cancel();
+        }
+
+        double GetMillisecondsForPercentile(long[] latencies, int percentile)
+        {
+            if (latencies.Length == 0)
+                return 0;
+
+            var rank = Math.Ceiling(percentile / 100.0 * latencies.Length);
+            var index = (int)Math.Clamp(rank - 1, 0, latencies.Length - 1);
+
+            return TicksToMs(latencies[index]);
+        }
+
+        static double TicksToMs(long t) => t * 1000.0 / Stopwatch.Frequency;
+    }
+
+    private static async Task RunLoadAsync(
+        string name,
+        PipeClient client,
+        int count,
+        int parallelism,
+        ConcurrentBag<long> latencyTicks,
+        Action onSuccess,
+        Action onFail,
+        CancellationToken cancellationToken)
+    {
+        using var semaphore = new SemaphoreSlim(parallelism, parallelism);
+        var tasks = new Task[count];
+
+        for (var i = 0; i < count; i++)
+        {
+            await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+            var ix = i; // Needed because of the lambda to prevent closure issues
+
+            tasks[ix] = Task.Run(async () =>
+            {
+                try
+                {
+                    using var perRequestCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    perRequestCts.CancelAfter(TimeSpan.FromSeconds(5));
+
+                    var stopwatch = Stopwatch.StartNew();
+
+                    var response = await client
+                        .SendRequestAsync(Topics.Echo, $"stress-{name}-{ix}", cancellationToken: perRequestCts.Token)
+                        .ConfigureAwait(false);
+
+                    stopwatch.Stop();
+
+                    if (response.Type == MessageType.Response)
+                    {
+                        latencyTicks.Add(stopwatch.ElapsedTicks);
+                        onSuccess();
+                    }
+                    else
+                    {
+                        onFail();
+                    }
+                }
+                catch
+                {
+                    onFail();
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            },
+            cancellationToken);
+        }
+
+        await Task.WhenAll(tasks).ConfigureAwait(false);
+    }
+
+    private static int AskForInt(string prompt, int fallback)
+    {
+        Console.ForegroundColor = HighlightColor;
+        Console.Write(prompt);
+        Console.ResetColor();
+
+        var input = Console.ReadLine();
+        return int.TryParse(input, out var value) && value > 0 ? value : fallback;
     }
 }

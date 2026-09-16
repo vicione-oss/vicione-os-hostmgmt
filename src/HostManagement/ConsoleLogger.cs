@@ -98,3 +98,32 @@ internal sealed class ConsoleLogger(LogLevel minimumLevel, bool useShortLogLevel
         }
     }
 }
+
+internal sealed class LoggerAdapter<T>(ILogger inner) : ILogger<T>
+{
+    private readonly ILogger _inner = inner;
+
+    public IDisposable? BeginScope<TState>(TState state) where TState : notnull
+        => _inner.BeginScope(state);
+
+    public bool IsEnabled(LogLevel logLevel) => _inner.IsEnabled(logLevel);
+
+    public void Log<TState>(
+        LogLevel logLevel,
+        EventId eventId,
+        TState state,
+        Exception? exception,
+        Func<TState, Exception?, string> formatter)
+    {
+        // Keep the log format as is for now. To change it in the future,
+        // capture the original formatter and modify it, e.g.:
+        // '(s, e) => $"[{typeof(T).Name}] {originalFormatter(s, e)}"'
+        _inner.Log(logLevel, eventId, state, exception, formatter);
+    }
+}
+
+internal static class LoggerExtensions
+{
+    public static ILogger<T> As<T>(this ILogger logger) => new LoggerAdapter<T>(logger);
+}
+

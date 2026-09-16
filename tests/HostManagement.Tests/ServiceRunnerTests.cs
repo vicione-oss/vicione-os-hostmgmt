@@ -1,7 +1,7 @@
 using System.IO.Abstractions;
 using System.Reflection;
 using AwesomeAssertions;
-using HostManagement.Communication.NamedPipes.RequestHandlers;
+using HostManagement.Communication.NamedPipe.RequestHandlers;
 using HostManagement.Services;
 using HostManagement.Shared.Capabilities;
 using HostManagement.Shared.Communication;
@@ -24,6 +24,10 @@ public sealed class ServiceRunnerTests
             // Arrange
             var expectedTopics = new[]
             {
+#if DEBUG
+                // Testing purposes
+                Topics.Echo,
+#endif
                 Topics.GetSupportedCapabilities,
                 Topics.InstallSignedDebianPackage,
                 Topics.RedeployScripts,

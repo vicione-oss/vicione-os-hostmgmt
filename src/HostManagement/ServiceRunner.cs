@@ -1,8 +1,7 @@
 using System.Diagnostics;
 using System.IO.Abstractions;
-using HostManagement.Communication.NamedPipes;
-using HostManagement.Communication.NamedPipes.Extensions;
-using HostManagement.Communication.NamedPipes.RequestHandlers;
+using HostManagement.Communication.NamedPipe.RequestHandlers;
+using HostManagement.Communication.NamedPipe.Server;
 using HostManagement.Configuration;
 using HostManagement.Scripts;
 using HostManagement.Services;
@@ -121,25 +120,10 @@ internal static partial class ServiceRunner
         InitializationContext initializationContext,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                var registry = GetRequestHandlerRegistry(initializationContext);
+        await using var pipeServer = new PipeServer("HostPipe", s_logger, GetRequestHandlerRegistry(initializationContext));
 
-                using var pipeServer = new PipeServer("HostPipe", s_logger, registry);
-#if DEBUG
-                // Testing purposes
-                registry.RegisterHandler(new EchoRequestHandler(pipeServer, s_logger));
-#endif
-                await pipeServer.SetExecutePermission().ConfigureAwait(false);
-                await pipeServer.SetOwnership().ConfigureAwait(false);
-                await pipeServer.WaitForConnection(cancellationToken).ConfigureAwait(false);
-                await pipeServer.WaitForRemotePipeClose(cancellationToken).ConfigureAwait(false);
-            }
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        { }
+        await pipeServer.StartAsync().ConfigureAwait(false);
+        await pipeServer.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task CreateSetConfigFlag()
@@ -262,6 +246,10 @@ internal static partial class ServiceRunner
     {
         List<IRequestHandler> handlers =
         [
+#if DEBUG
+            // Testing purposes
+            new EchoRequestHandler(s_logger),
+#endif
             new GetSupportedCapabilitiesRequestHandler(initializationContext.CapabilitiesService),
             new InstallSignedDebianPackageRequestHandler(s_logger),
             new RedeployScriptsRequestHandler(),
