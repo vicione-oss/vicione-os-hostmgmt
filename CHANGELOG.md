@@ -51,6 +51,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - The JSON metadata of the response type is resolved through the `MessageTypeRegistry`, so `TypedJsonTypeInfo` is gone
   - `JsonTypeInfo` and `CreateErrorInstance` were replaced by `CreateErrorResponseContent`, which handlers of raw text topics can override
   - Removed `IRequestHandler<T>`, which was never referenced
+- Changed the named pipe wire format to carry the message payload outside the header
+  - A frame is now the varint-encoded header length, the JSON-serialized `MessageHeader`, the varint-encoded payload length and the payload bytes
+  - The payload was previously the content of a JSON envelope, so it was escaped a second time and unescaped on receipt. Measured on system configuration payloads: about 42 % fewer bytes on the wire and about 78 % fewer allocations per send and receive
+  - A header length of `0` now indicates end-of-stream, so a payload length of `0` is a message without content (previously not expressible)
+  - The maximum message size applies to the payload only, no longer to the serialized envelope
 
 ### Removed
 

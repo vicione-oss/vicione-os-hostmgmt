@@ -10,6 +10,7 @@ namespace HostManagement.Shared.Communication.Contracts;
     RespectNullableAnnotations = true,
     UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
     UseStringEnumConverter = true)]
+[JsonSerializable(typeof(MessageHeader))]
 [JsonSerializable(typeof(NamedPipeMessage))]
 [JsonSerializable(typeof(Response))]
 [JsonSerializable(typeof(GetSupportedCapabilitiesResult))]
