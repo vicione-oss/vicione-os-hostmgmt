@@ -76,12 +76,7 @@
             "matchJsonata": [ "sharedVariableName = 'DotNetVersion'" ],
             "enabled": true,
             "groupName": ".NET",
-            "groupSlug": "net",
-            "group": {
-                "branchTopic": "update-{{{replace '\\.' '-' (replace '^(major|minor|patch)-[0-9.]*-?' '' groupSlug)}}}-to-{{{newMajor}}}-{{{newMinor}}}-{{{newPatch}}}",
-                "commitMessageTopic": "{{{groupName}}}",
-                "commitMessageExtra": "to {{{newVersion}}}"
-            }
+            "groupSlug": "net"
         },
         {
             "description": "NuGet: test tooling",
@@ -139,14 +134,10 @@
             "description": "Mise: dotnet",
             "matchManagers": [ "mise" ],
             "matchDatasources": [ "dotnet-version" ],
+            "matchDepNames": [ "dotnet" ],
             "enabled": true,
-            "groupName": "mise dotnet",
-            "groupSlug": "mise-dotnet",
-            "group": {
-                "branchTopic": "update-{{{replace '\\.' '-' (replace '^(major|minor|patch)-[0-9.]*-?' '' groupSlug)}}}-to-{{{newMajor}}}-{{{newMinor}}}-{{{newPatch}}}",
-                "commitMessageTopic": "{{{groupName}}}",
-                "commitMessageExtra": "to {{{newVersion}}}"
-            }
+            "groupName": ".NET",
+            "groupSlug": "net"
         },
         {
             "description": "GitLab CI: opt out of everything, then opt back in below",
@@ -162,7 +153,11 @@
             "groupSlug": "ci-components",
             "group": {
                 "commitMessageTopic": "{{{groupName}}} ({{#each upgrades}}{{{replace '^vicione-oss/tooling/' '' depName}}}@{{{newVersion}}}{{#unless @last}}, {{/unless}}{{/each}})"
-            },
+            }
+        },
+        {
+            "description": "Shared settings for .NET and CI component updates",
+            "matchJsonata": [ "groupName = '.NET'", "groupName = 'CI components'" ],
             "separateMajorMinor": false,
             "separateMultipleMajor": false,
             "separateMultipleMinor": false,
