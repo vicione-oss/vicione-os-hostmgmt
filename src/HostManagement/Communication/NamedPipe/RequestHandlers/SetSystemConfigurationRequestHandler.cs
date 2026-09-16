@@ -1,6 +1,7 @@
 using HostManagement.Shared;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
+using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Serialization;
 using HostManagement.SystemConfig;
 
@@ -31,7 +32,7 @@ internal sealed class SetSystemConfigurationRequestHandler(SystemConfigurationSe
         Guid correlationId,
         CancellationToken cancellationToken)
     {
-        var configToApply = SystemConfigurationSerializer.Deserialize(messageContent);
+        var configToApply = MessageSerializer.Deserialize<SystemConfiguration>(messageContent);
 
         var result = await configurationService
             .SetConfiguration(configToApply, shouldPersistConfiguration: true, cancellationToken)

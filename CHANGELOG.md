@@ -55,6 +55,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Removed the `HostManagement.Shared.Communication.SourceGeneration` project (its generators moved to `HostManagement.Shared.SourceGeneration`)
+- Shared Communication: Removed `SourceGeneratedTypeSerializer` (replaced by `MessageSerializer`, which resolves the JSON metadata itself)
+- Shared: Removed `SystemConfigurationSerializer` (replaced by `MessageSerializer`; its stream overloads had no callers)
 
 ### Fixed
 

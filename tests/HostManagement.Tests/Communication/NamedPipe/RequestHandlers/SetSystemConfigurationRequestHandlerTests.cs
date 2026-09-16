@@ -2,15 +2,14 @@ using System.Text.Json;
 using AwesomeAssertions;
 using HostManagement.Communication.NamedPipe.RequestHandlers;
 using HostManagement.Shared;
+using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
-using HostManagement.Shared.Communication.Serialization;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Serialization;
 using HostManagement.SystemConfig;
 using HostManagement.Tests.SystemConfig;
 using NSubstitute;
 using Xunit;
-using CommunicationJsonContext = HostManagement.Shared.Communication.Contracts.SourceGenerationContext;
 using InternalSystemConfiguration = HostManagement.SystemConfig.Contracts.SystemConfiguration;
 
 namespace HostManagement.Tests.Communication.NamedPipe.RequestHandlers;
@@ -47,7 +46,7 @@ public sealed class SetSystemConfigurationRequestHandlerTests : IDisposable
 
         var sut = new SetSystemConfigurationRequestHandler(context.Sut);
         var proposedConfiguration = CreateConfiguration();
-        var request = SystemConfigurationSerializer.Serialize(proposedConfiguration);
+        var request = MessageSerializer.Serialize(proposedConfiguration);
         var correlationId = Guid.NewGuid();
 
         PublishEventRequestedEventArgs? publishedEvent = null;
@@ -59,9 +58,7 @@ public sealed class SetSystemConfigurationRequestHandlerTests : IDisposable
         var response = await sut.HandleAsync(request, correlationId, cts.Token);
 
         // Assert
-        var result = SourceGeneratedTypeSerializer.Deserialize(
-            response,
-            CommunicationJsonContext.Default.SetSystemConfigurationResult);
+        var result = MessageSerializer.Deserialize<SetSystemConfigurationResult>(response);
 
         result.Status.Should().Be(OperationStatus.Success);
 
@@ -76,9 +73,7 @@ public sealed class SetSystemConfigurationRequestHandlerTests : IDisposable
         eventArgs.CorrelationId.Should().Be(correlationId);
         eventArgs.ExcludeRequestingClient.Should().BeTrue();
 
-        var eventResult = SourceGeneratedTypeSerializer.Deserialize(
-            eventArgs.Content,
-            CommunicationJsonContext.Default.GetSystemConfigurationResult);
+        var eventResult = MessageSerializer.Deserialize<GetSystemConfigurationResult>(eventArgs.Content);
 
         eventResult.Status.Should().Be(OperationStatus.Success);
         eventResult.Message.Should().Be("System configuration changed");
@@ -101,7 +96,7 @@ public sealed class SetSystemConfigurationRequestHandlerTests : IDisposable
             .ReturnsForAnyArgs((warningResult, []));
 
         var sut = new SetSystemConfigurationRequestHandler(context.Sut);
-        var request = SystemConfigurationSerializer.Serialize(CreateConfiguration());
+        var request = MessageSerializer.Serialize(CreateConfiguration());
 
         PublishEventRequestedEventArgs? publishedEvent = null;
         sut.PublishEventRequested += (_, args) => publishedEvent = args;
@@ -110,9 +105,7 @@ public sealed class SetSystemConfigurationRequestHandlerTests : IDisposable
         var response = await sut.HandleAsync(request, Guid.NewGuid(), CancellationToken.None);
 
         // Assert
-        var result = SourceGeneratedTypeSerializer.Deserialize(
-            response,
-            CommunicationJsonContext.Default.SetSystemConfigurationResult);
+        var result = MessageSerializer.Deserialize<SetSystemConfigurationResult>(response);
 
         result.Status.Should().Be(OperationStatus.Warning);
         publishedEvent.Should().NotBeNull();
@@ -129,7 +122,7 @@ public sealed class SetSystemConfigurationRequestHandlerTests : IDisposable
         var proposedConfiguration = CreateConfiguration();
         proposedConfiguration.NetworkInterfaces.Clear();
 
-        var request = SystemConfigurationSerializer.Serialize(proposedConfiguration);
+        var request = MessageSerializer.Serialize(proposedConfiguration);
 
         PublishEventRequestedEventArgs? publishedEvent = null;
         sut.PublishEventRequested += (_, args) => publishedEvent = args;
@@ -138,9 +131,7 @@ public sealed class SetSystemConfigurationRequestHandlerTests : IDisposable
         var response = await sut.HandleAsync(request, Guid.NewGuid(), CancellationToken.None);
 
         // Assert
-        var result = SourceGeneratedTypeSerializer.Deserialize(
-            response,
-            CommunicationJsonContext.Default.SetSystemConfigurationResult);
+        var result = MessageSerializer.Deserialize<SetSystemConfigurationResult>(response);
 
         result.Status.Should().Be(OperationStatus.Error);
         publishedEvent.Should().BeNull();

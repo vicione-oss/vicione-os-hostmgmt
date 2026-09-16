@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Text;
 using System.Text.Json;
 using AwesomeAssertions;
 using HostManagement.Shared.Contracts;
@@ -9,9 +8,9 @@ using HostManagement.Shared.Enums;
 using HostManagement.Shared.Serialization;
 using Xunit;
 
-namespace HostManagement.Shared.Tests.Serialization;
+namespace HostManagement.Shared.Tests.Contracts;
 
-public class SystemConfigurationSerializerTests
+public class SystemConfigurationSerializationTests
 {
     private static readonly IPAddress s_ipAddress = IPAddress.Parse("120.86.52.18");
     private static readonly SystemConfiguration s_sampleSystemConfiguration = new()
@@ -303,58 +302,22 @@ public class SystemConfigurationSerializerTests
             var literalNullJson = "null";
 
             // Act
-            var result = () => SystemConfigurationSerializer.Deserialize(literalNullJson);
+            var result = () => MessageSerializer.Deserialize<SystemConfiguration>(literalNullJson);
 
             // Assert
             result.Should()
-                .Throw<InvalidOperationException>()
+                .Throw<JsonException>()
                 .WithMessage(
-                    "JSON string could not be deserialized to 'SystemConfiguration'." +
+                    "Message content could not be deserialized to 'SystemConfiguration'." +
                     Environment.NewLine +
-                    $"JSON string was: '{literalNullJson}'");
+                    $"Message content was: '{literalNullJson}'");
         }
 
         [Fact]
         public void ShouldReturnSystemConfiguration_WhenJsonValid()
         {
             // Act
-            var result = SystemConfigurationSerializer.Deserialize(s_sampleNonIndentedSystemConfigurationJson);
-
-            // Assert
-            result.Should().BeOfType<SystemConfiguration>();
-        }
-    }
-
-    public class DeserializeAsync
-    {
-        [Fact]
-        public void ShouldThrow_WhenJsonContainsLiteralNull()
-        {
-            // Arrange
-            var literalNullJson = "null";
-
-            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(literalNullJson));
-            stream.Position = 0;
-
-            // Act
-            var result = async () => await SystemConfigurationSerializer.DeserializeAsync(stream);
-
-            // Assert
-            result.Should()
-                .ThrowAsync<InvalidOperationException>()
-                .WithMessage("UTF-8 JSON stream could not be deserialized to 'SystemConfiguration'.");
-        }
-
-        [Fact]
-        public async Task ShouldReturnSystemConfiguration_WhenJsonValid()
-        {
-            // Arrange
-            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(s_sampleNonIndentedSystemConfigurationJson));
-            stream.Position = 0;
-
-            // Act
-            var result = await SystemConfigurationSerializer
-                .DeserializeAsync(stream, cancellationToken: CancellationToken.None);
+            var result = MessageSerializer.Deserialize<SystemConfiguration>(s_sampleNonIndentedSystemConfigurationJson);
 
             // Assert
             result.Should().BeOfType<SystemConfiguration>();
@@ -367,26 +330,7 @@ public class SystemConfigurationSerializerTests
         public void ShouldSerializeSystemConfiguration_WhenCalled()
         {
             // Act
-            var result = SystemConfigurationSerializer.Serialize(s_sampleSystemConfiguration);
-
-            // Assert
-            result.Should().Be(s_sampleNonIndentedSystemConfigurationJson);
-        }
-    }
-
-    public class SerializeAsync
-    {
-        [Fact]
-        public async Task ShouldSerializeSystemConfiguration_WhenCalled()
-        {
-            // Arrange
-            using var stream = new MemoryStream();
-
-            // Act
-            await SystemConfigurationSerializer
-                .SerializeAsync(stream, s_sampleSystemConfiguration, cancellationToken: CancellationToken.None);
-
-            var result = Encoding.UTF8.GetString(stream.ToArray());
+            var result = MessageSerializer.Serialize(s_sampleSystemConfiguration);
 
             // Assert
             result.Should().Be(s_sampleNonIndentedSystemConfigurationJson);

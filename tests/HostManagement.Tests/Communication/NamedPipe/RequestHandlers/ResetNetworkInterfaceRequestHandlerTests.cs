@@ -5,7 +5,7 @@ using HostManagement.Communication.NamedPipe.RequestHandlers;
 using HostManagement.Shared;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
-using HostManagement.Shared.Communication.Serialization;
+using HostManagement.Shared.Serialization;
 using HostManagement.SystemConfig;
 using HostManagement.SystemConfig.Contracts;
 using HostManagement.Tests.SystemConfig;
@@ -55,9 +55,7 @@ public sealed class ResetNetworkInterfaceRequestHandlerTests : IDisposable
         var response = await sut.HandleAsync(Lan1, Guid.NewGuid(), CancellationToken.None);
 
         // Assert
-        var result = SourceGeneratedTypeSerializer.Deserialize(
-            response,
-            SourceGenerationContext.Default.SystemControlResult);
+        var result = MessageSerializer.Deserialize<SystemControlResult>(response);
 
         result.Status.Should().Be(OperationStatus.Error);
         publishedEvent.Should().BeNull();
@@ -84,9 +82,7 @@ public sealed class ResetNetworkInterfaceRequestHandlerTests : IDisposable
         var response = await sut.HandleAsync(Lan1, correlationId, CancellationToken.None);
 
         // Assert
-        var result = SourceGeneratedTypeSerializer.Deserialize(
-            response,
-            SourceGenerationContext.Default.SystemControlResult);
+        var result = MessageSerializer.Deserialize<SystemControlResult>(response);
 
         result.Status.Should().Be(OperationStatus.Success);
 
@@ -97,9 +93,7 @@ public sealed class ResetNetworkInterfaceRequestHandlerTests : IDisposable
         eventArgs.CorrelationId.Should().Be(correlationId);
         eventArgs.ExcludeRequestingClient.Should().BeTrue();
 
-        var configurationResult = SourceGeneratedTypeSerializer.Deserialize(
-            eventArgs.Content,
-            SourceGenerationContext.Default.GetSystemConfigurationResult);
+        var configurationResult = MessageSerializer.Deserialize<GetSystemConfigurationResult>(eventArgs.Content);
 
         configurationResult.Status.Should().Be(OperationStatus.Success);
         configurationResult.Configuration.Should().NotBeNull();
@@ -139,9 +133,7 @@ public sealed class ResetNetworkInterfaceRequestHandlerTests : IDisposable
         var response = await sut.HandleAsync(Lan1, Guid.NewGuid(), CancellationToken.None);
 
         // Assert
-        var result = SourceGeneratedTypeSerializer.Deserialize(
-            response,
-            SourceGenerationContext.Default.SystemControlResult);
+        var result = MessageSerializer.Deserialize<SystemControlResult>(response);
 
         result.Status.Should().Be(OperationStatus.Success);
 
