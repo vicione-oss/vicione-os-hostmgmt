@@ -3,7 +3,7 @@ using HostManagement.Shared.Capabilities;
 using HostManagement.Shared.Communication.Capabilities;
 using Xunit;
 
-namespace HostManagement.Shared.Communication.Tests.Capabilities;
+namespace HostManagement.Shared.Tests.Capabilities;
 
 public sealed class SupportedCapabilitiesTests
 {

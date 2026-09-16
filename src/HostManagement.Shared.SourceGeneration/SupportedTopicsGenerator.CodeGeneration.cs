@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace HostManagement.Shared.Communication.SourceGeneration;
+namespace HostManagement.Shared.SourceGeneration;
 
 /// <inheritdoc/>
 public partial class SupportedTopicsGenerator

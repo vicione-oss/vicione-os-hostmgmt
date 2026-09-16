@@ -3,7 +3,7 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace HostManagement.Shared.Communication.SourceGeneration;
+namespace HostManagement.Shared.SourceGeneration;
 
 /// <inheritdoc/>
 public partial class SupportedTopicsGenerator

@@ -18,6 +18,11 @@ public static class PipeRequests
         Topics.SetSystemConfiguration,
         SourceGenerationContext.Default.SetSystemConfigurationResult);
 
+    /// <summary>Gets the set of supported capabilities.</summary>
+    public static PipeRequest<GetSupportedCapabilitiesResult> GetSupportedCapabilities { get; } = new(
+        Topics.GetSupportedCapabilities,
+        SourceGenerationContext.Default.GetSupportedCapabilitiesResult);
+
     /// <summary>Gets the original physical address.</summary>
     public static PipeRequest<GetOriginalPhysicalAddressResult> GetOriginalPhysicalAddress { get; } = new(
         Topics.GetOriginalPhysicalAddress,

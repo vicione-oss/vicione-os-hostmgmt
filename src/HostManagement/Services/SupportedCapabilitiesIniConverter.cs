@@ -225,7 +225,7 @@ internal static class SupportedCapabilitiesIniConverter
     {
         var supportedCapabilitiesJson = JsonSerializer.Serialize(
             new SupportedCapabilities(),
-            CapabilitySourceGenerationContext.Default.SupportedCapabilities);
+            SourceGenerationContext.Default.SupportedCapabilities);
 
         return JsonNode.Parse(supportedCapabilitiesJson)?.AsObject()
             ?? throw new InvalidOperationException("The default 'SupportedCapabilities' JSON must be an object.");

@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace HostManagement.Shared.Communication.SourceGeneration;
+namespace HostManagement.Shared.SourceGeneration;
 
 /// <summary>
 /// Represents a source generator to generate the "GetAllTopics" and "GetTopicsWithRequiredContent"

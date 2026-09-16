@@ -135,12 +135,6 @@
           "HostManagement.Shared": "[1.0.0, )"
         }
       },
-      "hostmanagement.shared.communication.capabilityserialization": {
-        "type": "Project",
-        "dependencies": {
-          "HostManagement.Shared.Communication": "[1.0.0, )"
-        }
-      },
       "Microsoft.Extensions.Logging": {
         "type": "CentralTransitive",
         "requested": "[10.0.13, )",
@@ -220,7 +214,6 @@
         "type": "Transitive",
         "resolved": "10.0.13",
         "contentHash": "cyR6nLIi+teN7+T6pYDeeoVRTzz4RQYimON6CxqvRVTylz0XVCWj/wcfa1IsI4yR/3zKkX6hfR4E2cEuAit49A=="
-      }
       }
     }
   }

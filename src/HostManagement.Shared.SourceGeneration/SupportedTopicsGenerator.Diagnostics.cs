@@ -1,6 +1,6 @@
 using Microsoft.CodeAnalysis;
 
-namespace HostManagement.Shared.Communication.SourceGeneration;
+namespace HostManagement.Shared.SourceGeneration;
 
 /// <inheritdoc/>
 public partial class SupportedTopicsGenerator

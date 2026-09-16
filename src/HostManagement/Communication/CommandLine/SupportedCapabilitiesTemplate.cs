@@ -22,7 +22,7 @@ internal class SupportedCapabilitiesTemplate
     {
         var supportedCapabilitiesJson = JsonSerializer.Serialize(
             new SupportedCapabilities(),
-            CapabilitySourceGenerationContext.Default.SupportedCapabilities);
+            SourceGenerationContext.Default.SupportedCapabilities);
 
         using var document = JsonDocument.Parse(supportedCapabilitiesJson);
 

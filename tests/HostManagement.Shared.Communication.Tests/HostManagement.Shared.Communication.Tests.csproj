@@ -20,7 +20,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\HostManagement.Shared.Communication.CapabilitySerialization\HostManagement.Shared.Communication.CapabilitySerialization.csproj" />
     <ProjectReference Include="..\..\src\HostManagement.Shared.Communication\HostManagement.Shared.Communication.csproj" />
   </ItemGroup>
 

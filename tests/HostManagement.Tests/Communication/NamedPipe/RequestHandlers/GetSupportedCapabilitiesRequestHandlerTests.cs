@@ -30,7 +30,7 @@ public sealed class GetSupportedCapabilitiesRequestHandlerTests
 
         // Assert
         sut.Topic.Should().Be(Topics.GetSupportedCapabilities);
-        sut.TypedJsonTypeInfo.Should().BeSameAs(CapabilitySourceGenerationContext.Default.GetSupportedCapabilitiesResult);
+        sut.TypedJsonTypeInfo.Should().BeSameAs(SourceGenerationContext.Default.GetSupportedCapabilitiesResult);
     }
 
     [Fact]

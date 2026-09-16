@@ -19,7 +19,7 @@ internal sealed class GetSupportedCapabilitiesRequestHandler(SupportedCapabiliti
     public override string Topic => Topics.GetSupportedCapabilities;
 
     public override JsonTypeInfo<GetSupportedCapabilitiesResult> TypedJsonTypeInfo
-        => CapabilitySourceGenerationContext.Default.GetSupportedCapabilitiesResult;
+        => SourceGenerationContext.Default.GetSupportedCapabilitiesResult;
 
     /// <summary>
     /// Handles the get supported capabilities request.

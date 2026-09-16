@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLI: Added `syslog` command group with commands `status`, `set`, `disable`, `enable` and `clear`
 - Added NTP sync status as topic (`GetNTPSyncStatus`) and in CLI (`ntp status` command)
 - **Breaking:** Added optional delay to service commands. Callers now need to send a serialized `ServiceControlRequest` in the message content.
+- Added the `restore-lock` mise task to regenerate the NuGet lock files without the host platform runtime identifier
 
 ### Changed
 
@@ -30,6 +31,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLI: Aligned `service` command description to other top-level commands
 - CLI: Swapped order of `system` and `deployment` command groups
 - Improved compatibility when reading `SupportedCapabilities.conf` (unknown settings or topics no longer throw an exception)
+- Shared: Moved `Topics`, `EventTopics`, `RequiresContentAttribute` and `SupportedTopicAttribute` to the `HostManagement.Shared` project, so the capability schema is generated upstream of the JSON serializer context
+
+### Removed
+
+- Removed the `HostManagement.Shared.Communication.SourceGeneration` project (its generators moved to `HostManagement.Shared.SourceGeneration`)
 
 ### Fixed
 

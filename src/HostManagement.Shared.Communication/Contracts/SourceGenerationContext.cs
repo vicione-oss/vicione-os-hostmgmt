@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace HostManagement.Shared.Communication.Contracts;
@@ -11,6 +12,7 @@ namespace HostManagement.Shared.Communication.Contracts;
     UseStringEnumConverter = true)]
 [JsonSerializable(typeof(NamedPipeMessage))]
 [JsonSerializable(typeof(Response))]
+[JsonSerializable(typeof(GetSupportedCapabilitiesResult))]
 [JsonSerializable(typeof(GetSystemConfigurationResult))]
 [JsonSerializable(typeof(SetSystemConfigurationResult))]
 [JsonSerializable(typeof(GetOriginalPhysicalAddressResult))]
@@ -22,4 +24,10 @@ namespace HostManagement.Shared.Communication.Contracts;
 [JsonSerializable(typeof(RedeployScriptsResult))]
 [JsonSerializable(typeof(ServiceControlResult))]
 [JsonSerializable(typeof(SystemControlResult))]
+// A JSON serializer context aggregates every message contract by design, so its class coupling is exactly the
+// number of serializable contracts. The metric carries no signal for this type.
+[SuppressMessage(
+    "Maintainability",
+    "CA1506:Avoid excessive class coupling",
+    Justification = "A JSON serializer context aggregates all message contracts by design.")]
 public partial class SourceGenerationContext : JsonSerializerContext;

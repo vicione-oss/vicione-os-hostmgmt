@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace HostManagement.Shared.Communication.SourceGeneration;
+namespace HostManagement.Shared.SourceGeneration;
 
 /// <summary>
 /// Represents a source generator that builds a topics model from fields annotated with
