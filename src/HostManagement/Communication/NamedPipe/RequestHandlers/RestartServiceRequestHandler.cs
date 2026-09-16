@@ -1,9 +1,8 @@
-using System.Text.Json.Serialization.Metadata;
 using HostManagement.Configuration;
 using HostManagement.Services;
 using HostManagement.Shared;
 using HostManagement.Shared.Communication.Contracts;
-using HostManagement.Shared.Communication.Serialization;
+using HostManagement.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipe.RequestHandlers;
@@ -18,9 +17,6 @@ internal sealed class RestartServiceRequestHandler(ILogger logger) : RequestHand
     /// The topic of the <see cref="RestartServiceRequestHandler"/>.
     /// </summary>
     public override string Topic => Topics.RestartService;
-
-    public override JsonTypeInfo<ServiceControlResult> TypedJsonTypeInfo
-        => SourceGenerationContext.Default.ServiceControlResult;
 
     /// <summary>
     /// Handles the restart service request.
@@ -37,6 +33,6 @@ internal sealed class RestartServiceRequestHandler(ILogger logger) : RequestHand
 
         var result = await service.RestartSystemdUnit(messageContent).ConfigureAwait(false);
 
-        return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
+        return MessageSerializer.Serialize(result);
     }
 }

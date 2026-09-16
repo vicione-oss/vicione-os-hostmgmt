@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipes;
-using System.Text.Json.Serialization.Metadata;
 using System.Threading.Channels;
 using AwesomeAssertions;
 using HostManagement.Communication.NamedPipe.RequestHandlers;
@@ -967,9 +966,7 @@ public class PipeServerTests
             // Must be a valid topic, so the handler is supported, otherwise 'CreateErrorInstance' will throw here
             public string Topic => RequestTopic;
 
-            public JsonTypeInfo JsonTypeInfo => throw new NotImplementedException();
-
-            public OperationResult CreateErrorInstance(string message) => throw new NotImplementedException();
+            public string CreateErrorResponseContent(string message) => message;
 
             public Task<string> HandleAsync(
                 string messageContent,
@@ -1366,9 +1363,7 @@ public class PipeServerTests
     {
         public string Topic => RequestTopic;
 
-        public JsonTypeInfo JsonTypeInfo => throw new NotImplementedException();
-
-        public OperationResult CreateErrorInstance(string message) => throw new NotImplementedException();
+        public string CreateErrorResponseContent(string message) => message;
 
         public Task<string> HandleAsync(
             string messageContent,
@@ -1383,8 +1378,6 @@ public class PipeServerTests
         public event EventHandler<PublishEventRequestedEventArgs>? PublishEventRequested;
 
         public string Topic => RequestTopic;
-
-        public JsonTypeInfo JsonTypeInfo => throw new NotImplementedException();
 
         public Task<string> HandleAsync(
             string messageContent,
@@ -1402,7 +1395,7 @@ public class PipeServerTests
             return Task.FromResult(CreateEchoResponseContent(messageContent));
         }
 
-        public OperationResult CreateErrorInstance(string message) => throw new NotImplementedException();
+        public string CreateErrorResponseContent(string message) => message;
     }
 
     private sealed class QueueProcessingScope : IAsyncDisposable

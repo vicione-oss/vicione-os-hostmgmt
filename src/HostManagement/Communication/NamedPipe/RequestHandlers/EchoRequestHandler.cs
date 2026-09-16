@@ -1,6 +1,4 @@
-using System.Text.Json.Serialization.Metadata;
 using HostManagement.Shared;
-using HostManagement.Shared.Communication.Contracts;
 using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipe.RequestHandlers;
@@ -19,8 +17,6 @@ internal sealed partial class EchoRequestHandler(ILogger logger) : IRequestHandl
     /// The topic of the <see cref="EchoRequestHandler"/>.
     /// </summary>
     public string Topic => Topics.Echo;
-
-    public JsonTypeInfo JsonTypeInfo => throw new NotImplementedException();
 
     /// <summary>
     /// Handles the echo request.
@@ -75,7 +71,12 @@ internal sealed partial class EchoRequestHandler(ILogger logger) : IRequestHandl
         }
     }
 
-    public OperationResult CreateErrorInstance(string message) => throw new NotImplementedException();
+    /// <summary>
+    /// Creates the raw error response content.
+    /// </summary>
+    /// <remarks>The echo topic exchanges raw text, so the error message is returned unchanged.</remarks>
+    /// <inheritdoc/>
+    public string CreateErrorResponseContent(string message) => message;
 
     [LoggerMessage(LogLevel.Debug, "Fire event messages cancelled.")]
     private static partial void FireEventMessagesCancelled(ILogger logger);

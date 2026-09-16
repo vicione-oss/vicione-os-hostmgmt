@@ -26,7 +26,7 @@ public sealed class SetSystemConfigurationRequestHandlerTests : IDisposable
     public void Dispose() => SystemConfigurationCache.Instance.ResetForTests();
 
     [Fact]
-    public void ShouldExposeExpectedTopicAndJsonTypeInfo()
+    public void ShouldExposeExpectedTopic()
     {
         // Arrange
         var context = GetSystemConfigurationServiceContext();
@@ -34,7 +34,6 @@ public sealed class SetSystemConfigurationRequestHandlerTests : IDisposable
 
         // Assert
         sut.Topic.Should().Be(Topics.SetSystemConfiguration);
-        sut.TypedJsonTypeInfo.Should().BeSameAs(CommunicationJsonContext.Default.SetSystemConfigurationResult);
     }
 
     [Fact]

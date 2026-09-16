@@ -1,9 +1,8 @@
-using System.Text.Json.Serialization.Metadata;
 using HostManagement.Configuration;
 using HostManagement.Services;
 using HostManagement.Shared;
 using HostManagement.Shared.Communication.Contracts;
-using HostManagement.Shared.Communication.Serialization;
+using HostManagement.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipe.RequestHandlers;
@@ -17,9 +16,6 @@ internal sealed class GetServiceStateRequestHandler(ILogger logger) : RequestHan
     /// The topic of the <see cref="GetServiceStateRequestHandler"/>.
     /// </summary>
     public override string Topic => Topics.GetServiceState;
-
-    public override JsonTypeInfo<GetServiceStateResult> TypedJsonTypeInfo
-        => SourceGenerationContext.Default.GetServiceStateResult;
 
     /// <summary>
     /// Handles the get service state request.
@@ -36,6 +32,6 @@ internal sealed class GetServiceStateRequestHandler(ILogger logger) : RequestHan
 
         var result = await service.GetSystemdUnitActiveState(messageContent, cancellationToken).ConfigureAwait(false);
 
-        return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
+        return MessageSerializer.Serialize(result);
     }
 }

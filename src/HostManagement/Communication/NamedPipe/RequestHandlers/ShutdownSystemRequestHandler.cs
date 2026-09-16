@@ -1,8 +1,7 @@
-using System.Text.Json.Serialization.Metadata;
 using HostManagement.Services;
 using HostManagement.Shared;
 using HostManagement.Shared.Communication.Contracts;
-using HostManagement.Shared.Communication.Serialization;
+using HostManagement.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipe.RequestHandlers;
@@ -17,9 +16,6 @@ internal sealed class ShutdownSystemRequestHandler(ILogger logger) : RequestHand
     /// The topic of the <see cref="ShutdownSystemRequestHandler"/>.
     /// </summary>
     public override string Topic => Topics.ShutdownSystem;
-
-    public override JsonTypeInfo<SystemControlResult> TypedJsonTypeInfo
-        => SourceGenerationContext.Default.SystemControlResult;
 
     /// <summary>
     /// Handles the shutdown system request.
@@ -37,6 +33,6 @@ internal sealed class ShutdownSystemRequestHandler(ILogger logger) : RequestHand
 
         var result = await service.ShutdownSystem(messageContent).ConfigureAwait(false);
 
-        return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
+        return MessageSerializer.Serialize(result);
     }
 }

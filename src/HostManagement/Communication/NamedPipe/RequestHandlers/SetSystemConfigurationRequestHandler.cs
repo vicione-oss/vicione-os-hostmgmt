@@ -1,8 +1,6 @@
-using System.Text.Json.Serialization.Metadata;
 using HostManagement.Shared;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
-using HostManagement.Shared.Communication.Serialization;
 using HostManagement.Shared.Serialization;
 using HostManagement.SystemConfig;
 
@@ -23,9 +21,6 @@ internal sealed class SetSystemConfigurationRequestHandler(SystemConfigurationSe
     /// </summary>
     public override string Topic => Topics.SetSystemConfiguration;
 
-    public override JsonTypeInfo<SetSystemConfigurationResult> TypedJsonTypeInfo
-        => Shared.Communication.Contracts.SourceGenerationContext.Default.SetSystemConfigurationResult;
-
     /// <summary>
     /// Handles the set system configuration request.
     /// </summary>
@@ -42,13 +37,12 @@ internal sealed class SetSystemConfigurationRequestHandler(SystemConfigurationSe
             .SetConfiguration(configToApply, shouldPersistConfiguration: true, cancellationToken)
             .ConfigureAwait(false);
 
-        var serializedResult = SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
+        var serializedResult = MessageSerializer.Serialize(result);
 
         if (result.Status != OperationStatus.Error)
         {
-            var serializedGetResult = SourceGeneratedTypeSerializer.Serialize(
-                GetSystemConfigurationResult.CreateSuccessResult("System configuration changed", configToApply),
-                SourceGenerationContext.Default.GetSystemConfigurationResult);
+            var serializedGetResult = MessageSerializer.Serialize(
+                GetSystemConfigurationResult.CreateSuccessResult("System configuration changed", configToApply));
 
             PublishEventRequested?.Invoke(
                 this,

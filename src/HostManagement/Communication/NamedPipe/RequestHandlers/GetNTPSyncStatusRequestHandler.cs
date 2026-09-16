@@ -1,8 +1,7 @@
-using System.Text.Json.Serialization.Metadata;
 using HostManagement.Services;
 using HostManagement.Shared;
 using HostManagement.Shared.Communication.Contracts;
-using HostManagement.Shared.Communication.Serialization;
+using HostManagement.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipe.RequestHandlers;
@@ -17,9 +16,6 @@ internal sealed class GetNTPSyncStatusRequestHandler(ILogger logger) : RequestHa
     /// </summary>
     public override string Topic => Topics.GetNTPSyncStatus;
 
-    public override JsonTypeInfo<GetNTPSyncStatusResult> TypedJsonTypeInfo
-        => SourceGenerationContext.Default.GetNTPSyncStatusResult;
-
     /// <summary>
     /// Handles the get NTP fallback information request.
     /// </summary>
@@ -33,6 +29,6 @@ internal sealed class GetNTPSyncStatusRequestHandler(ILogger logger) : RequestHa
         var service = new NTPService(logger, new ScriptHandler());
         var result = await service.GetNTPSyncStatus(cancellationToken).ConfigureAwait(false);
 
-        return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
+        return MessageSerializer.Serialize(result);
     }
 }

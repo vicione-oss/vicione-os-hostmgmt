@@ -1,8 +1,7 @@
-using System.Text.Json.Serialization.Metadata;
 using HostManagement.Shared;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
-using HostManagement.Shared.Communication.Serialization;
+using HostManagement.Shared.Serialization;
 using HostManagement.SystemConfig;
 
 namespace HostManagement.Communication.NamedPipe.RequestHandlers;
@@ -22,9 +21,6 @@ internal sealed class ResetNetworkInterfaceRequestHandler(SystemConfigurationSer
     /// </summary>
     public override string Topic => Topics.ResetNetworkInterface;
 
-    public override JsonTypeInfo<SystemControlResult> TypedJsonTypeInfo
-        => SourceGenerationContext.Default.SystemControlResult;
-
     /// <summary>
     /// Handles the reset network interface request.
     /// </summary>
@@ -39,7 +35,7 @@ internal sealed class ResetNetworkInterfaceRequestHandler(SystemConfigurationSer
             .ResetNetworkInterface(messageContent, cancellationToken)
             .ConfigureAwait(false);
 
-        var serializedResult = SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
+        var serializedResult = MessageSerializer.Serialize(result);
 
         if (result.Status != OperationStatus.Error)
         {
@@ -47,9 +43,7 @@ internal sealed class ResetNetworkInterfaceRequestHandler(SystemConfigurationSer
 
             if (getResult.Status != OperationStatus.Error)
             {
-                var serializedGetResult = SourceGeneratedTypeSerializer.Serialize(
-                    getResult,
-                    SourceGenerationContext.Default.GetSystemConfigurationResult);
+                var serializedGetResult = MessageSerializer.Serialize(getResult);
 
                 PublishEventRequested?.Invoke(
                     this,

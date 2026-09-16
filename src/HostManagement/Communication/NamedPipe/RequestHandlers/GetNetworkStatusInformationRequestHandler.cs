@@ -1,8 +1,7 @@
-using System.Text.Json.Serialization.Metadata;
 using HostManagement.Services;
 using HostManagement.Shared;
 using HostManagement.Shared.Communication.Contracts;
-using HostManagement.Shared.Communication.Serialization;
+using HostManagement.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipe.RequestHandlers;
@@ -19,9 +18,6 @@ internal sealed class GetNetworkStatusInformationRequestHandler(ILogger logger)
     /// </summary>
     public override string Topic => Topics.GetNetworkStatusInformation;
 
-    public override JsonTypeInfo<GetNetworkStatusInformationResult> TypedJsonTypeInfo
-        => SourceGenerationContext.Default.GetNetworkStatusInformationResult;
-
     /// <summary>
     /// Handles the get network status information request.
     /// </summary>
@@ -36,6 +32,6 @@ internal sealed class GetNetworkStatusInformationRequestHandler(ILogger logger)
         var service = new NetworkStatusService(logger, scriptHandler);
         var result = await service.GetNetworkStatusInformation(messageContent, cancellationToken).ConfigureAwait(false);
 
-        return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
+        return MessageSerializer.Serialize(result);
     }
 }

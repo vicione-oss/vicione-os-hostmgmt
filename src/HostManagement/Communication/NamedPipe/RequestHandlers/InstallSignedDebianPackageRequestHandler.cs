@@ -1,10 +1,9 @@
 using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
 using HostManagement.Configuration;
 using HostManagement.Services;
 using HostManagement.Shared;
 using HostManagement.Shared.Communication.Contracts;
-using HostManagement.Shared.Communication.Serialization;
+using HostManagement.Shared.Serialization;
 using HostManagement.Shared.Contracts.System;
 using Microsoft.Extensions.Logging;
 using SharedJsonContext = HostManagement.Shared.Contracts.SourceGenerationContext;
@@ -21,9 +20,6 @@ internal sealed class InstallSignedDebianPackageRequestHandler(ILogger logger) :
     /// The topic of the <see cref="InstallSignedDebianPackageRequestHandler"/>.
     /// </summary>
     public override string Topic => Topics.InstallSignedDebianPackage;
-
-    public override JsonTypeInfo<SystemControlResult> TypedJsonTypeInfo
-        => SourceGenerationContext.Default.SystemControlResult;
 
     /// <summary>
     /// Handles the install signed Debian package request.
@@ -53,6 +49,6 @@ internal sealed class InstallSignedDebianPackageRequestHandler(ILogger logger) :
                 cancellationToken)
             .ConfigureAwait(false);
 
-        return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
+        return MessageSerializer.Serialize(result);
     }
 }
