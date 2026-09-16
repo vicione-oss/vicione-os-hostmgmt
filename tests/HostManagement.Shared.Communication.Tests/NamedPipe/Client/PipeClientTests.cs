@@ -4,7 +4,7 @@ using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Communication.NamedPipe;
 using HostManagement.Shared.Communication.NamedPipe.Client;
-using HostManagement.Shared.Communication.Serialization;
+using HostManagement.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
@@ -551,8 +551,8 @@ public class PipeClientTests
             try
             {
                 // Act
-                var sendTask = client.SendRequestAsync(
-                    PipeRequests.GetSystemConfiguration,
+                var sendTask = client.SendRequestAsync<GetSystemConfigurationResult>(
+                    Topics.GetSystemConfiguration,
                     cancellationToken: CancellationToken.None);
 
                 var pendingResponse = await WaitForSingleExpectedResponseAsync(client, TimeSpan.FromSeconds(2));
@@ -564,11 +564,9 @@ public class PipeClientTests
                 var response = new NamedPipeMessage
                 {
                     ConversationId = conversationId,
-                    Topic = PipeRequests.GetSystemConfiguration.Topic,
+                    Topic = Topics.GetSystemConfiguration,
                     Type = MessageType.Response,
-                    Content = SourceGeneratedTypeSerializer.Serialize(
-                        expectedResult,
-                        PipeRequests.GetSystemConfiguration.ResponseTypeInfo)
+                    Content = MessageSerializer.Serialize(expectedResult)
                 };
 
                 expectedResponse.TaskCompletionSource.TrySetResult(response);
@@ -580,21 +578,6 @@ public class PipeClientTests
             {
                 processingTaskCompletionSource.TrySetResult();
             }
-        }
-
-        [Fact]
-        public async Task ShouldThrow_WhenTypedRequestIsNull()
-        {
-            // Arrange
-            var loggerSubstitute = GetLoggerSubstitute();
-            await using var client = new PipeClient(TestPipeName, loggerSubstitute, new CallbackHandlerRegistry());
-            PipeRequest<GetSystemConfigurationResult> request = null!;
-
-            // Act
-            var act = () => client.SendRequestAsync(request);
-
-            // Assert
-            await act.Should().ThrowAsync<ArgumentNullException>().WithParameterName("request");
         }
 
         private static async Task<(Guid, ExpectedResponse)?> WaitForSingleExpectedResponseAsync(

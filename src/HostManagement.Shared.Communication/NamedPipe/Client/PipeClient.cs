@@ -2,8 +2,6 @@ using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipes;
 using System.Net.Sockets;
-using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using Microsoft.Extensions.Logging;
@@ -151,24 +149,6 @@ public sealed partial class PipeClient(
     }
 
     /// <inheritdoc/>
-    public async Task<TResponse> SendRequestAsync<TResponse>(
-        PipeRequest<TResponse> request,
-        string content = "",
-        Guid? correlationId = null,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-
-        var response = await SendRequestAsync(
-            request.Topic,
-            content,
-            correlationId,
-            cancellationToken).ConfigureAwait(false);
-
-        return DeserializeResponse(response, request.ResponseTypeInfo);
-    }
-
-    /// <inheritdoc/>
     /// <remarks>
     /// This method does not throw on connection failures. Typical failure reasons that yield <see langword="false"/>:<br/>
     /// - The operation was canceled via <paramref name="cancellationToken"/>.<br/>
@@ -223,14 +203,6 @@ public sealed partial class PipeClient(
                 _connectLock.Release();
         }
     }
-
-    private static TResponse DeserializeResponse<TResponse>(
-        NamedPipeMessage response,
-        JsonTypeInfo<TResponse> typeInfo)
-        => JsonSerializer.Deserialize(response.Content, typeInfo)
-            ?? throw new JsonException(
-                $"Response for topic '{response.Topic}' (Conversation ID: {response.ConversationId}) " +
-                $"deserialized to null.");
 
     // Connection helpers
 

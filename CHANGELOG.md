@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `SetConfiguration` sends the `SystemConfiguration` instead of pre-serialized JSON
   - `ControlSystemdUnit` sends the `ServiceControlRequest` instead of pre-serialized JSON
 - Aligned every namespace with its folder, and removed the using directives that became unnecessary
+- Replaced the `PipeRequest`/`PipeEvent` descriptors with `TopicContracts` and `EventTopicContracts`, which resolve the JSON metadata from the contract type instead of carrying it per topic
 - `TopicsGenerator` reads the namespace of the `Topics` class it completes instead of hard-coding it, so moving the class can no longer turn the generated part into a separate class of the same name
 
 ### Removed
