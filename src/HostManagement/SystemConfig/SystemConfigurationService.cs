@@ -28,6 +28,8 @@ internal sealed partial class SystemConfigurationService(
     ILogger logger,
     SupportedSettings supportedSettings)
 {
+    private const int V1SystemConfigurationVersion = 1;
+
     private readonly IPersistence _persistence = persistence;
     private readonly IScriptHandler _scriptHandler = scriptHandler;
     private readonly ILogger _logger = logger;
@@ -70,40 +72,50 @@ internal sealed partial class SystemConfigurationService(
     /// See <see cref="ServiceRunner.PrepareConfiguration"/>.
     /// </remarks>
     /// <returns>
-    /// <see cref="OperationStatus"/> and the <see cref="SystemConfiguration"/> or <see langword="null"/>
+    /// <see cref="OperationStatus"/>, the <see cref="SystemConfiguration"/> or <see langword="null"/>, and the
+    /// persisted source contract version or <see langword="null"/>.
     /// <para>
     /// This method only returns <see cref="OperationStatus.Success"/> or <see cref="OperationStatus.Warning"/>,
     /// so service start does not fail.
     /// </para>
     /// </returns>
-    public async Task<(OperationStatus Status, SystemConfiguration? Configuration)> GetConfigurationOnDeviceStartup(
-        CancellationToken cancellationToken)
+    public async Task<(OperationStatus Status, SystemConfiguration? Configuration, int? SourceVersion)>
+        GetConfigurationOnDeviceStartup(CancellationToken cancellationToken)
     {
         var jsonConfigType = GetAvailableJsonConfigurationType();
 
         if (jsonConfigType == JsonConfigurationType.None)
         {
             GetSystemConfigurationFromJsonNotPossible(_logger);
-            return (OperationStatus.Warning, null);
+            return (OperationStatus.Warning, null, null);
         }
 
-        var (status, configuration) = await GetConfigurationFromJson(jsonConfigType, cancellationToken)
+        var (status, loadedConfiguration) = await GetConfigurationFromJson(jsonConfigType, cancellationToken)
             .ConfigureAwait(false);
 
-        return (status, configuration?.ToSharedContracts());
+        return (
+            status,
+            loadedConfiguration?.Configuration.ToSharedContracts(),
+            loadedConfiguration?.SourceVersion);
     }
 
     /// <summary>
     /// Sets a previously prepared system configuration to the system.
     /// </summary>
     /// <param name="jsonConfig">The JSON config used during prepare.</param>
+    /// <param name="sourceVersion">The contract version read from the persisted JSON before migration.</param>
     /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <returns><see cref="OperationStatus"/></returns>
     public async Task<OperationStatus> SetConfigurationOnDeviceStartup(
         SystemConfiguration jsonConfig,
+        int sourceVersion,
         CancellationToken cancellationToken)
     {
-        var setConfigResult = await SetConfiguration(jsonConfig, shouldPersistConfiguration: false, cancellationToken)
+        var setConfigResult = await SetConfiguration(
+            jsonConfig,
+            shouldPersistConfiguration: false,
+            sourceVersion: sourceVersion,
+            cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
         return setConfigResult.Status;
@@ -153,10 +165,21 @@ internal sealed partial class SystemConfigurationService(
     /// the <paramref name="proposedConfig"/>.</param>
     /// <param name="cancellationToken">A token to cancel the request.</param>
     /// <returns><see cref="SetSystemConfigurationResult"/></returns>
-    public async Task<SetSystemConfigurationResult> SetConfiguration(
+    public Task<SetSystemConfigurationResult> SetConfiguration(
         SystemConfiguration proposedConfig,
         bool shouldPersistConfiguration = true,
         CancellationToken cancellationToken = default)
+        => SetConfiguration(
+            proposedConfig,
+            shouldPersistConfiguration,
+            sourceVersion: null,
+            cancellationToken: cancellationToken);
+
+    private async Task<SetSystemConfigurationResult> SetConfiguration(
+        SystemConfiguration proposedConfig,
+        bool shouldPersistConfiguration,
+        int? sourceVersion,
+        CancellationToken cancellationToken)
     {
         var configResult = await GetConfiguration(cancellationToken).ConfigureAwait(false);
 
@@ -172,9 +195,12 @@ internal sealed partial class SystemConfigurationService(
             return SetSystemConfigurationResult.CreateErrorResult(message);
         }
 
-        var validationMessage =
-            await ValidateConfigurationChangeAsync(configResult.Configuration, proposedConfig, cancellationToken)
-                .ConfigureAwait(false);
+        var validationMessage = await ValidateConfigurationChangeAsync(
+            configResult.Configuration,
+            proposedConfig,
+            sourceVersion,
+            cancellationToken)
+            .ConfigureAwait(false);
 
         if (validationMessage is not null)
         {
@@ -201,25 +227,25 @@ internal sealed partial class SystemConfigurationService(
     private async Task<string?> ValidateConfigurationChangeAsync(
         SystemConfiguration currentConfig,
         SystemConfiguration proposedConfig,
+        int? sourceVersion,
         CancellationToken cancellationToken)
     {
-        var originalMACAddresses = new List<PhysicalAddress>();
+        var originalMACAddresses = new Dictionary<string, PhysicalAddress>(StringComparer.Ordinal);
 
         foreach (var proposedInterface in proposedConfig.NetworkInterfaces)
         {
-            var (scriptResult, originalAddress) = await _scriptHandler
-                .ExecuteGetOriginalPhysicalAddressScript(proposedInterface.CommonInformation.Name);
+            var interfaceName = proposedInterface.CommonInformation.Name;
+            var originalMACAddress = await GetOriginalPhysicalAddress(interfaceName).ConfigureAwait(false);
 
-            if (scriptResult.OperationStatus == OperationStatus.Success &&
-                PhysicalAddress.TryParse(originalAddress, out var physicalAddress) &&
-                physicalAddress.GetAddressBytes().Length == 6)
-            {
-                originalMACAddresses.Add(physicalAddress);
-            }
+            if (originalMACAddress is not null)
+                originalMACAddresses[interfaceName] = originalMACAddress;
         }
 
+        if (sourceVersion == V1SystemConfigurationVersion)
+            ReconcileV1MigratedMACAddresses(proposedConfig, originalMACAddresses);
+
         var validationResult = await new SystemConfigurationValidator()
-            .ValidateAsync(proposedConfig, originalMACAddresses, cancellationToken)
+            .ValidateAsync(proposedConfig, [.. originalMACAddresses.Values], cancellationToken)
             .ConfigureAwait(false);
 
         if (!validationResult.IsValid)
@@ -237,6 +263,50 @@ internal sealed partial class SystemConfigurationService(
             return supportedSettingsValidationResult.FormattedMessages;
 
         return null;
+    }
+
+    private static void ReconcileV1MigratedMACAddresses(
+        SystemConfiguration proposedConfig,
+        IReadOnlyDictionary<string, PhysicalAddress> originalMACAddresses)
+    {
+        foreach (var networkInterface in proposedConfig.NetworkInterfaces)
+        {
+            var commonInformation = networkInterface.CommonInformation;
+            var userDefinedMACAddress = commonInformation.UserDefinedMACAddress;
+
+            if (!originalMACAddresses.TryGetValue(commonInformation.Name, out var originalMACAddress) ||
+                !IsOriginalMACAddress(
+                    userDefinedMACAddress.Enabled,
+                    userDefinedMACAddress.Address,
+                    originalMACAddress))
+            {
+                continue;
+            }
+
+            userDefinedMACAddress.Enabled = false;
+            userDefinedMACAddress.Address = PhysicalAddress.None;
+        }
+    }
+
+    private static bool IsOriginalMACAddress(
+        bool enabled,
+        PhysicalAddress address,
+        PhysicalAddress originalMACAddress)
+        => enabled &&
+           !address.Equals(PhysicalAddress.None) &&
+           address.Equals(originalMACAddress);
+
+    private async Task<PhysicalAddress?> GetOriginalPhysicalAddress(string interfaceName)
+    {
+        var (scriptResult, originalAddress) = await _scriptHandler
+            .ExecuteGetOriginalPhysicalAddressScript(interfaceName)
+            .ConfigureAwait(false);
+
+        return scriptResult.OperationStatus == OperationStatus.Success &&
+               PhysicalAddress.TryParse(originalAddress, out var physicalAddress) &&
+               physicalAddress.GetAddressBytes().Length == 6
+            ? physicalAddress
+            : null;
     }
 
     /// <summary>
@@ -288,7 +358,7 @@ internal sealed partial class SystemConfigurationService(
                 .LoadPreparationConfiguration(cancellationToken)
                 .ConfigureAwait(false);
 
-            var defaultInterface = defaultConfig
+            var defaultInterface = defaultConfig.Configuration
                 .NetworkInterfaces?
                 .FirstOrDefault(@interface => string.Equals(
                     @interface.CommonInformation?.Name,
@@ -304,6 +374,22 @@ internal sealed partial class SystemConfigurationService(
                     AppPaths.DefaultSystemConfigurationFile);
 
                 return SystemControlResult.CreateErrorResult(message);
+            }
+
+            if (defaultConfig.SourceVersion == V1SystemConfigurationVersion &&
+                defaultInterface.CommonInformation?.UserDefinedMACAddress is { } migratedMACAddress)
+            {
+                var originalMACAddress = await GetOriginalPhysicalAddress(interfaceName).ConfigureAwait(false);
+
+                if (originalMACAddress is not null &&
+                    IsOriginalMACAddress(
+                        migratedMACAddress.Enabled,
+                        migratedMACAddress.Address,
+                        originalMACAddress))
+                {
+                    migratedMACAddress.Enabled = false;
+                    migratedMACAddress.Address = PhysicalAddress.None;
+                }
             }
 
             var currentInterface = currentConfigResult.Configuration.GetNetworkInterface(interfaceName);
@@ -413,11 +499,11 @@ internal sealed partial class SystemConfigurationService(
     {
         var jsonConfigPath = GetJsonConfigurationPath(jsonConfigType);
 
-        var (status, configFromJson) = await GetConfigurationFromJson(jsonConfigType, cancellationToken)
+        var (status, loadedConfiguration) = await GetConfigurationFromJson(jsonConfigType, cancellationToken)
             .ConfigureAwait(false);
 
         if (status == OperationStatus.Warning ||
-            configFromJson is null)
+            loadedConfiguration is null)
         {
             PrepareConfigurationFailed(_logger, jsonConfigPath);
             return OperationStatus.Warning;
@@ -425,6 +511,8 @@ internal sealed partial class SystemConfigurationService(
 
         try
         {
+            var configFromJson = loadedConfiguration.Configuration;
+
             // Bypass check for changes / Bypass apply of config
             // -> All adapters are executed (prepare phase only!)
             // -> Use 'configFromJson' also for the current config because we can't use getter
@@ -463,7 +551,7 @@ internal sealed partial class SystemConfigurationService(
     /// This method only returns <see cref="OperationStatus.Success"/> or <see cref="OperationStatus.Warning"/>,
     /// so service start does not fail.
     /// </remarks>
-    private async Task<(OperationStatus Status, InternalContracts.SystemConfiguration? SystemConfiguration)>
+    private async Task<(OperationStatus Status, LoadedSystemConfiguration? Configuration)>
         GetConfigurationFromJson(
             JsonConfigurationType jsonConfigType,
             CancellationToken cancellationToken)
@@ -582,7 +670,7 @@ internal sealed partial class SystemConfigurationService(
         };
     }
 
-    private Task<InternalContracts.SystemConfiguration> LoadJsonConfiguration(
+    private Task<LoadedSystemConfiguration> LoadJsonConfiguration(
         JsonConfigurationType jsonConfigType,
         CancellationToken cancellationToken)
     {

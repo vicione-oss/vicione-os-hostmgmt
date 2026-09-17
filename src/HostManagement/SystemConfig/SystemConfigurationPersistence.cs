@@ -58,10 +58,10 @@ internal sealed class SystemConfigurationPersistence(
     public string GetUserConfigurationPath()
         => AppPaths.SystemConfigurationFilePath;
 
-    public Task<SystemConfiguration> LoadPreparationConfiguration(CancellationToken cancellationToken)
+    public Task<LoadedSystemConfiguration> LoadPreparationConfiguration(CancellationToken cancellationToken)
         => LoadSystemConfiguration(AppPaths.DefaultSystemConfigurationFilePath, cancellationToken);
 
-    public Task<SystemConfiguration> LoadUserConfiguration(CancellationToken cancellationToken)
+    public Task<LoadedSystemConfiguration> LoadUserConfiguration(CancellationToken cancellationToken)
         => LoadSystemConfiguration(AppPaths.SystemConfigurationFilePath, cancellationToken);
 
     public void MarkPreparationConfigurationDefective()
@@ -122,7 +122,7 @@ internal sealed class SystemConfigurationPersistence(
         return version;
     }
 
-    private async Task<SystemConfiguration> LoadSystemConfiguration(
+    private async Task<LoadedSystemConfiguration> LoadSystemConfiguration(
         string configurationFilePath,
         CancellationToken cancellationToken = default)
     {
@@ -150,7 +150,11 @@ internal sealed class SystemConfigurationPersistence(
 
             var sourceConfiguration = deserializer.Deserialize(document.RootElement);
 
-            return _migrationService.Migrate(sourceConfiguration);
+            return new LoadedSystemConfiguration
+            {
+                Configuration = _migrationService.Migrate(sourceConfiguration),
+                SourceVersion = sourceVersion
+            };
         }
         catch (JsonException ex)
         {

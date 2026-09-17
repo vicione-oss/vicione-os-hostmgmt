@@ -131,6 +131,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed not removing empty "HostManagement" section in `etc/hosts` when removing the last static host entry or performing a general reset
 - Fixed indefinite waiting for pipe response when exceptions occur (client now removes expected response on failure)
 - Fixed pipe resource cleanup during disconnects, cancellation, and disposal
+- Fixed duplicate and reserved user-defined MAC address validation to compare address values independent of casing or separator notation
+- Fixed V1 system configuration migration handling so factory MAC addresses are not treated as user-defined MAC overrides
 
 ## [1.3.0] - 2026-03-23
 

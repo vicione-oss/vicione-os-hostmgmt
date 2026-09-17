@@ -72,15 +72,15 @@ internal interface IPersistence
     /// Loads the preparation configuration that came with the initial device image.
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The configuration to prepare the device.</returns>
-    Task<SystemConfiguration> LoadPreparationConfiguration(CancellationToken cancellationToken);
+    /// <returns>The loaded preparation configuration together with its source contract version.</returns>
+    Task<LoadedSystemConfiguration> LoadPreparationConfiguration(CancellationToken cancellationToken);
 
     /// <summary>
     /// Loads the user-defined configuration.
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The user-defined configuration.</returns>
-    Task<SystemConfiguration> LoadUserConfiguration(CancellationToken cancellationToken);
+    /// <returns>The loaded user-defined configuration together with its source contract version.</returns>
+    Task<LoadedSystemConfiguration> LoadUserConfiguration(CancellationToken cancellationToken);
 
     /// <summary>
     /// Marks the preparation configuration as defective.

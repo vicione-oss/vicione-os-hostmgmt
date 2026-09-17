@@ -323,6 +323,17 @@ public class SystemConfigurationPersistenceTests
         }
 
         [Fact]
+        public async Task ShouldReturnCurrentSourceVersion_WhenCurrentVersionLoaded()
+        {
+            _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new("""{"Version":2}"""));
+
+            var result = await _persistence.LoadPreparationConfiguration(CancellationToken.None);
+
+            result.SourceVersion.Should().Be(2);
+            result.Configuration.Version.Should().Be(2);
+        }
+
+        [Fact]
         public async Task ShouldLoadPartiallyDefinedDefaultSystemConfiguration()
         {
             var config =
@@ -373,7 +384,9 @@ public class SystemConfigurationPersistenceTests
         {
             _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new(s_jsonConfigV1_1_1));
             var result = await _persistence.LoadPreparationConfiguration(CancellationToken.None);
-            result.Should().BeEquivalentTo(s_configV1_1_1_AfterMigration);
+
+            result.SourceVersion.Should().Be(1);
+            result.Configuration.Should().BeEquivalentTo(s_configV1_1_1_AfterMigration);
         }
 
         [Fact]
@@ -381,7 +394,9 @@ public class SystemConfigurationPersistenceTests
         {
             _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new(s_jsonConfigV1_3_0));
             var result = await _persistence.LoadPreparationConfiguration(CancellationToken.None);
-            result.Should().BeEquivalentTo(s_configV1_3_0_AfterMigration);
+
+            result.SourceVersion.Should().Be(1);
+            result.Configuration.Should().BeEquivalentTo(s_configV1_3_0_AfterMigration);
         }
     }
 
