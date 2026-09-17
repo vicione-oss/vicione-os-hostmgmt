@@ -1,4 +1,7 @@
-﻿using HostManagement.Shared.Communication.Enums;
+using System.Net.NetworkInformation;
+using System.Text.Json.Serialization;
+using HostManagement.Shared.Communication.Enums;
+using HostManagement.Shared.Contracts.Network;
 
 namespace HostManagement.Shared.Communication.Contracts;
 
@@ -19,7 +22,8 @@ public record GetOriginalPhysicalAddressResult
     /// <summary>
     /// The original physical address (initial factory setting).
     /// </summary>
-    public required string? OriginalPhysicalAddress { get; init; }
+    [JsonConverter(typeof(PhysicalAddressConverter))]
+    public required PhysicalAddress? OriginalPhysicalAddress { get; init; }
 
     /// <inheritdoc/>
     protected override string ExpectedType => nameof(GetOriginalPhysicalAddressResult);

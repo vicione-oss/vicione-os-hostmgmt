@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.NetworkInformation;
 using AwesomeAssertions;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Validation;
@@ -79,10 +80,12 @@ public class NetworkInterfacesValidatorTests
     public async Task ShouldReturnValidationError_WhenDuplicateMACAddressesFound()
     {
         // Arrange
+        const string DuplicateMACAddressText = "02:23:45:67:89:AB";
+
         var dhcpInterface = ValidationTestData.Interface.DHCP;
         var staticInterface = ValidationTestData.Interface.Static;
 
-        var duplicateMACAddress = staticInterface.CommonInformation.UserDefinedMACAddress.Address;
+        var duplicateMACAddress = PhysicalAddress.Parse(DuplicateMACAddressText);
         var interfaces = new List<NetworkInterfaceDetail>
         {
             staticInterface,
@@ -100,7 +103,7 @@ public class NetworkInterfacesValidatorTests
         };
 
         var expectedValidationEntry = new ValidationEntry(
-            $"Network interfaces have duplicate MAC addresses. Affected MAC addresses are: '{duplicateMACAddress}'.");
+            $"Network interfaces have duplicate MAC addresses. Affected MAC addresses are: '{DuplicateMACAddressText}'.");
 
         // Act
         var result = await new NetworkInterfacesValidator()
@@ -116,11 +119,13 @@ public class NetworkInterfacesValidatorTests
     public async Task ShouldReturnValidationError_WhenReservedMACAddressesFound()
     {
         // Arrange
+        const string ReservedOriginalMACAddressText = "02:23:45:67:89:AD";
+
         var dhcpInterface = ValidationTestData.Interface.DHCP;
         var staticInterface = ValidationTestData.Interface.Static;
 
-        var reservedOriginalMACAddress = "02-23-45-67-89-AD";
-        var originalMACAddresses = new List<string>() { reservedOriginalMACAddress };
+        var reservedOriginalMACAddress = PhysicalAddress.Parse(ReservedOriginalMACAddressText); ;
+        var originalMACAddresses = new List<PhysicalAddress>() { reservedOriginalMACAddress };
 
         var interfaces = new List<NetworkInterfaceDetail>
         {
@@ -139,7 +144,8 @@ public class NetworkInterfacesValidatorTests
         };
 
         var expectedValidationEntry = new ValidationEntry(
-            $"Network interfaces have reserved original MAC addresses defined as user-defined MAC address. Affected MAC addresses are: '{reservedOriginalMACAddress}'.");
+            $"Network interfaces have reserved original MAC addresses defined as user-defined MAC address. " +
+            $"Affected MAC addresses are: '{ReservedOriginalMACAddressText}'.");
 
         // Act
         var result = await new NetworkInterfacesValidator()

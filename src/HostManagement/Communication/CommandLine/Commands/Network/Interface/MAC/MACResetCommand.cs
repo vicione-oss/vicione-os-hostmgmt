@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.Net.NetworkInformation;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Communication.CommandLine.Resources;
@@ -44,7 +45,7 @@ internal sealed class MACResetCommand : ConfigCommandBase
             return;
 
         interfaceToConfigure.CommonInformation.UserDefinedMACAddress.Enabled = false;
-        interfaceToConfigure.CommonInformation.UserDefinedMACAddress.Address = string.Empty;
+        interfaceToConfigure.CommonInformation.UserDefinedMACAddress.Address = PhysicalAddress.None;
 
         if (!await SetConfiguration(config, cancellationToken))
             return;

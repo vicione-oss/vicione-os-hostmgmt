@@ -181,13 +181,7 @@
     <value>MAC address '{0}' of {1} has an invalid character (expected 0-9, a-f, A-F).</value>
   </data>
   <data name="MACAddressInvalidLength" xml:space="preserve">
-    <value>MAC address '{0}' of {1} has invalid length (expected 12).</value>
-  </data>
-  <data name="MACAddressInvalidOctetCount" xml:space="preserve">
-    <value>MAC address '{0}' of {1} has an invalid octet count (expected 6).</value>
-  </data>
-  <data name="MACAddressOctetInvalidLength" xml:space="preserve">
-    <value>MAC address '{0}' of {1} has an octet with invalid length (expected 2).</value>
+    <value>MAC address '{0}' of {1} has invalid length (expected 6 bytes).</value>
   </data>
   <data name="NetmaskInvalid" xml:space="preserve">
     <value>Netmask '{0}' of {1} is invalid (expected contiguous 1-bits at the top, e.g. '255.255.255.0', '255.255.255.128', '128.0.0.0' etc.).</value>

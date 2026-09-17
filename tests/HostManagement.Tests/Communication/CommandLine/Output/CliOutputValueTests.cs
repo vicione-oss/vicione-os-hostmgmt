@@ -1,7 +1,8 @@
-﻿using System.Net;
+using System.Net;
+using System.Net.NetworkInformation;
 using AwesomeAssertions;
-using Xunit;
 using HostManagement.Communication.CommandLine.Output;
+using Xunit;
 
 namespace HostManagement.Tests.Communication.CommandLine.Output;
 
@@ -127,6 +128,19 @@ public class CliOutputValueTests
 
         // Assert
         result.ToString().Should().Be(expectedString);
+    }
+
+    [Fact]
+    public void ShouldReturnColonSeparatedStringRepresentation_WhenCalledWithPhysicalAddress()
+    {
+        // Arrange
+        var physicalAddress = PhysicalAddress.Parse("02-23-45-67-89-ab");
+
+        // Act
+        CliOutputValue result = physicalAddress;
+
+        // Assert
+        result.ToString().Should().Be("02:23:45:67:89:AB");
     }
 
     [Fact]

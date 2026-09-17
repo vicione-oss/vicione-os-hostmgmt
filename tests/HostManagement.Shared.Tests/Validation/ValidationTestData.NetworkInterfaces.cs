@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.NetworkInformation;
 using HostManagement.Shared.Contracts.Network;
 
 namespace HostManagement.Shared.Tests.Validation;
@@ -33,7 +34,7 @@ internal static partial class ValidationTestData
                 UserDefinedMACAddress = new()
                 {
                     Enabled = true,
-                    Address = "02-23-45-67-89-AB"
+                    Address = PhysicalAddress.Parse("02-23-45-67-89-AB")
                 }
             },
             IPv4 = new()
@@ -60,7 +61,7 @@ internal static partial class ValidationTestData
                 UserDefinedMACAddress = new()
                 {
                     Enabled = true,
-                    Address = "02-23-45-67-89-AC"
+                    Address = PhysicalAddress.Parse("02-23-45-67-89-AC")
                 }
             },
             IPv4 = new()

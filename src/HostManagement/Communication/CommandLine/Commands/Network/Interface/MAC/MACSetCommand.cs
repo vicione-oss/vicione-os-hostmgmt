@@ -1,5 +1,5 @@
 using System.CommandLine;
-using HostManagement.Common.Utilities;
+using System.Net.NetworkInformation;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Communication.CommandLine.Resources;
@@ -49,7 +49,11 @@ internal sealed class MACSetCommand : ConfigCommandBase
             return;
         }
 
-        macAddress = MACUtilities.ConvertToColonNotation(macAddress);
+        if (!PhysicalAddress.TryParse(macAddress, out var physicalAddress))
+        {
+            SimpleOutput.WriteLineError(CliStrings.Network.Interface.MAC.InvalidFormat, macAddress);
+            return;
+        }
 
         var originalMACAddress = await NamedPipeRequestHelper
             .GetOriginalPhysicalAddress(interfaceName, cancellationToken);
@@ -59,20 +63,20 @@ internal sealed class MACSetCommand : ConfigCommandBase
 
         var oldUserDefinedMacAddress = interfaceToConfigure.CommonInformation.UserDefinedMACAddress.Address;
 
-        if (oldUserDefinedMacAddress.Equals(macAddress))
+        if (oldUserDefinedMacAddress.Equals(physicalAddress))
         {
-            SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.MAC.AlreadyDefined, macAddress);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.MAC.AlreadyDefined, physicalAddress);
             return;
         }
 
-        if (originalMACAddress.Equals(macAddress))
+        if (originalMACAddress.Equals(physicalAddress))
         {
-            SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.MAC.IdenticalToOriginalAddress, macAddress);
+            SimpleOutput.WriteLineWarning(CliStrings.Network.Interface.MAC.IdenticalToOriginalAddress, physicalAddress);
             return;
         }
 
         interfaceToConfigure.CommonInformation.UserDefinedMACAddress.Enabled = true;
-        interfaceToConfigure.CommonInformation.UserDefinedMACAddress.Address = macAddress;
+        interfaceToConfigure.CommonInformation.UserDefinedMACAddress.Address = physicalAddress;
 
         if (!await SetConfiguration(config, cancellationToken))
             return;
@@ -80,7 +84,7 @@ internal sealed class MACSetCommand : ConfigCommandBase
         SimpleOutput.WriteLine(
             CliStrings.Network.Interface.MAC.Set,
             oldUserDefinedMacAddress,
-            macAddress,
+            physicalAddress,
             interfaceToConfigure.CommonInformation.Name);
     }
 }

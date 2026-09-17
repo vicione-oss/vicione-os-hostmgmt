@@ -72,6 +72,7 @@ internal static partial class CliStrings
 
 
                 internal const string InvalidLength = "User-defined MAC address '{0}' has invalid length.";
+                internal const string InvalidFormat = "User-defined MAC address '{0}' has invalid format.";
                 internal const string ResetSucceeded = "MAC address of network interface '{0}' has been reset to its default '{1}'.";
                 internal const string Set = "User-defined MAC address '{0}' has been set to '{1}' for network interface '{2}'.";
             }

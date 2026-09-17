@@ -1,3 +1,4 @@
+using System.Net.NetworkInformation;
 using System.Text.Json.Serialization.Metadata;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Shared.Communication;
@@ -156,7 +157,7 @@ internal static class NamedPipeRequestHelper
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The original physical address or <see langword="null"/> if getting the original
     /// physical address failed.</returns>
-    internal static async Task<string?> GetOriginalPhysicalAddress(
+    internal static async Task<PhysicalAddress?> GetOriginalPhysicalAddress(
         string interfaceName,
         CancellationToken cancellationToken)
     {

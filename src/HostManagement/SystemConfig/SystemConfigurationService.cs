@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Net.NetworkInformation;
 using System.Text;
 using HostManagement.Configuration;
 using HostManagement.Shared.Capabilities;
@@ -202,15 +203,19 @@ internal sealed partial class SystemConfigurationService(
         SystemConfiguration proposedConfig,
         CancellationToken cancellationToken)
     {
-        var originalMACAddresses = new List<string>();
+        var originalMACAddresses = new List<PhysicalAddress>();
 
         foreach (var proposedInterface in proposedConfig.NetworkInterfaces)
         {
             var (scriptResult, originalAddress) = await _scriptHandler
                 .ExecuteGetOriginalPhysicalAddressScript(proposedInterface.CommonInformation.Name);
 
-            if (scriptResult.OperationStatus == OperationStatus.Success)
-                originalMACAddresses.Add(originalAddress);
+            if (scriptResult.OperationStatus == OperationStatus.Success &&
+                PhysicalAddress.TryParse(originalAddress, out var physicalAddress) &&
+                physicalAddress.GetAddressBytes().Length == 6)
+            {
+                originalMACAddresses.Add(physicalAddress);
+            }
         }
 
         var validationResult = await new SystemConfigurationValidator()
@@ -673,7 +678,7 @@ internal sealed partial class SystemConfigurationService(
             if (defaultCommon.UserDefinedMACAddress is { } userDefinedMACAddress)
             {
                 currentCommon.UserDefinedMACAddress.Enabled = defaultCommon.UserDefinedMACAddress.Enabled;
-                currentCommon.UserDefinedMACAddress.Address = defaultCommon.UserDefinedMACAddress.Address.ToColonNotation();
+                currentCommon.UserDefinedMACAddress.Address = defaultCommon.UserDefinedMACAddress.Address;
             }
         }
 

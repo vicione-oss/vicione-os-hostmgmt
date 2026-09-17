@@ -1,3 +1,4 @@
+using System.Net.NetworkInformation;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Validation.Validators;
 using HostManagement.Shared.Validation.Validators.DNS;
@@ -10,7 +11,7 @@ namespace HostManagement.Shared.Validation;
 /// <summary>
 /// Represents the validator for a <see cref="SystemConfiguration"/> object.
 /// </summary>
-public sealed class SystemConfigurationValidator : IValidator<SystemConfiguration, IReadOnlyList<string>>
+public sealed class SystemConfigurationValidator : IValidator<SystemConfiguration, IReadOnlyList<PhysicalAddress>>
 {
     /// <summary>
     /// Validates the specified <see cref="SystemConfiguration"/> asynchronously.
@@ -22,7 +23,7 @@ public sealed class SystemConfigurationValidator : IValidator<SystemConfiguratio
     /// <inheritdoc/>
     public async Task<ValidationResult> ValidateAsync(
         SystemConfiguration configuration,
-        IReadOnlyList<string>? originalMACAddresses = null,
+        IReadOnlyList<PhysicalAddress>? originalMACAddresses = null,
         CancellationToken cancellationToken = default)
     {
         var result = new ValidationResult();

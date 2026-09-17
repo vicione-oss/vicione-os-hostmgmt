@@ -1,3 +1,4 @@
+using System.Net.NetworkInformation;
 using AwesomeAssertions;
 using HostManagement.Services;
 using HostManagement.Shared.Communication.Enums;
@@ -122,7 +123,7 @@ public sealed class PhysicalAddressServiceTests
 
             result.Status.Should().Be(OperationStatus.Success);
             result.Message.Should().BeEmpty();
-            result.OriginalPhysicalAddress.Should().Be(physicalAddress);
+            result.OriginalPhysicalAddress.Should().Be(PhysicalAddress.Parse(physicalAddress));
         }
     }
 

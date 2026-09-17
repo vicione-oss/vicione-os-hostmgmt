@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.NetworkInformation;
 using AwesomeAssertions;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.NetworkInterfaces;
@@ -40,7 +41,7 @@ public class NetworkInterfaceValidatorTests
                 UserDefinedMACAddress = staticInterface.CommonInformation.UserDefinedMACAddress with
                 {
                     Enabled = true,
-                    Address = "01-23-45-67-89-XX"
+                    Address = new PhysicalAddress([0xA1, 0xB2, 0xC3, 0xD4, 0xE5])
                 }
             }
         };

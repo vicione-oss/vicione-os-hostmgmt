@@ -87,8 +87,11 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
         var userDefinedMACAddress = commonInformation.UserDefinedMACAddress.Address;
 
         var originalMACAddress = await NamedPipeRequestHelper
-            .GetOriginalPhysicalAddress(commonInformation.Name, CancellationToken.None)
-            ?? CliStrings.Network.Interface.Unknown;
+            .GetOriginalPhysicalAddress(commonInformation.Name, CancellationToken.None);
+
+        var originalMACAddressOutput = originalMACAddress is null
+            ? CliOutputValue.Create(CliStrings.Network.Interface.Unknown)
+            : CliOutputValue.Create(originalMACAddress);
 
         output.AddListOutput(indentationLevel)
             .WithTitle("MAC")
@@ -97,7 +100,7 @@ internal sealed class ListInterfacesCommand : ConfigCommandBase
                 .With(userDefinedMACAddress)
             .AddListOutput(indentationLevel + 1)
                 .WithTitle(CliStrings.Network.Interface.MAC.OriginalAddress, !userDefinedMACAddressEnabled)
-                .With(originalMACAddress);
+                .With(originalMACAddressOutput);
     }
 
     private static void AppendOutputForIPv4(

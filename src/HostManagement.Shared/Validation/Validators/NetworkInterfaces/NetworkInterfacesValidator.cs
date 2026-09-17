@@ -1,14 +1,17 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Net.NetworkInformation;
 using System.Text;
 using HostManagement.Shared.Contracts.Network;
+using HostManagement.Shared.Extensions;
 
 namespace HostManagement.Shared.Validation.Validators.NetworkInterfaces;
 
 /// <summary>
 /// Represents the validator for a list of network interfaces.
 /// </summary>
-public sealed class NetworkInterfacesValidator : IValidator<IReadOnlyList<NetworkInterfaceDetail>, IReadOnlyList<string>>
+public sealed class NetworkInterfacesValidator
+    : IValidator<IReadOnlyList<NetworkInterfaceDetail>, IReadOnlyList<PhysicalAddress>>
 {
     /// <summary>
     /// Validates a list of network interfaces asynchronously.
@@ -20,7 +23,7 @@ public sealed class NetworkInterfacesValidator : IValidator<IReadOnlyList<Networ
     /// <inheritdoc/>
     public async Task<ValidationResult> ValidateAsync(
         IReadOnlyList<NetworkInterfaceDetail> networkInterfaces,
-        IReadOnlyList<string>? originalMACAddresses = null,
+        IReadOnlyList<PhysicalAddress>? originalMACAddresses = null,
         CancellationToken cancellationToken = default)
     {
         try
@@ -153,7 +156,7 @@ public sealed class NetworkInterfacesValidator : IValidator<IReadOnlyList<Networ
         var duplicateMACAddresses = networkInterfaces
             .Where(detail
                 => detail.CommonInformation.UserDefinedMACAddress.Enabled
-                && !string.IsNullOrEmpty(detail.CommonInformation.UserDefinedMACAddress.Address))
+                && detail.CommonInformation.UserDefinedMACAddress.Address.GetAddressBytes().Length > 0)
             .GroupBy(detail => detail.CommonInformation.UserDefinedMACAddress.Address)
             .Where(group => group.Count() > 1)
             .Select(group => group.Key)
@@ -163,7 +166,7 @@ public sealed class NetworkInterfacesValidator : IValidator<IReadOnlyList<Networ
         {
             duplicateMACAddressesString = string.Join(
                 ", ",
-                duplicateMACAddresses.Select(address => $"'{address}'"));
+                duplicateMACAddresses.Select(address => $"'{address.ToColonNotation()}'"));
 
             return true;
         }
@@ -173,7 +176,7 @@ public sealed class NetworkInterfacesValidator : IValidator<IReadOnlyList<Networ
 
     private static bool HasReservedMACAddresses(
         IReadOnlyList<NetworkInterfaceDetail> networkInterfaces,
-        IReadOnlyList<string>? originalMACAddresses,
+        IReadOnlyList<PhysicalAddress>? originalMACAddresses,
         [NotNullWhen(true)] out string? reservedMACAddressesString)
     {
         reservedMACAddressesString = null;
@@ -182,7 +185,7 @@ public sealed class NetworkInterfacesValidator : IValidator<IReadOnlyList<Networ
         var reservedMACAddresses = networkInterfaces
             .Where(detail
                 => detail.CommonInformation.UserDefinedMACAddress.Enabled
-                && !string.IsNullOrEmpty(detail.CommonInformation.UserDefinedMACAddress.Address)
+                && detail.CommonInformation.UserDefinedMACAddress.Address.GetAddressBytes().Length > 0
                 && originalMACAddresses.Contains(detail.CommonInformation.UserDefinedMACAddress.Address))
             .GroupBy(detail => detail.CommonInformation.UserDefinedMACAddress.Address)
             .Select(group => group.Key)
@@ -192,7 +195,7 @@ public sealed class NetworkInterfacesValidator : IValidator<IReadOnlyList<Networ
         {
             reservedMACAddressesString = string.Join(
                 ", ",
-                reservedMACAddresses.Select(address => $"'{address}'"));
+                reservedMACAddresses.Select(address => $"'{address.ToColonNotation()}'"));
 
             return true;
         }

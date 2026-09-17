@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.Json;
 using AwesomeAssertions;
@@ -26,7 +27,7 @@ public class SystemConfigurationSerializerTests
                     UserDefinedMACAddress = new()
                     {
                         Enabled = true,
-                        Address = "01:23:45:67:89:AB"
+                        Address = PhysicalAddress.Parse("01:23:45:67:89:AB")
                     }
                 },
                 IPv4 = new()

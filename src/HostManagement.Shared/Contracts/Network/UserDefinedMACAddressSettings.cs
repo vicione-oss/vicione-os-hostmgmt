@@ -1,4 +1,7 @@
-﻿namespace HostManagement.Shared.Contracts.Network;
+using System.Net.NetworkInformation;
+using System.Text.Json.Serialization;
+
+namespace HostManagement.Shared.Contracts.Network;
 
 /// <summary>
 /// Represents the <see cref="UserDefinedMACAddressSettings"/>.
@@ -13,5 +16,6 @@ public sealed record UserDefinedMACAddressSettings
     /// <summary>
     /// The user defined MAC address.
     /// </summary>
-    public string Address { get; set; } = string.Empty;
+    [JsonConverter(typeof(PhysicalAddressConverter))]
+    public PhysicalAddress Address { get; set; } = PhysicalAddress.None;
 }
