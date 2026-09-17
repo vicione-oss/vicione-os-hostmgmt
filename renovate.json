@@ -10,18 +10,29 @@
     "prTitleStrict": true,
     "enabledManagers": [
         "nuget",
-        "mise",
-        "gitlabci"
+        "gitlabci",
+        "custom.regex"
     ],
     "vulnerabilityAlerts": {
         "enabled": true,
         "dependencyDashboardApproval": true
     },
     "osvVulnerabilityAlerts": true,
+    "customManagers": [
+        {
+            "customType": "regex",
+            "managerFilePatterns": [ "/(^|/)mise\\.toml$/" ],
+            "matchStrings": [ "(?m)^\\s*dotnet\\s*=\\s*\"(?<currentValue>[^\"]+)\"" ],
+            "depNameTemplate": "dotnet",
+            "datasourceTemplate": "dotnet-version",
+            "packageNameTemplate": "dotnet-sdk",
+            "versioningTemplate": "semver-coerced"
+        }
+    ],
     "packageRules": [
         {
             "description": "MR configuration",
-            "matchManagers": [ "nuget", "mise", "gitlabci" ],
+            "matchManagers": [ "nuget", "gitlabci", "custom.regex" ],
             "addLabels": [ "dependency" ],
             "rebaseWhen": "auto",
             "separateMajorMinor": true,
@@ -31,20 +42,20 @@
         },
         {
             "description": "MR / commit naming",
-            "matchManagers": [ "nuget", "mise", "gitlabci" ],
+            "matchManagers": [ "nuget", "gitlabci", "custom.regex" ],
             "semanticCommits": "disabled",
             "commitMessagePrefix": "",
             "commitMessageAction": "Update"
         },
         {
             "description": "MR / commit naming for ungrouped updates",
-            "matchManagers": [ "nuget", "mise", "gitlabci" ],
+            "matchManagers": [ "nuget", "gitlabci", "custom.regex" ],
             "commitMessageTopic": "{{{depName}}}",
             "commitMessageExtra": "to {{{newVersion}}}"
         },
         {
             "description": "MR / commit naming for grouped updates",
-            "matchManagers": [ "nuget", "mise", "gitlabci" ],
+            "matchManagers": [ "nuget", "gitlabci", "custom.regex" ],
             "groupSingleUpdates": true,
             "recreateWhen": "never",
             "group": {
@@ -54,12 +65,12 @@
         },
         {
             "description": "Branch naming for ungrouped updates",
-            "matchManagers": [ "nuget", "mise", "gitlabci" ],
+            "matchManagers": [ "nuget", "gitlabci", "custom.regex" ],
             "branchTopic": "update-{{{lowercase (replace '\\.' '-' (replace '([a-z0-9])([A-Z])' '$1-$2' (replace '([A-Z]+)([A-Z][a-z])' '$1-$2' depNameSanitized)))}}}-to-{{{newMajor}}}-{{{newMinor}}}-{{{newPatch}}}"
         },
         {
             "description": "Branch naming for grouped updates",
-            "matchManagers": [ "nuget", "mise", "gitlabci" ],
+            "matchManagers": [ "nuget", "gitlabci", "custom.regex" ],
             "group": {
                 "branchTopic": "update-{{{replace '\\.' '-' (replace '^(major|minor|patch)-[0-9.]*-?' '' groupSlug)}}}"
             }
@@ -126,14 +137,8 @@
             "enabled": true
         },
         {
-            "description": "Mise: opt out of everything, then opt back in below",
-            "matchManagers": [ "mise" ],
-            "enabled": false
-        },
-        {
-            "description": "Mise: dotnet",
-            "matchManagers": [ "mise" ],
-            "matchDatasources": [ "dotnet-version" ],
+            "description": "Mise: dotnet SDK",
+            "matchManagers": [ "custom.regex" ],
             "matchDepNames": [ "dotnet" ],
             "enabled": true,
             "groupName": ".NET",
