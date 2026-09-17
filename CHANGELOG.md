@@ -31,14 +31,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - from `get_network_interfaces_common_information.sh`
   - from `get_network_status_information.sh`
   - from `set_network_dns_settings.sh`
-- Updated `.NET Runtime` from `10.0.5` to `10.0.11`
-- Updated `.NET SDK` from `10.0.201` to `10.0.400`
+- Updated `.NET Runtime` from `10.0.5` to `10.0.12`
+- Updated `.NET SDK` from `10.0.201` to `10.0.401`
 - Updated NuGet packages
   - `AwesomeAssertions` from `9.4.0` to `9.5.0`
   - `Microsoft.CodeAnalysis.CSharp` from `5.3.0` to `5.6.0`
-  - `Microsoft.Extensions.Configuration.EnvironmentVariables` from `10.0.5` to `10.0.11`
-  - `Microsoft.Extensions.Logging` from `10.0.5` to `10.0.11`
-  - `Microsoft.Extensions.Logging.Abstractions` from `10.0.5` to `10.0.11`
+  - `Microsoft.Extensions.Configuration.EnvironmentVariables` from `10.0.5` to `10.0.12`
+  - `Microsoft.Extensions.Logging` from `10.0.5` to `10.0.12`
+  - `Microsoft.Extensions.Logging.Abstractions` from `10.0.5` to `10.0.12`
   - `Microsoft.Testing.Extensions.CodeCoverage` from `18.5.2` to `18.9.0`
   - `NSubstitute` from `5.3.0` to `6.2.0`
   - `System.CommandLine` from `2.0.5` to `2.0.11`
