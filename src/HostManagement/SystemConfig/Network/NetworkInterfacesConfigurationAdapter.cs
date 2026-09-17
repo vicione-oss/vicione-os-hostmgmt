@@ -125,13 +125,6 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
 
             AddVLANScriptOptions(scriptOptions, proposedInterface.VLAN);
             AddInterfaceNameScriptOption(scriptOptions, interfaceName);
-
-            if (!string.IsNullOrWhiteSpace(proposedInterface.CommonInformation?.UserDefinedMACAddress?.Address))
-            {
-                proposedInterface.CommonInformation.UserDefinedMACAddress.Address = MACUtilities
-                    .ConvertToColonNotation(proposedInterface.CommonInformation.UserDefinedMACAddress.Address);
-            }
-
             AddMACAddressScriptOption(scriptOptions, proposedInterface.CommonInformation?.UserDefinedMACAddress);
             AddInterfaceEnabledScriptOption(scriptOptions, proposedInterface.CommonInformation?.Enabled);
             AddIPv4ScriptOptions(scriptOptions, proposedInterface.IPv4);
@@ -174,7 +167,7 @@ internal sealed class NetworkInterfacesConfigurationAdapter(
         if (userDefinedMACAddressSettings is not { } userDefinedMACAddress)
             return;
 
-        var address = _bypassApplyConfig ? BypassMACAddress : userDefinedMACAddress.Address;
+        var address = _bypassApplyConfig ? BypassMACAddress : userDefinedMACAddress.Address.ToColonNotation();
 
         if (string.IsNullOrWhiteSpace(address))
             return;

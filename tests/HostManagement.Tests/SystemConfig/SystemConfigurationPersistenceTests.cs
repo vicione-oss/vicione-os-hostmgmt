@@ -1,5 +1,6 @@
 using System.IO.Abstractions.TestingHelpers;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Text.Json;
 using AwesomeAssertions;
 using HostManagement.Configuration;
@@ -134,7 +135,7 @@ public class SystemConfigurationPersistenceTests
                         UserDefinedMACAddress = new()
                         {
                             Enabled = true,
-                            Address = "00:02:01:ac:52:33"
+                            Address = PhysicalAddress.Parse("00:02:01:ac:52:33")
                         }
                     },
                     IPv4 = new()
@@ -165,7 +166,7 @@ public class SystemConfigurationPersistenceTests
                         UserDefinedMACAddress = new()
                         {
                             Enabled = true,
-                            Address = "00:02:01:ac:52:34"
+                            Address = PhysicalAddress.Parse("00:02:01:ac:52:34")
                         }
                     },
                     IPv4 = new()
@@ -468,7 +469,7 @@ public class SystemConfigurationPersistenceTests
                             UserDefinedMACAddress = new()
                             {
                                 Enabled = true,
-                                Address = "01:23:45:67:89:AB"
+                                Address = PhysicalAddress.Parse("01:23:45:67:89:AB")
                             }
                         },
                         IPv4 = new()

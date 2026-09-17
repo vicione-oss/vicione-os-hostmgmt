@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.NetworkInformation;
 using AwesomeAssertions;
 using HostManagement.Configuration;
 using HostManagement.Shared.Capabilities;
@@ -65,7 +66,7 @@ public class SystemConfigurationServiceTests
                         UserDefinedMACAddress = new()
                         {
                             Enabled = true,
-                            Address = physicalAddress
+                            Address = PhysicalAddress.Parse(physicalAddress)
                         }
                     },
                     IPv4 = new()
@@ -990,7 +991,7 @@ public class SystemConfigurationServiceTests
                             UserDefinedMACAddress = new()
                             {
                                 Enabled = true,
-                                Address = "11:22:33:44:55:66"
+                                Address = PhysicalAddress.Parse("11:22:33:44:55:66")
                             }
                         }
                     ]
@@ -1025,7 +1026,7 @@ public class SystemConfigurationServiceTests
                             UserDefinedMACAddress = new()
                             {
                                 Enabled = true,
-                                Address = "11:22:33:44:55:66"
+                                Address = PhysicalAddress.Parse("11:22:33:44:55:66")
                             }
                         }
                     ]
@@ -1064,7 +1065,7 @@ public class SystemConfigurationServiceTests
                             UserDefinedMACAddress = new()
                             {
                                 Enabled = true,
-                                Address = "11:22:33:44:55:66"
+                                Address = PhysicalAddress.Parse("11:22:33:44:55:66")
                             }
                         }
                     ]
@@ -1100,7 +1101,8 @@ public class SystemConfigurationServiceTests
                 Arg.Is<InternalSystemConfiguration>(static config =>
                     config.NetworkInterfaces![0].CommonInformation!.Enabled == false &&
                     config.NetworkInterfaces![0].CommonInformation!.UserDefinedMACAddress!.Enabled &&
-                    config.NetworkInterfaces![0].CommonInformation!.UserDefinedMACAddress!.Address == "aa:bb:cc:dd:ee:ff" &&
+                    config.NetworkInterfaces![0].CommonInformation!.UserDefinedMACAddress!.Address.Equals(
+                        PhysicalAddress.Parse("aa:bb:cc:dd:ee:ff")) &&
                     config.NetworkInterfaces![0].IPv4!.DHCPEnabled == false &&
                     config.NetworkInterfaces![0].IPv4!.Gateway!.ToString() == "192.168.1.1" &&
                     config.NetworkInterfaces![0].IPv4!.IPv4Details![0].IPAddress!.ToString() == "192.168.1.2" &&

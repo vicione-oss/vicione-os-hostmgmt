@@ -1,3 +1,4 @@
+using System.Net.NetworkInformation;
 using HostManagement.SystemConfig.Contracts;
 using SharedContracts = HostManagement.Shared.Contracts;
 using SharedNetwork = HostManagement.Shared.Contracts.Network;
@@ -77,7 +78,7 @@ internal static class ContractsTranslator
         => new()
         {
             Enabled = intern.Enabled,
-            Address = intern.Address,
+            Address = intern.Address.ToColonNotation()
         };
 
     private static SharedNetwork.IPv4Settings ToSharedContracts(this IPv4Settings intern)
@@ -323,7 +324,7 @@ internal static class ContractsTranslator
             => new()
             {
                 Enabled = shared.Enabled,
-                Address = shared.Address
+                Address = PhysicalAddress.Parse(shared.Address)
             };
 
     private static IPv4Settings ToInternalContracts(this SharedNetwork.IPv4Settings shared)

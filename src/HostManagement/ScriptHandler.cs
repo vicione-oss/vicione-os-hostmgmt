@@ -16,7 +16,8 @@ namespace HostManagement;
 [JsonSourceGenerationOptions(
     RespectNullableAnnotations = true,
     UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
-    UseStringEnumConverter = true)]
+    UseStringEnumConverter = true,
+    Converters = [typeof(PhysicalAddressConverter)])]
 [JsonSerializable(typeof(List<NetworkInterfaceCommonInformation>))]
 internal partial class CommonInformationListJsonSerializerContext : JsonSerializerContext;
 

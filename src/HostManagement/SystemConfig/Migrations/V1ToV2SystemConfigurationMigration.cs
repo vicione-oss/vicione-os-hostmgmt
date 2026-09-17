@@ -1,3 +1,4 @@
+using System.Net.NetworkInformation;
 using CurrentContracts = HostManagement.SystemConfig.Contracts;
 using V1Contracts = HostManagement.SystemConfig.Migrations.Contracts.V1;
 
@@ -60,14 +61,14 @@ internal sealed class V1ToV2SystemConfigurationMigration
             return new()
             {
                 Enabled = false,
-                Address = string.Empty
+                Address = PhysicalAddress.None
             };
         }
 
         return new()
         {
             Enabled = true,
-            Address = source.PhysicalAddress
+            Address = PhysicalAddress.Parse(source.PhysicalAddress)
         };
     }
 

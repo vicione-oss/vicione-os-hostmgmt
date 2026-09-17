@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Text.Json;
 using AwesomeAssertions;
 using HostManagement.SystemConfig.Migrations;
@@ -106,7 +107,7 @@ public class V1ToV2SystemConfigurationMigrationTests
 
             firstInterface.CommonInformation.UserDefinedMACAddress.Should().NotBeNull();
             firstInterface.CommonInformation.UserDefinedMACAddress.Enabled.Should().BeFalse();
-            firstInterface.CommonInformation.UserDefinedMACAddress.Address.Should().BeEmpty();
+            firstInterface.CommonInformation.UserDefinedMACAddress.Address.Should().Be(PhysicalAddress.None);
 
             firstInterface.IPv4.Should().NotBeNull();
             firstInterface.IPv4.Gateway.Should().BeNull();
@@ -119,7 +120,7 @@ public class V1ToV2SystemConfigurationMigrationTests
 
             secondInterface.CommonInformation.UserDefinedMACAddress.Should().NotBeNull();
             secondInterface.CommonInformation.UserDefinedMACAddress.Enabled.Should().BeFalse();
-            secondInterface.CommonInformation.UserDefinedMACAddress.Address.Should().BeEmpty();
+            secondInterface.CommonInformation.UserDefinedMACAddress.Address.Should().Be(PhysicalAddress.None);
 
             secondInterface.IPv4.Should().NotBeNull();
             secondInterface.IPv4.Gateway.Should().BeNull();
@@ -183,7 +184,7 @@ public class V1ToV2SystemConfigurationMigrationTests
 
             networkInterface.CommonInformation.UserDefinedMACAddress.Should().NotBeNull();
             networkInterface.CommonInformation.UserDefinedMACAddress.Enabled.Should().BeTrue();
-            networkInterface.CommonInformation.UserDefinedMACAddress.Address.Should().Be("00:02:01:ac:52:33");
+            networkInterface.CommonInformation.UserDefinedMACAddress.Address.Should().Be(PhysicalAddress.Parse("00:02:01:ac:52:33"));
 
             networkInterface.IPv4.Should().NotBeNull();
             networkInterface.IPv4.Gateway.Should().Be(IPAddress.Parse("192.168.1.1"));

@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.NetworkInformation;
 using AwesomeAssertions;
 using HostManagement.Scripts;
 using HostManagement.Shared.Communication.Enums;
@@ -250,7 +251,7 @@ public sealed class NetworkInterfacesConfigurationAdapterTests
                         UserDefinedMACAddress = new()
                         {
                             Enabled = true,
-                            Address = "00:11:22:33:44:55"
+                            Address = PhysicalAddress.Parse("00:11:22:33:44:55")
                         }
                     },
                     IPv4 = new()
@@ -345,6 +346,51 @@ public sealed class NetworkInterfacesConfigurationAdapterTests
             // Assert
             result.OperationStatus.Should().Be(OperationStatus.Error);
             result.Messages.Should().Contain(Result.ErrorMessage);
+        }
+
+        [Fact]
+        public async Task ShouldUseBypassMACAddress_WhenApplyConfigurationBypassedAndAddressNone()
+        {
+            // Arrange
+            ScriptOptions? capturedOptions = default;
+            var handler = Substitute.For<IScriptHandler>();
+            handler.ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>()).Returns(Result.SuccessResult);
+            handler.ExecuteSetInterfaceSettingsScript(Arg.Do<ScriptOptions>(so => capturedOptions = so))
+                .Returns(Result.SuccessResult);
+
+            var config = new SystemConfiguration
+            {
+                NetworkInterfaces =
+                [
+                    new()
+                    {
+                        CommonInformation = new()
+                        {
+                            Enabled = true,
+                            Name = Lan1,
+                            UserDefinedMACAddress = new()
+                            {
+                                Enabled = false,
+                                Address = PhysicalAddress.None
+                            }
+                        },
+                        IPv4 = new(),
+                        VLAN = new()
+                    }
+                ]
+            };
+
+            var sut = CreateSut(handler, bypassHasChanges: true, bypassApply: true);
+
+            // Act
+            var result = await sut.SetConfiguration(config, CancellationToken.None);
+
+            // Assert
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            capturedOptions.Should().NotBeNull();
+            capturedOptions!.Options.Should().ContainInOrder(
+                ScriptOptionNames.Network.UserDefinedMACAddressEnabled, "false",
+                ScriptOptionNames.Network.UserDefinedMACAddress, "bypass");
         }
 
         [Fact]

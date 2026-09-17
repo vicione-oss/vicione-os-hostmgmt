@@ -673,7 +673,7 @@ internal sealed partial class SystemConfigurationService(
             if (defaultCommon.UserDefinedMACAddress is { } userDefinedMACAddress)
             {
                 currentCommon.UserDefinedMACAddress.Enabled = defaultCommon.UserDefinedMACAddress.Enabled;
-                currentCommon.UserDefinedMACAddress.Address = defaultCommon.UserDefinedMACAddress.Address;
+                currentCommon.UserDefinedMACAddress.Address = defaultCommon.UserDefinedMACAddress.Address.ToColonNotation();
             }
         }
 
