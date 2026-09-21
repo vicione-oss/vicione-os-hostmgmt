@@ -25,8 +25,8 @@ public sealed class SystemConfigurationAdapterTests
         public async Task ShouldReturnErrorAndStopProcessing_WhenAdapterReturnsError()
         {
             // Arrange
-            var warningAdapter = new TestConfigurationAdapter(getResult: Result.WarningResult);
-            var errorAdapter = new TestConfigurationAdapter(getResult: Result.ErrorResult);
+            var warningAdapter = new TestConfigurationAdapter(getResult: Result.TestWarningResult);
+            var errorAdapter = new TestConfigurationAdapter(getResult: Result.TestErrorResult);
             var skippedAdapter = new TestConfigurationAdapter();
             var sut = CreateSut(new(), adapters: [warningAdapter, errorAdapter, skippedAdapter]);
             var config = new SystemConfiguration();
@@ -36,7 +36,7 @@ public sealed class SystemConfigurationAdapterTests
 
             // Assert
             result.OperationStatus.Should().Be(OperationStatus.Error);
-            result.Messages.Should().ContainInOrder(Result.WarningMessage, Result.ErrorMessage);
+            result.Messages.Should().ContainInOrder(Result.TestWarningMessage, Result.TestErrorMessage);
 
             warningAdapter.GetConfigurationCallCount.Should().Be(1);
             errorAdapter.GetConfigurationCallCount.Should().Be(1);
@@ -49,7 +49,7 @@ public sealed class SystemConfigurationAdapterTests
             // Arrange
             using var cancellationTokenSource = new CancellationTokenSource();
 
-            var warningAdapter = new TestConfigurationAdapter(getResult: Result.WarningResult);
+            var warningAdapter = new TestConfigurationAdapter(getResult: Result.TestWarningResult);
             var successAdapter = new TestConfigurationAdapter();
             var sut = CreateSut(new(), adapters: [warningAdapter, successAdapter]);
             var config = new SystemConfiguration();
@@ -59,7 +59,7 @@ public sealed class SystemConfigurationAdapterTests
 
             // Assert
             result.OperationStatus.Should().Be(OperationStatus.Warning);
-            result.Messages.Should().ContainSingle().Which.Should().Be(Result.WarningMessage);
+            result.Messages.Should().ContainSingle().Which.Should().Be(Result.TestWarningMessage);
 
             warningAdapter.GetConfigurationCallCount.Should().Be(1);
             successAdapter.GetConfigurationCallCount.Should().Be(1);
@@ -171,11 +171,11 @@ public sealed class SystemConfigurationAdapterTests
 
             var warningAdapter = new TestConfigurationAdapter(
                 hasChanges: true,
-                setResult: Result.WarningResult);
+                setResult: Result.TestWarningResult);
 
             var errorAdapter = new TestConfigurationAdapter(
                 hasChanges: true,
-                setResult: Result.ErrorResult);
+                setResult: Result.TestErrorResult);
 
             var skippedAdapter = new TestConfigurationAdapter(hasChanges: true);
 
@@ -188,7 +188,7 @@ public sealed class SystemConfigurationAdapterTests
 
             // Assert
             result.OperationStatus.Should().Be(OperationStatus.Error);
-            result.Messages.Should().ContainInOrder(Result.WarningMessage, Result.ErrorMessage);
+            result.Messages.Should().ContainInOrder(Result.TestWarningMessage, Result.TestErrorMessage);
 
             warningAdapter.SetConfigurationCallCount.Should().Be(1);
             errorAdapter.SetConfigurationCallCount.Should().Be(1);

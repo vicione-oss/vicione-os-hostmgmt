@@ -17,7 +17,158 @@ public class SystemConfigurationPersistenceTests
 
     public SystemConfigurationPersistenceTests() => _persistence = new(_fileSystem);
 
+    public sealed class DeleteDefectiveMarkedUserConfiguration : SystemConfigurationPersistenceTests
+    {
+        [Fact]
+        public void ShouldNotThrow_WhenFileDoesNotExist()
+        {
+            // Arrange
+            _fileSystem.AddDirectory(EnvironmentVariables.SystemConfigurationDirectory.Value);
+
+            // Act
+            _persistence.ExistsDefectiveUserConfiguration().Should().BeFalse();
+            var action = _persistence.DeleteDefectiveMarkedUserConfiguration;
+
+            // Assert
+            action.Should().NotThrow();
+        }
+
+        [Fact]
+        public void ShouldDelete_WhenFileExists()
+        {
+            // Arrange
+            _fileSystem.AddFile(AppPaths.DefectiveSystemConfigurationFilePath, new(string.Empty));
+
+            // Act
+            _persistence.ExistsDefectiveUserConfiguration().Should().BeTrue();
+            _persistence.DeleteDefectiveMarkedUserConfiguration();
+
+            // Assert
+            _persistence.ExistsDefectiveUserConfiguration().Should().BeFalse();
+        }
+    }
+
+    public sealed class ExistsDefectivePreparationConfiguration : SystemConfigurationPersistenceTests
+    {
+        [Fact]
+        public void ShouldReturnFalse_WhenFileDoesNotExist()
+            => _persistence.ExistsDefectivePreparationConfiguration().Should().BeFalse();
+
+        [Fact]
+        public void ShouldReturnTrue_WhenFileExists()
+        {
+            _fileSystem.AddFile(AppPaths.DefectiveDefaultSystemConfigurationFilePath, new(string.Empty));
+
+            _persistence.ExistsDefectivePreparationConfiguration().Should().BeTrue();
+        }
+    }
+
+    public sealed class ExistsDefectiveUserConfiguration : SystemConfigurationPersistenceTests
+    {
+        [Fact]
+        public void ShouldReturnFalse_WhenFileDoesNotExist()
+            => _persistence.ExistsDefectiveUserConfiguration().Should().BeFalse();
+
+        [Fact]
+        public void ShouldReturnTrue_WhenFileExists()
+        {
+            _fileSystem.AddFile(AppPaths.DefectiveSystemConfigurationFilePath, new(string.Empty));
+
+            _persistence.ExistsDefectiveUserConfiguration().Should().BeTrue();
+        }
+    }
+
+    public sealed class ExistsPreparationConfiguration : SystemConfigurationPersistenceTests
+    {
+        [Fact]
+        public void ShouldReturnFalse_WhenFileDoesNotExist()
+            => _persistence.ExistsPreparationConfiguration().Should().BeFalse();
+
+        [Fact]
+        public void ShouldReturnTrue_WhenFileExists()
+        {
+            _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new(string.Empty));
+
+            _persistence.ExistsPreparationConfiguration().Should().BeTrue();
+        }
+    }
+
+    public sealed class ExistsUserConfiguration : SystemConfigurationPersistenceTests
+    {
+        [Fact]
+        public void ShouldReturnFalse_WhenFileDoesNotExist()
+            => _persistence.ExistsUserConfiguration().Should().BeFalse();
+
+        [Fact]
+        public void ShouldReturnTrue_WhenFileExists()
+        {
+            _fileSystem.AddFile(AppPaths.SystemConfigurationFilePath, new(string.Empty));
+
+            _persistence.ExistsUserConfiguration().Should().BeTrue();
+        }
+    }
+
+    public sealed class GetDefectivePreparationConfigurationPath : SystemConfigurationPersistenceTests
+    {
+        [Fact]
+        public void ShouldReturnDefectiveDefaultSystemConfigurationFilePath()
+            => _persistence
+                .GetDefectivePreparationConfigurationPath()
+                .Should().Be(AppPaths.DefectiveDefaultSystemConfigurationFilePath);
+    }
+
+    public sealed class GetDefectiveUserConfigurationPath : SystemConfigurationPersistenceTests
+    {
+        [Fact]
+        public void ShouldReturnDefectiveSystemConfigurationFilePath()
+            => _persistence
+                .GetDefectiveUserConfigurationPath()
+                .Should().Be(AppPaths.DefectiveSystemConfigurationFilePath);
+    }
+
+    public sealed class GetPreparationConfigurationPath : SystemConfigurationPersistenceTests
+    {
+        [Fact]
+        public void ShouldReturnDefaultSystemConfigurationFilePath()
+            => _persistence.GetPreparationConfigurationPath().Should().Be(AppPaths.DefaultSystemConfigurationFilePath);
+    }
+
+    public sealed class GetUserConfigurationPath : SystemConfigurationPersistenceTests
+    {
+        [Fact]
+        public void ShouldReturnSystemConfigurationFilePath()
+            => _persistence.GetUserConfigurationPath().Should().Be(AppPaths.SystemConfigurationFilePath);
+    }
+
     public sealed class LoadPreparationConfiguration : SystemConfigurationPersistenceTests
+    {
+        [Fact]
+        public async Task ShouldLoadFromPreparationConfigurationFile()
+        {
+            _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new("""{"Version":2}"""));
+            _fileSystem.AddFile(AppPaths.SystemConfigurationFilePath, new("invalid"));
+
+            await _persistence
+                .Invoking(x => x.LoadPreparationConfiguration(CancellationToken.None))
+                .Should().NotThrowAsync();
+        }
+    }
+
+    public sealed class LoadUserConfiguration : SystemConfigurationPersistenceTests
+    {
+        [Fact]
+        public async Task ShouldLoadFromUserConfigurationFile()
+        {
+            _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new("invalid"));
+            _fileSystem.AddFile(AppPaths.SystemConfigurationFilePath, new("""{"Version":2}"""));
+
+            await _persistence
+                .Invoking(x => x.LoadUserConfiguration(CancellationToken.None))
+                .Should().NotThrowAsync();
+        }
+    }
+
+    public sealed class LoadConfiguration : SystemConfigurationPersistenceTests
     {
         // DO NOT modify!
         private static readonly string s_jsonConfigV1_1_1 =
@@ -271,7 +422,8 @@ public class SystemConfigurationPersistenceTests
         {
             _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new(string.Empty));
 
-            await _persistence.Invoking(x => x.LoadPreparationConfiguration(CancellationToken.None))
+            await _persistence
+                .Invoking(x => x.LoadPreparationConfiguration(CancellationToken.None))
                 .Should().ThrowAsync<InvalidSystemConfigurationException>()
                 .WithMessage("UTF-8 JSON stream could not be deserialized to 'SystemConfiguration'.")
                 .WithInnerException(typeof(JsonException))
@@ -283,7 +435,8 @@ public class SystemConfigurationPersistenceTests
         {
             _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new("{}"));
 
-            await _persistence.Invoking(x => x.LoadPreparationConfiguration(CancellationToken.None))
+            await _persistence
+                .Invoking(x => x.LoadPreparationConfiguration(CancellationToken.None))
                 .Should().ThrowAsync<InvalidSystemConfigurationException>()
                 .WithMessage("UTF-8 JSON stream could not be deserialized to 'SystemConfiguration'.")
                 .WithInnerException(typeof(JsonException))
@@ -295,9 +448,9 @@ public class SystemConfigurationPersistenceTests
         {
             _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new("""{"Version":0}"""));
 
-            await _persistence.Invoking(x => x.LoadPreparationConfiguration(CancellationToken.None))
-                .Should()
-                .ThrowAsync<NotSupportedException>()
+            await _persistence
+                .Invoking(x => x.LoadPreparationConfiguration(CancellationToken.None))
+                .Should().ThrowAsync<NotSupportedException>()
                 .WithMessage("*version '0' is not supported*");
         }
 
@@ -306,7 +459,8 @@ public class SystemConfigurationPersistenceTests
         {
             _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new("""{"Version":"2"}"""));
 
-            await _persistence.Invoking(x => x.LoadPreparationConfiguration(CancellationToken.None))
+            await _persistence
+                .Invoking(x => x.LoadPreparationConfiguration(CancellationToken.None))
                 .Should().ThrowAsync<InvalidSystemConfigurationException>()
                 .WithMessage("UTF-8 JSON stream could not be deserialized to 'SystemConfiguration'.")
                 .WithInnerException(typeof(JsonException))
@@ -318,7 +472,8 @@ public class SystemConfigurationPersistenceTests
         {
             _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new("""{"Version":2}"""));
 
-            await _persistence.Invoking(x => x.LoadPreparationConfiguration(CancellationToken.None))
+            await _persistence
+                .Invoking(x => x.LoadPreparationConfiguration(CancellationToken.None))
                 .Should().NotThrowAsync();
         }
 
@@ -375,7 +530,8 @@ public class SystemConfigurationPersistenceTests
 
             _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new(config));
 
-            await _persistence.Invoking(x => x.LoadPreparationConfiguration(CancellationToken.None))
+            await _persistence
+                .Invoking(x => x.LoadPreparationConfiguration(CancellationToken.None))
                 .Should().NotThrowAsync();
         }
 
@@ -400,48 +556,72 @@ public class SystemConfigurationPersistenceTests
         }
     }
 
-    public sealed class PreparationConfigurationExists : SystemConfigurationPersistenceTests
+    public sealed class MarkPreparationConfigurationDefective() : SystemConfigurationPersistenceTests
     {
         [Fact]
-        public void ShouldReturnFalse_WhenFileDoesNotExist()
-            => _persistence.ExistsPreparationConfiguration().Should().BeFalse();
+        public void ShouldMovePreparationConfigurationToDefectivePreparationConfiguration()
+        {
+            // Arrange
+            _fileSystem.AddDirectory(EnvironmentVariables.DefaultSystemConfigurationDirectory.Value);
+            _fileSystem.File.WriteAllText(AppPaths.DefaultSystemConfigurationFilePath, "config");
+
+            // Act
+            _persistence.MarkPreparationConfigurationDefective();
+
+            // Assert
+            _fileSystem.File.Exists(AppPaths.DefaultSystemConfigurationFilePath).Should().BeFalse();
+            _fileSystem.File.Exists(AppPaths.DefectiveDefaultSystemConfigurationFilePath).Should().BeTrue();
+        }
 
         [Fact]
-        public void ShouldReturnTrue_WhenFileExists()
+        public void ShouldOverwriteDefectivePreparationConfiguration_WhenFileAlreadyExists()
         {
-            _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new(string.Empty));
+            // Arrange
+            _fileSystem.AddDirectory(EnvironmentVariables.DefaultSystemConfigurationDirectory.Value);
+            _fileSystem.File.WriteAllText(AppPaths.DefaultSystemConfigurationFilePath, "new config");
+            _fileSystem.File.WriteAllText(AppPaths.DefectiveDefaultSystemConfigurationFilePath, "old config");
 
-            _persistence.ExistsPreparationConfiguration().Should().BeTrue();
+            // Act
+            _persistence.MarkPreparationConfigurationDefective();
+
+            // Assert
+            _fileSystem.File.ReadAllText(AppPaths.DefectiveDefaultSystemConfigurationFilePath).Should().Be("new config");
+            _fileSystem.File.Exists(AppPaths.DefaultSystemConfigurationFilePath).Should().BeFalse();
         }
     }
 
-    public sealed class UserConfigurationExists : SystemConfigurationPersistenceTests
+    public sealed class MarkUserConfigurationDefective() : SystemConfigurationPersistenceTests
     {
         [Fact]
-        public void ShouldReturnFalse_WhenFileDoesNotExist()
-            => _persistence.ExistsUserConfiguration().Should().BeFalse();
-
-        [Fact]
-        public void ShouldReturnTrue_WhenFileExists()
+        public void ShouldMoveUserConfigurationToDefectiveUserConfiguration()
         {
-            _fileSystem.AddFile(AppPaths.SystemConfigurationFilePath, new(string.Empty));
+            // Arrange
+            _fileSystem.AddDirectory(EnvironmentVariables.SystemConfigurationDirectory.Value);
+            _fileSystem.File.WriteAllText(AppPaths.SystemConfigurationFilePath, "config");
 
-            _persistence.ExistsUserConfiguration().Should().BeTrue();
+            // Act
+            _persistence.MarkUserConfigurationDefective();
+
+            // Assert
+            _fileSystem.File.Exists(AppPaths.SystemConfigurationFilePath).Should().BeFalse();
+            _fileSystem.File.Exists(AppPaths.DefectiveSystemConfigurationFilePath).Should().BeTrue();
         }
-    }
 
-    public sealed class GetPreparationConfigurationPath : SystemConfigurationPersistenceTests
-    {
         [Fact]
-        public void ShouldReturnDefaultSystemConfigurationFilePath()
-            => _persistence.GetPreparationConfigurationPath().Should().Be(AppPaths.DefaultSystemConfigurationFilePath);
-    }
+        public void ShouldOverwriteDefectiveUserConfiguration_WhenFileAlreadyExists()
+        {
+            // Arrange
+            _fileSystem.AddDirectory(EnvironmentVariables.SystemConfigurationDirectory.Value);
+            _fileSystem.File.WriteAllText(AppPaths.SystemConfigurationFilePath, "new config");
+            _fileSystem.File.WriteAllText(AppPaths.DefectiveSystemConfigurationFilePath, "old config");
 
-    public sealed class GetUserConfigurationPath : SystemConfigurationPersistenceTests
-    {
-        [Fact]
-        public void ShouldReturnSystemConfigurationFilePath()
-            => _persistence.GetUserConfigurationPath().Should().Be(AppPaths.SystemConfigurationFilePath);
+            // Act
+            _persistence.MarkUserConfigurationDefective();
+
+            // Assert
+            _fileSystem.File.ReadAllText(AppPaths.DefectiveSystemConfigurationFilePath).Should().Be("new config");
+            _fileSystem.File.Exists(AppPaths.SystemConfigurationFilePath).Should().BeFalse();
+        }
     }
 
     public sealed class SaveUserConfiguration : SystemConfigurationPersistenceTests

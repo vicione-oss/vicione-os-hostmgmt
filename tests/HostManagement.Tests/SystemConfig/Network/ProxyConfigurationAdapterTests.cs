@@ -56,7 +56,7 @@ public sealed class ProxyConfigurationAdapterTests
         {
             // Arrange
             var handler = Substitute.For<IScriptHandler>();
-            handler.ExecuteGetNetworkProxySettingsScript().Returns((Result.ErrorResult, new NetworkProxySettings()));
+            handler.ExecuteGetNetworkProxySettingsScript().Returns((Result.TestErrorResult, new NetworkProxySettings()));
 
             var originalProxySettings = new NetworkProxySettings()
             {
@@ -75,8 +75,49 @@ public sealed class ProxyConfigurationAdapterTests
 
             // Assert
             result.OperationStatus.Should().Be(OperationStatus.Error);
-            result.Messages.Should().Contain(Result.ErrorMessage);
+            result.Messages.Should().Contain(Result.TestErrorMessage);
             config.NetworkProxySettings.Should().BeSameAs(originalProxySettings);
+
+            await handler.Received(1).ExecuteGetNetworkProxySettingsScript();
+        }
+
+        [Theory]
+        [InlineData("user%25", null)]
+        [InlineData(null, "pa%24%24word")]
+        public async Task ShouldNotUnescapeUsernameAndPassword_WhenNull(
+            string? escapedUsername,
+            string? escapedPassword)
+        {
+            // Arrange
+            var proxySettings = new NetworkProxySettings()
+            {
+                HTTPS = new NetworkProxyDetail()
+                {
+                    Enabled = true,
+                    Server = HTTPSProxy,
+                    Port = ProxyPort,
+                    Username = escapedUsername,
+                    Password = escapedPassword
+                }
+            };
+
+            var handler = Substitute.For<IScriptHandler>();
+            handler.ExecuteGetNetworkProxySettingsScript().Returns((Result.SuccessResult, proxySettings));
+
+            var config = CreateSystemConfig();
+            var sut = CreateSut(CreateSystemConfig(new()), handler);
+
+            // Act
+            var result = await sut.GetConfiguration(config, CancellationToken.None);
+
+            // Assert
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
+
+            config.NetworkProxySettings.Should().NotBeNull();
+            config.NetworkProxySettings.HTTPS.Should().NotBeNull();
+            config.NetworkProxySettings.HTTPS.Username.Should().Be(escapedUsername);
+            config.NetworkProxySettings.HTTPS.Password.Should().Be(escapedPassword);
 
             await handler.Received(1).ExecuteGetNetworkProxySettingsScript();
         }
@@ -237,6 +278,41 @@ public sealed class ProxyConfigurationAdapterTests
 
     public sealed class SetConfiguration
     {
+        [Fact]
+        internal async Task ShouldReturnError_WhenSetProxyDetailFails()
+        {
+            // Arrange
+            var handler = Substitute.For<IScriptHandler>();
+            handler.ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>()).Returns(Result.TestErrorResult);
+
+            var current = CreateSystemConfig(new NetworkProxySettings()
+            {
+                HTTP = CreateProxyDetail(true, HTTPProxy, ProxyPort, ProxyUser, ProxyPassword),
+                HTTPS = CreateProxyDetail(false, HTTPSProxy, ProxyPort),
+                FTP = CreateProxyDetail(true, FTPProxy, ProxyPort),
+                SFTP = CreateProxyDetail(false, SFTPProxy, ProxyPort, ProxyUser, ProxyPassword)
+            });
+
+            var proposed = CreateSystemConfig(new NetworkProxySettings()
+            {
+                HTTP = CreateProxyDetail(true, HTTPProxyChanged, ProxyPort, ProxyUser, ProxyPassword),
+                HTTPS = CreateProxyDetail(false, HTTPSProxyChanged, ProxyPort),
+                FTP = CreateProxyDetail(true, FTPProxyChanged, ProxyPort),
+                SFTP = CreateProxyDetail(false, SFTPProxyChanged, ProxyPort, ProxyUser, ProxyPassword)
+            });
+
+            var sut = CreateSut(current, handler, bypassHasChanges: true);
+
+            // Act
+            var result = await sut.SetConfiguration(proposed, CancellationToken.None);
+
+            // Assert
+            result.OperationStatus.Should().Be(OperationStatus.Error);
+            result.Messages.Should().Contain(Result.TestErrorMessage);
+
+            await handler.Received(1).ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>());
+        }
+
         [Theory]
         [ClassData(typeof(NetworkProxyData))]
         internal async Task ShouldOnlyCallScripts_WhenProxyDetailsConfigured(
@@ -396,6 +472,46 @@ public sealed class ProxyConfigurationAdapterTests
                     ScriptOptionNames.Proxy.NoProxyListEnabled, "true"));
         }
 
+        [Fact]
+        public async Task ShouldKeepRegularEntryAndPercentEncodeZoneIdentifier_WhenNoProxyEntriesAreMixed()
+        {
+            // Arrange
+            List<ScriptOptions> capturedOptions = [];
+            var handler = Substitute.For<IScriptHandler>();
+            handler.ExecuteSetNetworkProxySettingsScript(Arg.Do<ScriptOptions>(capturedOptions.Add))
+                .Returns(Result.SuccessResult);
+
+            var current = CreateSystemConfig(new());
+            var proposed = CreateSystemConfig(new()
+            {
+                NoProxy = new()
+                {
+                    Enabled = true,
+                    Entries =
+                    [
+                        NoProxyEntry,
+                        "fe80::/10%lan1"
+                    ]
+                }
+            });
+
+            var sut = CreateSut(current, handler, bypassHasChanges: true);
+
+            // Act
+            var result = await sut.SetConfiguration(proposed, CancellationToken.None);
+
+            // Assert
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
+
+            await handler.Received(1).ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>());
+
+            capturedOptions.Should().SatisfyRespectively(
+                so => so.Options.Should().ContainInOrder(
+                    ScriptOptionNames.Proxy.NoProxyList, "localhost,fe80::/10%25lan1",
+                    ScriptOptionNames.Proxy.NoProxyListEnabled, "true"));
+        }
+
 #pragma warning disable CA1812
         internal sealed class NetworkProxyData : TheoryData<NetworkProxySettings?, NetworkProxySettings, int>
         {
@@ -445,12 +561,12 @@ public sealed class ProxyConfigurationAdapterTests
                     },
                     0);
 
-                // Different proposed proxy details
+                // Different proposed proxy details (server null)
                 Add(
                     currentProxySettings,
                     new()
                     {
-                        HTTPS = CreateProxyDetail(false, HTTPSProxyChanged, ProxyPort)
+                        HTTPS = CreateProxyDetail(false, null!, ProxyPort)
                     },
                     1);
 

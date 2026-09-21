@@ -251,10 +251,11 @@ internal sealed partial class SystemConfigurationService(
         if (!validationResult.IsValid)
             return validationResult.EntriesString;
 
-        var policyValidationResult = SystemConfigurationPolicyValidator.Validate(proposedConfig);
+        var servicesValidationResult = ConfigurableServicesValidator
+            .Validate(proposedConfig, EnvironmentVariables.ConfigurableServices.Value);
 
-        if (!policyValidationResult.IsValid)
-            return policyValidationResult.FormattedMessages;
+        if (!servicesValidationResult.IsValid)
+            return servicesValidationResult.FormattedMessages;
 
         var supportedSettingsValidationResult = SupportedSettingsValidator
             .Validate(currentConfig, proposedConfig, _supportedSettings);

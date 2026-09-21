@@ -77,7 +77,7 @@ public class SystemdUnitServiceTests
 
             scriptHandler
                 .ExecuteGetSystemdUnitActiveStateScript(Arg.Any<ScriptOptions>())
-                .Returns((Result.ErrorResult, "unknown"));
+                .Returns((Result.TestErrorResult, "unknown"));
 
             var sut = new SystemdUnitService(logger, scriptHandler, s_configurableServices);
 
@@ -223,7 +223,7 @@ public class SystemdUnitServiceTests
 
             scriptHandler
                 .ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>())
-                .Returns(Result.ErrorResult);
+                .Returns(Result.TestErrorResult);
 
             var sut = new SystemdUnitService(logger, scriptHandler, s_configurableServices);
 

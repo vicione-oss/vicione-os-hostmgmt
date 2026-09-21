@@ -5,11 +5,11 @@ namespace HostManagement.Tests;
 /// </summary>
 internal static class ResultExtensions
 {
-    private const string ErrorMessage = "An error occurred.";
-    private const string WarningMessage = "A warning occurred.";
+    private const string TestErrorMessage = "An error occurred.";
+    private const string TestWarningMessage = "A warning occurred.";
 
-    private static readonly Result s_errorResult = CreateErrorResult();
-    private static readonly Result s_warningResult = CreateWarningResult();
+    private static readonly Result s_testErrorResult = CreateErrorResult();
+    private static readonly Result s_testWarningResult = CreateWarningResult();
 
     /// <summary>
     /// Provides extension members for the specified result.
@@ -17,23 +17,23 @@ internal static class ResultExtensions
     /// <param name="result">The result.</param>
     extension(Result result)
     {
-        public static Result ErrorResult => s_errorResult;
-        public static Result WarningResult => s_warningResult;
-        public static string ErrorMessage => ErrorMessage;
-        public static string WarningMessage => WarningMessage;
+        public static Result TestErrorResult => s_testErrorResult;
+        public static Result TestWarningResult => s_testWarningResult;
+        public static string TestErrorMessage => TestErrorMessage;
+        public static string TestWarningMessage => TestWarningMessage;
     }
 
     private static Result CreateErrorResult()
     {
         var result = new Result();
-        result.AddError(ErrorMessage);
+        result.AddError(TestErrorMessage);
         return result;
     }
 
     private static Result CreateWarningResult()
     {
         var result = new Result();
-        result.AddWarning(WarningMessage);
+        result.AddWarning(TestWarningMessage);
         return result;
     }
 }
