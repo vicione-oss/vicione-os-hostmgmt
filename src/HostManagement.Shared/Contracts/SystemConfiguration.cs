@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using HostManagement.Shared.Capabilities;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Contracts.Service;
+using HostManagement.Shared.Contracts.Syslog;
 using HostManagement.Shared.Extensions;
 
 namespace HostManagement.Shared.Contracts;
@@ -46,6 +47,11 @@ public class SystemConfiguration : IEquatable<SystemConfiguration>
     public NetworkNTPSettings NetworkNTPSettings { get; set; } = new();
 
     /// <summary>
+    /// The syslog settings.
+    /// </summary>
+    public SyslogSettings Syslog { get; set; } = new();
+
+    /// <summary>
     /// The list of managed services.
     /// </summary>
     [SupportedSetting]
@@ -60,6 +66,7 @@ public class SystemConfiguration : IEquatable<SystemConfiguration>
         hashCode.Add(NetworkDNSSettings);
         hashCode.Add(NetworkProxySettings);
         hashCode.Add(NetworkNTPSettings);
+        hashCode.Add(Syslog);
         hashCode.AddRange(Services, order: service => service.Name);
 
         return hashCode.ToHashCode();
@@ -75,5 +82,6 @@ public class SystemConfiguration : IEquatable<SystemConfiguration>
         && NetworkDNSSettings.Equals(other.NetworkDNSSettings)
         && NetworkProxySettings.Equals(other.NetworkProxySettings)
         && NetworkNTPSettings.Equals(other.NetworkNTPSettings)
+        && Syslog.Equals(other.Syslog)
         && Services.OrderBy(x => x.Name).SequenceEqual(other.Services.OrderBy(x => x.Name));
 }

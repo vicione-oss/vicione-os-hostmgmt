@@ -851,6 +851,42 @@ public sealed class ScriptHandlerTests
         }
 
         [Fact]
+        public async Task ExecuteGetSyslogSettingsScript_ShouldPassNoArguments()
+        {
+            // Arrange
+            Invocation? invocation = null;
+
+            var sut = CreateSut(CreateErrorResponse(), value => invocation = value);
+
+            // Act
+            await sut.ExecuteGetSyslogSettingsScript();
+
+            // Assert
+            AssertInvocation(invocation, ScriptIdentifier.SyslogSettingsGet);
+        }
+
+        [Fact]
+        public async Task ExecuteSetSyslogSettingsScript_ShouldPassOptions()
+        {
+            // Arrange
+            var scriptOptions = CreateScriptOptions(FirstOptionArgument, SecondOptionArgument);
+
+            Invocation? invocation = null;
+
+            var sut = CreateSut(CreateSuccessResponse(), value => invocation = value);
+
+            // Act
+            await sut.ExecuteSetSyslogSettingsScript(scriptOptions);
+
+            // Assert
+            AssertInvocation(
+                invocation,
+                ScriptIdentifier.SyslogSettingsSet,
+                FirstOptionArgument,
+                SecondOptionArgument);
+        }
+
+        [Fact]
         public async Task ExecuteGetSystemdUnitActiveStateScript_ShouldPassOptions()
         {
             // Arrange

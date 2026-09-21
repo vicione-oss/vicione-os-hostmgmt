@@ -33,6 +33,7 @@ internal class SystemConfiguration : IEquatable<SystemConfiguration>, ISystemCon
     public NetworkDNSSettings? NetworkDNSSettings { get; set; }
     public NetworkProxySettings? NetworkProxySettings { get; set; }
     public NetworkNTPSettings? NetworkNTPSettings { get; set; }
+    public SyslogSettings? Syslog { get; set; }
     public List<ServiceDetail>? Services { get; set; }
 
     public override int GetHashCode()
@@ -43,6 +44,7 @@ internal class SystemConfiguration : IEquatable<SystemConfiguration>, ISystemCon
         hashCode.Add(NetworkDNSSettings);
         hashCode.Add(NetworkProxySettings);
         hashCode.Add(NetworkNTPSettings);
+        hashCode.Add(Syslog);
         hashCode.AddRange(Services, order: service => service.Name);
 
         return hashCode.ToHashCode();
@@ -56,5 +58,6 @@ internal class SystemConfiguration : IEquatable<SystemConfiguration>, ISystemCon
         && EqualityComparer<NetworkDNSSettings>.Default.Equals(NetworkDNSSettings, other.NetworkDNSSettings)
         && EqualityComparer<NetworkProxySettings>.Default.Equals(NetworkProxySettings, other.NetworkProxySettings)
         && EqualityComparer<NetworkNTPSettings>.Default.Equals(NetworkNTPSettings, other.NetworkNTPSettings)
+        && EqualityComparer<SyslogSettings>.Default.Equals(Syslog, other.Syslog)
         && EqualityComparer<ServiceDetail>.Default.SequenceEqual(Services, other.Services, service => service.Name);
 }

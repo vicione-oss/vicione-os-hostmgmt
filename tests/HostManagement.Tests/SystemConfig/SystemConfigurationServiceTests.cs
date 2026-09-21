@@ -1502,6 +1502,8 @@ public class SystemConfigurationServiceTests
             ScriptHandler.ExecuteSetNetworkNTPSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(Result.SuccessResult);
             ScriptHandler.ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(Result.SuccessResult);
             ScriptHandler.ExecuteApplyNetplanConfigurationScript().ReturnsForAnyArgs(Result.SuccessResult);
+            ScriptHandler.ExecuteGetSyslogSettingsScript().ReturnsForAnyArgs((Result.SuccessResult, new()));
+            ScriptHandler.ExecuteSetSyslogSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(Result.SuccessResult);
 
             SupportedSettings.NetworkInterfaces.Capability = CapabilityStatus.Enabled;
             SupportedSettings.NetworkInterfaces.NetworkInterfaceDetail.IPv4.Capability = CapabilityStatus.Enabled;

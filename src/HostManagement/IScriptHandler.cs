@@ -163,6 +163,19 @@ internal interface IScriptHandler
     Task<Result> ExecuteSetNetworkProxySettingsScript(ScriptOptions scriptOptions);
 
     /// <summary>
+    /// Executes the script to get syslog settings.
+    /// </summary>
+    /// <returns><see cref="Result"/> and <see cref="SyslogSettings"/>.</returns>
+    Task<(Result, SyslogSettings)> ExecuteGetSyslogSettingsScript();
+
+    /// <summary>
+    /// Executes the script to set syslog settings.
+    /// </summary>
+    /// <param name="scriptOptions">The script options to execute the script.</param>
+    /// <returns><see cref="Result"/></returns>
+    Task<Result> ExecuteSetSyslogSettingsScript(ScriptOptions scriptOptions);
+
+    /// <summary>
     /// Executes the script to get the current active state ("active", "inactive" etc.) of a given Linux systemd unit.
     /// </summary>
     /// <param name="scriptOptions">The script options to execute the script.</param>

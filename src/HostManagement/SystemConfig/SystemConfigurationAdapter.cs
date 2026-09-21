@@ -3,6 +3,7 @@ using HostManagement.Shared.Communication.Enums;
 using HostManagement.SystemConfig.Contracts;
 using HostManagement.SystemConfig.Network;
 using HostManagement.SystemConfig.Service;
+using HostManagement.SystemConfig.Syslog;
 
 namespace HostManagement.SystemConfig;
 
@@ -44,6 +45,10 @@ internal sealed class SystemConfigurationAdapter : ConfigurationAdapter
                         bypassHasChanges,
                         bypassApplyConfig),
                     new NetworkNTPConfigurationAdapter(
+                        scriptHandler,
+                        bypassHasChanges,
+                        bypassApplyConfig),
+                    new SyslogConfigurationAdapter(
                         scriptHandler,
                         bypassHasChanges,
                         bypassApplyConfig),

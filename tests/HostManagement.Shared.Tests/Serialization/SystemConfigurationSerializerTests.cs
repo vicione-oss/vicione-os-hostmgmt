@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using AwesomeAssertions;
 using HostManagement.Shared.Contracts;
+using HostManagement.Shared.Contracts.Syslog;
 using HostManagement.Shared.Enums;
 using HostManagement.Shared.Serialization;
 using Xunit;
@@ -128,6 +129,25 @@ public class SystemConfigurationSerializerTests
             Enabled = true,
             Servers = ["NTPServer"]
         },
+        Syslog = new()
+        {
+            Enabled = true,
+            Address = "239.0.0.1:6000",
+            TransportProtocol = SyslogTransportProtocol.Udp,
+            LogFormat = SyslogLogFormat.Rfc5424,
+            ConnectionRetrySeconds = 30,
+            ExcludeSyslogFacilities =
+            [
+                SyslogFacility.Auth,
+                SyslogFacility.Authpriv,
+                SyslogFacility.SolarisCron
+            ],
+            ExcludeSyslogLevels =
+            [
+                SyslogLevel.Debug,
+                SyslogLevel.Info
+            ]
+        },
         Services =
         [
             new()
@@ -242,6 +262,22 @@ public class SystemConfigurationSerializerTests
             "Enabled": true,
             "Servers": [
               "NTPServer"
+            ]
+          },
+          "Syslog": {
+            "Enabled": true,
+            "Address": "239.0.0.1:6000",
+            "TransportProtocol": "udp",
+            "LogFormat": "rfc5424",
+            "ConnectionRetrySeconds": 30,
+            "ExcludeSyslogFacilities": [
+              "auth",
+              "authpriv",
+              "solaris-cron"
+            ],
+            "ExcludeSyslogLevels": [
+              "debug",
+              "info"
             ]
           },
           "Services": [
