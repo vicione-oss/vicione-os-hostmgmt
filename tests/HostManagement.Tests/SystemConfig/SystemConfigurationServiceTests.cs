@@ -791,7 +791,7 @@ public class SystemConfigurationServiceTests
 
             context.ScriptHandler
                 .ExecuteGetOriginalPhysicalAddressScript(Lan1)
-                .Returns((Result.ErrorResult, string.Empty));
+                .Returns((Result.TestErrorResult, string.Empty));
 
             // Act
             var status = await context.Sut.SetConfigurationOnDeviceStartup(

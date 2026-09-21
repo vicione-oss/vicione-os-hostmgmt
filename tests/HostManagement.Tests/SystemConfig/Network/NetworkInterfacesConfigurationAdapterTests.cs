@@ -374,7 +374,11 @@ public sealed class NetworkInterfacesConfigurationAdapterTests
                         {
                             Enabled = false,
                             Name = Lan1,
-                            PhysicalAddress = "00:11:22:33:44:55"
+                            UserDefinedMACAddress = new()
+                            {
+                                Enabled = true,
+                                Address = PhysicalAddress.Parse("00:11:22:33:44:55")
+                            }
                         },
                         IPv4 = new()
                         {
@@ -401,9 +405,10 @@ public sealed class NetworkInterfacesConfigurationAdapterTests
             await handler.Received(1).ExecuteSetInterfaceSettingsScript(Arg.Any<ScriptOptions>());
 
             capturedOptions.Should().NotBeNull();
-            capturedOptions.Options.Should().HaveCount(8).And.ContainInOrder(
+            capturedOptions.Options.Should().HaveCount(10).And.ContainInOrder(
                 ScriptOptionNames.Network.InterfaceName, Lan1,
-                ScriptOptionNames.Network.MACAddress, "00:11:22:33:44:55",
+                ScriptOptionNames.Network.UserDefinedMACAddressEnabled, "true",
+                ScriptOptionNames.Network.UserDefinedMACAddress, "00:11:22:33:44:55",
                 ScriptOptionNames.Network.Enabled, "false",
                 ScriptOptionNames.Network.DHCPEnabled, "false");
         }
@@ -418,7 +423,7 @@ public sealed class NetworkInterfacesConfigurationAdapterTests
             handler.ExecuteSetInterfaceSettingsScript(Arg.Do<ScriptOptions>(so => capturedOptions = so))
                 .Returns(Result.SuccessResult);
 
-            var sut = CreateSut(handler, bypassHasChanges: true, bypassApply: true);
+            var sut = CreateSut(handler, bypassHasChanges: true);
 
             var proposedConfig = new SystemConfiguration()
             {
@@ -430,7 +435,11 @@ public sealed class NetworkInterfacesConfigurationAdapterTests
                         {
                             Enabled = null,
                             Name = Lan1,
-                            PhysicalAddress = "00:11:22:33:44:55"
+                            UserDefinedMACAddress = new()
+                            {
+                                Enabled = true,
+                                Address = PhysicalAddress.Parse("00:11:22:33:44:55")
+                            }
                         },
                         IPv4 = new()
                         {
@@ -457,9 +466,11 @@ public sealed class NetworkInterfacesConfigurationAdapterTests
             await handler.Received(1).ExecuteSetInterfaceSettingsScript(Arg.Any<ScriptOptions>());
 
             capturedOptions.Should().NotBeNull();
-            capturedOptions.Options.Should().HaveCount(6).And.ContainInOrder(
+            capturedOptions.Options.Should().HaveCount(10).And.ContainInOrder(
                 ScriptOptionNames.Network.VLANID, "100",
                 ScriptOptionNames.Network.InterfaceName, Lan1,
+                ScriptOptionNames.Network.UserDefinedMACAddressEnabled, "true",
+                ScriptOptionNames.Network.UserDefinedMACAddress, "00:11:22:33:44:55",
                 ScriptOptionNames.Network.DHCPEnabled, "false");
         }
 
@@ -473,7 +484,7 @@ public sealed class NetworkInterfacesConfigurationAdapterTests
             handler.ExecuteSetInterfaceSettingsScript(Arg.Do<ScriptOptions>(so => capturedOptions = so))
                 .Returns(Result.SuccessResult);
 
-            var sut = CreateSut(handler, bypassHasChanges: true, bypassApply: true);
+            var sut = CreateSut(handler, bypassHasChanges: true);
 
             var proposedConfig = new SystemConfiguration()
             {
@@ -485,7 +496,11 @@ public sealed class NetworkInterfacesConfigurationAdapterTests
                         {
                             Enabled = false,
                             Name = Lan1,
-                            PhysicalAddress = "00:11:22:33:44:55"
+                            UserDefinedMACAddress = new()
+                            {
+                                Enabled = true,
+                                Address = PhysicalAddress.Parse("00:11:22:33:44:55")
+                            }
                         },
                         IPv4 = null,
                         VLAN = new()
@@ -507,9 +522,11 @@ public sealed class NetworkInterfacesConfigurationAdapterTests
             await handler.Received(1).ExecuteSetInterfaceSettingsScript(Arg.Any<ScriptOptions>());
 
             capturedOptions.Should().NotBeNull();
-            capturedOptions.Options.Should().HaveCount(6).And.ContainInOrder(
+            capturedOptions.Options.Should().HaveCount(10).And.ContainInOrder(
                 ScriptOptionNames.Network.VLANID, "100",
                 ScriptOptionNames.Network.InterfaceName, Lan1,
+                ScriptOptionNames.Network.UserDefinedMACAddressEnabled, "true",
+                ScriptOptionNames.Network.UserDefinedMACAddress, "00:11:22:33:44:55",
                 ScriptOptionNames.Network.Enabled, "false");
         }
 
@@ -580,7 +597,7 @@ public sealed class NetworkInterfacesConfigurationAdapterTests
             await handler.Received(1).ExecuteSetInterfaceSettingsScript(Arg.Any<ScriptOptions>());
 
             capturedOptions.Should().NotBeNull();
-            capturedOptions.Options.Should().ContainInOrder(
+            capturedOptions.Options.Should().HaveCount(16).And.ContainInOrder(
                 ScriptOptionNames.Network.VLANID, "100",
                 ScriptOptionNames.Network.InterfaceName, Lan1,
                 ScriptOptionNames.Network.UserDefinedMACAddressEnabled, "true",
@@ -613,9 +630,11 @@ public sealed class NetworkInterfacesConfigurationAdapterTests
             await handler.Received(1).ExecuteSetInterfaceSettingsScript(Arg.Any<ScriptOptions>());
 
             capturedOptions.Should().NotBeNull();
-            capturedOptions.Options.Should().HaveCount(12).And.ContainInOrder(
+            capturedOptions.Options.Should().HaveCount(16).And.ContainInOrder(
                 ScriptOptionNames.Network.VLANID, "100",
                 ScriptOptionNames.Network.InterfaceName, Lan1,
+                ScriptOptionNames.Network.UserDefinedMACAddressEnabled, "true",
+                ScriptOptionNames.Network.UserDefinedMACAddress, "bypass",
                 ScriptOptionNames.Network.Enabled, "false",
                 ScriptOptionNames.Network.DHCPEnabled, "true",
                 ScriptOptionNames.Network.IPAddress, "192.168.0.10/24",
