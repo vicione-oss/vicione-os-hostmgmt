@@ -1,3 +1,4 @@
+using System.Net.NetworkInformation;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using Microsoft.Extensions.Logging;
@@ -36,11 +37,17 @@ internal sealed partial class PhysicalAddressService(ILogger logger, IScriptHand
             if (result.OperationStatus is OperationStatus.Error)
                 return LogAndReturnGetOriginalPhysicalAddressFailedResult(result.FormattedMessages);
 
+            if (!PhysicalAddress.TryParse(physicalAddress, out var originalPhysicalAddress) ||
+                originalPhysicalAddress.GetAddressBytes().Length != 6)
+            {
+                throw new FormatException($"Invalid original physical address '{physicalAddress}'.");
+            }
+
             return new GetOriginalPhysicalAddressResult
             {
                 Status = OperationStatus.Success,
                 Message = string.Empty,
-                OriginalPhysicalAddress = physicalAddress
+                OriginalPhysicalAddress = originalPhysicalAddress
             };
         }
         catch (OperationCanceledException)

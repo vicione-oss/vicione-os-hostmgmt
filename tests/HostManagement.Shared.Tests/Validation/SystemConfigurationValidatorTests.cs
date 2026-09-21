@@ -20,7 +20,7 @@ public class SystemConfigurationValidatorTests
         await cts.CancelAsync();
 
         var result = await new SystemConfigurationValidator()
-            .ValidateAsync(new SystemConfiguration(), cts.Token);
+            .ValidateAsync(new SystemConfiguration(), cancellationToken: cts.Token);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -42,7 +42,7 @@ public class SystemConfigurationValidatorTests
 
         // Act
         var validationResult = await new SystemConfigurationValidator()
-            .ValidateAsync(invalidProposedConfig!, CancellationToken.None);
+            .ValidateAsync(invalidProposedConfig!, cancellationToken: CancellationToken.None);
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
@@ -130,7 +130,7 @@ public class SystemConfigurationValidatorTests
 
         // Act
         var result = await new SystemConfigurationValidator()
-            .ValidateAsync(systemConfiguration, CancellationToken.None);
+            .ValidateAsync(systemConfiguration, cancellationToken: CancellationToken.None);
 
         // Assert
         result.Should().BeOfType<ValidationResult>();

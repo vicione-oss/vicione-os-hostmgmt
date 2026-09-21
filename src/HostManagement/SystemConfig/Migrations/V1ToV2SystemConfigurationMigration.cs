@@ -1,3 +1,4 @@
+using System.Net.NetworkInformation;
 using CurrentContracts = HostManagement.SystemConfig.Contracts;
 using V1Contracts = HostManagement.SystemConfig.Migrations.Contracts.V1;
 
@@ -49,8 +50,27 @@ internal sealed class V1ToV2SystemConfigurationMigration
             {
                 Name = source.Name,
                 Enabled = source.Enabled,
-                PhysicalAddress = source.PhysicalAddress
+                UserDefinedMACAddress = source.MapOrNull(MigrateUserDefinedMACAddress)
             };
+
+    private static CurrentContracts.UserDefinedMACAddressSettings MigrateUserDefinedMACAddress(
+        V1Contracts.NetworkInterfaceCommonInformation source)
+    {
+        if (string.IsNullOrWhiteSpace(source.PhysicalAddress))
+        {
+            return new()
+            {
+                Enabled = false,
+                Address = PhysicalAddress.None
+            };
+        }
+
+        return new()
+        {
+            Enabled = true,
+            Address = PhysicalAddress.Parse(source.PhysicalAddress)
+        };
+    }
 
     private static CurrentContracts.IPv4Settings MigrateIPv4Settings(V1Contracts.IPv4Settings source)
         => new()

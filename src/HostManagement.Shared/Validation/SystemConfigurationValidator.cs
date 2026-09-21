@@ -1,3 +1,4 @@
+using System.Net.NetworkInformation;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Validation.Validators;
 using HostManagement.Shared.Validation.Validators.DNS;
@@ -10,16 +11,19 @@ namespace HostManagement.Shared.Validation;
 /// <summary>
 /// Represents the validator for a <see cref="SystemConfiguration"/> object.
 /// </summary>
-public sealed class SystemConfigurationValidator : IValidator<SystemConfiguration>
+public sealed class SystemConfigurationValidator : IValidator<SystemConfiguration, IReadOnlyList<PhysicalAddress>>
 {
     /// <summary>
     /// Validates the specified <see cref="SystemConfiguration"/> asynchronously.
     /// </summary>
     /// <param name="configuration">The <see cref="SystemConfiguration"/>.</param>
+    /// <param name="originalMACAddresses">A list of factory-assigned original MAC addresses,
+    /// that can't be used as a user-defined MAC address.</param>
     /// <param name="cancellationToken">A token to cancel the validation.</param>
     /// <inheritdoc/>
     public async Task<ValidationResult> ValidateAsync(
         SystemConfiguration configuration,
+        IReadOnlyList<PhysicalAddress>? originalMACAddresses = null,
         CancellationToken cancellationToken = default)
     {
         var result = new ValidationResult();
@@ -30,7 +34,7 @@ public sealed class SystemConfigurationValidator : IValidator<SystemConfiguratio
 
             result.AddResult(
                 await new NetworkInterfacesValidator()
-                    .ValidateAsync(configuration.NetworkInterfaces, cancellationToken)
+                    .ValidateAsync(configuration.NetworkInterfaces, originalMACAddresses, cancellationToken)
                     .ConfigureAwait(false));
 
             result.AddResult(

@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.Json;
 using AwesomeAssertions;
@@ -23,7 +24,11 @@ public class SystemConfigurationSerializerTests
                 {
                     Enabled = true,
                     Name = "lan1",
-                    PhysicalAddress = "01:23:45:67:89:AB"
+                    UserDefinedMACAddress = new()
+                    {
+                        Enabled = true,
+                        Address = PhysicalAddress.Parse("01:23:45:67:89:AB")
+                    }
                 },
                 IPv4 = new()
                 {
@@ -147,7 +152,10 @@ public class SystemConfigurationSerializerTests
               "CommonInformation": {
                 "Enabled": true,
                 "Name": "lan1",
-                "PhysicalAddress": "01:23:45:67:89:AB"
+                "UserDefinedMACAddress": {
+                    "Enabled": true,
+                    "Address": "01:23:45:67:89:AB"
+                }
               },
               "IPv4": {
                 "Gateway": "120.86.52.18",

@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -19,16 +19,18 @@ public class IPAddressConverter : JsonConverter<IPAddress>
         Type typeToConvert,
         JsonSerializerOptions options)
     {
-        if (reader.TokenType != JsonTokenType.String)
+        if (reader.TokenType is not JsonTokenType.String)
             throw new JsonException("Expected string as the JSON token type.");
 
-        if (string.IsNullOrWhiteSpace(reader.GetString()))
-            throw new JsonException($"IPAddress '{reader.GetString()}' can not be empty.");
+        var value = reader.GetString();
 
-        if (IPAddress.TryParse(reader.GetString(), out var ipAddress))
+        if (string.IsNullOrWhiteSpace(value))
+            throw new JsonException($"IPAddress '{value}' can not be empty.");
+
+        if (IPAddress.TryParse(value, out var ipAddress))
             return ipAddress;
         else
-            throw new JsonException($"Invalid IP address format: '{reader.GetString()}'");
+            throw new JsonException($"Invalid IP address format: '{value}'");
     }
 
     /// <inheritdoc/>

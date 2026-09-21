@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.NetworkInformation;
 using AwesomeAssertions;
 using HostManagement.Shared.Validation;
 using HostManagement.Shared.Validation.Validators.NetworkInterfaces;
@@ -31,11 +32,17 @@ public class NetworkInterfaceValidatorTests
     public async Task ShouldAddValidationResult_WhenMACAddressConfigured()
     {
         // Arrange
-        var interfaceWithInvalidMAC = ValidationTestData.Interface.Static with
+        var staticInterface = ValidationTestData.Interface.Static;
+
+        var interfaceWithInvalidMAC = staticInterface with
         {
-            CommonInformation = ValidationTestData.Interface.Static.CommonInformation with
+            CommonInformation = staticInterface.CommonInformation with
             {
-                PhysicalAddress = "01-23-45-67-89-XX"
+                UserDefinedMACAddress = staticInterface.CommonInformation.UserDefinedMACAddress with
+                {
+                    Enabled = true,
+                    Address = new PhysicalAddress([0xA1, 0xB2, 0xC3, 0xD4, 0xE5])
+                }
             }
         };
 

@@ -76,15 +76,46 @@ main() {
 
     for current in "${network_interfaces_array[@]}"; do
         name=${current%% *}
-        address=$(awk '{ if (NF==4) { print $3 } else { print "none" } }' <<< "$current")
+        user_defined_mac_address=""
+        user_defined_mac_address_enabled="false"
         enabled="true"
         netplan_config="${DIRECTORY_NETPLAN}/50-${name}.yaml"
 
-        if [[ -e "$netplan_config" ]] && grep -q "activation-mode: off" "$netplan_config"; then
-            enabled="false"
+        if [[ -e "$netplan_config" ]]; then
+            netplan_config_content=$(< "$netplan_config")
+
+            if grep -q "activation-mode: off" <<< "$netplan_config_content"; then
+                enabled="false"
+            fi
+
+            mac_address_information=$(sed -n "/^[[:space:]]*${name}:/,/macaddress:/p" <<< "$netplan_config_content")
+
+            user_defined_mac_address=$(
+                grep -w "macaddress:" <<< "$mac_address_information" |
+                    sed -E 's/.*(#|macaddress:)[[:space:]]*//' ||
+                    true
+            )
+
+            if [[ -n "$user_defined_mac_address" ]]; then
+                original_mac_address=$(./Scripts/Network/get_original_physical_address.sh "$name")
+
+                if [[ "$user_defined_mac_address" == "$original_mac_address" ]]; then
+                    user_defined_mac_address=""
+                elif [[ "$mac_address_information" != *macaddress:*#* ]]; then
+                    user_defined_mac_address_enabled="true"
+                fi
+            fi
         fi
 
-        json+="{\"Enabled\": ${enabled}, \"Name\": \"${name}\", \"PhysicalAddress\": \"${address}\"}, "
+        json+="{"
+        json+="\"Enabled\": ${enabled},"
+        json+="\"Name\": \"${name}\","
+        json+="\"UserDefinedMACAddress\": "
+        json+="{"
+        json+="  \"Enabled\": ${user_defined_mac_address_enabled},"
+        json+="  \"Address\": \"${user_defined_mac_address}\""
+        json+="}"
+        json+="}, "
     done
 
     echo "[ ${json::-2} ]"

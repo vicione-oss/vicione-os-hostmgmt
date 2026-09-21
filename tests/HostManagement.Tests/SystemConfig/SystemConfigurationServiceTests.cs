@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.NetworkInformation;
 using AwesomeAssertions;
 using HostManagement.Configuration;
 using HostManagement.Shared.Capabilities;
@@ -45,6 +46,15 @@ public class SystemConfigurationServiceTests
             }
         };
 
+    private static LoadedSystemConfiguration CreateLoadedConfig(
+        InternalSystemConfiguration? configuration = null,
+        int sourceVersion = InternalSystemConfiguration.CurrentVersion)
+        => new()
+        {
+            Configuration = configuration ?? CreateInternalConfig(),
+            SourceVersion = sourceVersion
+        };
+
     private static InternalSystemConfiguration CreateInternalDefaultConfigWithInterface(
         string interfaceName = Lan1,
         bool enabled = false,
@@ -62,7 +72,11 @@ public class SystemConfigurationServiceTests
                     {
                         Name = interfaceName,
                         Enabled = enabled,
-                        PhysicalAddress = physicalAddress
+                        UserDefinedMACAddress = new()
+                        {
+                            Enabled = true,
+                            Address = PhysicalAddress.Parse(physicalAddress)
+                        }
                     },
                     IPv4 = new()
                     {
@@ -201,6 +215,7 @@ public class SystemConfigurationServiceTests
 
             result.Status.Should().Be(OperationStatus.Warning);
             result.Configuration.Should().BeNull();
+            result.SourceVersion.Should().BeNull();
         }
 
         [Fact]
@@ -344,7 +359,7 @@ public class SystemConfigurationServiceTests
             var context = new SystemConfigurationServiceContext();
             context.Persistence.ExistsUserConfiguration().Returns(true);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
-            context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>()).Returns(CreateInternalConfig());
+            context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>()).Returns(CreateLoadedConfig());
 
             // Act
             var result = await context.Sut.GetConfigurationOnDeviceStartup(CancellationToken.None);
@@ -359,6 +374,25 @@ public class SystemConfigurationServiceTests
         }
 
         [Fact]
+        public async Task ShouldReturnSourceVersion_WhenConfigurationLoaded()
+        {
+            // Arrange
+            var context = new SystemConfigurationServiceContext();
+            context.Persistence.ExistsUserConfiguration().Returns(true);
+            context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
+            context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>())
+                .Returns(CreateLoadedConfig(sourceVersion: 1));
+
+            // Act
+            var result = await context.Sut.GetConfigurationOnDeviceStartup(CancellationToken.None);
+
+            // Assert
+            result.Status.Should().Be(OperationStatus.Success);
+            result.Configuration.Should().NotBeNull();
+            result.SourceVersion.Should().Be(1);
+        }
+
+        [Fact]
         public async Task ShouldLoadPreparationConfiguration_WhenOnlyPreparationConfigurationExists()
         {
             // Arrange
@@ -369,7 +403,7 @@ public class SystemConfigurationServiceTests
             context.Persistence.ExistsPreparationConfiguration().Returns(true);
             context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
             context.Persistence.LoadPreparationConfiguration(Arg.Any<CancellationToken>())
-                .Returns(CreateInternalConfig());
+                .Returns(CreateLoadedConfig());
 
             // Act
             var result = await context.Sut.GetConfigurationOnDeviceStartup(CancellationToken.None);
@@ -507,7 +541,7 @@ public class SystemConfigurationServiceTests
             context.Persistence.ExistsPreparationConfiguration().Returns(true);
             context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
 
-            var config = CreateInternalConfig();
+            var config = CreateLoadedConfig();
             context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>()).ReturnsForAnyArgs(config);
             context.Persistence.LoadPreparationConfiguration(Arg.Any<CancellationToken>()).ReturnsForAnyArgs(config);
 
@@ -538,7 +572,7 @@ public class SystemConfigurationServiceTests
             context.Persistence.ExistsPreparationConfiguration().Returns(true);
             context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
 
-            var config = CreateInternalConfig();
+            var config = CreateLoadedConfig();
             context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>()).ReturnsForAnyArgs(config);
             context.Persistence.LoadPreparationConfiguration(Arg.Any<CancellationToken>()).ReturnsForAnyArgs(config);
 
@@ -565,7 +599,7 @@ public class SystemConfigurationServiceTests
             var context = new SystemConfigurationServiceContext();
             context.Persistence.ExistsUserConfiguration().Returns(true);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
-            context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>()).Returns(CreateInternalConfig());
+            context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>()).Returns(CreateLoadedConfig());
 
             // Act
             var status = await context.Sut.PrepareConfigurationOnDeviceStartup(CancellationToken.None);
@@ -594,7 +628,7 @@ public class SystemConfigurationServiceTests
             context.Persistence.ExistsPreparationConfiguration().Returns(true);
             context.Persistence.GetPreparationConfigurationPath().Returns(AppPaths.DefaultSystemConfigurationFilePath);
             context.Persistence.LoadPreparationConfiguration(Arg.Any<CancellationToken>())
-                .Returns(CreateInternalConfig());
+                .Returns(CreateLoadedConfig());
 
             // Act
             var status = await context.Sut.PrepareConfigurationOnDeviceStartup(CancellationToken.None);
@@ -611,6 +645,164 @@ public class SystemConfigurationServiceTests
                 $"Prepare system configuration '{AppPaths.DefaultSystemConfigurationFilePath}' succeeded.");
 
             status.Should().Be(OperationStatus.Success);
+        }
+    }
+
+    public sealed class SetConfigurationOnDeviceStartup : SystemConfigurationServiceTests
+    {
+        private const string OriginalMACAddress = "00:50:56:36:6d:aa";
+        private const string UserDefinedMACAddress = "02:11:22:33:44:55";
+
+        [Fact]
+        public async Task ShouldDisableMigratedMACAddress_WhenV1AddressEqualsOriginalAddress()
+        {
+            // Arrange
+            var context = new SystemConfigurationServiceContext();
+            var proposedConfig = CreateSharedConfig();
+            var userDefinedMACAddress = proposedConfig.NetworkInterfaces[0].CommonInformation.UserDefinedMACAddress;
+            userDefinedMACAddress.Enabled = true;
+            userDefinedMACAddress.Address = PhysicalAddress.Parse(OriginalMACAddress);
+
+            context.ScriptHandler
+                .ExecuteGetOriginalPhysicalAddressScript(Lan1)
+                .Returns((Result.SuccessResult, OriginalMACAddress));
+
+            // Act
+            var status = await context.Sut.SetConfigurationOnDeviceStartup(
+                proposedConfig,
+                sourceVersion: 1,
+                CancellationToken.None);
+
+            // Assert
+            status.Should().Be(OperationStatus.Success);
+            userDefinedMACAddress.Enabled.Should().BeFalse();
+            userDefinedMACAddress.Address.Should().Be(PhysicalAddress.None);
+        }
+
+        [Fact]
+        public async Task ShouldKeepMigratedMACAddress_WhenV1AddressDiffersFromOriginalAddress()
+        {
+            // Arrange
+            var context = new SystemConfigurationServiceContext();
+            var proposedConfig = CreateSharedConfig();
+            var expectedAddress = PhysicalAddress.Parse(UserDefinedMACAddress);
+            var userDefinedMACAddress = proposedConfig.NetworkInterfaces[0].CommonInformation.UserDefinedMACAddress;
+            userDefinedMACAddress.Enabled = true;
+            userDefinedMACAddress.Address = expectedAddress;
+
+            context.ScriptHandler
+                .ExecuteGetOriginalPhysicalAddressScript(Lan1)
+                .Returns((Result.SuccessResult, OriginalMACAddress));
+
+            // Act
+            var status = await context.Sut.SetConfigurationOnDeviceStartup(
+                proposedConfig,
+                sourceVersion: 1,
+                CancellationToken.None);
+
+            // Assert
+            status.Should().Be(OperationStatus.Success);
+            userDefinedMACAddress.Enabled.Should().BeTrue();
+            userDefinedMACAddress.Address.Should().Be(expectedAddress);
+        }
+
+        [Fact]
+        public async Task ShouldRejectMACAddress_WhenV2AddressEqualsOriginalAddress()
+        {
+            // Arrange
+            var context = new SystemConfigurationServiceContext();
+            var proposedConfig = CreateSharedConfig();
+            var expectedAddress = PhysicalAddress.Parse(OriginalMACAddress);
+            var userDefinedMACAddress = proposedConfig.NetworkInterfaces[0].CommonInformation.UserDefinedMACAddress;
+            userDefinedMACAddress.Enabled = true;
+            userDefinedMACAddress.Address = expectedAddress;
+
+            context.ScriptHandler
+                .ExecuteGetOriginalPhysicalAddressScript(Lan1)
+                .Returns((Result.SuccessResult, OriginalMACAddress));
+
+            // Act
+            var status = await context.Sut.SetConfigurationOnDeviceStartup(
+                proposedConfig,
+                sourceVersion: InternalSystemConfiguration.CurrentVersion,
+                CancellationToken.None);
+
+            // Assert
+            status.Should().Be(OperationStatus.Error);
+            userDefinedMACAddress.Enabled.Should().BeTrue();
+            userDefinedMACAddress.Address.Should().Be(expectedAddress);
+        }
+
+        [Fact]
+        public async Task ShouldRejectMigratedMACAddress_WhenV1AddressEqualsOtherInterfaceOriginalAddress()
+        {
+            // Arrange
+            const string Lan2 = "lan2";
+            const string Lan2OriginalMACAddress = "00:50:56:36:6d:bb";
+
+            var context = new SystemConfigurationServiceContext();
+            var proposedConfig = CreateSharedConfig();
+            var expectedAddress = PhysicalAddress.Parse(Lan2OriginalMACAddress);
+            var userDefinedMACAddress = proposedConfig.NetworkInterfaces[0].CommonInformation.UserDefinedMACAddress;
+            userDefinedMACAddress.Enabled = true;
+            userDefinedMACAddress.Address = expectedAddress;
+            proposedConfig.NetworkInterfaces.Add(new()
+            {
+                CommonInformation = new()
+                {
+                    Name = Lan2,
+                    Enabled = true
+                },
+                IPv4 = new()
+                {
+                    DHCPEnabled = true
+                }
+            });
+
+            context.ScriptHandler
+                .ExecuteGetOriginalPhysicalAddressScript(Lan1)
+                .Returns((Result.SuccessResult, OriginalMACAddress));
+            context.ScriptHandler
+                .ExecuteGetOriginalPhysicalAddressScript(Lan2)
+                .Returns((Result.SuccessResult, Lan2OriginalMACAddress));
+
+            // Act
+            var status = await context.Sut.SetConfigurationOnDeviceStartup(
+                proposedConfig,
+                sourceVersion: 1,
+                CancellationToken.None);
+
+            // Assert
+            status.Should().Be(OperationStatus.Error);
+            userDefinedMACAddress.Enabled.Should().BeTrue();
+            userDefinedMACAddress.Address.Should().Be(expectedAddress);
+        }
+
+        [Fact]
+        public async Task ShouldKeepMigratedMACAddress_WhenOriginalAddressCannotBeRetrieved()
+        {
+            // Arrange
+            var context = new SystemConfigurationServiceContext();
+            var proposedConfig = CreateSharedConfig();
+            var expectedAddress = PhysicalAddress.Parse(UserDefinedMACAddress);
+            var userDefinedMACAddress = proposedConfig.NetworkInterfaces[0].CommonInformation.UserDefinedMACAddress;
+            userDefinedMACAddress.Enabled = true;
+            userDefinedMACAddress.Address = expectedAddress;
+
+            context.ScriptHandler
+                .ExecuteGetOriginalPhysicalAddressScript(Lan1)
+                .Returns((Result.ErrorResult, string.Empty));
+
+            // Act
+            var status = await context.Sut.SetConfigurationOnDeviceStartup(
+                proposedConfig,
+                sourceVersion: 1,
+                CancellationToken.None);
+
+            // Assert
+            status.Should().Be(OperationStatus.Success);
+            userDefinedMACAddress.Enabled.Should().BeTrue();
+            userDefinedMACAddress.Address.Should().Be(expectedAddress);
         }
     }
 
@@ -978,7 +1170,18 @@ public class SystemConfigurationServiceTests
                 .ReturnsForAnyArgs(
                 (
                     Result.SuccessResult,
-                    [new() { Name = Lan1, Enabled = true, PhysicalAddress = "11:22:33:44:55:66" }]
+                    [
+                        new()
+                        {
+                            Name = Lan1,
+                            Enabled = true,
+                            UserDefinedMACAddress = new()
+                            {
+                                Enabled = true,
+                                Address = PhysicalAddress.Parse("11:22:33:44:55:66")
+                            }
+                        }
+                    ]
                 ));
 
             var result = await context.Sut.ResetNetworkInterface(Lan1, CancellationToken.None);
@@ -995,14 +1198,25 @@ public class SystemConfigurationServiceTests
             context.Persistence.ExistsPreparationConfiguration().Returns(true);
             context.Persistence
                 .LoadPreparationConfiguration(Arg.Any<CancellationToken>())
-                .Returns(CreateInternalDefaultConfigWithInterface(interfaceName: "lan2"));
+                .Returns(CreateLoadedConfig(CreateInternalDefaultConfigWithInterface(interfaceName: "lan2")));
 
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
                 .ReturnsForAnyArgs(
                 (
                     Result.SuccessResult,
-                    [new() { Name = Lan1, Enabled = true, PhysicalAddress = "11:22:33:44:55:66" }]
+                    [
+                        new()
+                        {
+                            Name = Lan1,
+                            Enabled = true,
+                            UserDefinedMACAddress = new()
+                            {
+                                Enabled = true,
+                                Address = PhysicalAddress.Parse("11:22:33:44:55:66")
+                            }
+                        }
+                    ]
                 ));
 
             var result = await context.Sut.ResetNetworkInterface(Lan1, CancellationToken.None);
@@ -1019,7 +1233,7 @@ public class SystemConfigurationServiceTests
             context.Persistence.ExistsPreparationConfiguration().Returns(true);
             context.Persistence
                 .LoadPreparationConfiguration(Arg.Any<CancellationToken>())
-                .Returns(CreateInternalDefaultConfigWithInterface(dhcpEnabled: false));
+                .Returns(CreateLoadedConfig(CreateInternalDefaultConfigWithInterface(dhcpEnabled: false)));
             context.Persistence
                 .SaveUserConfiguration(Arg.Any<InternalSystemConfiguration>(), Arg.Any<CancellationToken>())
                 .ReturnsForAnyArgs(Task.CompletedTask);
@@ -1030,7 +1244,18 @@ public class SystemConfigurationServiceTests
                 .ReturnsForAnyArgs(
                 (
                     Result.SuccessResult,
-                    [new() { Name = Lan1, Enabled = true, PhysicalAddress = "11:22:33:44:55:66" }]
+                    [
+                        new()
+                        {
+                            Name = Lan1,
+                            Enabled = true,
+                            UserDefinedMACAddress = new()
+                            {
+                                Enabled = true,
+                                Address = PhysicalAddress.Parse("11:22:33:44:55:66")
+                            }
+                        }
+                    ]
                 ));
 
             context.ScriptHandler
@@ -1062,11 +1287,66 @@ public class SystemConfigurationServiceTests
             await context.Persistence.Received(1).SaveUserConfiguration(
                 Arg.Is<InternalSystemConfiguration>(static config =>
                     config.NetworkInterfaces![0].CommonInformation!.Enabled == false &&
-                    config.NetworkInterfaces![0].CommonInformation!.PhysicalAddress == "aa:bb:cc:dd:ee:ff" &&
+                    config.NetworkInterfaces![0].CommonInformation!.UserDefinedMACAddress!.Enabled &&
+                    config.NetworkInterfaces![0].CommonInformation!.UserDefinedMACAddress!.Address.Equals(
+                        PhysicalAddress.Parse("aa:bb:cc:dd:ee:ff")) &&
                     config.NetworkInterfaces![0].IPv4!.DHCPEnabled == false &&
                     config.NetworkInterfaces![0].IPv4!.Gateway!.ToString() == "192.168.1.1" &&
                     config.NetworkInterfaces![0].IPv4!.IPv4Details![0].IPAddress!.ToString() == "192.168.1.2" &&
                     config.NetworkInterfaces![0].IPv4!.IPv4Details![0].Netmask!.ToString() == "255.255.255.0"),
+                Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task ShouldClearMigratedFactoryMACAddress_WhenResetUsesV1PreparationConfiguration()
+        {
+            // Arrange
+            const string OriginalMACAddress = "00:50:56:36:6d:aa";
+
+            var context = new SystemConfigurationServiceContext();
+            context.Persistence.ExistsPreparationConfiguration().Returns(true);
+            context.Persistence
+                .LoadPreparationConfiguration(Arg.Any<CancellationToken>())
+                .Returns(CreateLoadedConfig(
+                    CreateInternalDefaultConfigWithInterface(physicalAddress: OriginalMACAddress),
+                    sourceVersion: 1));
+            context.Persistence
+                .SaveUserConfiguration(Arg.Any<InternalSystemConfiguration>(), Arg.Any<CancellationToken>())
+                .ReturnsForAnyArgs(Task.CompletedTask);
+
+            context.ScriptHandler
+                .ExecuteGetOriginalPhysicalAddressScript(Lan1)
+                .Returns((Result.SuccessResult, OriginalMACAddress));
+            context.ScriptHandler
+                .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
+                .ReturnsForAnyArgs(
+                (
+                    Result.SuccessResult,
+                    [
+                        new()
+                        {
+                            Name = Lan1,
+                            Enabled = true,
+                            UserDefinedMACAddress = new()
+                            {
+                                Enabled = true,
+                                Address = PhysicalAddress.Parse("11:22:33:44:55:66")
+                            }
+                        }
+                    ]
+                ));
+
+            // Act
+            var result = await context.Sut.ResetNetworkInterface(Lan1, CancellationToken.None);
+
+            // Assert
+            result.Status.Should().Be(OperationStatus.Success);
+
+            await context.Persistence.Received(1).SaveUserConfiguration(
+                Arg.Is<InternalSystemConfiguration>(static config =>
+                    !config.NetworkInterfaces![0].CommonInformation!.UserDefinedMACAddress!.Enabled &&
+                    config.NetworkInterfaces![0].CommonInformation!.UserDefinedMACAddress!.Address.Equals(
+                        PhysicalAddress.None)),
                 Arg.Any<CancellationToken>());
         }
     }
@@ -1204,6 +1484,7 @@ public class SystemConfigurationServiceTests
             const string RawInterfacesString = $"{Lan1}            UP             00:50:56:36:6d:33 <BROADCAST,MULTICAST,UP,LOWER_UP>";
 
             ScriptHandler.ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>()).Returns(Result.SuccessResult);
+            ScriptHandler.ExecuteGetOriginalPhysicalAddressScript(Arg.Any<string>()).Returns((Result.SuccessResult, "00:50:56:36:6d:aa"));
             ScriptHandler.ExecuteGetNetworkInterfacesScript().ReturnsForAnyArgs((Result.SuccessResult, RawInterfacesString));
             ScriptHandler.ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs((Result.SuccessResult, []));
             ScriptHandler.ExecuteGetInterfaceSettingsScript(Arg.Any<string>()).ReturnsForAnyArgs((Result.SuccessResult, new(), new()));

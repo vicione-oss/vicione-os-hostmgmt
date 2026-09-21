@@ -1,4 +1,4 @@
-﻿namespace HostManagement.Shared.Contracts.Network;
+namespace HostManagement.Shared.Contracts.Network;
 
 /// <summary>
 /// Represents the <see cref="NetworkInterfaceCommonInformation"/>.
@@ -16,7 +16,7 @@ public sealed record NetworkInterfaceCommonInformation
     public required string Name { get; set; }
 
     /// <summary>
-    /// The physical address of the network interface.
+    /// The user defined MAC address of the network interface.
     /// </summary>
-    public string PhysicalAddress { get; set; } = string.Empty;
+    public UserDefinedMACAddressSettings UserDefinedMACAddress { get; set; } = new();
 }

@@ -88,9 +88,14 @@ public static class ScriptOptionNames
         public const string InterfaceName = InterfaceNameFlag;
 
         /// <summary>
-        /// The script argument for the MAC address.
+        /// The script argument for the user defined MAC address enabled.
         /// </summary>
-        public const string MACAddress = "--mac-address";
+        public const string UserDefinedMACAddressEnabled = "--user-defined-mac-address-enabled";
+
+        /// <summary>
+        /// The script argument for the user defined MAC address.
+        /// </summary>
+        public const string UserDefinedMACAddress = "--user-defined-mac-address";
 
         /// <summary>
         /// The script argument for the interface enabled state.

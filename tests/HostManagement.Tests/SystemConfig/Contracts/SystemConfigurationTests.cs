@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.NetworkInformation;
 using AwesomeAssertions;
 using HostManagement.SystemConfig.Contracts;
 using Xunit;
@@ -401,7 +402,11 @@ public class SystemConfigurationTests
                     {
                         Enabled = true,
                         Name = "eth0",
-                        PhysicalAddress = "00:11:22:33:44:55",
+                        UserDefinedMACAddress = new UserDefinedMACAddressSettings
+                        {
+                            Enabled = true,
+                            Address = PhysicalAddress.Parse("00:11:22:33:44:55")
+                        }
                     },
                     IPv4 = new IPv4Settings
                     {

@@ -21,6 +21,7 @@ Configuration loading uses the following flow:
 1. `SystemConfigurationMigrationService` receives the typed contract
     1. If `Version` is current -> return the current `SystemConfiguration` contract
     1. If `Version` is older -> apply registered typed migrations until the current version is reached
+1. Persistence returns the migrated configuration together with the persisted source version
 
 > [!note]
 > Unsupported versions, missing `Version` properties and invalid migration results fail during loading.
@@ -66,6 +67,18 @@ flowchart TD
     I -- Migration failure ---> H
 
 ```
+
+## Device-dependent Migration Reconciliation
+
+Typed migrations are deterministic and do not query the running device. If migration semantics depend on
+live device state, that reconciliation must happen after loading while preserving the persisted source version.
+
+For V1 network interface MAC addresses, the persisted `PhysicalAddress` cannot by itself distinguish a genuine
+user-defined override from the interface factory address. Before a migrated V1 MAC setting is applied on a
+device-dependent path, such as device startup or interface reset, HM therefore compares it with the original MAC
+address of the same interface. If they are equal, the migrated user-defined MAC setting is disabled and cleared.
+Native V2 configurations are not reconciled this way and continue to fail validation when a factory MAC is configured
+as a user-defined address. If the original MAC address cannot be retrieved, the migrated V1 value is preserved.
 
 ## Main Components
 

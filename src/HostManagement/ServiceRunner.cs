@@ -95,10 +95,11 @@ internal static partial class ServiceRunner
                     .GetConfigurationOnDeviceStartup(lifetime.Token)
                     .ConfigureAwait(false);
 
-                if (configResult.Configuration is SystemConfiguration jsonConfig)
+                if (configResult.Configuration is SystemConfiguration jsonConfig &&
+                    configResult.SourceVersion is int sourceVersion)
                 {
                     var status = await initializationContext.ConfigurationService
-                        .SetConfigurationOnDeviceStartup(jsonConfig, lifetime.Token)
+                        .SetConfigurationOnDeviceStartup(jsonConfig, sourceVersion, lifetime.Token)
                         .ConfigureAwait(false);
 
                     if (status == OperationStatus.Error)

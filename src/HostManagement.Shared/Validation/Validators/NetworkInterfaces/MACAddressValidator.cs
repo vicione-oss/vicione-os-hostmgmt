@@ -1,14 +1,16 @@
-﻿using System.Globalization;
+using System.Globalization;
+using System.Net.NetworkInformation;
 using System.Text;
-using HostManagement.Shared.Validation.Utils;
+using HostManagement.Shared.Extensions;
 
 namespace HostManagement.Shared.Validation.Validators.NetworkInterfaces;
 
 /// <summary>
 /// Represents the validator for a MAC address.
 /// </summary>
-public sealed class MACAddressValidator : IValidator<string>
+public sealed class MACAddressValidator : IValidator<PhysicalAddress>
 {
+    private const int MACAddressByteLength = 6;
     private const string CustomInterfaceText = "network interface";
 
     private readonly string _customInterfaceNameText;
@@ -26,10 +28,6 @@ public sealed class MACAddressValidator : IValidator<string>
             _customInterfaceNameText = CustomInterfaceText + $" '{interfaceName}'";
     }
 
-    /// <inheritdoc cref="ValidateAsync(ReadOnlySpan{char}, CancellationToken)"/>
-    public Task<ValidationResult> ValidateAsync(string macAddress, CancellationToken cancellationToken = default)
-        => ValidateAsync(macAddress.AsSpan(), cancellationToken);
-
     /// <summary>
     /// Validates a MAC address asynchronously.
     /// </summary>
@@ -37,14 +35,14 @@ public sealed class MACAddressValidator : IValidator<string>
     /// <param name="cancellationToken">A token to cancel the validation.</param>
     /// <inheritdoc/>
     public Task<ValidationResult> ValidateAsync(
-        ReadOnlySpan<char> macAddress,
+        PhysicalAddress macAddress,
         CancellationToken cancellationToken = default)
     {
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (macAddress.IsWhiteSpace())
+            if (macAddress is null || macAddress.GetAddressBytes().Length == 0)
             {
                 return Task.FromResult(
                     ValidationResult.CreateWithError(
@@ -55,88 +53,31 @@ public sealed class MACAddressValidator : IValidator<string>
                             _customInterfaceNameText)));
             }
 
-            if (MACAddressValidatorUtils.HasNoSeparators(macAddress))
+            var addressBytes = macAddress.GetAddressBytes();
+            var formattedAddress = macAddress.ToColonNotation();
+
+            if (addressBytes.Length != MACAddressByteLength)
             {
-                if (macAddress.Length != 12)
-                {
-                    return Task.FromResult(
-                        ValidationResult.CreateWithError(
-                            string.Format(
-                                CultureInfo.InvariantCulture,
-                                CompositeFormat.Parse(
-                                    NetworkInterfacesValidationResults.MACAddressInvalidLength),
-                                macAddress.ToString(),
-                                _customInterfaceNameText)));
-                }
-
-                if (MACAddressValidatorUtils.HasNonAsciiHexDigit(macAddress))
-                {
-                    return Task.FromResult(
-                        ValidationResult.CreateWithError(
-                            string.Format(
-                                CultureInfo.InvariantCulture,
-                                CompositeFormat.Parse(
-                                    NetworkInterfacesValidationResults.MACAddressInvalidCharacter),
-                                macAddress.ToString(),
-                                _customInterfaceNameText)));
-                }
-
-                return Task.FromResult(IsMulticastMacAddress(macAddress, macAddress[..2]));
+                return Task.FromResult(
+                    ValidationResult.CreateWithError(
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            CompositeFormat.Parse(
+                                NetworkInterfacesValidationResults.MACAddressInvalidLength),
+                            formattedAddress,
+                            _customInterfaceNameText)));
             }
-            else
+
+            if (IsLeastSignificantBitSet(addressBytes[0]))
             {
-                var octets = macAddress.SplitAny(MACAddressValidatorUtils.Separators);
-
-                if (MACAddressValidatorUtils.HasInvalidOctetCount(octets))
-                {
-                    return Task.FromResult(
-                        ValidationResult.CreateWithError(
-                            string.Format(
-                                CultureInfo.InvariantCulture,
-                                CompositeFormat.Parse(
-                                    NetworkInterfacesValidationResults.MACAddressInvalidOctetCount),
-                                macAddress.ToString(),
-                                _customInterfaceNameText)));
-                }
-
-                var octetNumber = 0;
-
-                foreach (var octet in octets)
-                {
-                    octetNumber++;
-
-                    if (MACAddressValidatorUtils.HasOctetInvalidLength(macAddress[octet]))
-                    {
-                        return Task.FromResult(
-                            ValidationResult.CreateWithError(
-                                string.Format(
-                                    CultureInfo.InvariantCulture,
-                                    CompositeFormat.Parse(
-                                        NetworkInterfacesValidationResults.MACAddressOctetInvalidLength),
-                                    macAddress.ToString(),
-                                    _customInterfaceNameText)));
-                    }
-
-                    if (MACAddressValidatorUtils.HasNonAsciiHexDigit(macAddress[octet]))
-                    {
-                        return Task.FromResult(
-                            ValidationResult.CreateWithError(
-                                string.Format(
-                                    CultureInfo.InvariantCulture,
-                                    CompositeFormat.Parse(
-                                        NetworkInterfacesValidationResults.MACAddressInvalidCharacter),
-                                    macAddress.ToString(),
-                                    _customInterfaceNameText)));
-                    }
-
-                    if (octetNumber == 1)
-                    {
-                        var result = IsMulticastMacAddress(macAddress, macAddress[octet]);
-
-                        if (!result.IsValid)
-                            return Task.FromResult(result);
-                    }
-                }
+                return Task.FromResult(
+                    ValidationResult.CreateWithError(
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            CompositeFormat.Parse(
+                                NetworkInterfacesValidationResults.MACAddressCanNotBeMulticast),
+                            formattedAddress,
+                            _customInterfaceNameText)));
             }
 
             return Task.FromResult(ValidationResult.Valid);
@@ -149,23 +90,5 @@ public sealed class MACAddressValidator : IValidator<string>
         }
     }
 
-    private ValidationResult IsMulticastMacAddress(
-        ReadOnlySpan<char> macAddress,
-        ReadOnlySpan<char> firstOctet)
-    {
-        var firstOctetByte = byte.Parse(firstOctet, NumberStyles.HexNumber);
-
-        if (MACAddressValidatorUtils.IsLeastSignificantBitSet(firstOctetByte))
-        {
-            return ValidationResult.CreateWithError(
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    CompositeFormat.Parse(
-                        NetworkInterfacesValidationResults.MACAddressCanNotBeMulticast),
-                    macAddress.ToString(),
-                    _customInterfaceNameText));
-        }
-
-        return ValidationResult.Valid;
-    }
+    private static bool IsLeastSignificantBitSet(byte byteValue) => (byteValue & 0x01) == 0x01;
 }

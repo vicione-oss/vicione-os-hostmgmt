@@ -30,10 +30,7 @@ internal static partial class CliStrings
             internal const string EnableCommandDescription = "Enable the specified network interface.";
             internal const string ListInterfacesCommandDescription = "List all network interfaces with their configuration.";
             internal const string ListInterfacesCommandName = "list-interfaces";
-            internal const string MACCommandDescription = "Get or set the MAC address of the specified network interface.";
-            internal const string MACCommandName = "mac";
             internal const string ResetCommandDescription = "Reset the specified network interface to its default configuration.";
-            internal const string ResetCommandName = "reset";
             internal const string StatusCommandDescription = "Show enabled status of the specified network interface.";
 
             internal const string AlreadyDisabled = "Network interface '{0}' is already disabled.";
@@ -45,14 +42,40 @@ internal static partial class CliStrings
             internal const string InterfacesNotFound = "Network interfaces were not found.";
             internal const string IsDisabled = "Network interface '{0}' is disabled.";
             internal const string IsEnabled = "Network interface '{0}' is enabled.";
-            internal const string MACAlreadyDefined = "Physical address (MAC) '{0}' is already defined.";
-            internal const string MACInvalidLength = "Physical address (MAC) '{0}' has invalid length.";
-            internal const string MACSet = "Physical address (MAC) '{0}' has been set to '{1}' for network interface '{2}'.";
             internal const string NotFound = "Network interface '{0}' was not found.";
-            internal const string OriginalPhysicalAddress = "Original physical address";
-            internal const string PhysicalAddress = "Physical address";
             internal const string ResetSucceeded = "Network interface '{0}' has been reset to default configuration.";
             internal const string Unknown = "Unknown";
+
+            /// <summary>
+            /// Provides strings for interface MAC commands.
+            /// </summary>
+            internal static class MAC
+            {
+                internal const string CommandDescription = "Configure MAC address settings of a specified network interface.";
+                internal const string CommandName = "mac";
+
+                internal const string DisableCommandDescription = "Disable the user-defined MAC address for the specified network interface. The original MAC address will be used again.";
+                internal const string EnableCommandDescription = "Enable the user-defined MAC address for the specified network interface.";
+                internal const string ResetCommandDescription = "Reset the MAC address of the specified network interface to the original MAC address.";
+                internal const string SetCommandDescription = "Remove the existing user-defined MAC address and set a new one.";
+                internal const string StatusCommandDescription = "Show MAC address settings of the specified network interface.";
+
+                internal const string AlreadyDefined = "User-defined MAC address '{0}' is already defined.";
+                internal const string AlreadyDisabled = "User-defined MAC address '{0}' is already disabled for network interface '{1}'.";
+                internal const string AlreadyEnabled = "User-defined MAC address '{0}' is already enabled for network interface '{1}'.";
+                internal const string Disabled = "User-defined MAC address '{0}' has been disabled for network interface '{1}'. The original MAC address will be used again.";
+                internal const string Enabled = "User-defined MAC address '{0}' has been enabled for network interface '{1}'.";
+
+                internal const string IdenticalToOriginalAddress = "User-defined MAC address '{0}' is identical to the original MAC address.";
+                internal const string OriginalAddress = "Original MAC address";
+                internal const string UserDefinedAddress = "User-defined MAC address";
+
+
+                internal const string InvalidLength = "User-defined MAC address '{0}' has invalid length.";
+                internal const string InvalidFormat = "User-defined MAC address '{0}' has invalid format.";
+                internal const string ResetSucceeded = "MAC address of network interface '{0}' has been reset to its default '{1}'.";
+                internal const string Set = "User-defined MAC address '{0}' has been set to '{1}' for network interface '{2}'.";
+            }
 
             /// <summary>
             /// Provides strings for interface VLAN commands.

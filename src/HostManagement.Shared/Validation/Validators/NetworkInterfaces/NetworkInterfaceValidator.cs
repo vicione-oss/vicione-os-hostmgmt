@@ -27,13 +27,13 @@ public sealed class NetworkInterfaceValidator : IValidator<NetworkInterfaceDetai
 
             var result = new ValidationResult();
 
-            // TODO Is this check required anymore?
-            // When "enabled" is implemented this needs to be addressed!
-            if (IsMacAddressConfigured(networkInterface.CommonInformation.PhysicalAddress))
+            if (networkInterface.CommonInformation.UserDefinedMACAddress.Enabled)
             {
                 result.AddResult(
                     await new MACAddressValidator(networkInterface.CommonInformation.Name)
-                        .ValidateAsync(networkInterface.CommonInformation.PhysicalAddress, cancellationToken)
+                        .ValidateAsync(
+                            networkInterface.CommonInformation.UserDefinedMACAddress.Address,
+                            cancellationToken)
                         .ConfigureAwait(false));
             }
 
@@ -70,9 +70,6 @@ public sealed class NetworkInterfaceValidator : IValidator<NetworkInterfaceDetai
             return ValidationResult.CreateWithError(ValidationResults.ValidationCancelled);
         }
     }
-
-    private static bool IsMacAddressConfigured(string macAddress)
-        => !string.IsNullOrEmpty(macAddress);
 
     private static bool IsLoopbackInterface(NetworkInterfaceDetail networkInterface)
         => networkInterface.CommonInformation.Name.ToLowerInvariant().Equals("lo");

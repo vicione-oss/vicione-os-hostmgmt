@@ -1,5 +1,6 @@
 using System.IO.Abstractions.TestingHelpers;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Text.Json;
 using AwesomeAssertions;
 using HostManagement.Configuration;
@@ -131,7 +132,11 @@ public class SystemConfigurationPersistenceTests
                     {
                         Enabled = true,
                         Name = "lan1",
-                        PhysicalAddress = "00:02:01:ac:52:33"
+                        UserDefinedMACAddress = new()
+                        {
+                            Enabled = true,
+                            Address = PhysicalAddress.Parse("00:02:01:ac:52:33")
+                        }
                     },
                     IPv4 = new()
                     {
@@ -158,7 +163,11 @@ public class SystemConfigurationPersistenceTests
                     {
                         Enabled = true,
                         Name = "lan2",
-                        PhysicalAddress = "00:02:01:ac:52:34"
+                        UserDefinedMACAddress = new()
+                        {
+                            Enabled = true,
+                            Address = PhysicalAddress.Parse("00:02:01:ac:52:34")
+                        }
                     },
                     IPv4 = new()
                     {
@@ -314,6 +323,17 @@ public class SystemConfigurationPersistenceTests
         }
 
         [Fact]
+        public async Task ShouldReturnCurrentSourceVersion_WhenCurrentVersionLoaded()
+        {
+            _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new("""{"Version":2}"""));
+
+            var result = await _persistence.LoadPreparationConfiguration(CancellationToken.None);
+
+            result.SourceVersion.Should().Be(2);
+            result.Configuration.Version.Should().Be(2);
+        }
+
+        [Fact]
         public async Task ShouldLoadPartiallyDefinedDefaultSystemConfiguration()
         {
             var config =
@@ -364,7 +384,9 @@ public class SystemConfigurationPersistenceTests
         {
             _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new(s_jsonConfigV1_1_1));
             var result = await _persistence.LoadPreparationConfiguration(CancellationToken.None);
-            result.Should().BeEquivalentTo(s_configV1_1_1_AfterMigration);
+
+            result.SourceVersion.Should().Be(1);
+            result.Configuration.Should().BeEquivalentTo(s_configV1_1_1_AfterMigration);
         }
 
         [Fact]
@@ -372,7 +394,9 @@ public class SystemConfigurationPersistenceTests
         {
             _fileSystem.AddFile(AppPaths.DefaultSystemConfigurationFilePath, new(s_jsonConfigV1_3_0));
             var result = await _persistence.LoadPreparationConfiguration(CancellationToken.None);
-            result.Should().BeEquivalentTo(s_configV1_3_0_AfterMigration);
+
+            result.SourceVersion.Should().Be(1);
+            result.Configuration.Should().BeEquivalentTo(s_configV1_3_0_AfterMigration);
         }
     }
 
@@ -457,7 +481,11 @@ public class SystemConfigurationPersistenceTests
                         {
                             Enabled = true,
                             Name = "lan1",
-                            PhysicalAddress = "01:23:45:67:89:AB"
+                            UserDefinedMACAddress = new()
+                            {
+                                Enabled = true,
+                                Address = PhysicalAddress.Parse("01:23:45:67:89:AB")
+                            }
                         },
                         IPv4 = new()
                         {
@@ -575,7 +603,10 @@ public class SystemConfigurationPersistenceTests
                   "CommonInformation": {
                     "Name": "lan1",
                     "Enabled": true,
-                    "PhysicalAddress": "01:23:45:67:89:AB"
+                    "UserDefinedMACAddress": {
+                      "Enabled": true,
+                      "Address": "01:23:45:67:89:AB"
+                    }
                   },
                   "IPv4": {
                     "Gateway": "120.86.52.18",

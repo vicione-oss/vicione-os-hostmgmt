@@ -1,3 +1,4 @@
+using System.Net.NetworkInformation;
 using System.Text.Json;
 using AwesomeAssertions;
 using HostManagement.Scripts;
@@ -263,6 +264,39 @@ public sealed class ScriptHandlerTests
                     $"for script with identifier '{ScriptIdentifier.NetworkDNSSettingsGet}'." +
                     Environment.NewLine +
                     "null");
+        }
+
+        [Fact]
+        public async Task ShouldDeserializePhysicalAddress_WhenCommonInformationOutputContainsMACAddress()
+        {
+            // Arrange
+            const string Json =
+                """
+                [
+                  {
+                    "Enabled": true,
+                    "Name": "lan1",
+                    "UserDefinedMACAddress": {
+                      "Enabled": true,
+                      "Address": "01-23-45-67-89-ab"
+                    }
+                  }
+                ]
+                """;
+
+            var sut = CreateSut(CreateSuccessResponse(Json));
+
+            // Act
+            var (result, commonInformation) =
+                await sut.ExecuteGetNetworkInterfacesCommonInformationScript(new ScriptOptions());
+
+            // Assert
+            result.Should().BeEquivalentTo(new Result());
+            commonInformation.Should().ContainSingle();
+
+            var userDefinedMACAddress = commonInformation[0].UserDefinedMACAddress;
+            userDefinedMACAddress.Should().NotBeNull();
+            userDefinedMACAddress.Address.Should().Be(PhysicalAddress.Parse("01:23:45:67:89:AB"));
         }
 
         [Fact]

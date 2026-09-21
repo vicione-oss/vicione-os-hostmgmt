@@ -15,7 +15,7 @@ internal sealed class InterfaceResetCommand : ConfigCommandBase
     /// </summary>
     /// <param name="interfaceNameArgument">The interface name argument.</param>
     public InterfaceResetCommand(Argument<string> interfaceNameArgument)
-        : base(CliStrings.Network.Interface.ResetCommandName, CliStrings.Network.Interface.ResetCommandDescription)
+        : base(CliStrings.Common.ResetCommandName, CliStrings.Network.Interface.ResetCommandDescription)
     {
         Add(interfaceNameArgument);
 

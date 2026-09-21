@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Text.Json;
 using AwesomeAssertions;
 using HostManagement.SystemConfig.Migrations;
@@ -49,6 +50,91 @@ public class V1ToV2SystemConfigurationMigrationTests
         }
 
         [Fact]
+        public void ShouldMigrateDefaultConfiguration_WhenVersionIsV1()
+        {
+            // Arrange
+            using var sourceDocument = JsonDocument.Parse(
+                """
+                {
+                  "Version": 1,
+                  "NetworkInterfacesSettings": {
+                    "NetworkInterfaces": [
+                      {
+                        "CommonInformation": {
+                          "Enabled": true,
+                          "Name": "lan1"
+                        },
+                        "IPv4": {
+                          "DHCPEnabled": true
+                        }
+                      },
+                      {
+                        "CommonInformation": {
+                          "Enabled": true,
+                          "Name": "lan2"
+                        },
+                        "IPv4": {
+                          "DHCPEnabled": false,
+                          "IPv4Details": [
+                            {
+                              "IPAddress": "192.168.0.100",
+                              "Netmask": "255.255.255.0"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  "NetworkDNSSettings": {
+                    "Hostname": "hostname"
+                  }
+                }
+                """);
+
+            var sut = new V1ToV2SystemConfigurationMigration();
+
+            // Act
+            var result = MigrateSourceDocument(sut, sourceDocument);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.NetworkInterfaces.Should().NotBeNull().And.HaveCount(2);
+
+            var firstInterface = result.NetworkInterfaces[0];
+            firstInterface.CommonInformation.Should().NotBeNull();
+            firstInterface.CommonInformation.Name.Should().Be("lan1");
+            firstInterface.CommonInformation.Enabled.Should().BeTrue();
+
+            firstInterface.CommonInformation.UserDefinedMACAddress.Should().NotBeNull();
+            firstInterface.CommonInformation.UserDefinedMACAddress.Enabled.Should().BeFalse();
+            firstInterface.CommonInformation.UserDefinedMACAddress.Address.Should().Be(PhysicalAddress.None);
+
+            firstInterface.IPv4.Should().NotBeNull();
+            firstInterface.IPv4.Gateway.Should().BeNull();
+            firstInterface.IPv4.DHCPEnabled.Should().BeTrue();
+
+            var secondInterface = result.NetworkInterfaces[1];
+            secondInterface.CommonInformation.Should().NotBeNull();
+            secondInterface.CommonInformation.Name.Should().Be("lan2");
+            secondInterface.CommonInformation.Enabled.Should().BeTrue();
+
+            secondInterface.CommonInformation.UserDefinedMACAddress.Should().NotBeNull();
+            secondInterface.CommonInformation.UserDefinedMACAddress.Enabled.Should().BeFalse();
+            secondInterface.CommonInformation.UserDefinedMACAddress.Address.Should().Be(PhysicalAddress.None);
+
+            secondInterface.IPv4.Should().NotBeNull();
+            secondInterface.IPv4.Gateway.Should().BeNull();
+            secondInterface.IPv4.DHCPEnabled.Should().BeFalse();
+
+            var ipv4Details = secondInterface.IPv4.IPv4Details.Should().ContainSingle().Subject;
+            ipv4Details.IPAddress.Should().Be(IPAddress.Parse("192.168.0.100"));
+            ipv4Details.Netmask.Should().Be(IPAddress.Parse("255.255.255.0"));
+
+            result.NetworkDNSSettings.Should().NotBeNull();
+            result.NetworkDNSSettings.Hostname.Should().Be("hostname");
+        }
+
+        [Fact]
         public void ShouldMigrateNetworkInterfacesSettings_WhenSourceContainsInterface()
         {
             // Arrange
@@ -95,7 +181,10 @@ public class V1ToV2SystemConfigurationMigrationTests
             networkInterface.CommonInformation.Should().NotBeNull();
             networkInterface.CommonInformation.Name.Should().Be("lan1");
             networkInterface.CommonInformation.Enabled.Should().BeTrue();
-            networkInterface.CommonInformation.PhysicalAddress.Should().Be("00:02:01:ac:52:33");
+
+            networkInterface.CommonInformation.UserDefinedMACAddress.Should().NotBeNull();
+            networkInterface.CommonInformation.UserDefinedMACAddress.Enabled.Should().BeTrue();
+            networkInterface.CommonInformation.UserDefinedMACAddress.Address.Should().Be(PhysicalAddress.Parse("00:02:01:ac:52:33"));
 
             networkInterface.IPv4.Should().NotBeNull();
             networkInterface.IPv4.Gateway.Should().Be(IPAddress.Parse("192.168.1.1"));

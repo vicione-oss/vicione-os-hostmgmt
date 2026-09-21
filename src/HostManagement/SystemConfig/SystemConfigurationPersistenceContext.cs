@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 using HostManagement.SystemConfig.Contracts;
 
 namespace HostManagement.SystemConfig;
@@ -12,6 +12,6 @@ namespace HostManagement.SystemConfig;
     UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
     UseStringEnumConverter = true,
     WriteIndented = true,
-    Converters = [typeof(DateTimeOffsetConverter), typeof(IPAddressConverter),])]
+    Converters = [typeof(DateTimeOffsetConverter), typeof(IPAddressConverter), typeof(PhysicalAddressConverter)])]
 [JsonSerializable(typeof(SystemConfiguration))]
 internal sealed partial class SystemConfigurationPersistenceContext : JsonSerializerContext;

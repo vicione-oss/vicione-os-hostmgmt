@@ -65,18 +65,20 @@ internal static class ContractsTranslator
 
     private static SharedNetwork.NetworkInterfaceCommonInformation ToSharedContracts(
         this NetworkInterfaceCommonInformation intern)
-    {
-        var commonInformation = new SharedNetwork.NetworkInterfaceCommonInformation()
+        => new()
         {
             Enabled = intern.Enabled ?? false,
-            Name = intern.Name
+            Name = intern.Name,
+            UserDefinedMACAddress = intern.UserDefinedMACAddress?.ToSharedContracts() ?? new()
         };
 
-        if (intern.PhysicalAddress is { } physicalAddress)
-            commonInformation.PhysicalAddress = physicalAddress;
-
-        return commonInformation;
-    }
+    private static SharedNetwork.UserDefinedMACAddressSettings ToSharedContracts(
+        this UserDefinedMACAddressSettings intern)
+        => new()
+        {
+            Enabled = intern.Enabled,
+            Address = intern.Address
+        };
 
     private static SharedNetwork.IPv4Settings ToSharedContracts(this IPv4Settings intern)
     {
@@ -313,7 +315,15 @@ internal static class ContractsTranslator
             {
                 Enabled = shared.Enabled,
                 Name = shared.Name,
-                PhysicalAddress = shared.PhysicalAddress
+                UserDefinedMACAddress = shared.UserDefinedMACAddress.ToInternalContracts()
+            };
+
+    private static UserDefinedMACAddressSettings ToInternalContracts(
+        this SharedNetwork.UserDefinedMACAddressSettings shared)
+            => new()
+            {
+                Enabled = shared.Enabled,
+                Address = shared.Address
             };
 
     private static IPv4Settings ToInternalContracts(this SharedNetwork.IPv4Settings shared)

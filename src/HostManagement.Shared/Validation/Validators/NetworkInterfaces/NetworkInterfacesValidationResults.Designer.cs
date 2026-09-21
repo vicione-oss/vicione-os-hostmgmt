@@ -19,7 +19,7 @@ namespace HostManagement.Shared.Validation.Validators.NetworkInterfaces {
     // -Klasse über ein Tool wie ResGen oder Visual Studio automatisch generiert.
     // Um einen Member hinzuzufügen oder zu entfernen, bearbeiten Sie die .ResX-Datei und führen dann ResGen
     // mit der /str-Option erneut aus, oder Sie erstellen Ihr VS-Projekt neu.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class NetworkInterfacesValidationResults {
@@ -197,6 +197,15 @@ namespace HostManagement.Shared.Validation.Validators.NetworkInterfaces {
         }
         
         /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Network interfaces have reserved original MAC addresses defined as user-defined MAC address. Affected MAC addresses are: {0}. ähnelt.
+        /// </summary>
+        internal static string InterfacesHaveReservedOriginalMACs {
+            get {
+                return ResourceManager.GetString("InterfacesHaveReservedOriginalMACs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die VLAN ID &apos;{0}&apos; of {1} is invalid (expected 1 to 4094). ähnelt.
         /// </summary>
         internal static string InterfaceVLANIDInvalid {
@@ -251,29 +260,11 @@ namespace HostManagement.Shared.Validation.Validators.NetworkInterfaces {
         }
         
         /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die MAC address &apos;{0}&apos; of {1} has invalid length (expected 12). ähnelt.
+        ///   Sucht eine lokalisierte Zeichenfolge, die MAC address &apos;{0}&apos; of {1} has invalid length (expected 6 bytes). ähnelt.
         /// </summary>
         internal static string MACAddressInvalidLength {
             get {
                 return ResourceManager.GetString("MACAddressInvalidLength", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die MAC address &apos;{0}&apos; of {1} has an invalid octet count (expected 6). ähnelt.
-        /// </summary>
-        internal static string MACAddressInvalidOctetCount {
-            get {
-                return ResourceManager.GetString("MACAddressInvalidOctetCount", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die MAC address &apos;{0}&apos; of {1} has an octet with invalid length (expected 2). ähnelt.
-        /// </summary>
-        internal static string MACAddressOctetInvalidLength {
-            get {
-                return ResourceManager.GetString("MACAddressOctetInvalidLength", resourceCulture);
             }
         }
         

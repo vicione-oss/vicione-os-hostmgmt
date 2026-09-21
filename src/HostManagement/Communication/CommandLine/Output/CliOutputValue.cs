@@ -1,4 +1,5 @@
-﻿using System.Net;
+using System.Net;
+using System.Net.NetworkInformation;
 
 namespace HostManagement.Communication.CommandLine.Output;
 
@@ -15,7 +16,12 @@ internal sealed class CliOutputValue
     private readonly string _value;
 
     private CliOutputValue(object? value)
-        => _value = value?.ToString() ?? CliOutputBase.NotSetValue;
+        => _value = value switch
+        {
+            PhysicalAddress physicalAddress => physicalAddress.ToColonNotation(),
+            null => CliOutputBase.NotSetValue,
+            _ => value.ToString()!
+        };
 
     /// <inheritdoc cref="string.Length"/>
     public int Length => _value.Length;
@@ -40,6 +46,7 @@ internal sealed class CliOutputValue
             float or
             string or
             IPAddress or
+            PhysicalAddress or
             DateTimeOffset or
             DateTime or
             DateOnly or
@@ -92,6 +99,13 @@ internal sealed class CliOutputValue
     /// <param name="value">The value to convert.</param>
     /// <returns><see cref="CliOutputValue"/></returns>
     public static implicit operator CliOutputValue(IPAddress? value) => Create(value);
+
+    /// <summary>
+    /// Implicitly converts <see cref="PhysicalAddress"/> to a <see cref="CliOutputValue"/>.
+    /// </summary>
+    /// <param name="value">The value to convert.</param>
+    /// <returns><see cref="CliOutputValue"/></returns>
+    public static implicit operator CliOutputValue(PhysicalAddress? value) => Create(value);
 
     /// <summary>
     /// Implicitly converts <see cref="DateTimeOffset"/> to a <see cref="CliOutputValue"/>.

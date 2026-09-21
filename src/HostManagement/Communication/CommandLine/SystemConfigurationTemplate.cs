@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Text.Json;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Enums;
@@ -60,7 +61,11 @@ internal static class SystemConfigurationTemplate
                     {
                         Enabled = true,
                         Name = "interface1",
-                        PhysicalAddress = "00:00:00:00:00:01"
+                        UserDefinedMACAddress = new()
+                        {
+                            Enabled = true,
+                            Address = PhysicalAddress.Parse("00:00:00:00:00:01")
+                        }
                     },
                     IPv4 = new()
                     {
@@ -73,7 +78,11 @@ internal static class SystemConfigurationTemplate
                     {
                         Enabled = true,
                         Name = "interface2",
-                        PhysicalAddress = "00:00:00:00:00:02"
+                        UserDefinedMACAddress = new()
+                        {
+                            Enabled = true,
+                            Address = PhysicalAddress.Parse("00:00:00:00:00:02")
+                        }
                     },
                     IPv4 = new()
                     {
