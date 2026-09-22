@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.NetworkInformation;
 using AwesomeAssertions;
 using HostManagement.SystemConfig;
 using HostManagement.SystemConfig.Contracts;
@@ -25,7 +26,11 @@ public sealed class ContractsTranslatorTests
                         {
                             Enabled = true,
                             Name = "lan1",
-                            PhysicalAddress = "00:02:01:ac:52:33"
+                            UserDefinedMACAddress = new()
+                            {
+                                Enabled = true,
+                                Address = PhysicalAddress.Parse("00:02:01:ac:52:33")
+                            }
                         }
                     },
                     new()
@@ -34,7 +39,11 @@ public sealed class ContractsTranslatorTests
                         {
                             Enabled = true,
                             Name = "lan2",
-                            PhysicalAddress = "00:02:01:ac:52:34"
+                            UserDefinedMACAddress = new()
+                            {
+                                Enabled = true,
+                                Address = PhysicalAddress.Parse("00:02:01:ac:52:34")
+                            }
                         },
                         IPv4 = new()
                         {
@@ -146,7 +155,11 @@ public sealed class ContractsTranslatorTests
                         {
                             Enabled = true,
                             Name = "lan1",
-                            PhysicalAddress = "00:02:01:ac:52:33"
+                            UserDefinedMACAddress = new()
+                            {
+                                Enabled = true,
+                                Address = PhysicalAddress.Parse("00:02:01:ac:52:33")
+                            }
                         },
                         IPv4 = new()
                         {
@@ -166,7 +179,11 @@ public sealed class ContractsTranslatorTests
                         {
                             Enabled = true,
                             Name = "lan2",
-                            PhysicalAddress = "00:02:01:ac:52:34"
+                            UserDefinedMACAddress = new()
+                            {
+                                Enabled = true,
+                                Address = PhysicalAddress.Parse("00:02:01:ac:52:34")
+                            }
                         },
                         IPv4 = new()
                         {
@@ -344,7 +361,11 @@ public sealed class ContractsTranslatorTests
                         {
                             Enabled = true,
                             Name = "lan1",
-                            PhysicalAddress = "00:02:01:ac:52:33"
+                            UserDefinedMACAddress = new()
+                            {
+                                Enabled = true,
+                                Address = PhysicalAddress.Parse("00:02:01:ac:52:33")
+                            }
                         },
                         IPv4 = new()
                         {
@@ -364,7 +385,11 @@ public sealed class ContractsTranslatorTests
                         {
                             Enabled = true,
                             Name = "lan2",
-                            PhysicalAddress = "00:02:01:ac:52:34"
+                            UserDefinedMACAddress = new()
+                            {
+                                Enabled = true,
+                                Address = PhysicalAddress.Parse("00:02:01:ac:52:34")
+                            }
                         },
                         IPv4 = new()
                         {
@@ -489,7 +514,11 @@ public sealed class ContractsTranslatorTests
                         {
                             Enabled = true,
                             Name = "lan1",
-                            PhysicalAddress = "00:02:01:ac:52:33"
+                            UserDefinedMACAddress = new()
+                            {
+                                Enabled = true,
+                                Address = PhysicalAddress.Parse("00:02:01:ac:52:33")
+                            }
                         },
                         IPv4 = new()
                         {
@@ -508,7 +537,11 @@ public sealed class ContractsTranslatorTests
                         {
                             Enabled = true,
                             Name = "lan2",
-                            PhysicalAddress = "00:02:01:ac:52:34"
+                            UserDefinedMACAddress = new()
+                            {
+                                Enabled = true,
+                                Address = PhysicalAddress.Parse("00:02:01:ac:52:34")
+                            }
                         },
                         IPv4 = new()
                         {
