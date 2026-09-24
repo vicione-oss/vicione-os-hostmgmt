@@ -191,8 +191,17 @@ internal sealed partial class SystemService(
             proxyScriptOptions.Add(ScriptOptionNames.Proxy.Clear);
 
             result.AddResult(
-                await _scriptHandler.ExecuteSetNetworkProxySettingsScript(proxyScriptOptions)
-                    .ConfigureAwait(false));
+                await _scriptHandler.ExecuteSetNetworkProxySettingsScript(proxyScriptOptions).ConfigureAwait(false));
+
+            if (result.OperationStatus is OperationStatus.Error)
+                return LogErrorAndReturnSystemControlResult(result);
+
+            // Clear all syslog settings after clearing proxy settings succeeded
+            var syslogScriptOptions = new ScriptOptions();
+            syslogScriptOptions.Add(ScriptOptionNames.Syslog.Clear);
+
+            result.AddResult(
+                await _scriptHandler.ExecuteSetSyslogSettingsScript(syslogScriptOptions).ConfigureAwait(false));
 
             if (result.OperationStatus is OperationStatus.Error)
                 return LogErrorAndReturnSystemControlResult(result);
