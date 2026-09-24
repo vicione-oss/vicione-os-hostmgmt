@@ -84,6 +84,7 @@ The dependencies are:
 * `systemd`
   * `systemd-networkd` enabled
   * `systemd-resolved` enabled (DNS name resolution incl. service discovery in local networks via mDNS)
+  * `systemd-netlogd` enabled (syslog forwarding)
 
 ## Usage
 
@@ -178,6 +179,8 @@ sudo journalctl -u hostmanagement --output=short-precise -p err
 
 > [!note]
 > Possible log priorities supported by **HM** are `crit` (2), `err` (3), `warning` (4), `info` (6) and `debug` (7).
+
+On the `EdgeS ViciOne` target environment log messages from the journal can be forwarded to other hosts over the network using **syslog** format `RFC 5424` and `RFC 3164`. This can be configured via **HM CLI** or **ViciOne Suite**.
 
 ### Pipe Communication Sample
 
