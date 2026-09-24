@@ -5,6 +5,7 @@ using HostManagement.Shared.Validation.Validators.DNS;
 using HostManagement.Shared.Validation.Validators.NetworkInterfaces;
 using HostManagement.Shared.Validation.Validators.NTP;
 using HostManagement.Shared.Validation.Validators.Proxy;
+using HostManagement.Shared.Validation.Validators.Syslog;
 
 namespace HostManagement.Shared.Validation;
 
@@ -53,6 +54,11 @@ public sealed class SystemConfigurationValidator : IValidator<SystemConfiguratio
             result.AddResult(
                 await new NetworkNTPSettingsValidator()
                     .ValidateAsync(configuration.NetworkNTPSettings, cancellationToken)
+                    .ConfigureAwait(false));
+
+            result.AddResult(
+                await new SyslogSettingsValidator()
+                    .ValidateAsync(configuration.Syslog, cancellationToken)
                     .ConfigureAwait(false));
 
             return result;
