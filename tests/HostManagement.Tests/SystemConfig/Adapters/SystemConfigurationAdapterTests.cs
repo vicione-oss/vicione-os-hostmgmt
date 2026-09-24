@@ -1,10 +1,10 @@
 using AwesomeAssertions;
 using HostManagement.Shared.Communication.Enums;
-using HostManagement.SystemConfig;
+using HostManagement.SystemConfig.Adapters;
 using HostManagement.SystemConfig.Contracts;
 using Xunit;
 
-namespace HostManagement.Tests.SystemConfig;
+namespace HostManagement.Tests.SystemConfig.Adapters;
 
 public sealed class SystemConfigurationAdapterTests
 {

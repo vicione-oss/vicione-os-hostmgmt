@@ -3,7 +3,7 @@ using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Enums;
 using HostManagement.SystemConfig.Contracts;
 
-namespace HostManagement.SystemConfig.Syslog;
+namespace HostManagement.SystemConfig.Adapters;
 
 /// <summary>
 /// Represents the syslog configuration adapter.

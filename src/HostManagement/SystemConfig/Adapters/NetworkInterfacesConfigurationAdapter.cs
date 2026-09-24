@@ -3,7 +3,7 @@ using HostManagement.Scripts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.SystemConfig.Contracts;
 
-namespace HostManagement.SystemConfig.Network;
+namespace HostManagement.SystemConfig.Adapters;
 
 /// <summary>
 /// Represents the network interfaces configuration adapter.

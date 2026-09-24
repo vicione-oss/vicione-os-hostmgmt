@@ -1,7 +1,7 @@
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.SystemConfig.Contracts;
 
-namespace HostManagement.SystemConfig;
+namespace HostManagement.SystemConfig.Adapters;
 
 /// <summary>
 /// Represents an abstract generic configuration adapter.

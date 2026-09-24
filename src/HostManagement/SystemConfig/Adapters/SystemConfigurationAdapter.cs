@@ -1,11 +1,8 @@
 using HostManagement.Configuration;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.SystemConfig.Contracts;
-using HostManagement.SystemConfig.Network;
-using HostManagement.SystemConfig.Service;
-using HostManagement.SystemConfig.Syslog;
 
-namespace HostManagement.SystemConfig;
+namespace HostManagement.SystemConfig.Adapters;
 
 /// <summary>
 /// Represents the system configuration adapter.

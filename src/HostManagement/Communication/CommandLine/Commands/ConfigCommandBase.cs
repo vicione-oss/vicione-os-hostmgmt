@@ -1,8 +1,8 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Shared.Contracts;
 
-namespace HostManagement.Communication.CommandLine;
+namespace HostManagement.Communication.CommandLine.Commands;
 
 /// <summary>
 /// Represents the abstract base class for a config command.

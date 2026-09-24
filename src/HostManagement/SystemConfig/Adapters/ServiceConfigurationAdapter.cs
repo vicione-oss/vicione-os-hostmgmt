@@ -2,7 +2,7 @@ using HostManagement.Scripts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.SystemConfig.Contracts;
 
-namespace HostManagement.SystemConfig.Service;
+namespace HostManagement.SystemConfig.Adapters;
 
 /// <summary>
 /// Represents the service configuration adapter.

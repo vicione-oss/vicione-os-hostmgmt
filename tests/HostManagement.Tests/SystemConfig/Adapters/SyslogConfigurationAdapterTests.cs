@@ -3,12 +3,12 @@ using HostManagement.Scripts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Enums;
 using HostManagement.SystemConfig;
+using HostManagement.SystemConfig.Adapters;
 using HostManagement.SystemConfig.Contracts;
-using HostManagement.SystemConfig.Syslog;
 using NSubstitute;
 using Xunit;
 
-namespace HostManagement.Tests.SystemConfig.Syslog;
+namespace HostManagement.Tests.SystemConfig.Adapters;
 
 public sealed class SyslogConfigurationAdapterTests
 {

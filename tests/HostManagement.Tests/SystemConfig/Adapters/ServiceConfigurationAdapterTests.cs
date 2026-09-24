@@ -1,12 +1,12 @@
 using AwesomeAssertions;
 using HostManagement.Scripts;
 using HostManagement.Shared.Communication.Enums;
+using HostManagement.SystemConfig.Adapters;
 using HostManagement.SystemConfig.Contracts;
-using HostManagement.SystemConfig.Service;
 using NSubstitute;
 using Xunit;
 
-namespace HostManagement.Tests.SystemConfig.Service;
+namespace HostManagement.Tests.SystemConfig.Adapters;
 
 public sealed class ServiceConfigurationAdapterTests
 {

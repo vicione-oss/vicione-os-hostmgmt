@@ -2,7 +2,7 @@ using AwesomeAssertions;
 using HostManagement.Shared.Contracts.Network;
 using Xunit;
 
-namespace HostManagement.Shared.Tests.Contracts;
+namespace HostManagement.Shared.Tests.Contracts.Network;
 
 public sealed class NoProxySettingsTests
 {
