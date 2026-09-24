@@ -4,6 +4,7 @@ using HostManagement.Communication.CommandLine;
 using HostManagement.Communication.CommandLine.Commands.Deployment;
 using HostManagement.Communication.CommandLine.Commands.Network;
 using HostManagement.Communication.CommandLine.Commands.Service;
+using HostManagement.Communication.CommandLine.Commands.Syslog;
 using HostManagement.Communication.CommandLine.Commands.System;
 using Xunit;
 
@@ -22,9 +23,10 @@ public class CommandInterfaceTests
         var expectedSubcommands = new[]
         {
             typeof(NetworkCommand),
+            typeof(SyslogCommand),
             typeof(ServiceCommand),
-            typeof(DeploymentCommand),
-            typeof(SystemCommand)
+            typeof(SystemCommand),
+            typeof(DeploymentCommand)
         };
 
         // Act

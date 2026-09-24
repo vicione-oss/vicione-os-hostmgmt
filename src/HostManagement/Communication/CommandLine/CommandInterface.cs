@@ -2,6 +2,7 @@ using System.CommandLine;
 using HostManagement.Communication.CommandLine.Commands.Deployment;
 using HostManagement.Communication.CommandLine.Commands.Network;
 using HostManagement.Communication.CommandLine.Commands.Service;
+using HostManagement.Communication.CommandLine.Commands.Syslog;
 using HostManagement.Communication.CommandLine.Commands.System;
 using HostManagement.Communication.CommandLine.Resources;
 
@@ -21,9 +22,10 @@ internal sealed class CommandInterface
         return new RootCommand(CliStrings.Common.RootCommandDescription)
         {
             new NetworkCommand(),
+            new SyslogCommand(),
             new ServiceCommand(),
-            new DeploymentCommand(),
-            new SystemCommand()
+            new SystemCommand(),
+            new DeploymentCommand()
         };
     }
 }
