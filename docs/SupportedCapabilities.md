@@ -28,7 +28,7 @@ The template **contains**:
 **Example:**
 
 ```ini
-# This file is managed by ifm HostManagement application.
+# This file is managed by ViciOne open automation HostManagement application.
 #
 # It describes the supported capabilities exposed by HostManagement.
 # ...

@@ -370,7 +370,7 @@ internal static class SupportedCapabilitiesIniConverter
     private static void AppendTemplateHeader(StringBuilder builder)
     {
         builder
-            .AppendLine("# This file is managed by ifm HostManagement application.")
+            .AppendLine("# This file is managed by ViciOne open automation HostManagement application.")
             .AppendLine("#")
             .AppendLine("# It describes the supported capabilities exposed by HostManagement.")
             .AppendLine("# Sections are written as [Settings.<path>] or [Topics]. Setting entries")
