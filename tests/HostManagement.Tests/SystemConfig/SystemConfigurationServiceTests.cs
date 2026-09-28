@@ -2,7 +2,6 @@ using System.Net;
 using System.Net.NetworkInformation;
 using AwesomeAssertions;
 using HostManagement.Configuration;
-using HostManagement.Shared.Capabilities;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Contracts;
 using HostManagement.SystemConfig;
@@ -134,7 +133,7 @@ public class SystemConfigurationServiceTests
         [Fact]
         public async Task ShouldReturnErrorResult_WhenScriptsFail()
         {
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
                 .ReturnsForAnyArgs((Result.TestErrorResult, []));
@@ -152,7 +151,7 @@ public class SystemConfigurationServiceTests
             // Reset cache, so config is read again via scripts
             SystemConfigurationCache.Instance.ResetForTests();
 
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
                 .ReturnsForAnyArgs((Result.TestWarningResult, []));
@@ -167,7 +166,7 @@ public class SystemConfigurationServiceTests
         [Fact]
         public async Task ShouldReturnErrorResult_WhenExceptionThrown()
         {
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
                 .ThrowsAsync(new InvalidOperationException(TestExceptionMessage));
@@ -182,7 +181,7 @@ public class SystemConfigurationServiceTests
         [Fact]
         public async Task ShouldReturnSuccessResult_WhenScriptsSucceed()
         {
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
 
             var result = await context.Sut.GetConfiguration(CancellationToken.None);
 
@@ -198,7 +197,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnWarning_WhenNoJsonFilesExists()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.Persistence.ExistsUserConfiguration().Returns(false);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
 
@@ -222,7 +221,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldMarkUserConfigurationDefective_WhenLoadingUserConfigurationFails()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.Persistence.ExistsUserConfiguration().Returns(true);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
             context.Persistence
@@ -247,7 +246,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldMarkPreparationConfigurationDefective_WhenLoadingPreparationConfigurationFails()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.Persistence.ExistsUserConfiguration().Returns(false);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
             context.Persistence.ExistsDefectiveUserConfiguration().Returns(false);
@@ -277,7 +276,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnWarning_WhenPreparationConfigurationAndDefectiveUserConfigurationExists()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.Persistence.ExistsUserConfiguration().Returns(false);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
             context.Persistence.ExistsDefectiveUserConfiguration().Returns(true);
@@ -307,7 +306,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnWarning_WhenCanceled()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.Persistence.ExistsUserConfiguration().Returns(true);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
 
@@ -335,7 +334,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnWarning_WhenExceptionOccurs()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.Persistence.ExistsUserConfiguration().Returns(true);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
             context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>())
@@ -356,7 +355,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldLoadUserConfiguration_WhenUserConfigurationExists()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.Persistence.ExistsUserConfiguration().Returns(true);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
             context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>()).Returns(CreateLoadedConfig());
@@ -377,7 +376,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnSourceVersion_WhenConfigurationLoaded()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.Persistence.ExistsUserConfiguration().Returns(true);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
             context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>())
@@ -396,7 +395,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldLoadPreparationConfiguration_WhenOnlyPreparationConfigurationExists()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.Persistence.ExistsUserConfiguration().Returns(false);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
 
@@ -425,7 +424,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnWarning_WhenNoJsonFilesExist()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
 
             context.Persistence.ExistsUserConfiguration().Returns(false);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
@@ -453,7 +452,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldMarkUserConfigurationDefective_WhenLoadingUserConfigurationFails()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.Persistence.ExistsUserConfiguration().Returns(true);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
             context.Persistence
@@ -478,7 +477,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldMarkPreparationConfigurationDefective_WhenLoadingPreparationConfigurationFails()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.Persistence.ExistsUserConfiguration().Returns(false);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
             context.Persistence.ExistsDefectiveUserConfiguration().Returns(false);
@@ -509,7 +508,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnWarning_WhenGetConfigurationFromJsonReturnsWarning()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.Persistence.ExistsUserConfiguration().Returns(true);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
             context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>())
@@ -534,7 +533,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnWarning_WhenExceptionOccurs()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.Persistence.ExistsUserConfiguration().Returns(true);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
 
@@ -565,7 +564,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnWarning_WhenAnyConfigurationAdapterReturnsError()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.Persistence.ExistsUserConfiguration().Returns(true);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
 
@@ -596,7 +595,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldPrepareUserConfiguration_WhenUserConfigurationExists()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.Persistence.ExistsUserConfiguration().Returns(true);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
             context.Persistence.LoadUserConfiguration(Arg.Any<CancellationToken>()).Returns(CreateLoadedConfig());
@@ -621,7 +620,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldPreparePreparationConfiguration_WhenOnlyPreparationConfigurationExists()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.Persistence.ExistsUserConfiguration().Returns(false);
             context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
 
@@ -657,7 +656,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldDisableMigratedMACAddress_WhenV1AddressEqualsOriginalAddress()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             var proposedConfig = CreateSharedConfig();
             var userDefinedMACAddress = proposedConfig.NetworkInterfaces[0].CommonInformation.UserDefinedMACAddress;
             userDefinedMACAddress.Enabled = true;
@@ -683,7 +682,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldKeepMigratedMACAddress_WhenV1AddressDiffersFromOriginalAddress()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             var proposedConfig = CreateSharedConfig();
             var expectedAddress = PhysicalAddress.Parse(UserDefinedMACAddress);
             var userDefinedMACAddress = proposedConfig.NetworkInterfaces[0].CommonInformation.UserDefinedMACAddress;
@@ -710,7 +709,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldRejectMACAddress_WhenV2AddressEqualsOriginalAddress()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             var proposedConfig = CreateSharedConfig();
             var expectedAddress = PhysicalAddress.Parse(OriginalMACAddress);
             var userDefinedMACAddress = proposedConfig.NetworkInterfaces[0].CommonInformation.UserDefinedMACAddress;
@@ -740,7 +739,7 @@ public class SystemConfigurationServiceTests
             const string Lan2 = "lan2";
             const string Lan2OriginalMACAddress = "00:50:56:36:6d:bb";
 
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             var proposedConfig = CreateSharedConfig();
             var expectedAddress = PhysicalAddress.Parse(Lan2OriginalMACAddress);
             var userDefinedMACAddress = proposedConfig.NetworkInterfaces[0].CommonInformation.UserDefinedMACAddress;
@@ -782,7 +781,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldKeepMigratedMACAddress_WhenOriginalAddressCannotBeRetrieved()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             var proposedConfig = CreateSharedConfig();
             var expectedAddress = PhysicalAddress.Parse(UserDefinedMACAddress);
             var userDefinedMACAddress = proposedConfig.NetworkInterfaces[0].CommonInformation.UserDefinedMACAddress;
@@ -819,7 +818,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnErrorResult_WhenGetConfigurationFails()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesScript()
                 .ThrowsAsync(new InvalidOperationException(TestExceptionMessage));
@@ -849,7 +848,7 @@ public class SystemConfigurationServiceTests
             SystemConfigurationCache.Instance.ResetForTests();
 
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesScript()
                 .ReturnsForAnyArgs((Result.TestErrorResult, ""));
@@ -873,7 +872,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnWarningResult_WhenGetConfigurationReturnsWarning()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
                 .ReturnsForAnyArgs((Result.TestWarningResult, []));
@@ -901,7 +900,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnErrorResult_WhenValidationFails()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             var proposedConfig = CreateSharedConfig();
             proposedConfig.NetworkInterfaces.Clear();
 
@@ -924,7 +923,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnSuccessResult_WhenSetConfigurationSucceeds()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.Persistence
                 .SaveUserConfiguration(default!, Arg.Any<CancellationToken>())
                 .ReturnsForAnyArgs(Task.CompletedTask);
@@ -952,7 +951,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldPersistConfiguration_WhenShouldPersistIsTrue()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.Persistence
                 .SaveUserConfiguration(default!, Arg.Any<CancellationToken>())
                 .ReturnsForAnyArgs(Task.CompletedTask);
@@ -975,7 +974,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldNotPersistConfiguration_WhenShouldPersistIsFalse()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             var proposedConfig = CreateSharedConfig();
 
             // Act
@@ -994,7 +993,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnErrorResult_WhenPersistenceFails()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.Persistence
                 .SaveUserConfiguration(default!, Arg.Any<CancellationToken>())
                 .ThrowsAsyncForAnyArgs(new InvalidOperationException(TestExceptionMessage));
@@ -1028,7 +1027,7 @@ public class SystemConfigurationServiceTests
             var revertResult = new Result();
             revertResult.AddError(RevertErrorMessage);
 
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>())
                 .ReturnsForAnyArgs(setResult, revertResult);
@@ -1058,7 +1057,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldRevertConfiguration_WhenSetConfigurationFails()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>())
                 .ReturnsForAnyArgs(
@@ -1087,7 +1086,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldRevertConfiguration_WhenSetConfigurationReturnsError()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
 
             // Return error when 'SetConfiguration' is called; return success on 'RevertConfiguration' later
             context.ScriptHandler
@@ -1116,7 +1115,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldReturnWarningResult_WhenSetConfigurationReturnsWarning()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
                 .ReturnsForAnyArgs((Result.TestWarningResult, []));
@@ -1144,7 +1143,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldPassCancellationToken()
         {
             // Arrange
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             var proposedConfig = CreateSharedConfig();
             using var cts = new CancellationTokenSource();
 
@@ -1163,7 +1162,7 @@ public class SystemConfigurationServiceTests
         [Fact]
         public async Task ShouldReturnErrorResult_WhenPreparationConfigurationNotExists()
         {
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.Persistence.ExistsPreparationConfiguration().Returns(false);
             context.ScriptHandler
                 .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
@@ -1194,7 +1193,7 @@ public class SystemConfigurationServiceTests
         [Fact]
         public async Task ShouldReturnErrorResult_WhenInterfaceNotFoundInPreparationConfiguration()
         {
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.Persistence.ExistsPreparationConfiguration().Returns(true);
             context.Persistence
                 .LoadPreparationConfiguration(Arg.Any<CancellationToken>())
@@ -1229,7 +1228,7 @@ public class SystemConfigurationServiceTests
         public async Task ShouldPersistUpdatedUserConfiguration_WhenResetSucceeds()
         {
             // Arrange: Default configuration has static IP (DHCP=false)
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.Persistence.ExistsPreparationConfiguration().Returns(true);
             context.Persistence
                 .LoadPreparationConfiguration(Arg.Any<CancellationToken>())
@@ -1303,7 +1302,7 @@ public class SystemConfigurationServiceTests
             // Arrange
             const string OriginalMACAddress = "00:50:56:36:6d:aa";
 
-            var context = new SystemConfigurationServiceContext();
+            var context = GetSystemConfigurationServiceContext();
             context.Persistence.ExistsPreparationConfiguration().Returns(true);
             context.Persistence
                 .LoadPreparationConfiguration(Arg.Any<CancellationToken>())
@@ -1468,66 +1467,8 @@ public class SystemConfigurationServiceTests
             Arg.Any<TException>(),
             Arg.Any<Func<object, Exception?, string>>());
     }
-#pragma warning restore CA1873
 
-    internal sealed class SystemConfigurationServiceContext
-    {
-        internal IPersistence Persistence { get; } = Substitute.For<IPersistence>();
-        internal IScriptHandler ScriptHandler { get; } = Substitute.For<IScriptHandler>();
-        internal ILogger Logger { get; } = Substitute.For<ILogger>();
-        internal SupportedSettings SupportedSettings { get; } = new();
-        internal SystemConfigurationService Sut { get; }
-
-        internal SystemConfigurationServiceContext()
-        {
-            const string ServiceName = "test.service";
-            const string RawInterfacesString = $"{Lan1}            UP             00:50:56:36:6d:33 <BROADCAST,MULTICAST,UP,LOWER_UP>";
-
-            ScriptHandler.ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>()).Returns(Result.SuccessResult);
-            ScriptHandler.ExecuteGetOriginalPhysicalAddressScript(Arg.Any<string>()).Returns((Result.SuccessResult, "00:50:56:36:6d:aa"));
-            ScriptHandler.ExecuteGetNetworkInterfacesScript().ReturnsForAnyArgs((Result.SuccessResult, RawInterfacesString));
-            ScriptHandler.ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs((Result.SuccessResult, []));
-            ScriptHandler.ExecuteGetInterfaceSettingsScript(Arg.Any<string>()).ReturnsForAnyArgs((Result.SuccessResult, new(), new()));
-            ScriptHandler.ExecuteGetInterfaceIPv4DHCPLeaseScript(Arg.Any<string>()).ReturnsForAnyArgs((Result.SuccessResult, new()));
-            ScriptHandler.ExecuteGetNetworkDNSSettingsScript().ReturnsForAnyArgs((Result.SuccessResult, new() { Hostname = TestHostname }));
-            ScriptHandler.ExecuteGetNetworkProxySettingsScript().ReturnsForAnyArgs((Result.SuccessResult, new()));
-            ScriptHandler.ExecuteGetNetworkNTPSettingsScript().ReturnsForAnyArgs((Result.SuccessResult, new()));
-            ScriptHandler.ExecuteGetSystemdUnitStateScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs((Result.SuccessResult, new() { Name = ServiceName }));
-            ScriptHandler.ExecuteSetInterfaceSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(Result.SuccessResult);
-            ScriptHandler.ExecuteSetNetworkDNSSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(Result.SuccessResult);
-            ScriptHandler.ExecuteSetStaticHostsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(Result.SuccessResult);
-            ScriptHandler.ExecuteSetNetworkMulticastDNSSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(Result.SuccessResult);
-            ScriptHandler.ExecuteSetHostnameScript(Arg.Any<string>()).ReturnsForAnyArgs(Result.SuccessResult);
-            ScriptHandler.ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(Result.SuccessResult);
-            ScriptHandler.ExecuteSetNetworkNTPSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(Result.SuccessResult);
-            ScriptHandler.ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(Result.SuccessResult);
-            ScriptHandler.ExecuteApplyNetplanConfigurationScript().ReturnsForAnyArgs(Result.SuccessResult);
-            ScriptHandler.ExecuteGetSyslogSettingsScript().ReturnsForAnyArgs((Result.SuccessResult, new()));
-            ScriptHandler.ExecuteSetSyslogSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(Result.SuccessResult);
-
-            SupportedSettings.NetworkInterfaces.Capability = CapabilityStatus.Enabled;
-            SupportedSettings.NetworkInterfaces.NetworkInterfaceDetail.IPv4.Capability = CapabilityStatus.Enabled;
-            SupportedSettings.NetworkInterfaces.NetworkInterfaceDetail.VLAN.Capability = CapabilityStatus.Enabled;
-
-            SupportedSettings.DNS.Capability = CapabilityStatus.Enabled;
-            SupportedSettings.DNS.Hostname.Capability = CapabilityStatus.Enabled;
-            SupportedSettings.DNS.MulticastDNS.Capability = CapabilityStatus.Enabled;
-            SupportedSettings.DNS.StaticHosts.Capability = CapabilityStatus.Enabled;
-            SupportedSettings.DNS.NameServers.Capability = CapabilityStatus.Enabled;
-            SupportedSettings.DNS.PrimaryDNSSuffix.Capability = CapabilityStatus.Enabled;
-            SupportedSettings.DNS.SearchDomains.Capability = CapabilityStatus.Enabled;
-
-            SupportedSettings.Proxy.Capability = CapabilityStatus.Enabled;
-            SupportedSettings.NTP.Capability = CapabilityStatus.Enabled;
-            SupportedSettings.Syslog.Capability = CapabilityStatus.Enabled;
-            SupportedSettings.Services.Capability = CapabilityStatus.Enabled;
-
-            Sut = new(Persistence, ScriptHandler, Logger, SupportedSettings);
-
-            Environment.SetEnvironmentVariable("CONFIGURABLE_SERVICES", ServiceName);
-            Environment.SetEnvironmentVariable("SYSTEM_CONFIGURATION_DIRECTORY", "/mnt/persistent/hostmanagement");
-
-            Logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
-        }
-    }
+    private static SystemConfigurationServiceContext GetSystemConfigurationServiceContext()
+        => new(Lan1, TestHostname);
 }
+#pragma warning restore CA1873
