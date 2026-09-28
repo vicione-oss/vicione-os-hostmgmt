@@ -24,52 +24,7 @@ public class ResourceManagerTests
 
     private readonly string _testResourceDeployDirectory = Path.Combine("var", "lib", "hostmanagement");
 
-    public class IsDeploymentInProgressProperty : ResourceManagerTests
-    {
-        [Fact]
-        public void ShouldBeFalse_AfterDeploymentFailure()
-        {
-            // Arrange
-            ResourceManager.ResetInstance();
-
-            var (logger, fileSystem, directoryInfo, resourceHelper, processWrapper) = CreateSubstitutes();
-
-            var scriptFile = "flag.sh";
-            var scriptContentBytes = Encoding.UTF8.GetBytes("flag content");
-            var resourceDeployDirectoryStructure = GetDeployDirectoryStructure(_testResourceDeployDirectory);
-            var scriptTargetFilePath = Path.Combine(resourceDeployDirectoryStructure, scriptFile);
-            var resourceLocation = BuildEnvironmentResource(scriptFile, NormalizedEdgeSViciOne);
-
-            SetupFilteredManifestResourceNames(resourceHelper, resourceLocation);
-            SetupDirectoryCreation(fileSystem, directoryInfo, resourceDeployDirectoryStructure);
-            SetupSuccessfulSingleScriptDeployment(
-                resourceHelper,
-                fileSystem,
-                resourceLocation,
-                scriptContentBytes,
-                scriptTargetFilePath);
-
-            // chmod returns error
-            SetupProcessWrapperFailure(processWrapper);
-
-            ResourceManager.Initialize(
-                logger,
-                fileSystem,
-                resourceHelper,
-                processWrapper,
-                _testResourceDeployDirectory,
-                EdgeSViciOne);
-
-            // Act
-            var result = ResourceManager.GetInstance().DeployScripts();
-
-            // Assert
-            result.Should().BeFalse();
-            ResourceManager.GetInstance().IsDeploymentInProgress.Should().BeFalse();
-        }
-    }
-
-    public class GetInstance : ResourceManagerTests
+    public sealed class GetInstance : ResourceManagerTests
     {
         [Fact]
         public void ShouldThrow_WhenInstanceIsNull()
@@ -86,8 +41,61 @@ public class ResourceManagerTests
         }
     }
 
-    public class Initialize : ResourceManagerTests
+    public sealed class Initialize : ResourceManagerTests
     {
+        [Fact]
+        public void ShouldThrow_WhenDuplicateResourceNamesDetected()
+        {
+            // Arrange
+            ResourceManager.ResetInstance();
+
+            var (logger, fileSystem, _, resourceHelper, processWrapper) = CreateSubstitutes();
+
+            var resourceLocation = BuildEnvironmentResource("dup.sh", NormalizedEdgeSViciOne);
+
+            // Resource names returns duplicates
+            resourceHelper
+                .GetManifestResourceNames(Arg.Any<Func<string, bool>?>())
+                .Returns([resourceLocation, resourceLocation]);
+
+            // Act
+            var func = () => ResourceManager.Initialize(
+                logger,
+                fileSystem,
+                resourceHelper,
+                processWrapper,
+                _testResourceDeployDirectory,
+                EdgeSViciOne);
+
+            // Assert
+            func.Should()
+                .Throw<InvalidOperationException>()
+                .WithMessage($"Could not add resource '{resourceLocation}' with key*");
+        }
+
+        [Fact]
+        public void ShouldHaveNoResources_WhenInitializedWithUnknownEnvironment()
+        {
+            // Arrange
+            ResourceManager.ResetInstance();
+
+            var (logger, fileSystem, _, _, processWrapper) = CreateSubstitutes();
+
+            // Act
+            ResourceManager.Initialize(
+                logger,
+                fileSystem,
+                new ResourceHelper(),
+                processWrapper,
+                _testResourceDeployDirectory,
+                Unknown);
+
+            // Assert
+            var instance = ResourceManager.GetInstance();
+            instance.Should().NotBeNull();
+            instance.ResourceDictionary.Should().BeEmpty();
+        }
+
         [Fact]
         public void ShouldInitializeResourceManager_WhenCalledWithValidParameters()
         {
@@ -157,29 +165,6 @@ public class ResourceManagerTests
                 .CreateDirectory(Arg.Is<string>(path =>
                     path.Contains(TargetsDirectory, StringComparison.Ordinal) ||
                     path.Contains(NormalizedEdgeSViciOne, StringComparison.Ordinal)));
-        }
-
-        [Fact]
-        public void ShouldHaveNoResources_WhenInitializedWithUnknownEnvironment()
-        {
-            // Arrange
-            ResourceManager.ResetInstance();
-
-            var (logger, fileSystem, _, _, processWrapper) = CreateSubstitutes();
-
-            // Act
-            ResourceManager.Initialize(
-                logger,
-                fileSystem,
-                new ResourceHelper(),
-                processWrapper,
-                _testResourceDeployDirectory,
-                Unknown);
-
-            // Assert
-            var instance = ResourceManager.GetInstance();
-            instance.Should().NotBeNull();
-            instance.ResourceDictionary.Should().BeEmpty();
         }
 
         [Theory]
@@ -413,7 +398,52 @@ public class ResourceManagerTests
         }
     }
 
-    public class GetResourcePath : ResourceManagerTests
+    public sealed class IsDeploymentInProgressProperty : ResourceManagerTests
+    {
+        [Fact]
+        public void ShouldBeFalse_AfterDeploymentFailure()
+        {
+            // Arrange
+            ResourceManager.ResetInstance();
+
+            var (logger, fileSystem, directoryInfo, resourceHelper, processWrapper) = CreateSubstitutes();
+
+            var scriptFile = "flag.sh";
+            var scriptContentBytes = Encoding.UTF8.GetBytes("flag content");
+            var resourceDeployDirectoryStructure = GetDeployDirectoryStructure(_testResourceDeployDirectory);
+            var scriptTargetFilePath = Path.Combine(resourceDeployDirectoryStructure, scriptFile);
+            var resourceLocation = BuildEnvironmentResource(scriptFile, NormalizedEdgeSViciOne);
+
+            SetupFilteredManifestResourceNames(resourceHelper, resourceLocation);
+            SetupDirectoryCreation(fileSystem, directoryInfo, resourceDeployDirectoryStructure);
+            SetupSuccessfulSingleScriptDeployment(
+                resourceHelper,
+                fileSystem,
+                resourceLocation,
+                scriptContentBytes,
+                scriptTargetFilePath);
+
+            // chmod returns error
+            SetupProcessWrapperFailure(processWrapper);
+
+            ResourceManager.Initialize(
+                logger,
+                fileSystem,
+                resourceHelper,
+                processWrapper,
+                _testResourceDeployDirectory,
+                EdgeSViciOne);
+
+            // Act
+            var result = ResourceManager.GetInstance().DeployScripts();
+
+            // Assert
+            result.Should().BeFalse();
+            ResourceManager.GetInstance().IsDeploymentInProgress.Should().BeFalse();
+        }
+    }
+
+    public sealed class GetResourcePath : ResourceManagerTests
     {
         [Fact]
         public void ShouldThrow_WhenResourceNameIsUnknown()
@@ -478,11 +508,52 @@ public class ResourceManagerTests
         }
     }
 
-    public class DeployScripts : ResourceManagerTests
+    public sealed class DeployScripts : ResourceManagerTests
     {
         private const string EdgeScript = "edge_script.sh";
         private const string DebianScript = "debian_script.sh";
         private const string GlobalScript = "global.sh";
+
+        [Fact]
+        public void ShouldReturnFalse_WhenSettingExecutePermissionFails()
+        {
+            // Arrange
+            ResourceManager.ResetInstance();
+
+            var (logger, fileSystem, directoryInfo, resourceHelper, processWrapper) = CreateSubstitutes();
+
+            var scriptFile = "perm.sh";
+            var scriptContentBytes = Encoding.UTF8.GetBytes("perm content");
+            var resourceDeployDirectoryStructure = GetDeployDirectoryStructure(_testResourceDeployDirectory);
+            var targetScriptFilePath = Path.Combine(resourceDeployDirectoryStructure, scriptFile);
+            var resourceLocation = BuildEnvironmentResource(scriptFile, NormalizedEdgeSViciOne);
+
+            SetupFilteredManifestResourceNames(resourceHelper, resourceLocation);
+            SetupDirectoryCreation(fileSystem, directoryInfo, resourceDeployDirectoryStructure);
+            SetupSuccessfulSingleScriptDeployment(
+                resourceHelper,
+                fileSystem,
+                resourceLocation,
+                scriptContentBytes,
+                targetScriptFilePath);
+
+            // chmod returns error
+            SetupProcessWrapperFailure(processWrapper);
+
+            ResourceManager.Initialize(
+                logger,
+                fileSystem,
+                resourceHelper,
+                processWrapper,
+                _testResourceDeployDirectory,
+                EdgeSViciOne);
+
+            // Act
+            var result = ResourceManager.GetInstance().DeployScripts();
+
+            // Assert
+            result.Should().BeFalse();
+        }
 
         [Fact]
         public void ShouldDeployOnlyMatchingEnvironmentScripts_WhenMultipleEnvironmentsPresent()
@@ -586,6 +657,41 @@ public class ResourceManagerTests
         }
 
         [Fact]
+        public void ShouldSkipDeployment_WhenScriptAlreadyExists()
+        {
+            // Arrange
+            ResourceManager.ResetInstance();
+
+            var (logger, fileSystem, _, resourceHelper, processWrapper) = CreateSubstitutes();
+
+            var scriptFile = "exists.sh";
+            var resourceDeployDirectoryStructure = GetDeployDirectoryStructure(_testResourceDeployDirectory);
+            var deployPath = Path.Combine(resourceDeployDirectoryStructure, scriptFile);
+            var resourceLocation = BuildEnvironmentResource(scriptFile, NormalizedEdgeSViciOne);
+
+            SetupFilteredManifestResourceNames(resourceHelper, resourceLocation);
+
+            // Resources shall be deployed already...
+            fileSystem.Directory.Exists(Arg.Any<string>()).Returns(true);
+            fileSystem.File.Exists(deployPath).Returns(true);
+
+            ResourceManager.Initialize(
+                logger,
+                fileSystem,
+                resourceHelper,
+                processWrapper,
+                _testResourceDeployDirectory,
+                EdgeSViciOne);
+
+            // Act
+            var result = ResourceManager.GetInstance().DeployScripts();
+
+            // Assert
+            result.Should().BeTrue();
+            fileSystem.File.DidNotReceive().CreateText(Arg.Any<string>());
+        }
+
+        [Fact]
         public void ShouldCleanUpDirectory_WhenRedeployIsRequested()
         {
             // Arrange
@@ -631,112 +737,6 @@ public class ResourceManagerTests
 
             fileSystem.Directory.Received(1).Delete(_testResourceDeployDirectory, true);
             fileSystem.Directory.Received(1).CreateDirectory(resourceDeployDirectoryStructure);
-        }
-
-        [Fact]
-        public void ShouldReturnFalse_WhenSettingExecutePermissionFails()
-        {
-            // Arrange
-            ResourceManager.ResetInstance();
-
-            var (logger, fileSystem, directoryInfo, resourceHelper, processWrapper) = CreateSubstitutes();
-
-            var scriptFile = "perm.sh";
-            var scriptContentBytes = Encoding.UTF8.GetBytes("perm content");
-            var resourceDeployDirectoryStructure = GetDeployDirectoryStructure(_testResourceDeployDirectory);
-            var targetScriptFilePath = Path.Combine(resourceDeployDirectoryStructure, scriptFile);
-            var resourceLocation = BuildEnvironmentResource(scriptFile, NormalizedEdgeSViciOne);
-
-            SetupFilteredManifestResourceNames(resourceHelper, resourceLocation);
-            SetupDirectoryCreation(fileSystem, directoryInfo, resourceDeployDirectoryStructure);
-            SetupSuccessfulSingleScriptDeployment(
-                resourceHelper,
-                fileSystem,
-                resourceLocation,
-                scriptContentBytes,
-                targetScriptFilePath);
-
-            // chmod returns error
-            SetupProcessWrapperFailure(processWrapper);
-
-            ResourceManager.Initialize(
-                logger,
-                fileSystem,
-                resourceHelper,
-                processWrapper,
-                _testResourceDeployDirectory,
-                EdgeSViciOne);
-
-            // Act
-            var result = ResourceManager.GetInstance().DeployScripts();
-
-            // Assert
-            result.Should().BeFalse();
-        }
-
-        [Fact]
-        public void ShouldSkipDeployment_WhenScriptAlreadyExists()
-        {
-            // Arrange
-            ResourceManager.ResetInstance();
-
-            var (logger, fileSystem, _, resourceHelper, processWrapper) = CreateSubstitutes();
-
-            var scriptFile = "exists.sh";
-            var resourceDeployDirectoryStructure = GetDeployDirectoryStructure(_testResourceDeployDirectory);
-            var deployPath = Path.Combine(resourceDeployDirectoryStructure, scriptFile);
-            var resourceLocation = BuildEnvironmentResource(scriptFile, NormalizedEdgeSViciOne);
-
-            SetupFilteredManifestResourceNames(resourceHelper, resourceLocation);
-
-            // Resources shall be deployed already...
-            fileSystem.Directory.Exists(Arg.Any<string>()).Returns(true);
-            fileSystem.File.Exists(deployPath).Returns(true);
-
-            ResourceManager.Initialize(
-                logger,
-                fileSystem,
-                resourceHelper,
-                processWrapper,
-                _testResourceDeployDirectory,
-                EdgeSViciOne);
-
-            // Act
-            var result = ResourceManager.GetInstance().DeployScripts();
-
-            // Assert
-            result.Should().BeTrue();
-            fileSystem.File.DidNotReceive().CreateText(Arg.Any<string>());
-        }
-
-        [Fact]
-        public void ShouldThrow_WhenDuplicateResourceNamesDetected()
-        {
-            // Arrange
-            ResourceManager.ResetInstance();
-
-            var (logger, fileSystem, _, resourceHelper, processWrapper) = CreateSubstitutes();
-
-            var resourceLocation = BuildEnvironmentResource("dup.sh", NormalizedEdgeSViciOne);
-
-            // Resource names returns duplicates
-            resourceHelper
-                .GetManifestResourceNames(Arg.Any<Func<string, bool>?>())
-                .Returns([resourceLocation, resourceLocation]);
-
-            // Act
-            var func = () => ResourceManager.Initialize(
-                logger,
-                fileSystem,
-                resourceHelper,
-                processWrapper,
-                _testResourceDeployDirectory,
-                EdgeSViciOne);
-
-            // Assert
-            func.Should()
-                .Throw<InvalidOperationException>()
-                .WithMessage($"Could not add resource '{resourceLocation}' with key*");
         }
     }
 
