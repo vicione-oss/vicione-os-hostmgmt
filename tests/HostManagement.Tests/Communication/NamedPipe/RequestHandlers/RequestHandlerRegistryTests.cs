@@ -188,6 +188,67 @@ public sealed class RequestHandlerRegistryTests
         }
 
         [Fact]
+        public async Task ShouldReturnSerializedError_WhenTargetEnvironmentInvalid()
+        {
+            // Arrange
+            var logger = GetLoggerSubstitute();
+            var topic = Topics.GetSupportedCapabilities;
+            var handler = new FakeHandler(topic);
+
+            var request = new NamedPipeMessage
+            {
+                Topic = topic,
+                Type = MessageType.Request,
+                Content = "content"
+            };
+
+            var registry = CreateSut((TargetEnvironment)int.MaxValue, [handler], logger);
+
+            // Act
+            var response = await registry.HandleRequestAsync(request, CancellationToken.None);
+
+            // Assert
+            handler.WasHandleCalled.Should().BeFalse();
+
+            var result = JsonSerializer.Deserialize(response.Content, s_networkStatusJsonTypeInfo);
+
+            result.Should().NotBeNull();
+            result.Status.Should().Be(OperationStatus.Error);
+            result.Message.Should().Contain("Topic not available on this platform.");
+        }
+
+        [Fact]
+        public async Task ShouldReturnSerializedError_WhenTargetEnvironmentUnknown()
+        {
+            // Arrange
+            var logger = GetLoggerSubstitute();
+            var topic = Topics.GetSupportedCapabilities;
+            var handler = new FakeHandler(topic);
+
+            var request = new NamedPipeMessage
+            {
+                Topic = topic,
+                Type = MessageType.Request,
+                Content = "content"
+            };
+
+            var registry = CreateSut(TargetEnvironment.Unknown, [handler], logger);
+            var expectedMessage = GetRequestFailedMessage(request, "Topic not available on this platform.");
+
+            // Act
+            var response = await registry.HandleRequestAsync(request, CancellationToken.None);
+
+            // Assert
+            handler.WasHandleCalled.Should().BeFalse();
+
+            var result = JsonSerializer.Deserialize(response.Content, s_networkStatusJsonTypeInfo);
+
+            result.Should().NotBeNull();
+            result.Status.Should().Be(OperationStatus.Error);
+            result.Message.Should().Contain(expectedMessage);
+        }
+
+        [Fact]
         public async Task ShouldReturnSerializedError_WhenTopicNotAvailableOnPlatform()
         {
             // Arrange
@@ -304,31 +365,6 @@ public sealed class RequestHandlerRegistryTests
             handler.WasHandleCalled.Should().BeFalse();
         }
 
-        private static void DisableTopicCapability(SupportedTopics supportedTopics, string topic)
-        {
-            switch (topic)
-            {
-                case Topics.InstallSignedDebianPackage: supportedTopics.InstallSignedDebianPackage = CapabilityStatus.Disabled; break;
-                case Topics.ResetNetworkInterface: supportedTopics.ResetNetworkInterface = CapabilityStatus.Disabled; break;
-                case Topics.RenewDHCPLease: supportedTopics.RenewDHCPLease = CapabilityStatus.Disabled; break;
-
-                case Topics.StartService: supportedTopics.StartService = CapabilityStatus.Disabled; break;
-                case Topics.StopService: supportedTopics.StopService = CapabilityStatus.Disabled; break;
-                case Topics.RestartService: supportedTopics.RestartService = CapabilityStatus.Disabled; break;
-
-                case Topics.ShutdownSystem: supportedTopics.ShutdownSystem = CapabilityStatus.Disabled; break;
-                case Topics.RestartSystem: supportedTopics.RestartSystem = CapabilityStatus.Disabled; break;
-                case Topics.ResetSystem: supportedTopics.ResetSystem = CapabilityStatus.Disabled; break;
-                case Topics.UpdateSystem: supportedTopics.UpdateSystem = CapabilityStatus.Disabled; break;
-
-                default:
-                    throw new ArgumentOutOfRangeException(
-                        nameof(topic),
-                        topic,
-                        "No capability mapping is defined for the topic.");
-            }
-        }
-
         [Fact]
         public async Task ShouldReturnDefaultResponse_WhenCanceled()
         {
@@ -386,6 +422,105 @@ public sealed class RequestHandlerRegistryTests
             response.Content.Should().Be("handled");
             handler.WasHandleCalled.Should().BeTrue();
             handler.CorrelationId.Should().Be(request.ConversationId);
+        }
+
+        [Theory]
+        [InlineData(TargetEnvironment.Debian, Topics.RedeployScripts)]
+        [InlineData(TargetEnvironment.Debian, Topics.GetServiceState)]
+        [InlineData(TargetEnvironment.Debian, Topics.StartService)]
+        [InlineData(TargetEnvironment.Debian, Topics.StopService)]
+        [InlineData(TargetEnvironment.Debian, Topics.RestartService)]
+        [InlineData(TargetEnvironment.Debian, Topics.GetSupportedCapabilities)]
+        [InlineData(TargetEnvironment.Debian, Topics.InstallSignedDebianPackage)]
+
+        [InlineData(TargetEnvironment.EdgeSViciOne, Topics.RedeployScripts)]
+        [InlineData(TargetEnvironment.EdgeSViciOne, Topics.GetServiceState)]
+        [InlineData(TargetEnvironment.EdgeSViciOne, Topics.GetSystemConfiguration)]
+        [InlineData(TargetEnvironment.EdgeSViciOne, Topics.SetSystemConfiguration)]
+        [InlineData(TargetEnvironment.EdgeSViciOne, Topics.GetSupportedCapabilities)]
+        [InlineData(TargetEnvironment.EdgeSViciOne, Topics.GetOriginalPhysicalAddress)]
+        [InlineData(TargetEnvironment.EdgeSViciOne, Topics.GetDHCPLeaseInformation)]
+        [InlineData(TargetEnvironment.EdgeSViciOne, Topics.GetNTPFallbackInformation)]
+        [InlineData(TargetEnvironment.EdgeSViciOne, Topics.ResetNetworkInterface)]
+        [InlineData(TargetEnvironment.EdgeSViciOne, Topics.RenewDHCPLease)]
+        [InlineData(TargetEnvironment.EdgeSViciOne, Topics.ShutdownSystem)]
+        [InlineData(TargetEnvironment.EdgeSViciOne, Topics.RestartSystem)]
+        [InlineData(TargetEnvironment.EdgeSViciOne, Topics.ResetSystem)]
+        [InlineData(TargetEnvironment.EdgeSViciOne, Topics.UpdateSystem)]
+        public async Task ShouldDispatchToHandler_WhenTopicAvailableAndEnabled(
+            TargetEnvironment targetEnvironment,
+            string topic)
+        {
+            // Arrange
+            var logger = GetLoggerSubstitute();
+            var handler = new FakeHandler(topic, handleResult: "handled");
+
+            var request = new NamedPipeMessage
+            {
+                Topic = topic,
+                Type = MessageType.Request,
+                Content = "content"
+            };
+
+            var registry = CreateSut(targetEnvironment, [handler], logger);
+
+            // Act
+            var response = await registry.HandleRequestAsync(request, CancellationToken.None);
+
+            // Assert
+            response.Content.Should().Be("handled");
+
+            handler.WasHandleCalled.Should().BeTrue();
+            handler.CorrelationId.Should().Be(request.ConversationId);
+        }
+
+        [Fact]
+        public async Task ShouldDispatchGetSupportedCapabilities_WhenAllCapabilitiesDisabled()
+        {
+            // Arrange
+            var logger = GetLoggerSubstitute();
+            var handler = new FakeHandler(Topics.GetSupportedCapabilities, handleResult: "handled");
+
+            var request = new NamedPipeMessage
+            {
+                Topic = Topics.GetSupportedCapabilities,
+                Type = MessageType.Request,
+                Content = "content"
+            };
+
+            var registry = CreateSut(TargetEnvironment.EdgeSViciOne, [handler], logger, CapabilityStatus.Disabled);
+
+            // Act
+            var response = await registry.HandleRequestAsync(request, CancellationToken.None);
+
+            // Assert
+            response.Content.Should().Be("handled");
+            handler.WasHandleCalled.Should().BeTrue();
+        }
+
+        private static void DisableTopicCapability(SupportedTopics supportedTopics, string topic)
+        {
+            switch (topic)
+            {
+                case Topics.InstallSignedDebianPackage: supportedTopics.InstallSignedDebianPackage = CapabilityStatus.Disabled; break;
+                case Topics.ResetNetworkInterface: supportedTopics.ResetNetworkInterface = CapabilityStatus.Disabled; break;
+                case Topics.RenewDHCPLease: supportedTopics.RenewDHCPLease = CapabilityStatus.Disabled; break;
+
+                case Topics.StartService: supportedTopics.StartService = CapabilityStatus.Disabled; break;
+                case Topics.StopService: supportedTopics.StopService = CapabilityStatus.Disabled; break;
+                case Topics.RestartService: supportedTopics.RestartService = CapabilityStatus.Disabled; break;
+
+                case Topics.ShutdownSystem: supportedTopics.ShutdownSystem = CapabilityStatus.Disabled; break;
+                case Topics.RestartSystem: supportedTopics.RestartSystem = CapabilityStatus.Disabled; break;
+                case Topics.ResetSystem: supportedTopics.ResetSystem = CapabilityStatus.Disabled; break;
+                case Topics.UpdateSystem: supportedTopics.UpdateSystem = CapabilityStatus.Disabled; break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(
+                        nameof(topic),
+                        topic,
+                        "No capability mapping is defined for the topic.");
+            }
         }
 
         private static string GetRequestFailedMessage(NamedPipeMessage message, string error)
