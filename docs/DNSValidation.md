@@ -14,9 +14,9 @@
 
 ## DNS Suffix
 
-**Ein oder mehrere** `Domain-Labels` separiert durch **Punkte**, z. B.: `local`, `google.com`, `mail.company.com`.
+**One or more** `domain labels` separated by **dots**, e.g..: `local`, `google.com`, `mail.company.com`.
 
-### Primärer DNS Suffix vs. Suchdomains
+### Primary DNS Suffix vs. Search Domains
 
 | Feature               | Primary DNS Suffix                                                                                  | Search Domains                                                                                                                                                    |
 | --------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
