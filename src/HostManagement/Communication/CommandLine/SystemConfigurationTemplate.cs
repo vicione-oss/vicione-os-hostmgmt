@@ -10,25 +10,23 @@ namespace HostManagement.Communication.CommandLine;
 
 internal static class SystemConfigurationTemplate
 {
-    private static TextWriter s_output = Console.Out;
-
     /// <summary>
-    /// Sets the <see cref="TextWriter"/>. The default is console output.
+    /// Creates and outputs a template of the <see cref="SystemConfiguration"/> with sample data.
     /// </summary>
-    /// <param name="writer">The <see cref="TextWriter"/>.</param>
-    internal static void SetOutput(TextWriter writer) => s_output = writer;
+    internal static void CreateAndOutput() => CreateAndOutput(Console.Out);
 
     /// <summary>
     /// Creates and outputs a template of the <see cref="SystemConfiguration"/> with sample data.
     /// </summary>
-    internal static void CreateAndOutput()
+    /// <param name="writer">The <see cref="TextWriter"/>.</param>
+    internal static void CreateAndOutput(TextWriter writer)
     {
         var internalConfigTemplateJson = JsonSerializer
             .Serialize(
                 CreateSharedConfigTemplate().ToInternalContracts(),
                 SystemConfigurationPersistenceContext.Default.SystemConfiguration);
 
-        s_output.WriteLine(internalConfigTemplateJson);
+        writer.WriteLine(internalConfigTemplateJson);
     }
 
     /// <summary>
@@ -38,11 +36,37 @@ internal static class SystemConfigurationTemplate
     /// <param name="filePath">The file path to the template file to validate.</param>
     internal static async Task Validate(string filePath)
     {
-        var internalConfig = await LoadInternalConfigTemplate(filePath);
+        await using var stream = new FileStream(filePath, new FileStreamOptions()
+        {
+            Access = FileAccess.Read,
+            Mode = FileMode.Open,
+            Options = FileOptions.Asynchronous | FileOptions.SequentialScan,
+            Share = FileShare.Read,
+        });
+
+        await Validate(stream);
+    }
+
+    /// <summary>
+    /// Validates a (modified) template of the <see cref="SystemConfiguration"/>, specified in the given stream
+    /// and outputs the validation result.
+    /// </summary>
+    /// <param name="stream">The template stream to validate.</param>
+    internal static Task Validate(Stream stream) => Validate(stream, Console.Out);
+
+    /// <summary>
+    /// Validates a (modified) template of the <see cref="SystemConfiguration"/>, specified in the given stream,
+    /// using the given <see cref="TextWriter"/> and outputs the validation result.
+    /// </summary>
+    /// <param name="stream">The template stream to validate.</param>
+    /// <param name="writer">The <see cref="TextWriter"/>.</param>
+    internal static async Task Validate(Stream stream, TextWriter writer)
+    {
+        var internalConfig = await LoadInternalConfigTemplate(stream);
         var validator = new SystemConfigurationValidator();
         var result = await validator.ValidateAsync(internalConfig.ToSharedContracts());
 
-        await s_output.WriteLineAsync(result.EntriesString);
+        await writer.WriteLineAsync(result.EntriesString);
     }
 
     private static SystemConfiguration CreateSharedConfigTemplate()
@@ -161,16 +185,8 @@ internal static class SystemConfigurationTemplate
         };
     }
 
-    private static async Task<SystemConfig.Contracts.SystemConfiguration> LoadInternalConfigTemplate(string filePath)
+    private static async Task<SystemConfig.Contracts.SystemConfiguration> LoadInternalConfigTemplate(Stream stream)
     {
-        await using var stream = new FileStream(filePath, new FileStreamOptions()
-        {
-            Access = FileAccess.Read,
-            Mode = FileMode.Open,
-            Options = FileOptions.Asynchronous | FileOptions.SequentialScan,
-            Share = FileShare.Read,
-        });
-
         return await JsonSerializer
             .DeserializeAsync(
                 stream,
