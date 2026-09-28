@@ -43,7 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Microsoft.Extensions.Logging.Abstractions` from `10.0.5` to `10.0.12`
   - `Microsoft.Testing.Extensions.CodeCoverage` from `18.5.2` to `18.9.0`
   - `NSubstitute` from `5.3.0` to `6.2.0`
-  - `System.CommandLine` from `2.0.5` to `2.0.11`
+  - `System.CommandLine` from `2.0.5` to `2.0.12`
   - `TestableIO.System.IO.Abstractions` from `22.1.0` to `22.2.0`
   - `TestableIO.System.IO.Abstractions.TestingHelpers` from `22.1.0` to `22.2.0`
   - `TestableIO.System.IO.Abstractions.Wrappers` from `22.1.0` to `22.2.0`
