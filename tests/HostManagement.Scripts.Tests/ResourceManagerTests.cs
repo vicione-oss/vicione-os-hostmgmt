@@ -515,6 +515,46 @@ public class ResourceManagerTests
         private const string GlobalScript = "global.sh";
 
         [Fact]
+        public void ShouldReturnFalse_WhenResourceStreamIsNull()
+        {
+            // Arrange
+            ResourceManager.ResetInstance();
+
+            var (logger, fileSystem, _, resourceHelper, processWrapper) = CreateSubstitutes();
+
+            const string ScriptFile = "missing-stream.sh";
+
+            var resourceDeployDirectoryStructure = GetDeployDirectoryStructure(_testResourceDeployDirectory);
+            var targetFilePath = Path.Combine(resourceDeployDirectoryStructure, ScriptFile);
+            var resourceLocation = BuildEnvironmentResource(ScriptFile, NormalizedEdgeSViciOne);
+
+            SetupFilteredManifestResourceNames(resourceHelper, resourceLocation);
+
+            fileSystem.Directory.Exists(resourceDeployDirectoryStructure).Returns(true);
+            fileSystem.File.Exists(targetFilePath).Returns(false);
+
+            resourceHelper.GetResourceStream(resourceLocation).Returns((Stream?)null);
+
+            ResourceManager.Initialize(
+                logger,
+                fileSystem,
+                resourceHelper,
+                processWrapper,
+                _testResourceDeployDirectory,
+                EdgeSViciOne);
+
+            // Act
+            var result = ResourceManager.GetInstance().DeployScripts();
+
+            // Assert
+            result.Should().BeFalse();
+
+            resourceHelper.Received(1).GetResourceStream(resourceLocation);
+            fileSystem.File.DidNotReceive().CreateText(Arg.Any<string>());
+            processWrapper.DidNotReceive().Start(Arg.Any<string>(), Arg.Any<string>());
+        }
+
+        [Fact]
         public void ShouldReturnFalse_WhenSettingExecutePermissionFails()
         {
             // Arrange
@@ -553,6 +593,38 @@ public class ResourceManagerTests
 
             // Assert
             result.Should().BeFalse();
+        }
+
+        [Fact]
+        public void ShouldReturnFalse_WhenRedeploymentFails()
+        {
+            // Arrange
+            ResourceManager.ResetInstance();
+
+            var (logger, fileSystem, _, resourceHelper, processWrapper) = CreateSubstitutes();
+
+            SetupFilteredManifestResourceNames(resourceHelper);
+
+            fileSystem.Directory.Exists(_testResourceDeployDirectory).Returns(true);
+
+            fileSystem.Directory
+                .When(directory => directory.Delete(_testResourceDeployDirectory, true))
+                .Do(_ => throw new IOException("Unit test exception."));
+
+            ResourceManager.Initialize(
+                logger,
+                fileSystem,
+                resourceHelper,
+                processWrapper,
+                _testResourceDeployDirectory,
+                EdgeSViciOne);
+
+            // Act
+            var result = ResourceManager.GetInstance().DeployScripts(isRedeployment: true);
+
+            // Assert
+            result.Should().BeFalse();
+            fileSystem.Directory.Received(1).Delete(_testResourceDeployDirectory, true);
         }
 
         [Fact]
@@ -692,6 +764,101 @@ public class ResourceManagerTests
         }
 
         [Fact]
+        public void ShouldSkipUnitTestingResource_WhenDeploying()
+        {
+            // Arrange
+            ResourceManager.ResetInstance();
+
+            var (logger, fileSystem, _, resourceHelper, processWrapper) = CreateSubstitutes();
+
+            const string ScriptFile = "UnitTesting.sh";
+
+            var resourceDeployDirectoryStructure = GetDeployDirectoryStructure(_testResourceDeployDirectory);
+            var targetFilePath = Path.Combine(resourceDeployDirectoryStructure, ScriptFile);
+            var resourceLocation = BuildEnvironmentResource(ScriptFile, NormalizedEdgeSViciOne);
+
+            SetupFilteredManifestResourceNames(resourceHelper, resourceLocation);
+
+            fileSystem.File.Exists(targetFilePath).Returns(false);
+
+            ResourceManager.Initialize(
+                logger,
+                fileSystem,
+                resourceHelper,
+                processWrapper,
+                _testResourceDeployDirectory,
+                EdgeSViciOne);
+
+            // Act
+            var result = ResourceManager.GetInstance().DeployScripts();
+
+            // Assert
+            result.Should().BeTrue();
+
+            resourceHelper.DidNotReceive().GetResourceStream(Arg.Any<string>());
+
+            fileSystem.Directory.DidNotReceive().CreateDirectory(Arg.Any<string>());
+            fileSystem.File.DidNotReceive().CreateText(Arg.Any<string>());
+
+            processWrapper.DidNotReceive().Start(Arg.Any<string>(), Arg.Any<string>());
+        }
+
+        [Fact]
+        public void ShouldOverwriteFile_WhenFileAppearsAfterInitialExistenceCheck()
+        {
+            // Arrange
+            ResourceManager.ResetInstance();
+
+            var (logger, fileSystem, _, resourceHelper, processWrapper) = CreateSubstitutes();
+
+            const string ScriptFile = "overwrite.sh";
+
+            var scriptContentBytes = Encoding.UTF8.GetBytes("updated content");
+            var resourceDeployDirectoryStructure = GetDeployDirectoryStructure(_testResourceDeployDirectory);
+            var targetFilePath = Path.Combine(resourceDeployDirectoryStructure, ScriptFile);
+            var resourceLocation = BuildEnvironmentResource(ScriptFile, NormalizedEdgeSViciOne);
+
+            SetupFilteredManifestResourceNames(resourceHelper, resourceLocation);
+
+            fileSystem.Directory.Exists(resourceDeployDirectoryStructure).Returns(true);
+
+            // First check: not deployed yet
+            // Second check: file now exists -> overwrite path
+            fileSystem.File.Exists(targetFilePath).Returns(false, true);
+
+            resourceHelper.GetResourceStream(resourceLocation).Returns(new MemoryStream(scriptContentBytes));
+
+            using var writer = new StreamWriter(new MemoryStream(), Encoding.UTF8, 16, leaveOpen: true);
+
+            fileSystem.File.CreateText(targetFilePath).Returns(writer);
+
+            SetupProcessWrapperSuccess(processWrapper);
+
+            ResourceManager.Initialize(
+                logger,
+                fileSystem,
+                resourceHelper,
+                processWrapper,
+                _testResourceDeployDirectory,
+                EdgeSViciOne);
+
+            // Act
+            var result = ResourceManager.GetInstance().DeployScripts();
+
+            // Assert
+            result.Should().BeTrue();
+
+            fileSystem.File.Received(2).Exists(targetFilePath);
+            fileSystem.File.Received(1).CreateText(targetFilePath);
+
+            processWrapper
+                .Received(1)
+                .Start(
+                    "/bin/bash",
+                    $"-c \"chmod +x {targetFilePath}\"");
+        }
+
+        [Fact]
         public void ShouldCleanUpDirectory_WhenRedeployIsRequested()
         {
             // Arrange
@@ -737,6 +904,66 @@ public class ResourceManagerTests
 
             fileSystem.Directory.Received(1).Delete(_testResourceDeployDirectory, true);
             fileSystem.Directory.Received(1).CreateDirectory(resourceDeployDirectoryStructure);
+        }
+
+        [Fact]
+        public void ShouldNotDeleteDirectory_WhenRedeployDirectoryDoesNotExist()
+        {
+            // Arrange
+            ResourceManager.ResetInstance();
+
+            var (logger, fileSystem, _, resourceHelper, processWrapper) = CreateSubstitutes();
+
+            SetupFilteredManifestResourceNames(resourceHelper);
+
+            fileSystem.Directory.Exists(_testResourceDeployDirectory).Returns(false);
+
+            ResourceManager.Initialize(
+                logger,
+                fileSystem,
+                resourceHelper,
+                processWrapper,
+                _testResourceDeployDirectory,
+                EdgeSViciOne);
+
+            // Act
+            var result = ResourceManager.GetInstance().DeployScripts(isRedeployment: true);
+
+            // Assert
+            result.Should().BeTrue();
+            fileSystem.Directory.DidNotReceive().Delete(Arg.Any<string>(), Arg.Any<bool>());
+        }
+    }
+
+    public sealed class ResourceInformationToString : ResourceManagerTests
+    {
+        [Fact]
+        public void ShouldReturnResourceInformation_WhenCalled()
+        {
+            // Arrange
+            const string EmbeddedResourceLocation =
+                "HostManagement.Scripts.Resources.Scripts.targets.edges_vicione.test.sh";
+
+            const string RelativeEmbeddedResourceLocation = "Scripts.targets.edges_vicione.test.sh";
+
+            var deployDirectory = Path.Combine(_testResourceDeployDirectory, ScriptsDirectoryName);
+
+            var resourceInfo = new ResourceManager.ResourceInformation(
+                EmbeddedResourceLocation,
+                RelativeEmbeddedResourceLocation,
+                deployDirectory,
+                "test.sh");
+
+            // Act
+            var result = resourceInfo.ToString();
+
+            // Assert
+            result.Should().ContainAll(
+                "Resource information for test.sh",
+                $"> EmbeddedResourceLocation: {EmbeddedResourceLocation}",
+                $"> RelativeEmbeddedResourceLocation: {RelativeEmbeddedResourceLocation}",
+                $"> DeployPath: {Path.Combine(deployDirectory, "test.sh")}",
+                "> Name: test");
         }
     }
 
