@@ -85,6 +85,22 @@ public class IPAddressConverterTests
             // Assert
             result.Should().Be(expectedIPAddress);
         }
+
+        [Fact]
+        public void ShouldReturnNull_WhenTokenIsNull()
+        {
+            // Arrange
+            var json = "null";
+            var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(json));
+
+            reader.Read();
+
+            // Act
+            var result = _sut.Read(ref reader, typeof(IPAddress), _options);
+
+            // Assert
+            result.Should().Be(null);
+        }
     }
 
     public class Write : IPAddressConverterTests
