@@ -2,7 +2,7 @@ using AwesomeAssertions;
 using Microsoft.Extensions.Logging;
 using Xunit;
 
-namespace HostManagement.Tests;
+namespace HostManagement.Tests.Communication.CommandLine.Output;
 
 public class CommandLineLoggerTests
 {
