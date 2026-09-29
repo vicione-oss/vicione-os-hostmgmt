@@ -90,6 +90,26 @@ public sealed class SystemConfigurationCacheTests : IDisposable
     }
 
     [Fact]
+    public void ShouldDisposeTimer_WhenDisposed()
+    {
+        // Arrange
+        var cache = SystemConfigurationCache.Instance;
+        var timeProvider = new FakeTimeProvider();
+
+        cache.SetTimeProviderForTests(timeProvider);
+        cache.SetCachedConfig(new SystemConfiguration());
+
+        var timer = timeProvider.LastTimer!;
+        timer.IsDisposed.Should().BeFalse();
+
+        // Act
+        cache.Dispose();
+
+        // Assert
+        timer.IsDisposed.Should().BeTrue();
+    }
+
+    [Fact]
     public void ShouldDisposePreviousTimer_WhenConfigurationIsCachedAgain()
     {
         // Arrange
