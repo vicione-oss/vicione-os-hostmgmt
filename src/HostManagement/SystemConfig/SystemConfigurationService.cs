@@ -394,7 +394,16 @@ internal sealed partial class SystemConfigurationService(
                 }
             }
 
-            var currentInterface = currentConfigResult.Configuration.GetNetworkInterface(interfaceName);
+            // This round-trip is effectively a deep copy because the contract translators
+            // construct new objects and collections.
+            // Although this copy is not perfect, the config is a new reference and therefore
+            // prevents 'SetConfiguration' from getting the same already-mutated object
+            // (via 'ApplyDefaultNetworkInterfaceSettings') from the cache.
+            var proposedConfig = currentConfigResult.Configuration
+                .ToInternalContracts()
+                .ToSharedContracts();
+
+            var currentInterface = proposedConfig.GetNetworkInterface(interfaceName);
 
             if (currentInterface is null)
             {
@@ -409,7 +418,7 @@ internal sealed partial class SystemConfigurationService(
             ApplyDefaultNetworkInterfaceSettings(currentInterface, defaultInterface);
 
             var setConfigResult = await SetConfiguration(
-                currentConfigResult.Configuration,
+                proposedConfig,
                 shouldPersistConfiguration: true,
                 cancellationToken)
                 .ConfigureAwait(false);

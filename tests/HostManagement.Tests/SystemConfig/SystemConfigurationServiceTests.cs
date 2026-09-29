@@ -189,6 +189,50 @@ public class SystemConfigurationServiceTests
             result.Configuration.Should().NotBeNull();
             result.Message.Should().NotBeEmpty();
         }
+
+        [Fact]
+        public async Task ShouldLogCacheInvalidationFailure_WhenCachedConfigurationExpires()
+        {
+            // Arrange
+            var timeProvider = new FakeTimeProvider(throwOnDispose: true);
+
+            SystemConfigurationCache.Instance.SetTimeProviderForTests(timeProvider);
+
+            var context = GetSystemConfigurationServiceContext();
+
+            await context.Sut.GetConfiguration(CancellationToken.None);
+
+            timeProvider.LastTimer.Should().NotBeNull();
+
+            // Act
+            timeProvider.LastTimer!.Fire();
+
+            // Assert
+            AssertLogReceived(context.Logger, LogLevel.Error, "Failed to invalidate system configuration cache.");
+        }
+
+        [Fact]
+        public async Task ShouldLogCacheInvalidation_WhenCachedConfigurationExpires()
+        {
+            // Arrange
+            var timeProvider = new FakeTimeProvider();
+
+            SystemConfigurationCache.Instance.SetTimeProviderForTests(timeProvider);
+
+            var context = GetSystemConfigurationServiceContext();
+
+            await context.Sut.GetConfiguration(CancellationToken.None);
+
+            timeProvider.LastTimer.Should().NotBeNull();
+
+            // Act
+            timeProvider.LastTimer!.Fire();
+
+            // Assert
+            SystemConfigurationCache.Instance.GetCachedConfig().Should().BeNull();
+
+            AssertLogReceived(context.Logger, LogLevel.Information, "System configuration cache has been invalidated.");
+        }
     }
 
     public sealed class GetConfigurationOnDeviceStartup : SystemConfigurationServiceTests
@@ -270,6 +314,39 @@ public class SystemConfigurationServiceTests
 
             result.Status.Should().Be(OperationStatus.Warning);
             result.Configuration.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task ShouldReturnWarning_WhenOnlyDefectivePreparationConfigurationExists()
+        {
+            // Arrange
+            var context = GetSystemConfigurationServiceContext();
+
+            context.Persistence.ExistsUserConfiguration().Returns(false);
+            context.Persistence.GetUserConfigurationPath().Returns(AppPaths.SystemConfigurationFilePath);
+            context.Persistence.ExistsDefectiveUserConfiguration().Returns(false);
+
+            context.Persistence.ExistsPreparationConfiguration().Returns(false);
+            context.Persistence.ExistsDefectivePreparationConfiguration().Returns(true);
+            context.Persistence.GetDefectivePreparationConfigurationPath()
+                .Returns(AppPaths.DefectiveDefaultSystemConfigurationFilePath);
+
+            // Act
+            var result = await context.Sut.GetConfigurationOnDeviceStartup(CancellationToken.None);
+
+            // Assert
+            AssertFoundNoUserConfigLogReceived(context);
+
+            AssertLogReceived(
+                context.Logger,
+                LogLevel.Warning,
+                $"Found only defective system configuration '{AppPaths.DefectiveDefaultSystemConfigurationFilePath}'.");
+
+            AssertGetJsonConfigNotPossibleLogReceived(context);
+
+            result.Status.Should().Be(OperationStatus.Warning);
+            result.Configuration.Should().BeNull();
+            result.SourceVersion.Should().BeNull();
         }
 
         [Fact]
@@ -948,6 +1025,37 @@ public class SystemConfigurationServiceTests
         }
 
         [Fact]
+        public async Task ShouldLogCacheInvalidationFailure_WhenCacheInvalidationFails()
+        {
+            // Arrange
+            var context = GetSystemConfigurationServiceContext();
+
+            context.Persistence
+                .SaveUserConfiguration(
+                    Arg.Any<InternalSystemConfiguration>(),
+                    Arg.Any<CancellationToken>())
+                .Returns(Task.CompletedTask);
+
+            var timeProvider = new FakeTimeProvider(throwOnDispose: true);
+
+            SystemConfigurationCache.Instance.SetTimeProviderForTests(timeProvider);
+            SystemConfigurationCache.Instance.SetCachedConfig(CreateSharedConfig());
+
+            var proposedConfig = CreateSharedConfig();
+
+            // Act
+            var result = await context.Sut.SetConfiguration(
+                proposedConfig,
+                shouldPersistConfiguration: true,
+                CancellationToken.None);
+
+            // Assert
+            result.Status.Should().Be(OperationStatus.Success);
+
+            AssertLogReceived(context.Logger, LogLevel.Error, "Failed to invalidate system configuration cache.");
+        }
+
+        [Fact]
         public async Task ShouldPersistConfiguration_WhenShouldPersistIsTrue()
         {
             // Arrange
@@ -1160,6 +1268,29 @@ public class SystemConfigurationServiceTests
     public sealed class ResetNetworkInterface : SystemConfigurationServiceTests
     {
         [Fact]
+        public async Task ShouldReturnErrorResult_WhenGettingCurrentConfigurationFails()
+        {
+            // Arrange
+            SystemConfigurationCache.Instance.ResetForTests();
+
+            var context = GetSystemConfigurationServiceContext();
+            context.ScriptHandler
+                .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
+                .ReturnsForAnyArgs((Result.TestErrorResult, []));
+
+            // Act
+            var result = await context.Sut.ResetNetworkInterface(Lan1, CancellationToken.None);
+
+            // Assert
+            result.Status.Should().Be(OperationStatus.Error);
+            result.Message.Should().ContainAll(
+                $"Reset network interface '{Lan1}' failed.",
+                GetConfigFromScriptsFailed);
+
+            context.Persistence.DidNotReceive().ExistsPreparationConfiguration();
+        }
+
+        [Fact]
         public async Task ShouldReturnErrorResult_WhenPreparationConfigurationNotExists()
         {
             var context = GetSystemConfigurationServiceContext();
@@ -1225,6 +1356,166 @@ public class SystemConfigurationServiceTests
         }
 
         [Fact]
+        public async Task ShouldIgnoreInterfaceWithoutCommonInformation_WhenMatchingInterfaceExists()
+        {
+            // Arrange
+            var defaultConfig = CreateInternalDefaultConfigWithInterface();
+            defaultConfig.NetworkInterfaces!.Insert(0, new());
+
+            var context = GetSystemConfigurationServiceContext();
+            context.Persistence.ExistsPreparationConfiguration().Returns(true);
+            context.Persistence.LoadPreparationConfiguration(Arg.Any<CancellationToken>())
+                .Returns(CreateLoadedConfig(defaultConfig));
+
+            context.Persistence
+                .SaveUserConfiguration(
+                    Arg.Any<InternalSystemConfiguration>(),
+                    Arg.Any<CancellationToken>())
+                .Returns(Task.CompletedTask);
+
+            context.ScriptHandler
+                .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
+                .ReturnsForAnyArgs(
+                (
+                    Result.SuccessResult,
+                    [
+                        new()
+                        {
+                            Name = Lan1,
+                            Enabled = true,
+                            UserDefinedMACAddress = new()
+                            {
+                                Enabled = true,
+                                Address = PhysicalAddress.Parse("11:22:33:44:55:66")
+                            }
+                        }
+                    ]
+                ));
+
+            context.ScriptHandler
+                .ExecuteGetInterfaceSettingsScript(Arg.Any<string>())
+                .Returns((
+                    Result.SuccessResult,
+                    new()
+                    {
+                        DHCPEnabled = true
+                    },
+                    new()));
+
+            // Act
+            var result = await context.Sut.ResetNetworkInterface(Lan1, CancellationToken.None);
+
+            // Assert
+            result.Status.Should().Be(OperationStatus.Success);
+
+            await context.Persistence.Received(1).SaveUserConfiguration(
+                Arg.Any<InternalSystemConfiguration>(),
+                Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task ShouldReturnErrorResult_WhenInterfaceNotFoundInCurrentConfiguration()
+        {
+            // Arrange
+            SystemConfigurationCache.Instance.ResetForTests();
+
+            var context = GetSystemConfigurationServiceContext();
+            context.Persistence.ExistsPreparationConfiguration().Returns(true);
+            context.Persistence
+                .LoadPreparationConfiguration(Arg.Any<CancellationToken>())
+                .Returns(CreateLoadedConfig(CreateInternalDefaultConfigWithInterface(interfaceName: Lan1)));
+
+            context.ScriptHandler
+                .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
+                .ReturnsForAnyArgs((Result.SuccessResult, []));
+
+            // Act
+            var result = await context.Sut.ResetNetworkInterface(Lan1, CancellationToken.None);
+
+            // Assert
+            result.Status.Should().Be(OperationStatus.Error);
+            result.Message.Should().Contain($"Network interface '{Lan1}' not found in current configuration.");
+
+            await context.Persistence.DidNotReceive().SaveUserConfiguration(
+                Arg.Any<InternalSystemConfiguration>(),
+                Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task ShouldReturnErrorResult_WhenSetConfigurationFails()
+        {
+            // Arrange
+            var context = GetSystemConfigurationServiceContext();
+            context.Persistence.ExistsPreparationConfiguration().Returns(true);
+
+            context.Persistence
+                .LoadPreparationConfiguration(Arg.Any<CancellationToken>())
+                .Returns(CreateLoadedConfig(CreateInternalDefaultConfigWithInterface(dhcpEnabled: false)));
+
+            context.ScriptHandler
+                .ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
+                .ReturnsForAnyArgs(
+                (
+                    Result.SuccessResult,
+                    [
+                        new()
+                        {
+                            Name = Lan1,
+                            Enabled = true,
+                            UserDefinedMACAddress = new()
+                            {
+                                Enabled = true,
+                                Address = PhysicalAddress.Parse("11:22:33:44:55:66")
+                            }
+                        }
+                    ]
+                ));
+
+            context.ScriptHandler
+                .ExecuteGetInterfaceSettingsScript(Arg.Any<string>())
+                .Returns((
+                    Result.SuccessResult,
+                    new()
+                    {
+                        DHCPEnabled = true,
+                        Gateway = IPAddress.Parse("10.10.10.1"),
+                        IPv4Details =
+                        [
+                            new()
+                            {
+                                IPAddress = IPAddress.Parse("10.10.10.2"),
+                                Netmask = IPAddress.Parse("255.255.255.0")
+                            }
+                        ]
+                    },
+                    new()));
+
+            // First call applies the reset and fails.
+            // Second call is the automatic revert and succeeds.
+            context.ScriptHandler
+                .ExecuteSetInterfaceSettingsScript(Arg.Any<ScriptOptions>())
+                .ReturnsForAnyArgs(
+                    Result.TestErrorResult,
+                    Result.SuccessResult);
+
+            // Act
+            var result = await context.Sut.ResetNetworkInterface(Lan1, CancellationToken.None);
+
+            // Assert
+            result.Status.Should().Be(OperationStatus.Error);
+            result.Message.Should().ContainAll(
+                $"Reset network interface '{Lan1}' failed.",
+                "Revert system configuration succeeded, after setting system configuration failed.",
+                Result.TestErrorMessage);
+
+            await context.ScriptHandler.Received(2).ExecuteSetInterfaceSettingsScript(Arg.Any<ScriptOptions>());
+
+            await context.Persistence.DidNotReceive().SaveUserConfiguration(
+                Arg.Any<InternalSystemConfiguration>(),
+                Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
         public async Task ShouldPersistUpdatedUserConfiguration_WhenResetSucceeds()
         {
             // Arrange: Default configuration has static IP (DHCP=false)
@@ -1282,6 +1573,8 @@ public class SystemConfigurationServiceTests
             // Assert: Interface should be reset to static IP from default configuration
             result.Status.Should().Be(OperationStatus.Success);
             result.Message.Should().Contain($"Network interface '{Lan1}' has been reset to default configuration.");
+
+            await context.ScriptHandler.Received(1).ExecuteSetInterfaceSettingsScript(Arg.Any<ScriptOptions>());
 
             await context.Persistence.Received(1).SaveUserConfiguration(
                 Arg.Is<InternalSystemConfiguration>(static config =>
@@ -1470,5 +1763,31 @@ public class SystemConfigurationServiceTests
 
     private static SystemConfigurationServiceContext GetSystemConfigurationServiceContext()
         => new(Lan1, TestHostname);
+
+    private sealed class FakeTimeProvider(bool throwOnDispose = false) : TimeProvider
+    {
+        internal FakeTimer? LastTimer { get; private set; }
+
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
+            => LastTimer = new FakeTimer(callback, state, throwOnDispose);
+
+        internal sealed class FakeTimer(TimerCallback callback, object? state, bool throwOnDispose) : ITimer
+        {
+            public bool Change(TimeSpan dueTime, TimeSpan period) => true;
+            public void Fire() => callback(state);
+
+            public void Dispose()
+            {
+                if (throwOnDispose)
+                    throw new InvalidOperationException(TestExceptionMessage);
+            }
+
+            public ValueTask DisposeAsync()
+            {
+                Dispose();
+                return ValueTask.CompletedTask;
+            }
+        }
+    }
 }
 #pragma warning restore CA1873
