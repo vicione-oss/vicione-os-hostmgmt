@@ -66,6 +66,10 @@ public class SupportedCapabilitiesIniConverterTests
                 "[Settings]\nDNS=Enabled",
                 "Setting 'DNS' has child settings and cannot be configured directly. Configure child settings in '[Settings.DNS]'."),
 
+            new(
+                "[Settings..DNS]\nHostname=Enabled",
+                "Invalid INI section 'Settings..DNS' at line 1."),
+
             new (
                 "[Settings.DNS]\nUnknownKey=Enabled",
                 "Unknown setting 'DNS.UnknownKey'."),
@@ -73,6 +77,14 @@ public class SupportedCapabilitiesIniConverterTests
             new (
                 "[Settings.DNS.Hostname]\nChild=Enabled",
                 "The setting 'DNS.Hostname' does not support a child setting."),
+
+            new(
+                "[Settings.DNS]\n.Hostname=Enabled",
+                "Invalid INI key '.Hostname' at line 2."),
+
+            new(
+                "[Settings.DNS]\nHostname.=Enabled",
+                "Invalid INI key 'Hostname.' at line 2."),
 
             new (
                 "[Settings.DNS]\nHostname=Enabled\nHostname=Disabled",
@@ -94,6 +106,10 @@ public class SupportedCapabilitiesIniConverterTests
                 "[Topics]\nSomeKey",
                 "Invalid INI entry at line 2."),
 
+            new(
+                "[Topics]\n=Enabled",
+                "Invalid INI entry at line 2."),
+
             new (
                 "[Topics]\nSomeKey=Unknown",
                 "Invalid capability value 'Unknown' at line 2.")
@@ -113,6 +129,44 @@ public class SupportedCapabilitiesIniConverterTests
 
             // Assert
             act.Should().Throw<FormatException>().WithMessage(expectedMessage);
+        }
+
+        [Fact]
+        public void ShouldThrow_WhenDefaultSettingsSectionIsMissing()
+        {
+            // Arrange
+            const string IniContent =
+                """
+                [Settings.DNS]
+                Hostname=Enabled
+                """;
+
+            // Act
+            var act = () => SupportedCapabilitiesIniConverter.ToJsonDocument(IniContent, new JsonObject());
+
+            // Assert
+            act.Should()
+                .Throw<InvalidOperationException>()
+                .WithMessage("The default 'SupportedCapabilities' JSON must contain a 'Settings' object.");
+        }
+
+        [Fact]
+        public void ShouldThrow_WhenDefaultTopicsSectionIsMissing()
+        {
+            // Arrange
+            const string IniContent =
+                """
+                [Topics]
+                GetServiceState=Enabled
+                """;
+
+            // Act
+            var act = () => SupportedCapabilitiesIniConverter.ToJsonDocument(IniContent, new JsonObject());
+
+            // Assert
+            act.Should()
+                .Throw<InvalidOperationException>()
+                .WithMessage("The default 'SupportedCapabilities' JSON must contain a 'Topics' object.");
         }
 
         [Fact]
