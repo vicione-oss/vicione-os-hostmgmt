@@ -126,7 +126,7 @@ add_ip_address() {
 
 add_netplan_base_configuration() {
     FILE_CONTENT+="#"$'\n'
-    FILE_CONTENT+="# This file is managed by ifm HostManagement application."$'\n'
+    FILE_CONTENT+="# This file is managed by ViciOne open automation HostManagement application."$'\n'
     FILE_CONTENT+="# Manual adjustments may not be compatible."$'\n'
     FILE_CONTENT+="#"$'\n'
     FILE_CONTENT+="network:"$'\n'

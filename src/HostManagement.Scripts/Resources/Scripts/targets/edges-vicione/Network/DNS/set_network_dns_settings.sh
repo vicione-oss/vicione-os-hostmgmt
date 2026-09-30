@@ -66,7 +66,7 @@ usage() {
     echo "Examples:"
     echo "$0"
     echo "  ${FLAG_NAMESERVERS_ENABLED} false ${FLAG_NAMESERVERS} 8.8.8.8 8.8.4.4"
-    echo "  ${FLAG_DNS_SUFFIX_ENABLED} false ${FLAG_DNS_SUFFIX} ifm.com"
+    echo "  ${FLAG_DNS_SUFFIX_ENABLED} false ${FLAG_DNS_SUFFIX} google.com"
     echo "  ${FLAG_SEARCH_DOMAINS_ENABLED} false ${FLAG_SEARCH_DOMAINS} test.de google.com"
     echo "  ${FLAG_INTERFACES} \"ens33            UP             00:50:56:36:6d:33 <BROADCAST,MULTICAST,UP,LOWER_UP>\""
     exit 0
