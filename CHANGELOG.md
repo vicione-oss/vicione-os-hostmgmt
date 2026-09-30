@@ -36,17 +36,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `.NET Runtime` from `10.0.5` to `10.0.12`
 - Updated `.NET SDK` from `10.0.201` to `10.0.401`
 - Updated NuGet packages
-  - `AwesomeAssertions` from `9.4.0` to `9.5.0`
+  - `AwesomeAssertions` from `9.4.0` to `9.6.0`
   - `Microsoft.CodeAnalysis.CSharp` from `5.3.0` to `5.6.0`
   - `Microsoft.Extensions.Configuration.EnvironmentVariables` from `10.0.5` to `10.0.12`
   - `Microsoft.Extensions.Logging` from `10.0.5` to `10.0.12`
   - `Microsoft.Extensions.Logging.Abstractions` from `10.0.5` to `10.0.12`
-  - `Microsoft.Testing.Extensions.CodeCoverage` from `18.5.2` to `18.9.0`
+  - `Microsoft.Testing.Extensions.CodeCoverage` from `18.5.2` to `18.11.2`
   - `NSubstitute` from `5.3.0` to `6.2.0`
   - `System.CommandLine` from `2.0.5` to `2.0.12`
   - `TestableIO.System.IO.Abstractions` from `22.1.0` to `22.2.0`
   - `TestableIO.System.IO.Abstractions.TestingHelpers` from `22.1.0` to `22.2.0`
   - `TestableIO.System.IO.Abstractions.Wrappers` from `22.1.0` to `22.2.0`
+  - `xunit.v3.mtp-v2` from `3.2.2` to `4.0.1`
 - Clarified XML documentation of `Content` property of `NamedPipeMessage` (content can be JSON-serialized or a plain string)
 - Improved XML documentation of `SystemConfigurationSerializer`
 - Made `--extract-help` command-line argument available in release builds
