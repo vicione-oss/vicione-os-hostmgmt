@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLI: Aligned `service` command description to other top-level commands
 - CLI: Swapped order of `system` and `deployment` command groups
 
+### Fixed
+
+- Fixed network interface reset mutating the cached configuration, which prevented network changes from being applied
+
 ## [2.0.0-beta1] - 2026-09-30
 
 ### Added
