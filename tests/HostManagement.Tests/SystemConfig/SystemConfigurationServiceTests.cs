@@ -1519,6 +1519,7 @@ public class SystemConfigurationServiceTests
 
             SupportedSettings.Proxy.Capability = CapabilityStatus.Enabled;
             SupportedSettings.NTP.Capability = CapabilityStatus.Enabled;
+            SupportedSettings.Syslog.Capability = CapabilityStatus.Enabled;
             SupportedSettings.Services.Capability = CapabilityStatus.Enabled;
 
             Sut = new(Persistence, ScriptHandler, Logger, SupportedSettings);

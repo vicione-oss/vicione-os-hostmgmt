@@ -49,6 +49,7 @@ public class SystemConfiguration : IEquatable<SystemConfiguration>
     /// <summary>
     /// The syslog settings.
     /// </summary>
+    [SupportedSetting]
     public SyslogSettings Syslog { get; set; } = new();
 
     /// <summary>

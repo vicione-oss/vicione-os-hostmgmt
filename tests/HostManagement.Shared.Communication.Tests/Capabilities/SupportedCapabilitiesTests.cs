@@ -62,6 +62,10 @@ public sealed class SupportedCapabilitiesTests
         supportedSettings.NTP.Name.Should().Be("NTP");
         supportedSettings.NTP.Capability.Should().Be(CapabilityStatus.Disabled);
 
+        supportedSettings.Syslog.GetType().Should().Be<SyslogSupport>();
+        supportedSettings.Syslog.Name.Should().Be("Syslog");
+        supportedSettings.Syslog.Capability.Should().Be(CapabilityStatus.Disabled);
+
         supportedSettings.Services.GetType().Should().Be<ServicesSupport>();
         supportedSettings.Services.Name.Should().Be("Services");
         supportedSettings.Services.Capability.Should().Be(CapabilityStatus.Disabled);
