@@ -73,6 +73,11 @@ public static partial class Topics
     public const string GetNTPFallbackInformation = "GetNTPFallbackInformation";
 
     /// <summary>
+    /// The topic to get the NTP synchronization status.
+    /// </summary>
+    public const string GetNTPSyncStatus = "GetNTPSyncStatus";
+
+    /// <summary>
     /// The topic to get the state of a systemd unit, e.g. of type 'service'.
     /// </summary>
     /// <remarks>

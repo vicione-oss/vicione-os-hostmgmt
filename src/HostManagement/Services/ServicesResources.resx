@@ -141,6 +141,12 @@
   <data name="GetNTPFallbackServersFailed" xml:space="preserve">
     <value>Getting fallback NTP servers failed.</value>
   </data>
+  <data name="GetNTPSyncStatusCanceled" xml:space="preserve">
+    <value>Getting NTP sync status canceled.</value>
+  </data>
+  <data name="GetNTPSyncStatusFailed" xml:space="preserve">
+    <value>Getting NTP sync status failed.</value>
+  </data>
   <data name="GetOriginalPhysicalAddressCanceled" xml:space="preserve">
     <value>Getting original physical address was canceled.</value>
   </data>

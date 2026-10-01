@@ -42,6 +42,7 @@ public sealed class ServiceRunnerTests
                 Topics.GetNetworkStatusInformation,
                 Topics.GetDHCPLeaseInformation,
                 Topics.GetNTPFallbackInformation,
+                Topics.GetNTPSyncStatus,
 
                 Topics.GetSystemConfiguration,
                 Topics.SetSystemConfiguration,

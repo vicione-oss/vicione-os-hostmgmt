@@ -155,6 +155,11 @@ public enum ScriptIdentifier
     NetworkNTPFallbackInformationGet,
 
     /// <summary>
+    /// Script to get the NTP synchronization status.
+    /// </summary>
+    NetworkNTPSyncStatusGet,
+
+    /// <summary>
     /// Script to get NTP settings.
     /// </summary>
     NetworkNTPSettingsGet,

@@ -441,6 +441,7 @@ public sealed class RequestHandlerRegistryTests
         [InlineData(TargetEnvironment.EdgeSViciOne, Topics.GetOriginalPhysicalAddress)]
         [InlineData(TargetEnvironment.EdgeSViciOne, Topics.GetDHCPLeaseInformation)]
         [InlineData(TargetEnvironment.EdgeSViciOne, Topics.GetNTPFallbackInformation)]
+        [InlineData(TargetEnvironment.EdgeSViciOne, Topics.GetNTPSyncStatus)]
         [InlineData(TargetEnvironment.EdgeSViciOne, Topics.ResetNetworkInterface)]
         [InlineData(TargetEnvironment.EdgeSViciOne, Topics.RenewDHCPLease)]
         [InlineData(TargetEnvironment.EdgeSViciOne, Topics.ShutdownSystem)]

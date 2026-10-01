@@ -137,6 +137,12 @@ internal interface IScriptHandler
     Task<(Result, IEnumerable<string>)> ExecuteGetNetworkNTPFallbackInformationScript();
 
     /// <summary>
+    /// Executes the script to get the NTP synchronization status.
+    /// </summary>
+    /// <returns><see cref="Result"/> and the NTP synchronization status.</returns>
+    Task<(Result, NTPSyncStatus)> ExecuteGetNTPSyncStatusScript();
+
+    /// <summary>
     /// Executes the script to get NTP settings.
     /// </summary>
     /// <returns><see cref="Result"/> and <see cref="NetworkNTPSettings"/>.</returns>

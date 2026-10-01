@@ -102,6 +102,12 @@ internal sealed class ScriptHandler : IScriptHandler
     public async Task<(Result, IEnumerable<string>)> ExecuteGetNetworkNTPFallbackInformationScript()
         => await ExecuteScriptAndReturnSplittedStandardOutput(ScriptIdentifier.NetworkNTPFallbackInformationGet);
 
+    public async Task<(Result, NTPSyncStatus)> ExecuteGetNTPSyncStatusScript()
+        => await ExecuteScriptAndReturnDeserializedType(
+            SystemConfigurationJsonSerializerContext.Default.NTPSyncStatus,
+            ScriptIdentifier.NetworkNTPSyncStatusGet,
+            () => NTPSyncStatus.Unknown);
+
     public async Task<(Result, NetworkNTPSettings)> ExecuteGetNetworkNTPSettingsScript()
         => await ExecuteScriptAndReturnDeserializedType(
             SystemConfigurationJsonSerializerContext.Default.NetworkNTPSettings,
@@ -192,6 +198,19 @@ internal sealed class ScriptHandler : IScriptHandler
                 scriptArguments,
                 () => new T(),
                 includeWarnings);
+
+    private async Task<(Result, T)> ExecuteScriptAndReturnDeserializedType<T>(
+        JsonTypeInfo<T> jsonTypeInfo,
+        ScriptIdentifier scriptIdentifier,
+        Func<T> newValueFactory,
+        bool includeWarnings = true)
+        where T : class
+        => await ExecuteScriptAndReturnDeserializedType(
+            jsonTypeInfo,
+            scriptIdentifier,
+            [],
+            newValueFactory,
+            includeWarnings);
 
     private async Task<(Result, T)> ExecuteScriptAndReturnDeserializedType<T>(
         JsonTypeInfo<T> jsonTypeInfo,

@@ -33,6 +33,7 @@ internal sealed class NTPCommand : Command
     /// </summary>
     public NTPCommand() : base(CliStrings.Network.NTP.CommandName, CliStrings.Network.NTP.CommandDescription)
     {
+        Add(new NTPStatusCommand());
         Add(new NTPListCommand());
         Add(new NTPEnableCommand());
         Add(new NTPDisableCommand());

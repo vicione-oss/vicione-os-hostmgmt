@@ -287,6 +287,7 @@ public sealed class ScriptRunner
 
             // NTP
             ScriptIdentifier.NetworkNTPFallbackInformationGet => "get_network_ntp_fallback_information",
+            ScriptIdentifier.NetworkNTPSyncStatusGet => "get_ntp_quality",
             ScriptIdentifier.NetworkNTPSettingsGet => "get_network_ntp_settings",
             ScriptIdentifier.NetworkNTPSettingsSet => "set_network_ntp_settings",
 

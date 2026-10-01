@@ -150,6 +150,22 @@ internal static class NamedPipeRequestHelper
         return ntpFallbackInformationResult.FallbackNTPServers;
     }
 
+    internal static async Task<NTPSyncStatus?> GetNTPSyncStatus(CancellationToken cancellationToken)
+    {
+        var topic = Topics.GetNTPSyncStatus;
+
+        var ntpSyncStatusResult = await SendNamedPipeRequest(
+            CommunicationJsonContext.Default.GetNTPSyncStatusResult,
+            topic,
+            null,
+            cancellationToken);
+
+        if (ntpSyncStatusResult.Status == OperationStatus.Error)
+            OutputError(topic, ntpSyncStatusResult);
+
+        return ntpSyncStatusResult.NTPSyncStatus;
+    }
+
     /// <summary>
     /// Sends a named pipe request to get the original physical address.
     /// </summary>
