@@ -98,7 +98,7 @@ include:
   - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/renovate/configuration-validation@v1.1.0
 
   # Registry components for artifact storage
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/upload@v0.1.5
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/upload@v0.2.1
     inputs:
       name: "Upload binaries arm64"
       build_job_name: "Pack binaries"
@@ -108,7 +108,7 @@ include:
       package_name: $PACKAGE_NAME
       rules: *rules_manual_tag
 
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/upload@v0.1.5
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/upload@v0.2.1
     inputs:
       name: "Upload binaries x64"
       build_job_name: "Pack binaries"
@@ -118,7 +118,7 @@ include:
       package_name: $PACKAGE_NAME
       rules: *rules_manual_tag
 
-  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/cleanup@v0.1.5
+  - component: $CI_SERVER_FQDN/vicione-oss/tooling/components/registry/cleanup@v0.2.1
     inputs:
       name: "Cleanup old packages"
       stage: cleanup
