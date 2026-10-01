@@ -5,6 +5,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0-beta1] - 2026-09-30
+
 ### Added
 
 - Added functionality to reset network interfaces to factory default settings
@@ -755,3 +757,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Implemented getting and setting of IPv4 settings
 
 [1.3.0]: https://gitlab.com/vicione-oss/vicione/os/hostmgmt/-/tags/v1.3.0
+[2.0.0-beta1]: https://gitlab.com/vicione-oss/vicione/os/hostmgmt/-/tags/v2.0.0-beta1
