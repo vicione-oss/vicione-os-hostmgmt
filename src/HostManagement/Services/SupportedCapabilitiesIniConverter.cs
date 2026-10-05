@@ -370,16 +370,14 @@ internal static class SupportedCapabilitiesIniConverter
     private static void AppendTemplateHeader(StringBuilder builder)
     {
         builder
-            .AppendLine("# This file is managed by ViciOne open automation HostManagement application.")
-            .AppendLine("#")
-            .AppendLine("# It describes the supported capabilities exposed by HostManagement.")
+            .AppendLine("# This file describes the supported capabilities exposed by HostManagement.")
             .AppendLine("# Sections are written as [Settings.<path>] or [Topics]. Setting entries")
             .AppendLine("# configure capabilities below the current settings section. Topic entries")
             .AppendLine("# configure topic capabilities directly.")
             .AppendLine("#")
-            .AppendLine("# Entries in this file show the compile time defaults. Values can be")
-            .AppendLine("# configured by modifying this file.")
-            .AppendLine("# Valid values are 'Enabled'/'Disabled' ignoring case.");
+            .AppendLine("# All supported capabilities are disabled by default. Enable only the")
+            .AppendLine("# capabilities that should be exposed by HostManagement using the values")
+            .AppendLine("# 'enabled' or 'disabled' (case-insensitive).");
     }
 
     private static void WriteSettingsToIniContext(StringBuilder builder, string sectionPath, JsonElement settingElement)
