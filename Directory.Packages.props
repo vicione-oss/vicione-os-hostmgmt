@@ -2,7 +2,7 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <DotNetVersion>10.0.12</DotNetVersion>
-    <TestableIOVersion>22.2.0</TestableIOVersion>
+    <TestableIOVersion>22.3.0</TestableIOVersion>
   </PropertyGroup>
 
   <!-- .NET packages managed by renovate.json -->
