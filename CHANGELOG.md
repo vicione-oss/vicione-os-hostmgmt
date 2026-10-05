@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Updated NuGet packages
   - `Microsoft.CodeAnalysis.CSharp` from `5.6.0` to `5.9.0`
+  - `TestableIO.System.IO.Abstractions` from `22.2.0` to `22.3.0`
+  - `TestableIO.System.IO.Abstractions.TestingHelpers` from `22.2.0` to `22.3.0`
+  - `TestableIO.System.IO.Abstractions.Wrappers` from `22.2.0` to `22.3.0`
 
 ## [2.0.0-beta1] - 2026-09-30
 
