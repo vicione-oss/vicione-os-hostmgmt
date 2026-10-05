@@ -1,8 +1,8 @@
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipes;
 using System.Text.Json.Serialization.Metadata;
+using System.Threading.Channels;
 using AwesomeAssertions;
 using HostManagement.Communication.NamedPipe.RequestHandlers;
 using HostManagement.Communication.NamedPipe.Server;
@@ -29,6 +29,7 @@ public class PipeServerTests
     private const string RequestContent = "Test request content";
 
     private static readonly TimeSpan s_defaultBarrierTimeout = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan s_defaultAsyncTimeout = TimeSpan.FromSeconds(5);
 
     public class Constructor
     {
@@ -1004,7 +1005,7 @@ public class PipeServerTests
                 readTask = PipeServerTestAccessors
                     .InvokeReadRequestsAsync(context.Server, readableFake, instanceId, cts.Token);
 
-                await readableFake.WaitForReadStartedAsync(TimeSpan.FromSeconds(1));
+                await readableFake.WaitForReadStartedAsync(s_defaultAsyncTimeout);
                 await cts.CancelAsync();
                 await readTask;
 
@@ -1053,18 +1054,21 @@ public class PipeServerTests
                 readTask = PipeServerTestAccessors
                     .InvokeReadRequestsAsync(context.Server, readableFake, instanceId, cts.Token);
 
+                await readableFake.WaitForReadStartedAsync(s_defaultAsyncTimeout);
+
                 // Act
                 readableFake.EnqueueIncoming(request);
-
-                var message = await readableFake.WaitForSentAsync(TimeSpan.FromSeconds(2));
-                message.Should().NotBeNull();
+                var message = await readableFake.WaitForSentAsync(s_defaultAsyncTimeout);
 
                 // Wait until ProcessQueueAsync has completely processed the request,
-                // including logging the response, rather than only waiting until the
-                // response has been added to the fake wrapper's sent queue.
+                // including the work immediately following SendMessageAsync.
                 await PipeServerTestAccessors.InvokeEnqueueShutdownBarrierAndWaitAsync(
                     context.Server,
                     s_defaultBarrierTimeout);
+
+                // Cancel and await the reader so its logs are fully written before asserting.
+                await cts.CancelAsync();
+                await readTask;
 
                 // Assert
                 AssertExpectedNamedPipeResponse(message, request.Topic, request.ConversationId, responseContent);
@@ -1098,56 +1102,58 @@ public class PipeServerTests
 
         private sealed class ReadableFakePipeStreamWrapper : IPipeStreamWrapper
         {
-            private readonly BlockingCollection<NamedPipeMessage> _incoming = new(new ConcurrentQueue<NamedPipeMessage>());
+            private readonly Channel<NamedPipeMessage> _incoming = Channel.CreateUnbounded<NamedPipeMessage>();
             private readonly TaskCompletionSource _readStarted = new(TaskCreationOptions.RunContinuationsAsynchronously);
-            private readonly ConcurrentQueue<NamedPipeMessage> _sent = new();
+            private readonly Channel<NamedPipeMessage> _sent = Channel.CreateUnbounded<NamedPipeMessage>();
 
             public bool IsConnected { get; private set; } = true;
 
             public int MaxMessageBytes => throw new NotSupportedException("Not used in these tests.");
 
-            public void EnqueueIncoming(NamedPipeMessage message) => _incoming.Add(message);
-
-            public bool TryDequeueSent(out NamedPipeMessage message) => _sent.TryDequeue(out message!);
+            public void EnqueueIncoming(NamedPipeMessage message)
+            {
+                if (!_incoming.Writer.TryWrite(message))
+                    throw new InvalidOperationException("Incoming pipe message channel is closed.");
+            }
 
             public Task WaitForReadStartedAsync(TimeSpan timeout)
                 => _readStarted.Task.WaitAsync(timeout);
 
-            public Task<NamedPipeMessage> ReadMessageAsync(CancellationToken cancellationToken = default)
-                => Task.Run(
-                    () =>
-                    {
-                        _readStarted.TrySetResult();
-                        return _incoming.Take(cancellationToken);
-                    },
-                    CancellationToken.None);
+            public async Task<NamedPipeMessage> ReadMessageAsync(CancellationToken cancellationToken = default)
+            {
+                _readStarted.TrySetResult();
+                return await _incoming.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
+            }
 
             public Task SendMessageAsync(NamedPipeMessage message, CancellationToken cancellationToken = default)
             {
                 ObjectDisposedException.ThrowIf(!IsConnected, this);
-                _sent.Enqueue(message);
+
+                if (!_sent.Writer.TryWrite(message))
+                    throw new InvalidOperationException("Sent pipe message channel is closed.");
+
                 return Task.CompletedTask;
             }
 
-            public async Task<NamedPipeMessage?> WaitForSentAsync(TimeSpan timeout)
+            public async Task<NamedPipeMessage> WaitForSentAsync(TimeSpan timeout)
             {
-                var stopwatch = Stopwatch.StartNew();
+                using var timeoutCts = new CancellationTokenSource(timeout);
 
-                while (stopwatch.Elapsed < timeout)
+                try
                 {
-                    if (_sent.TryDequeue(out var message))
-                        return message;
-
-                    await Task.Delay(10);
+                    return await _sent.Reader.ReadAsync(timeoutCts.Token).ConfigureAwait(false);
                 }
-
-                return null;
+                catch (OperationCanceledException ex) when (timeoutCts.IsCancellationRequested)
+                {
+                    throw new TimeoutException("Timed out waiting for the server to send a pipe message.", ex);
+                }
             }
 
             public void Dispose()
             {
                 IsConnected = false;
-                _incoming.Dispose();
+                _incoming.Writer.TryComplete();
+                _sent.Writer.TryComplete();
             }
         }
 
