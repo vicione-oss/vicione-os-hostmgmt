@@ -28,21 +28,24 @@ The template **contains**:
 **Example:**
 
 ```ini
-# This file is managed by ViciOne open automation HostManagement application.
-#
-# It describes the supported capabilities exposed by HostManagement.
+# This file describes the supported capabilities exposed by HostManagement.
 # ...
 
+[Settings]
+#NTP=disabled
+#Proxy=disabled
+#Services=disabled
+
 [Settings.DNS]
-#Hostname=Disabled
-#StaticHosts=Disabled
+#Hostname=disabled
+#StaticHosts=disabled
 
 [Topics]
-#GetServiceState=Disabled
-#GetSystemConfiguration=Disabled
+#InstallSignedDebianPackage=disabled
+#UpdateSystem=disabled
 ```
 
-To **enable a capability**, uncomment the entry and set it to `Enabled`. Values are **case-insensitive**.
+All capabilities are **disabled by default**. To **enable a capability**, uncomment the entry and set it to `enabled`. The accepted values are `enabled` and `disabled` and are **case-insensitive**. Omitted or commented entries remain disabled.
 
 ## INI format
 
@@ -59,7 +62,7 @@ The supported INI format is intentionally small and specific to `SupportedCapabi
 
 ```ini
 [Settings.DNS]
-Hostname=Enabled
+Hostname=enabled
 ```
 
 The `Capability` property is **reserved** and must not be configured directly.
@@ -67,7 +70,7 @@ The `Capability` property is **reserved** and must not be configured directly.
 ```ini
 [Settings.DNS]
 # This is invalid.
-Capability=Enabled
+Capability=enabled
 ```
 
 For parent settings, **HM** derives the parent capability from child settings. If any **child** is `Enabled`, the **parent** becomes also `Enabled`.
@@ -83,8 +86,8 @@ For parent settings, **HM** derives the parent capability from child settings. I
 
 ```ini
 [Topics]
-GetServiceState=Enabled
-GetSystemConfiguration=Disabled
+RestartService=enabled
+RestartSystem=disabled
 ```
 
 ## Application startup
