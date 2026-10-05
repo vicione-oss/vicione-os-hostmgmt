@@ -379,8 +379,7 @@ internal static class SupportedCapabilitiesIniConverter
             .AppendLine("#")
             .AppendLine("# Entries in this file show the compile time defaults. Values can be")
             .AppendLine("# configured by modifying this file.")
-            .AppendLine("# Valid values are 'Enabled'/'Disabled' ignoring case.")
-            .AppendLine();
+            .AppendLine("# Valid values are 'Enabled'/'Disabled' ignoring case.");
     }
 
     private static void WriteSettingsToIniContext(StringBuilder builder, string sectionPath, JsonElement settingElement)
@@ -485,9 +484,9 @@ internal static class SupportedCapabilitiesIniConverter
         if (sectionBuilder.Length == 0)
             return;
 
+        builder.AppendLine();
         builder.AppendLine($"[{sectionName}]");
         builder.Append(sectionBuilder);
-        builder.AppendLine();
     }
 
     // INI parsing helpers
