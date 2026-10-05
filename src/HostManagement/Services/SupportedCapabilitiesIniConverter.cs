@@ -474,7 +474,7 @@ internal static class SupportedCapabilitiesIniConverter
     private static void AppendIniEntry(StringBuilder builder, string key, string value)
     {
         builder.Append(TemplateEntryCommentPrefix);
-        builder.AppendLine($"{key}={value}");
+        builder.AppendLine($"{key}={value.ToLowerInvariant()}");
     }
 
     private static void AppendSection(StringBuilder builder, string sectionName, StringBuilder sectionBuilder)

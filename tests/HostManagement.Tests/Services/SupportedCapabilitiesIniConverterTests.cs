@@ -299,11 +299,11 @@ public class SupportedCapabilitiesIniConverterTests
             // Assert
             result.Should().StartWith("# This file describes the supported capabilities exposed by HostManagement.");
             result.Should().Contain("[Settings.DNS]");
-            result.Should().Contain("#Hostname=Disabled");
-            result.Should().Contain("#StaticHosts=Disabled");
+            result.Should().Contain("#Hostname=disabled");
+            result.Should().Contain("#StaticHosts=disabled");
             result.Should().Contain("[Topics]");
-            result.Should().Contain("#GetServiceState=Disabled");
-            result.Should().Contain("#GetSystemConfiguration=Disabled");
+            result.Should().Contain("#GetServiceState=disabled");
+            result.Should().Contain("#GetSystemConfiguration=disabled");
         }
     }
 
