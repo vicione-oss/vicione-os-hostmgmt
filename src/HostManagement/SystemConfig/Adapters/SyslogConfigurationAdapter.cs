@@ -1,6 +1,5 @@
 using HostManagement.Scripts;
 using HostManagement.Shared.Communication.Enums;
-using HostManagement.Shared.Enums;
 using HostManagement.SystemConfig.Contracts;
 
 namespace HostManagement.SystemConfig.Adapters;
@@ -62,9 +61,15 @@ internal sealed class SyslogConfigurationAdapter(
         SystemConfiguration config,
         CancellationToken cancellationToken)
     {
+        var netlogdService = config.Services?
+            .FirstOrDefault(service => service.Name.Equals(NetlogdServiceName, StringComparison.OrdinalIgnoreCase));
+
+        if (netlogdService?.State is not ServiceState.Enabled)
+            return Result.SuccessResult;
+
         var scriptOptions = new ScriptOptions();
         scriptOptions.Add(ScriptOptionNames.SetSystemdUnitState.Name, NetlogdServiceName);
-        scriptOptions.Add(ScriptOptionNames.SetSystemdUnitState.State, ServiceControlAction.Restart.ToString());
+        scriptOptions.Add(ScriptOptionNames.SetSystemdUnitState.State, Shared.Enums.ServiceControlAction.Restart.ToString());
 
         return await _scriptHandler.ExecuteSetSystemdUnitStateScript(scriptOptions).ConfigureAwait(false);
     }

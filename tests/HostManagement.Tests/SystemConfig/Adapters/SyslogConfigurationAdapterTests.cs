@@ -1,7 +1,6 @@
 using AwesomeAssertions;
 using HostManagement.Scripts;
 using HostManagement.Shared.Communication.Enums;
-using HostManagement.Shared.Enums;
 using HostManagement.SystemConfig;
 using HostManagement.SystemConfig.Adapters;
 using HostManagement.SystemConfig.Contracts;
@@ -12,6 +11,7 @@ namespace HostManagement.Tests.SystemConfig.Adapters;
 
 public sealed class SyslogConfigurationAdapterTests
 {
+    private const string NetlogdServiceName = "systemd-netlogd.service";
     private const bool SyslogEnabled = true;
     private const string SyslogAddress = "192.168.1.100:514";
     private const SyslogTransportProtocol SyslogProtocol = SyslogTransportProtocol.Tcp;
@@ -26,7 +26,21 @@ public sealed class SyslogConfigurationAdapterTests
         bool bypassApply = false)
            => new(handler, bypassHasChanges, bypassApply);
 
-    private static SystemConfiguration CreateSystemConfig(SyslogSettings? syslog = null) => new() { Syslog = syslog };
+    private static SystemConfiguration CreateSystemConfig(SyslogSettings? syslog = null, bool isServiceEnabled = true)
+    {
+        return new()
+        {
+            Syslog = syslog,
+            Services =
+            [
+                new ServiceDetail()
+                {
+                    Name = NetlogdServiceName,
+                    State = isServiceEnabled ? ServiceState.Enabled : ServiceState.Disabled
+                }
+            ]
+        };
+    }
 
     public sealed class GetConfiguration
     {
@@ -383,7 +397,45 @@ public sealed class SyslogConfigurationAdapterTests
         }
 
         [Fact]
-        internal async Task ShouldRestartNetlogd_WhenPreparationSucceeds()
+        internal async Task ShouldNotRestartNetlogd_WhenPreparationSucceedsButServiceDisabled()
+        {
+            // Arrange
+            List<ScriptOptions> capturedOptions = [];
+
+            var handler = Substitute.For<IScriptHandler>();
+            handler.ExecuteSetSyslogSettingsScript(Arg.Any<ScriptOptions>()).Returns(Result.SuccessResult);
+            handler.ExecuteSetSystemdUnitStateScript(Arg.Do<ScriptOptions>(capturedOptions.Add))
+                .Returns(Result.SuccessResult);
+
+            var proposed = CreateSystemConfig(new SyslogSettings()
+            {
+                Enabled = SyslogEnabled,
+                Address = SyslogAddress,
+                TransportProtocol = SyslogProtocol,
+                LogFormat = SyslogFormat,
+                ConnectionRetrySeconds = SyslogRetrySec,
+                ExcludeSyslogFacilities = [Facility],
+                ExcludeSyslogLevels = [Level]
+            },
+            isServiceEnabled: false);
+
+            var sut = CreateSut(handler);
+
+            // Act
+            var result = await sut.SetConfiguration(proposed, CancellationToken.None);
+
+            // Assert
+            result.OperationStatus.Should().Be(OperationStatus.Success);
+            result.Messages.Should().BeEmpty();
+
+            await handler.Received(1).ExecuteSetSyslogSettingsScript(Arg.Any<ScriptOptions>());
+            await handler.DidNotReceive().ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>());
+
+            capturedOptions.Should().BeEmpty();
+        }
+
+        [Fact]
+        internal async Task ShouldRestartNetlogd_WhenPreparationSucceedsAndServiceEnabled()
         {
             // Arrange
             List<ScriptOptions> capturedOptions = [];
@@ -419,7 +471,7 @@ public sealed class SyslogConfigurationAdapterTests
             capturedOptions.Should().SatisfyRespectively(
                 so => so.Options.Should().ContainInOrder(
                     ScriptOptionNames.SetSystemdUnitState.Name, "systemd-netlogd.service",
-                    ScriptOptionNames.SetSystemdUnitState.State, ServiceControlAction.Restart.ToString()));
+                    ScriptOptionNames.SetSystemdUnitState.State, Shared.Enums.ServiceControlAction.Restart.ToString()));
         }
     }
 }
