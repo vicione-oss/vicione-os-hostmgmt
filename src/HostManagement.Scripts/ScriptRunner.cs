@@ -290,6 +290,10 @@ public sealed class ScriptRunner
             ScriptIdentifier.NetworkNTPSettingsGet => "get_network_ntp_settings",
             ScriptIdentifier.NetworkNTPSettingsSet => "set_network_ntp_settings",
 
+            // Syslog
+            ScriptIdentifier.SyslogSettingsGet => "get_syslog_settings",
+            ScriptIdentifier.SyslogSettingsSet => "set_syslog_settings",
+
             // Install
             ScriptIdentifier.InstallDebianPackage => "install_deb_package",
 

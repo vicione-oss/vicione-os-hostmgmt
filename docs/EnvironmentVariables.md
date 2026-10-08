@@ -29,6 +29,7 @@ Below is a list of all environment variables defined for HostManagement.
 * `ssh.service`
 * `remoteconnect.service`
 * `vicione-suite.service`
+* `systemd-netlogd.service`
 
 ### Wildcard Services
 

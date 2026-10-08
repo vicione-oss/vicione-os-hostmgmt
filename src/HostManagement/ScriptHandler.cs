@@ -118,6 +118,14 @@ internal sealed class ScriptHandler : IScriptHandler
     public async Task<Result> ExecuteSetNetworkProxySettingsScript(ScriptOptions scriptOptions)
         => await ExecuteScript(ScriptIdentifier.NetworkProxySettingsSet, scriptOptions.Options);
 
+    public async Task<(Result, SyslogSettings)> ExecuteGetSyslogSettingsScript()
+        => await ExecuteScriptAndReturnDeserializedType(
+            SystemConfigurationJsonSerializerContext.Default.SyslogSettings,
+            ScriptIdentifier.SyslogSettingsGet);
+
+    public async Task<Result> ExecuteSetSyslogSettingsScript(ScriptOptions scriptOptions)
+        => await ExecuteScript(ScriptIdentifier.SyslogSettingsSet, scriptOptions.Options);
+
     public async Task<(Result, string)> ExecuteGetSystemdUnitActiveStateScript(ScriptOptions scriptOptions)
         => await ExecuteScriptAndReturnRawStandardOutput(
             ScriptIdentifier.SystemdUnitActiveStateGet,

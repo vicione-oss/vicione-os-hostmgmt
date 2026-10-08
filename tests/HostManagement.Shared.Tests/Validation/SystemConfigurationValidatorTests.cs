@@ -2,6 +2,7 @@ using System.Net;
 using AwesomeAssertions;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
+using HostManagement.Shared.Contracts.Syslog;
 using HostManagement.Shared.Validation;
 using Xunit;
 
@@ -125,7 +126,8 @@ public class SystemConfigurationValidatorTests
                     ValidationTestData.NTPServer.IPv4,
                     ValidationTestData.NTPServer.FQDN
                 ]
-            }
+            },
+            Syslog = ValidationTestData.Syslog.ConfiguredEnabled
         };
 
         // Act
@@ -135,5 +137,30 @@ public class SystemConfigurationValidatorTests
         // Assert
         result.Should().BeOfType<ValidationResult>();
         result.EntriesString.Should().NotBe(ValidationConstants.CancelledResult);
+    }
+
+    [Fact]
+    public async Task ShouldAddValidationError_WhenSyslogSettingsInvalid()
+    {
+        // Arrange
+        var systemConfiguration = new SystemConfiguration
+        {
+            Syslog = new SyslogSettings
+            {
+                Enabled = true,
+                Address = "logs.example.com:0"
+            }
+        };
+
+        var expectedValidationEntry = new ValidationEntry(
+            "Syslog address port '0' is invalid. It must be between '1' and '65535'.");
+
+        // Act
+        var result = await new SystemConfigurationValidator()
+            .ValidateAsync(systemConfiguration, cancellationToken: CancellationToken.None);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Entries.Should().Contain(expectedValidationEntry);
     }
 }

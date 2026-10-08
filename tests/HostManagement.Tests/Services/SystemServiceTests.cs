@@ -377,6 +377,45 @@ public class SystemServiceTests
         }
 
         [Fact]
+        public async Task ShouldLogErrorAndReturnErrorResult_WhenClearSyslogSettingsReturnsError()
+        {
+            // Arrange
+            var logger = GetLoggerSubstitute();
+
+            var scriptHandler = Substitute.For<IScriptHandler>();
+            scriptHandler
+                .ExecuteResetSystemScript()
+                .Returns(Task.FromResult(Result.SuccessResult));
+            scriptHandler
+                .ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>())
+                .Returns(Task.FromResult(Result.SuccessResult));
+            scriptHandler
+                .ExecuteSetSyslogSettingsScript(Arg.Any<ScriptOptions>())
+                .Returns(Task.FromResult(Result.TestErrorResult));
+
+            var sut = new SystemService(logger, scriptHandler, GetSignatureValidatorSubstitute());
+
+            // Act
+            var systemControlResult = await sut.ResetSystem();
+
+            // Assert
+            var expectedLogError = Result.TestErrorMessage;
+            logger.Received(1).Log(
+                LogLevel.Error,
+                Arg.Any<EventId>(),
+                Arg.Is<object>(o =>
+                    o.ToString()!.StartsWith(SystemCouldNotBeResetMessage) &&
+                    o.ToString()!.Contains(expectedLogError)),
+                null,
+                Arg.Any<Func<object, Exception?, string>>());
+
+            systemControlResult.Status.Should().Be(OperationStatus.Error);
+            systemControlResult.Message.Should()
+                .StartWith(SystemCouldNotBeResetMessage).And
+                .Contain(Result.TestErrorMessage);
+        }
+
+        [Fact]
         public async Task ShouldReturnSuccess_WhenResetSystemSucceeds()
         {
             // Arrange
@@ -387,6 +426,9 @@ public class SystemServiceTests
                 .Returns(Task.FromResult(Result.SuccessResult));
             scriptHandler
                 .ExecuteSetNetworkProxySettingsScript(Arg.Any<ScriptOptions>())
+                .Returns(Task.FromResult(Result.SuccessResult));
+            scriptHandler
+                .ExecuteSetSyslogSettingsScript(Arg.Any<ScriptOptions>())
                 .Returns(Task.FromResult(Result.SuccessResult));
             scriptHandler
                 .ExecuteShutdownSystemScript(Arg.Any<ScriptOptions>())

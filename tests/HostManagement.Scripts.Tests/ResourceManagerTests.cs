@@ -371,6 +371,10 @@ public class ResourceManagerTests
                     "get_network_proxy_settings",
                     "set_network_proxy_settings",
 
+                    // Syslog
+                    "get_syslog_settings",
+                    "set_syslog_settings",
+
                     // System
                     "install_deb_package",
                     "reset_system",

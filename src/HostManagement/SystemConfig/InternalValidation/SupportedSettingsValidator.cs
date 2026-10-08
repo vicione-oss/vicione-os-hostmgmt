@@ -2,6 +2,7 @@ using HostManagement.Shared.Capabilities;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Contracts.Service;
+using HostManagement.Shared.Contracts.Syslog;
 
 namespace HostManagement.SystemConfig.InternalValidation;
 
@@ -28,6 +29,7 @@ internal static class SupportedSettingsValidator
         context.ValidateDNS(support.DNS, current.NetworkDNSSettings, proposed.NetworkDNSSettings);
         context.ValidateProxy(support.Proxy, current.NetworkProxySettings, proposed.NetworkProxySettings);
         context.ValidateNTP(support.NTP, current.NetworkNTPSettings, proposed.NetworkNTPSettings);
+        context.ValidateSyslog(support.Syslog, current.Syslog, proposed.Syslog);
         context.ValidateServices(support.Services, current.Services, proposed.Services);
 
         return context.Result;
@@ -85,6 +87,12 @@ internal static class SupportedSettingsValidator
             NetworkNTPSettings current,
             NetworkNTPSettings proposed)
                 => Validate(ntpSupport, current, proposed);
+
+        internal void ValidateSyslog(
+            SyslogSupport syslogSupport,
+            SyslogSettings current,
+            SyslogSettings proposed)
+                => Validate(syslogSupport, current, proposed);
 
         internal void ValidateServices(
             ServicesSupport servicesSupport,

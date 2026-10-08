@@ -176,6 +176,22 @@ public class SourceGeneratedTypeSerializerTests
               "ptbtime3.ptb.de"
             ]
           },
+          "Syslog": {
+            "Enabled": true,
+            "Address": "239.0.0.1:6000",
+            "TransportProtocol": "udp",
+            "LogFormat": "rfc5424",
+            "ConnectionRetrySeconds": 30,
+            "ExcludeSyslogFacilities": [
+              "auth",
+              "authpriv",
+              "solaris-cron"
+            ],
+            "ExcludeSyslogLevels": [
+              "debug",
+              "info"
+            ]
+          },
           "Services": [
             {
               "Name": "TestService",

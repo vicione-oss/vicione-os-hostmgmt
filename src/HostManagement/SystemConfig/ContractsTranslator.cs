@@ -2,6 +2,7 @@ using HostManagement.SystemConfig.Contracts;
 using SharedContracts = HostManagement.Shared.Contracts;
 using SharedNetwork = HostManagement.Shared.Contracts.Network;
 using SharedService = HostManagement.Shared.Contracts.Service;
+using SharedSyslog = HostManagement.Shared.Contracts.Syslog;
 
 namespace HostManagement.SystemConfig;
 
@@ -41,6 +42,9 @@ internal static class ContractsTranslator
 
         if (intern.NetworkNTPSettings is { } ntpSettings)
             systemConfiguration.NetworkNTPSettings = ntpSettings.ToSharedContracts();
+
+        if (intern.Syslog is { } syslog)
+            systemConfiguration.Syslog = syslog.ToSharedContracts();
 
         if (intern.Services is { } services)
         {
@@ -268,6 +272,44 @@ internal static class ContractsTranslator
         return networkNTPSettings;
     }
 
+    private static SharedSyslog.SyslogSettings ToSharedContracts(this SyslogSettings intern)
+    {
+        var syslogSettings = new SharedSyslog.SyslogSettings();
+
+        if (intern.Enabled is { } enabled)
+            syslogSettings.Enabled = enabled;
+
+        if (intern.Address is { } address)
+            syslogSettings.Address = address;
+
+        if (intern.TransportProtocol is { } protocol)
+            syslogSettings.TransportProtocol = (SharedSyslog.SyslogTransportProtocol)protocol;
+
+        if (intern.LogFormat is { } format)
+            syslogSettings.LogFormat = (SharedSyslog.SyslogLogFormat)format;
+
+        if (intern.ConnectionRetrySeconds is { } retrySeconds)
+            syslogSettings.ConnectionRetrySeconds = retrySeconds;
+
+        if (intern.ExcludeSyslogFacilities is { } facilities)
+        {
+            syslogSettings = syslogSettings with
+            {
+                ExcludeSyslogFacilities = [.. facilities.Select(facility => (SharedSyslog.SyslogFacility)facility)]
+            };
+        }
+
+        if (intern.ExcludeSyslogLevels is { } levels)
+        {
+            syslogSettings = syslogSettings with
+            {
+                ExcludeSyslogLevels = [.. levels.Select(level => (SharedSyslog.SyslogLevel)level)]
+            };
+        }
+
+        return syslogSettings;
+    }
+
     private static SharedService.ServiceDetail ToSharedContracts(this ServiceDetail intern)
         => new()
         {
@@ -298,6 +340,7 @@ internal static class ContractsTranslator
             NetworkDNSSettings = shared.NetworkDNSSettings.ToInternalContracts(),
             NetworkProxySettings = shared.NetworkProxySettings.ToInternalContracts(),
             NetworkNTPSettings = shared.NetworkNTPSettings.ToInternalContracts(),
+            Syslog = shared.Syslog.ToInternalContracts(),
             Services = [.. shared.Services.Select(static service => service.ToInternalContracts())]
         };
 
@@ -428,6 +471,18 @@ internal static class ContractsTranslator
         {
             Enabled = shared.Enabled,
             Servers = [.. shared.Servers]
+        };
+
+    private static SyslogSettings ToInternalContracts(this SharedSyslog.SyslogSettings shared)
+        => new()
+        {
+            Enabled = shared.Enabled,
+            Address = shared.Address,
+            TransportProtocol = (SyslogTransportProtocol)shared.TransportProtocol,
+            LogFormat = (SyslogLogFormat)shared.LogFormat,
+            ConnectionRetrySeconds = shared.ConnectionRetrySeconds,
+            ExcludeSyslogFacilities = [.. shared.ExcludeSyslogFacilities.Select(facility => (SyslogFacility)facility)],
+            ExcludeSyslogLevels = [.. shared.ExcludeSyslogLevels.Select(level => (SyslogLevel)level)]
         };
 
     private static ServiceDetail ToInternalContracts(this SharedService.ServiceDetail shared)

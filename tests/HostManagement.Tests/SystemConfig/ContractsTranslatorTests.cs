@@ -488,6 +488,25 @@ public sealed class ContractsTranslatorTests
                     Enabled = false,
                     Servers = ["time.google.com"]
                 },
+                Syslog = new()
+                {
+                    Enabled = true,
+                    Address = "239.0.0.1:6000",
+                    TransportProtocol = Shared.Contracts.Syslog.SyslogTransportProtocol.Udp,
+                    LogFormat = Shared.Contracts.Syslog.SyslogLogFormat.Rfc5424,
+                    ConnectionRetrySeconds = 30,
+                    ExcludeSyslogFacilities =
+                    [
+                        Shared.Contracts.Syslog.SyslogFacility.Auth,
+                        Shared.Contracts.Syslog.SyslogFacility.Authpriv,
+                        Shared.Contracts.Syslog.SyslogFacility.SolarisCron
+                    ],
+                    ExcludeSyslogLevels =
+                    [
+                        Shared.Contracts.Syslog.SyslogLevel.Debug,
+                        Shared.Contracts.Syslog.SyslogLevel.Info
+                    ]
+                },
                 Services =
                 [
                     new()
@@ -626,6 +645,25 @@ public sealed class ContractsTranslatorTests
                 {
                     Enabled = false,
                     Servers = ["time.google.com"]
+                },
+                Syslog = new()
+                {
+                    Enabled = true,
+                    Address = "239.0.0.1:6000",
+                    TransportProtocol = SyslogTransportProtocol.Udp,
+                    LogFormat = SyslogLogFormat.Rfc5424,
+                    ConnectionRetrySeconds = 30,
+                    ExcludeSyslogFacilities =
+                    [
+                        SyslogFacility.Auth,
+                        SyslogFacility.Authpriv,
+                        SyslogFacility.SolarisCron
+                    ],
+                    ExcludeSyslogLevels =
+                    [
+                        SyslogLevel.Debug,
+                        SyslogLevel.Info
+                    ]
                 },
                 Services =
                 [

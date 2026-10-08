@@ -1502,6 +1502,8 @@ public class SystemConfigurationServiceTests
             ScriptHandler.ExecuteSetNetworkNTPSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(Result.SuccessResult);
             ScriptHandler.ExecuteSetSystemdUnitStateScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(Result.SuccessResult);
             ScriptHandler.ExecuteApplyNetplanConfigurationScript().ReturnsForAnyArgs(Result.SuccessResult);
+            ScriptHandler.ExecuteGetSyslogSettingsScript().ReturnsForAnyArgs((Result.SuccessResult, new()));
+            ScriptHandler.ExecuteSetSyslogSettingsScript(Arg.Any<ScriptOptions>()).ReturnsForAnyArgs(Result.SuccessResult);
 
             SupportedSettings.NetworkInterfaces.Capability = CapabilityStatus.Enabled;
             SupportedSettings.NetworkInterfaces.NetworkInterfaceDetail.IPv4.Capability = CapabilityStatus.Enabled;
@@ -1517,6 +1519,7 @@ public class SystemConfigurationServiceTests
 
             SupportedSettings.Proxy.Capability = CapabilityStatus.Enabled;
             SupportedSettings.NTP.Capability = CapabilityStatus.Enabled;
+            SupportedSettings.Syslog.Capability = CapabilityStatus.Enabled;
             SupportedSettings.Services.Capability = CapabilityStatus.Enabled;
 
             Sut = new(Persistence, ScriptHandler, Logger, SupportedSettings);

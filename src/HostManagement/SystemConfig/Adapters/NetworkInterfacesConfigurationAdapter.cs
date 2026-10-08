@@ -1,0 +1,224 @@
+using HostManagement.Common.Utilities;
+using HostManagement.Scripts;
+using HostManagement.Shared.Communication.Enums;
+using HostManagement.SystemConfig.Contracts;
+
+namespace HostManagement.SystemConfig.Adapters;
+
+/// <summary>
+/// Represents the network interfaces configuration adapter.
+/// </summary>
+/// <param name="scriptHandler">An <see cref="IScriptHandler"/> implementation.</param>
+/// <param name="bypassHasChanges">
+/// <inheritdoc cref="ConfigurationAdapter(bool, bool)" path="/param[@name='bypassHasChanges']"/>
+/// </param>
+/// <param name="bypassApplyConfig">
+/// <inheritdoc cref="ConfigurationAdapter(bool, bool)" path="/param[@name='bypassApplyConfig']"/>
+/// </param>
+internal sealed class NetworkInterfacesConfigurationAdapter(
+    IScriptHandler scriptHandler,
+    bool bypassHasChanges,
+    bool bypassApplyConfig)
+        : ConfigurationAdapter<NetworkConfigurationAdapter>(bypassHasChanges, bypassApplyConfig)
+{
+    private const string BypassMACAddress = "bypass";
+
+    private readonly IScriptHandler _scriptHandler = scriptHandler;
+    private readonly bool _bypassApplyConfig = bypassApplyConfig;
+
+    protected internal override async Task<Result> GetConfiguration(
+        SystemConfiguration config,
+        CancellationToken cancellationToken)
+    {
+        var combinedResult = Result.SuccessResult;
+
+        var (result, rawInterfacesString) = await _scriptHandler
+            .ExecuteGetNetworkInterfacesScript()
+            .ConfigureAwait(false);
+
+        combinedResult.AddResult(result);
+
+        if (combinedResult.OperationStatus is OperationStatus.Error)
+            return combinedResult;
+
+        var scriptOptions = new ScriptOptions();
+        scriptOptions.Add(ScriptOptionNames.Network.Interfaces, rawInterfacesString);
+
+        (result, var networkInterfacesCommonInformation) = await _scriptHandler
+            .ExecuteGetNetworkInterfacesCommonInformationScript(scriptOptions)
+            .ConfigureAwait(false);
+
+        combinedResult.AddResult(result);
+
+        if (combinedResult.OperationStatus is OperationStatus.Error)
+            return combinedResult;
+
+        var networkInterfaces = new List<NetworkInterfaceDetail>();
+
+        foreach (var commonInformation in networkInterfacesCommonInformation)
+        {
+            var interfaceName = commonInformation.Name;
+
+            (result, var ipv4Settings, var vlanSettings) =
+                await GetInterfaceIPv4AndVLANSettings(interfaceName).ConfigureAwait(false);
+
+            combinedResult.AddResult(result);
+
+            if (combinedResult.OperationStatus is OperationStatus.Error)
+                return combinedResult;
+
+            networkInterfaces.Add(new NetworkInterfaceDetail()
+            {
+                CommonInformation = commonInformation,
+                IPv4 = ipv4Settings,
+                VLAN = vlanSettings
+            });
+        }
+
+        config.NetworkInterfaces = networkInterfaces;
+
+        return combinedResult;
+    }
+
+    private protected override bool HasConfigurationChanges(
+        SystemConfiguration currentConfig,
+        SystemConfiguration proposedConfig)
+    {
+        // TODO Improve code/scripts to not call `NetworkDNSConfigurationAdapter` and
+        // `NetworkInterfacesConfigurationAdapter`
+        //
+        // Currently both adapters are executed. Therefor both scripts write in the corresponding
+        // interfaces' yaml file. That is because the DNS script depends on a clean file
+        // (meaning no DNS info configured).
+        return
+            SystemConfigurationChangeDetector.HasSequenceChanges(
+                currentConfig.NetworkInterfaces,
+                proposedConfig.NetworkInterfaces) ||
+            SystemConfigurationChangeDetector.HasChanges(
+                currentConfig.NetworkDNSSettings,
+                proposedConfig.NetworkDNSSettings);
+    }
+
+    private protected override async Task<Result> PrepareConfiguration(
+        SystemConfiguration config,
+        CancellationToken cancellationToken)
+    {
+        if (config.NetworkInterfaces is not { } networkInterfaces || networkInterfaces.Count < 1)
+            return Result.SuccessResult;
+
+        var combinedResult = Result.SuccessResult;
+
+        foreach (var proposedInterface in networkInterfaces)
+        {
+            var interfaceName = proposedInterface.CommonInformation?.Name ?? string.Empty;
+
+            var result = await _scriptHandler.ExecuteIsNetworkInterfaceAvailableScript(interfaceName)
+                .ConfigureAwait(false);
+
+            if (result.OperationStatus is OperationStatus.Warning or OperationStatus.Error)
+            {
+                combinedResult.AddError(result.FormattedMessages);
+                return combinedResult;
+            }
+
+            var scriptOptions = new ScriptOptions();
+
+            AddVLANScriptOptions(scriptOptions, proposedInterface.VLAN);
+            AddInterfaceNameScriptOption(scriptOptions, interfaceName);
+            AddMACAddressScriptOption(scriptOptions, proposedInterface.CommonInformation?.UserDefinedMACAddress);
+            AddInterfaceEnabledScriptOption(scriptOptions, proposedInterface.CommonInformation?.Enabled);
+            AddIPv4ScriptOptions(scriptOptions, proposedInterface.IPv4);
+
+            combinedResult.AddResult(
+                await _scriptHandler.ExecuteSetInterfaceSettingsScript(scriptOptions)
+                    .ConfigureAwait(false));
+
+            if (combinedResult.OperationStatus is OperationStatus.Error)
+                return combinedResult;
+        }
+
+        return combinedResult;
+    }
+
+    private static void AddVLANScriptOptions(ScriptOptions scriptOptions, VLANSettings? vlanSettings)
+    {
+        if (vlanSettings is null)
+            return;
+
+        if (vlanSettings.Enabled is not bool enabled ||
+            !enabled ||
+            vlanSettings.ID is not int id)
+        {
+            return;
+        }
+
+        // TODO Uncomment when VLAN enabled functionality is implemented
+        // scriptOptions.Add(ScriptOptionNames.Network.VLANEnabled, vlanSettings.Enabled.Value);
+        scriptOptions.Add(ScriptOptionNames.Network.VLANID, id);
+    }
+
+    private static void AddInterfaceNameScriptOption(ScriptOptions scriptOptions, string interfaceName)
+        => scriptOptions.Add(ScriptOptionNames.Network.InterfaceName, interfaceName);
+
+    private void AddMACAddressScriptOption(
+        ScriptOptions scriptOptions,
+        UserDefinedMACAddressSettings? userDefinedMACAddressSettings)
+    {
+        if (userDefinedMACAddressSettings is not { } userDefinedMACAddress)
+            return;
+
+        var address = _bypassApplyConfig ? BypassMACAddress : userDefinedMACAddress.Address.ToColonNotation();
+
+        if (string.IsNullOrWhiteSpace(address))
+            return;
+
+        scriptOptions.Add(ScriptOptionNames.Network.UserDefinedMACAddressEnabled, userDefinedMACAddress.Enabled);
+        scriptOptions.Add(ScriptOptionNames.Network.UserDefinedMACAddress, address);
+    }
+
+    private static void AddInterfaceEnabledScriptOption(ScriptOptions scriptOptions, bool? enabled)
+    {
+        if (enabled is not bool interfaceEnabled)
+            return;
+
+        scriptOptions.Add(ScriptOptionNames.Network.Enabled, interfaceEnabled);
+    }
+
+    private static void AddIPv4ScriptOptions(ScriptOptions scriptOptions, IPv4Settings? ipv4Settings)
+    {
+        if (ipv4Settings is not { } ipv4)
+            return;
+
+        if (ipv4.DHCPEnabled is not bool dhcpEnabled)
+            return;
+
+        scriptOptions.Add(ScriptOptionNames.Network.DHCPEnabled, dhcpEnabled);
+
+        for (var i = 0; i < ipv4Settings.IPv4Details?.Count; i++)
+        {
+            scriptOptions.Add(
+                ScriptOptionNames.Network.IPAddress,
+                IPUtilities.ConvertToCIDR(
+                    ipv4Settings.IPv4Details[i].IPAddress,
+                    ipv4Settings.IPv4Details[i].Netmask));
+
+            if (i != 0)
+                continue;
+
+            if (ipv4Settings.Gateway is { } gateway)
+                scriptOptions.Add(ScriptOptionNames.Network.Gateway, gateway);
+        }
+    }
+
+    private async Task<(Result, IPv4Settings?, VLANSettings?)> GetInterfaceIPv4AndVLANSettings(string interfaceName)
+    {
+        var (result, ipv4, vlan) = await _scriptHandler
+            .ExecuteGetInterfaceSettingsScript(interfaceName)
+            .ConfigureAwait(false);
+
+        if (result.OperationStatus is OperationStatus.Error)
+            return (result, default, default);
+
+        return (result, ipv4, vlan);
+    }
+}

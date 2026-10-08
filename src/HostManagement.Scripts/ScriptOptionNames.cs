@@ -68,6 +68,52 @@ public static class ScriptOptionNames
     }
 
     /// <summary>
+    /// Option names for the set syslog settings script (syslog forwarding).
+    /// </summary>
+    public static class Syslog
+    {
+        /// <summary>
+        /// The script argument for the syslog enabled state.
+        /// </summary>
+        public const string Enabled = EnabledFlag;
+
+        /// <summary>
+        /// The script argument for the destination address and port.
+        /// </summary>
+        public const string Address = "--address";
+
+        /// <summary>
+        /// The script argument for the transport protocol.
+        /// </summary>
+        public const string Protocol = "--protocol";
+
+        /// <summary>
+        /// The script argument for the syslog message format.
+        /// </summary>
+        public const string LogFormat = "--log-format";
+
+        /// <summary>
+        /// The script argument for the reconnect delay in seconds.
+        /// </summary>
+        public const string ConnectionRetrySec = "--connection-retry-sec";
+
+        /// <summary>
+        /// The script argument for the facilities to exclude.
+        /// </summary>
+        public const string ExcludeSyslogFacility = "--exclude-syslog-facility";
+
+        /// <summary>
+        /// The script argument for the log levels to exclude.
+        /// </summary>
+        public const string ExcludeSyslogLevel = "--exclude-syslog-level";
+
+        /// <summary>
+        /// The script argument to clear all syslog settings.
+        /// </summary>
+        public const string Clear = "--clear";
+    }
+
+    /// <summary>
     /// Option names for the network script.
     /// </summary>
     public static class Network

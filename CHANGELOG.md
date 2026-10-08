@@ -5,6 +5,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added functionality to get/set and clear syslog config `/etc/systemd/netlogd.conf.d/50-hostmanagement.conf`
+- Shared: Added contract `SyslogSettings` and dependencies
+- Shared: Added validation for `SyslogSettings`
+- CLI: Added `syslog` command group with commands `status`, `set`, `disable`, `enable` and `clear`
+
 ### Changed
 
 - Updated NuGet packages
@@ -12,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `TestableIO.System.IO.Abstractions` from `22.2.0` to `22.3.0`
   - `TestableIO.System.IO.Abstractions.TestingHelpers` from `22.2.0` to `22.3.0`
   - `TestableIO.System.IO.Abstractions.Wrappers` from `22.2.0` to `22.3.0`
+- CLI: Aligned `service` command description to other top-level commands
+- CLI: Swapped order of `system` and `deployment` command groups
 
 ## [2.0.0-beta1] - 2026-09-30
 

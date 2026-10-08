@@ -7,7 +7,7 @@ internal static partial class CliStrings
     /// </summary>
     internal static class Service
     {
-        internal const string CommandDescription = "Configure Linux systemd units (services, sockets etc.).";
+        internal const string CommandDescription = "Manage Linux systemd units (services, sockets etc.).";
         internal const string CommandName = "service";
 
         internal const string DisableCommandDescription = "Disable a systemd unit.";
