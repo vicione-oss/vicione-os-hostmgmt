@@ -28,7 +28,7 @@ public class DateTimeOffsetConverterTests
             var json = "123";
 
             // Act
-            var result = () => JsonSerializer.Deserialize<DateTimeOffset?>(json, _options);
+            var result = () => JsonSerializer.Deserialize<DateTimeOffset>(json, _options);
 
             // Assert
             result.Should().Throw<JsonException>().WithMessage(expectedMessage);
@@ -50,7 +50,7 @@ public class DateTimeOffsetConverterTests
             var expectedMessage = $"String '{jsonTokenString}' was not recognized as a valid DateTime.";
 
             // Act
-            var result = () => JsonSerializer.Deserialize<DateTimeOffset?>(json, _options);
+            var result = () => JsonSerializer.Deserialize<DateTimeOffset>(json, _options);
 
             // Assert
             result.Should().Throw<FormatException>().WithMessage(expectedMessage);
@@ -73,10 +73,23 @@ public class DateTimeOffsetConverterTests
                 """;
 
             // Act
-            var result = JsonSerializer.Deserialize<DateTimeOffset?>(json, _options);
+            var result = JsonSerializer.Deserialize<DateTimeOffset>(json, _options);
 
             // Assert
             result.Should().Be(expectedDateTime);
+        }
+
+        [Fact]
+        public void ShouldReturnDefaultDateTimeOffset_WhenTokenIsNull()
+        {
+            // Arrange
+            var json = "null";
+
+            // Act
+            var result = JsonSerializer.Deserialize<DateTimeOffset>(json, _options);
+
+            // Assert
+            result.Should().Be(default);
         }
     }
 
