@@ -1,7 +1,9 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization.Metadata;
 using AwesomeAssertions;
 using HostManagement.Shared.Communication.Contracts;
+using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Serialization;
 using Xunit;
 using SourceGenerationContext = HostManagement.Shared.Communication.Contracts.SourceGenerationContext;
@@ -501,7 +503,7 @@ public class ContractSerializationTests
 
         [Theory]
         [MemberData(nameof(AdditionalMemberData))]
-        public void ShouldThrow_WhenUnmappedMemberFound<TType>(
+        public void ShouldIgnoreUnmappedMember_WhenJsonContainsAdditionalMember<TType>(
             JsonTypeInfo<TType> jsonTypeInfo,
             string json)
         {
@@ -509,12 +511,110 @@ public class ContractSerializationTests
             MessageTypeRegistry.GetTypeInfo<TType>().Should().BeSameAs(jsonTypeInfo);
 
             // Act
-            var result = () => MessageSerializer.Deserialize<TType>(json);
+            var result = MessageSerializer.Deserialize<TType>(json);
 
             // Assert
-            result.Should()
-                .Throw<JsonException>()
-                .WithMessage("*could not be mapped*");
+            result.Should().BeOfType<TType>();
+        }
+
+        [Fact]
+        public void ShouldIgnoreUnknownProperties_WhenDeserializingCapabilitiesResult()
+        {
+            // Arrange
+            var source = new GetSupportedCapabilitiesResult()
+            {
+                Status = OperationStatus.Success,
+                Message = "",
+                SupportedCapabilities = new()
+            };
+
+            var json = MessageSerializer.Serialize(source);
+            var payload = JsonNode.Parse(json)!.AsObject();
+
+            payload["NewResultProperty"] = true;
+            payload["SupportedCapabilities"]!.AsObject()["NewCapabilityGroup"] = new JsonObject
+            {
+                ["Name"] = "NewCapabilityGroup",
+                ["Capability"] = "Enabled"
+            };
+            payload["SupportedCapabilities"]!.AsObject()["Settings"]!.AsObject()["NewSetting"] = new JsonObject
+            {
+                ["Name"] = "NewSetting",
+                ["Capability"] = "Enabled"
+            };
+            payload["SupportedCapabilities"]!.AsObject()["Topics"]!.AsObject()["NewTopic"] = "Enabled";
+
+            // Act
+            var result = MessageSerializer.Deserialize<GetSupportedCapabilitiesResult>(payload.ToJsonString());
+
+            // Assert
+            result.Status.Should().Be(OperationStatus.Success);
+            result.Message.Should().BeEmpty();
+            result.SupportedCapabilities.Should().NotBeNull();
+        }
+
+        [Fact]
+        public void ShouldIgnoreUnknownProperties_WhenDeserializingConfigurationResponse()
+        {
+            // Arrange
+            var json = $$"""{"ResultType":"GetSystemConfigurationResult","Status":"Success","Message":"Loaded","Configuration":{{s_sampleSystemConfigurationJson}}}""";
+            var payload = JsonNode.Parse(json)!.AsObject();
+
+            payload["NewResponseProperty"] = true;
+
+            var configuration = payload["Configuration"]!.AsObject();
+            configuration["NewConfigurationSection"] = new JsonObject { ["Enabled"] = true };
+            configuration["NetworkDNSSettings"]!.AsObject()["NewDnsSetting"] = true;
+            configuration["NetworkInterfaces"]!.AsArray()[0]!.AsObject()["NewInterfaceSetting"] = true;
+
+            // Act
+            var result = MessageSerializer.Deserialize<GetSystemConfigurationResult>(payload.ToJsonString());
+
+            // Assert
+            result.Message.Should().Be("Loaded");
+            result.Configuration.Should().NotBeNull();
+            result.Configuration!.NetworkDNSSettings.Hostname.Should().Be("hostname");
+            result.Configuration.NetworkInterfaces[0].CommonInformation.Name.Should().Be("lan1");
+        }
+
+        [Fact]
+        public void ShouldRejectInvalidKnownValue_WhenDeserializingCapabilitiesResult()
+        {
+            // Arrange
+            var source = new GetSupportedCapabilitiesResult()
+            {
+                Status = OperationStatus.Success,
+                Message = "",
+                SupportedCapabilities = new()
+            };
+
+            var json = MessageSerializer.Serialize(source);
+            var payload = JsonNode.Parse(json)!.AsObject();
+
+            payload["Status"] = "NotAValidOperationStatus";
+
+            // Act
+            var act = () => MessageSerializer.Deserialize<GetSupportedCapabilitiesResult>(payload.ToJsonString());
+
+            // Assert
+            act.Should().Throw<JsonException>();
+        }
+
+        [Fact]
+        public void ShouldRejectInvalidKnownValue_WhenDeserializingConfigurationResponse()
+        {
+            // Arrange
+            var json = $$"""{"ResultType":"GetSystemConfigurationResult","Status":"Success","Message":"Loaded","Configuration":{{s_sampleSystemConfigurationJson}}}""";
+            var payload = JsonNode.Parse(json)!.AsObject();
+
+            payload["NewResponseProperty"] = true;
+            payload["Configuration"]!.AsObject()["NetworkDNSSettings"]!.AsObject()["MulticastDNSEnabled"] = "not-a-boolean";
+
+            // Act
+            var act = () => MessageSerializer.Deserialize<GetSystemConfigurationResult>(payload.ToJsonString());
+
+            // Assert
+            act.Should().Throw<JsonException>();
         }
 
         [Theory]

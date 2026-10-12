@@ -12,7 +12,7 @@ namespace HostManagement.Shared.Contracts;
 [JsonSourceGenerationOptions(
     RespectNullableAnnotations = true,
     RespectRequiredConstructorParameters = true,
-    UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
+    UnmappedMemberHandling = JsonUnmappedMemberHandling.Skip,
     UseStringEnumConverter = true)]
 [JsonSerializable(typeof(SystemConfiguration))]
 [JsonSerializable(typeof(DHCPLease))]
