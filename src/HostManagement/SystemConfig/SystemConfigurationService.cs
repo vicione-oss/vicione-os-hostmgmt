@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Net.NetworkInformation;
 using System.Text;
+using System.Text.Json;
 using HostManagement.Configuration;
 using HostManagement.Shared.Capabilities;
 using HostManagement.Shared.Communication.Contracts;
@@ -176,11 +177,56 @@ internal sealed partial class SystemConfigurationService(
             sourceVersion: null,
             cancellationToken: cancellationToken);
 
+    /// <summary>
+    /// Applies the properties present in the proposed configuration JSON, preserving omitted settings.
+    /// </summary>
+    /// <param name="proposedConfigJson">The proposed configuration JSON.</param>
+    /// <param name="cancellationToken">A token to cancel the request.</param>
+    /// <returns>The operation result and, on success or warning, the effective configuration.</returns>
+    public async Task<(SetSystemConfigurationResult Result, SystemConfiguration? AppliedConfiguration)>
+        SetConfigurationFromJson(string proposedConfigJson, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(proposedConfigJson);
+
+            // Merge only after fetching the current configuration in the same apply operation.
+            // Keep the JSON document alive until the merge has completed.
+            return await SetConfigurationCore(
+                current => SharedSystemConfigurationMerger.Merge(current, document.RootElement),
+                shouldPersistConfiguration: true,
+                sourceVersion: null,
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is JsonException or NotSupportedException)
+        {
+            var message = SystemConfigResources.SetConfigFailed + Environment.NewLine + ex.Message;
+            SetConfigurationFailedWithMessage(_logger, message);
+            return (SetSystemConfigurationResult.CreateErrorResult(message), null);
+        }
+    }
+
     private async Task<SetSystemConfigurationResult> SetConfiguration(
         SystemConfiguration proposedConfig,
         bool shouldPersistConfiguration,
         int? sourceVersion,
         CancellationToken cancellationToken)
+    {
+        var (result, _) = await SetConfigurationCore(
+            _ => proposedConfig,
+            shouldPersistConfiguration,
+            sourceVersion,
+            cancellationToken).ConfigureAwait(false);
+
+        return result;
+    }
+
+    private async Task<(SetSystemConfigurationResult Result, SystemConfiguration? AppliedConfiguration)>
+        SetConfigurationCore(
+            Func<SystemConfiguration, SystemConfiguration> createProposedConfig,
+            bool shouldPersistConfiguration,
+            int? sourceVersion,
+            CancellationToken cancellationToken)
     {
         var configResult = await GetConfiguration(cancellationToken).ConfigureAwait(false);
 
@@ -193,8 +239,10 @@ internal sealed partial class SystemConfigurationService(
                 configResult.Message;
 
             SetConfigurationFailedWithMessage(_logger, message);
-            return SetSystemConfigurationResult.CreateErrorResult(message);
+            return (SetSystemConfigurationResult.CreateErrorResult(message), null);
         }
+
+        var proposedConfig = createProposedConfig(configResult.Configuration);
 
         var validationMessage = await ValidateConfigurationChangeAsync(
             configResult.Configuration,
@@ -208,21 +256,21 @@ internal sealed partial class SystemConfigurationService(
             validationMessage = SystemConfigResources.SetConfigFailed + Environment.NewLine + validationMessage;
 
             SetConfigurationFailedWithMessage(_logger, validationMessage);
-            return SetSystemConfigurationResult.CreateErrorResult(validationMessage);
+            return (SetSystemConfigurationResult.CreateErrorResult(validationMessage), null);
         }
 
         var warningMessage = configResult.Status == OperationStatus.Warning
             ? configResult.Message
             : default;
 
-        return
-            await SetConfigurationInternal(
-                warningMessage,
-                configResult.Configuration,
-                proposedConfig,
-                shouldPersistConfiguration,
-                cancellationToken)
-            .ConfigureAwait(false);
+        var result = await SetConfigurationInternal(
+            warningMessage,
+            configResult.Configuration,
+            proposedConfig,
+            shouldPersistConfiguration,
+            cancellationToken).ConfigureAwait(false);
+
+        return (result, result.Status == OperationStatus.Error ? null : proposedConfig);
     }
 
     private async Task<string?> ValidateConfigurationChangeAsync(
