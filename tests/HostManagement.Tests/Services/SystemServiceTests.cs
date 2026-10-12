@@ -515,6 +515,28 @@ public class SystemServiceTests
                 .Contain(Result.TestErrorMessage);
         }
 
+        [Fact]
+        public async Task ShouldLogErrorAndReturnErrorResult_WhenDelayInvalid()
+        {
+            // Arrange
+            const string InvalidDelay = "invalid";
+
+            var logger = GetLoggerSubstitute();
+            var scriptHandler = Substitute.For<IScriptHandler>();
+            var sut = new SystemService(logger, scriptHandler, GetSignatureValidatorSubstitute());
+
+            // Act
+            var result = await sut.RestartSystem(InvalidDelay);
+
+            // Assert
+            result.Status.Should().Be(OperationStatus.Error);
+            result.Message.Should().ContainAll(
+                "System could not be restarted.",
+                "The delay must be a positive integer number greater than 0.");
+
+            _ = scriptHandler.DidNotReceive().ExecuteShutdownSystemScript(Arg.Any<ScriptOptions>());
+        }
+
         [Theory]
         [InlineData("")]
         [InlineData("  ")]
@@ -616,6 +638,28 @@ public class SystemServiceTests
             systemControlResult.Message.Should()
                 .StartWith(SystemCouldNotBeShutDownMessage).And
                 .Contain(Result.TestErrorMessage);
+        }
+
+        [Fact]
+        public async Task ShouldLogErrorAndReturnErrorResult_WhenDelayInvalid()
+        {
+            // Arrange
+            const string InvalidDelay = "invalid";
+
+            var logger = GetLoggerSubstitute();
+            var scriptHandler = Substitute.For<IScriptHandler>();
+            var sut = new SystemService(logger, scriptHandler, GetSignatureValidatorSubstitute());
+
+            // Act
+            var result = await sut.ShutdownSystem(InvalidDelay);
+
+            // Assert
+            result.Status.Should().Be(OperationStatus.Error);
+            result.Message.Should().ContainAll(
+                "System could not be shut down.",
+                "The delay must be a positive integer number greater than 0.");
+
+            _ = scriptHandler.DidNotReceive().ExecuteShutdownSystemScript(Arg.Any<ScriptOptions>());
         }
 
         [Theory]
