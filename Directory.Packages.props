@@ -16,7 +16,7 @@
   <ItemGroup>
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
     <PackageVersion Include="minisign-net" Version="1.0.0" />
-    <PackageVersion Include="System.CommandLine" Version="2.0.12" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.13" />
   </ItemGroup>
 
   <!-- TestableIO packages managed by renovate.json -->
