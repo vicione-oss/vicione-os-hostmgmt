@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Updated `.NET Runtime` from `10.0.12` to `10.0.13`
+- Updated `.NET SDK` from `10.0.401` to `10.0.402`
 - Updated NuGet packages
   - `Microsoft.CodeAnalysis.CSharp` from `5.6.0` to `5.9.0`
   - `Microsoft.Extensions.Configuration.EnvironmentVariables` from `10.0.12` to `10.0.13`
