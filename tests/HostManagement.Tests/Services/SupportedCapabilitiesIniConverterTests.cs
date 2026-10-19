@@ -59,20 +59,12 @@ public class SupportedCapabilitiesIniConverterTests
                 "Unsupported INI property 'Capability' at line 2. Configure child settings explicitly instead."),
 
             new (
-                "[Settings]\nUnknownKey=Enabled",
-                "Unknown supported setting 'UnknownKey'."),
-
-            new (
                 "[Settings]\nDNS=Enabled",
                 "Setting 'DNS' has child settings and cannot be configured directly. Configure child settings in '[Settings.DNS]'."),
 
             new(
                 "[Settings..DNS]\nHostname=Enabled",
                 "Invalid INI section 'Settings..DNS' at line 1."),
-
-            new (
-                "[Settings.DNS]\nUnknownKey=Enabled",
-                "Unknown setting 'DNS.UnknownKey'."),
 
             new (
                 "[Settings.DNS.Hostname]\nChild=Enabled",
@@ -89,10 +81,6 @@ public class SupportedCapabilitiesIniConverterTests
             new (
                 "[Settings.DNS]\nHostname=Enabled\nHostname=Disabled",
                 "Duplicate INI property 'Capability' at line 3."),
-
-            new (
-                "[Topics]\nUnknownKey=Enabled",
-                "Unknown supported topic 'UnknownKey'."),
 
             new (
                 "[Topics.Invalid]\nSomeKey=Enabled",
@@ -167,6 +155,55 @@ public class SupportedCapabilitiesIniConverterTests
             act.Should()
                 .Throw<InvalidOperationException>()
                 .WithMessage("The default 'SupportedCapabilities' JSON must contain a 'Topics' object.");
+        }
+
+        [Fact]
+        public void ShouldNotThrow_WhenIniDocumentContainsUnknownSetting()
+        {
+            // Arrange
+            const string IniContent =
+                """
+                [Settings]
+                TopLevelUnknownKey=Enabled
+
+                [Settings.NetworkInterfaces.NetworkInterfaceDetail.CommonInformation]
+                UserDefinedMAC=Disabled
+
+                [Settings.DNS]
+                ChildUnknownKey=Disabled
+                """;
+
+            var defaultCapabilitiesJsonObject = CreateTestDefaultSupportedCapabilitiesJsonObject();
+
+            // Act
+            var act = () => SupportedCapabilitiesIniConverter.ToJsonDocument(
+                IniContent,
+                defaultCapabilitiesJsonObject);
+
+            // Assert
+            act.Should().NotThrow();
+        }
+
+        [Fact]
+        public void ShouldNotThrow_WhenIniDocumentContainsUnknownTopic()
+        {
+            // Arrange
+            const string IniContent =
+                """
+                [Topics]
+                UnknownKey=Enabled
+                AnotherUnknownKey=Disabled
+                """;
+
+            var defaultCapabilitiesJsonObject = CreateTestDefaultSupportedCapabilitiesJsonObject();
+
+            // Act
+            var act = () => SupportedCapabilitiesIniConverter.ToJsonDocument(
+                IniContent,
+                defaultCapabilitiesJsonObject);
+
+            // Assert
+            act.Should().NotThrow();
         }
 
         [Fact]
