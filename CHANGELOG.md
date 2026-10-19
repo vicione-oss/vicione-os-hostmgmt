@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `TestableIO.System.IO.Abstractions.Wrappers` from `22.2.0` to `22.3.0`
 - CLI: Aligned `service` command description to other top-level commands
 - CLI: Swapped order of `system` and `deployment` command groups
+- Improved compatibility when reading `SupportedCapabilities.conf` (unknown settings or topics no longer throw an exception)
 
 ### Fixed
 
@@ -36,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added supported capabilities feature and new topic `GetSupportedCapabilities`
 - Added functionality to reset network interfaces to factory default settings
 - Added possibility to create a template of `SystemConfiguration.json` and validate it
 - Added caching for system configuration
