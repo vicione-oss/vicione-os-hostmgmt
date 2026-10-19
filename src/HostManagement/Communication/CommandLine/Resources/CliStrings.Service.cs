@@ -24,12 +24,12 @@ internal static partial class CliStrings
         internal const string AlreadyDisabled = "Systemd unit '{0}' is already disabled.";
         internal const string AlreadyEnabled = "Systemd unit '{0}' is already enabled.";
         internal const string ConfigurationNotAllowed = "Configuration of systemd unit '{0}' is not allowed.";
+        internal const string Controlled = "Systemd unit '{0}' has been {1}ed.";
         internal const string Disabled = "Systemd unit '{0}' has been disabled.";
         internal const string Empty = "Systemd unit can not be empty.";
         internal const string Enabled = "Systemd unit '{0}' has been enabled.";
-        internal const string Restarted = "Systemd unit '{0}' has been restarted.";
-        internal const string Started = "Systemd unit '{0}' has been started.";
-        internal const string Stopped = "Systemd unit '{0}' has been stopped.";
+        internal const string OptionalDelayCanBeSpecified = "An optional delay in seconds can be specified.";
         internal const string SystemdUnits = "Systemd units";
+        internal const string WillBeControlled = "Systemd unit '{0}' will be {1}ed in {2} seconds.";
     }
 }

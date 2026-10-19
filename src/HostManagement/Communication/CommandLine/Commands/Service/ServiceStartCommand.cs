@@ -13,15 +13,22 @@ internal sealed class ServiceStartCommand : ServiceControlCommandBase
     /// Initializes a new <see cref="ServiceStartCommand"/>.
     /// </summary>
     /// <param name="systemdUnitNameArgument">The systemd unit name argument.</param>
-    public ServiceStartCommand(Argument<string> systemdUnitNameArgument)
-        : base(CliStrings.Service.StartCommandName, CliStrings.Service.StartCommandDescription)
+    /// <param name="systemdUnitDelayArgument">The systemd unit delay argument.</param>
+    public ServiceStartCommand(Argument<string> systemdUnitNameArgument, Argument<int> systemdUnitDelayArgument)
+        : base(
+            CliStrings.Service.StartCommandName,
+            CliStrings.Service.StartCommandDescription + " " + CliStrings.Service.OptionalDelayCanBeSpecified)
     {
         Add(systemdUnitNameArgument);
+        Add(systemdUnitDelayArgument);
 
         SetAction((parseResult, cancellationToken)
-            => StartHandler(parseResult.GetRequiredValue(systemdUnitNameArgument), cancellationToken));
+            => StartHandler(
+                parseResult.GetRequiredValue(systemdUnitNameArgument),
+                parseResult.GetValue(systemdUnitDelayArgument),
+                cancellationToken));
     }
 
-    private static async Task StartHandler(string systemdUnitName, CancellationToken cancellationToken)
-        => await ControlSystemdUnitHandler(systemdUnitName, ServiceControlAction.Start, cancellationToken);
+    private static async Task StartHandler(string name, int delay, CancellationToken cancellationToken)
+        => await ControlSystemdUnitHandler(name, delay, ServiceControlAction.Start, cancellationToken);
 }

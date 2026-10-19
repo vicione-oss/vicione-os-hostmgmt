@@ -17,6 +17,7 @@ public static class ScriptOptionNames
     private const string InterfaceNameFlag = "--interface-name";
     private const string IpAddressFlag = "--ip-address";
     private const string NameFlag = "--name";
+    private const string DelayFlag = "--delay";
 
     /// <summary>
     /// Option names for the get network status information script.
@@ -349,6 +350,11 @@ public static class ScriptOptionNames
         /// The script argument for the systemd unit state.
         /// </summary>
         public const string State = "--state";
+
+        /// <summary>
+        /// The script argument for the systemd unit control delay in seconds (optional).
+        /// </summary>
+        public const string Delay = DelayFlag;
     }
 
     /// <summary>
@@ -360,7 +366,7 @@ public static class ScriptOptionNames
         /// <summary>
         /// The script argument for the shutdown delay in seconds (optional).
         /// </summary>
-        public const string Delay = "--delay";
+        public const string Delay = DelayFlag;
 
         /// <summary>
         /// The script argument to specify whether to restart the system after shutdown (optional).
