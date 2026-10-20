@@ -20,6 +20,7 @@ internal static partial class CliStrings
             internal const string ModifyCommandDescription = "Modify an existing NTP server.";
             internal const string RemoveCommandDescription = "Remove NTP servers.";
             internal const string SetCommandDescription = "Remove existing NTP servers and set new ones.";
+            internal const string StatusCommandDescription = "Show NTP synchronization status.";
 
             internal const string Added = "NTP server added";
             internal const string AddedMultiple = "NTP servers added";
@@ -32,14 +33,22 @@ internal static partial class CliStrings
             internal const string Disabled = "NTP servers have been disabled.";
             internal const string Enabled = "NTP servers have been enabled.";
             internal const string FallbackServers = "Fallback NTP servers";
+            internal const string Jitter = "Jitter";
+            internal const string Message = "Message";
             internal const string Modified = "NTP server has been changed from '{0}' to '{1}'.";
             internal const string NotConfigured = "No NTP servers are configured.";
             internal const string NotFound = "NTP server '{0}' was not found.";
+            internal const string Offset = "Offset";
+            internal const string Quality = "Quality";
             internal const string Removed = "NTP server removed";
             internal const string RemovedMultiple = "NTP servers removed";
+            internal const string ServerAddress = "Server Address";
+            internal const string ServerName = "Server Name";
             internal const string Servers = "NTP servers";
             internal const string Set = "NTP server set";
             internal const string SetMultiple = "NTP servers set";
+            internal const string Stratum = "Stratum";
+            internal const string Synchronized = "Synchronized";
         }
     }
 }

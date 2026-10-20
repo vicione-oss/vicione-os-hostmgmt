@@ -133,6 +133,24 @@ namespace HostManagement.Services {
         }
         
         /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Getting NTP sync status canceled. ähnelt.
+        /// </summary>
+        internal static string GetNTPSyncStatusCanceled {
+            get {
+                return ResourceManager.GetString("GetNTPSyncStatusCanceled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Getting NTP sync status failed. ähnelt.
+        /// </summary>
+        internal static string GetNTPSyncStatusFailed {
+            get {
+                return ResourceManager.GetString("GetNTPSyncStatusFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Getting original physical address was canceled. ähnelt.
         /// </summary>
         internal static string GetOriginalPhysicalAddressCanceled {

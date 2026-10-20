@@ -17,6 +17,7 @@ namespace HostManagement.Shared.Communication.Contracts;
 [JsonSerializable(typeof(GetNetworkStatusInformationResult))]
 [JsonSerializable(typeof(GetDHCPLeaseInformationResult))]
 [JsonSerializable(typeof(GetNTPFallbackInformationResult))]
+[JsonSerializable(typeof(GetNTPSyncStatusResult))]
 [JsonSerializable(typeof(GetServiceStateResult))]
 [JsonSerializable(typeof(RedeployScriptsResult))]
 [JsonSerializable(typeof(ServiceControlResult))]

@@ -86,11 +86,13 @@ public class IPAddressConverterTests
             result.Should().Be(expectedIPAddress);
         }
 
-        [Fact]
-        public void ShouldReturnNull_WhenTokenIsNull()
+        [Theory]
+        [InlineData("null")]
+        [InlineData("\"\"")]
+        [InlineData("\"  \"")]
+        public void ShouldReturnIPAddressNone_WhenTokenIsNullOrWhiteSpace(string json)
         {
             // Arrange
-            var json = "null";
             var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(json));
 
             reader.Read();
@@ -99,7 +101,7 @@ public class IPAddressConverterTests
             var result = _sut.Read(ref reader, typeof(IPAddress), _options);
 
             // Assert
-            result.Should().Be(null);
+            result.Should().Be(IPAddress.None);
         }
     }
 

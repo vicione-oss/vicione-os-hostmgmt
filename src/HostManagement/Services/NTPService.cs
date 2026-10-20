@@ -1,5 +1,6 @@
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
+using HostManagement.SystemConfig;
 using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Services;
@@ -42,7 +43,7 @@ internal sealed partial class NTPService(ILogger logger, IScriptHandler scriptHa
         {
             var message = ServicesResources.GetNTPFallbackServersCanceled;
 
-            GetNTPFallbackServersCanceled(_logger, message);
+            Canceled(_logger, message);
 
             return new GetNTPFallbackInformationResult
             {
@@ -54,6 +55,49 @@ internal sealed partial class NTPService(ILogger logger, IScriptHandler scriptHa
         catch (Exception ex)
         {
             return LogAndReturnGetNTPFallbackServersFailed(exception: ex);
+        }
+    }
+
+    /// <summary>
+    /// Gets the NTP synchronization status.
+    /// </summary>
+    /// <param name="cancellationToken">A token to cancel the request.</param>
+    /// <returns><see cref="GetNTPSyncStatusResult"/></returns>
+    internal async Task<GetNTPSyncStatusResult> GetNTPSyncStatus(CancellationToken cancellationToken)
+    {
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var (result, syncStatus) = await _scriptHandler.ExecuteGetNTPSyncStatusScript()
+                .ConfigureAwait(false);
+
+            if (result.OperationStatus is OperationStatus.Error)
+                return LogAndReturnGetNTPSyncStatusFailed(result.FormattedMessages);
+
+            return new GetNTPSyncStatusResult
+            {
+                Status = OperationStatus.Success,
+                Message = string.Empty,
+                NTPSyncStatus = syncStatus.ToSharedContracts()
+            };
+        }
+        catch (OperationCanceledException)
+        {
+            var message = ServicesResources.GetNTPSyncStatusCanceled;
+
+            Canceled(_logger, message);
+
+            return new GetNTPSyncStatusResult
+            {
+                Status = OperationStatus.Warning,
+                Message = message,
+                NTPSyncStatus = null
+            };
+        }
+        catch (Exception ex)
+        {
+            return LogAndReturnGetNTPSyncStatusFailed(exception: ex);
         }
     }
 
@@ -69,7 +113,7 @@ internal sealed partial class NTPService(ILogger logger, IScriptHandler scriptHa
                 ? Environment.NewLine + additionalMessage
                 : string.Empty);
 
-        GetNTPFallbackServersFailed(_logger, message, exception);
+        Failed(_logger, message, exception);
 
         return new GetNTPFallbackInformationResult
         {
@@ -79,9 +123,31 @@ internal sealed partial class NTPService(ILogger logger, IScriptHandler scriptHa
         };
     }
 
+    private GetNTPSyncStatusResult LogAndReturnGetNTPSyncStatusFailed(
+        string? additionalMessage = null,
+        Exception? exception = null)
+    {
+        var simpleMessage = ServicesResources.GetNTPSyncStatusFailed;
+
+        var message =
+            simpleMessage +
+            (additionalMessage is not null
+                ? Environment.NewLine + additionalMessage
+                : string.Empty);
+
+        Failed(_logger, message, exception);
+
+        return new GetNTPSyncStatusResult
+        {
+            Status = OperationStatus.Error,
+            Message = simpleMessage,
+            NTPSyncStatus = null,
+        };
+    }
+
     [LoggerMessage(LogLevel.Warning, "{InnerMessage}")]
-    private static partial void GetNTPFallbackServersCanceled(ILogger logger, string? innerMessage);
+    private static partial void Canceled(ILogger logger, string? innerMessage);
 
     [LoggerMessage(LogLevel.Error, "{InnerMessage}")]
-    private static partial void GetNTPFallbackServersFailed(ILogger logger, string? innerMessage, Exception? exception);
+    private static partial void Failed(ILogger logger, string? innerMessage, Exception? exception);
 }

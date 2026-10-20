@@ -204,6 +204,7 @@ internal sealed partial class RequestHandlerRegistry
                 Topics.GetNetworkStatusInformation => true,
                 Topics.GetDHCPLeaseInformation => true,
                 Topics.GetNTPFallbackInformation => true,
+                Topics.GetNTPSyncStatus => true,
 
                 Topics.InstallSignedDebianPackage => true,
                 Topics.ResetSystem => true,

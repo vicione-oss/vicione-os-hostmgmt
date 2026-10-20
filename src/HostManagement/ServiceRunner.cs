@@ -282,6 +282,7 @@ internal static partial class ServiceRunner
             yield return new GetNetworkStatusInformationRequestHandler(s_logger);
             yield return new GetDHCPLeaseInformationRequestHandler(s_logger);
             yield return new GetNTPFallbackInformationRequestHandler(s_logger);
+            yield return new GetNTPSyncStatusRequestHandler(s_logger);
         }
 
         static IEnumerable<IRequestHandler> GetSystemConfigurationRequestHandlers(

@@ -1,4 +1,4 @@
-﻿using HostManagement.Shared.Communication.Enums;
+using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Contracts.NetworkStatus;
 
 namespace HostManagement.Shared.Communication.Contracts;

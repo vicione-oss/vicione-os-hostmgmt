@@ -327,6 +327,21 @@ internal static class ContractsTranslator
             IPv4Detail = intern.IPv4Detail?.ToSharedContracts(),
         };
 
+    internal static SharedNetwork.NTPSyncStatus ToSharedContracts(this NTPSyncStatus intern)
+        => new()
+        {
+            ServerAddress = intern.ServerAddress,
+            ServerName = intern.ServerName,
+            Synchronized = intern.Synchronized,
+            Stratum = intern.Stratum,
+            StratumQuality = intern.StratumQuality,
+            Offset = intern.Offset,
+            OffsetQuality = intern.OffsetQuality,
+            Jitter = intern.Jitter,
+            JitterQuality = intern.JitterQuality,
+            Message = intern.Message ?? string.Empty
+        };
+
     // ToInternalContracts
 
     internal static SystemConfiguration ToInternalContracts(this SharedContracts.SystemConfiguration shared)

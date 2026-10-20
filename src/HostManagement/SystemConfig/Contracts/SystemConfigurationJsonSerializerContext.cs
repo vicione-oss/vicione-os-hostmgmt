@@ -10,4 +10,5 @@ namespace HostManagement.SystemConfig.Contracts;
     Converters = [typeof(DateTimeOffsetConverter), typeof(IPAddressConverter), typeof(PhysicalAddressConverter)])]
 [JsonSerializable(typeof(SystemConfiguration))]
 [JsonSerializable(typeof(DHCPLease))]
+[JsonSerializable(typeof(NTPSyncStatus))]
 internal partial class SystemConfigurationJsonSerializerContext : JsonSerializerContext;

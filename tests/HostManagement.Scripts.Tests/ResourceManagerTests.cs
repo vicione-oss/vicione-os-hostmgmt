@@ -351,6 +351,7 @@ public class ResourceManagerTests
                     "get_network_ntp_fallback_information",
                     "get_network_ntp_settings",
                     "set_network_ntp_settings",
+                    "get_ntp_quality",
 
                     // Network > Proxy
                     "get_network_proxy_settings",
