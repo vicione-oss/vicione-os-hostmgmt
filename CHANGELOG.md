@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Shared: Added contract `SyslogSettings` and dependencies
 - Shared: Added validation for `SyslogSettings`
 - CLI: Added `syslog` command group with commands `status`, `set`, `disable`, `enable` and `clear`
+- **Breaking:** Added optional delay to service commands. Callers now need to send a serialized `ServiceControlRequest` in the message content.
 
 ### Changed
 
