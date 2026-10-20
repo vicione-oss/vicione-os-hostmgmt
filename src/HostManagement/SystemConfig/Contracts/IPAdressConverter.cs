@@ -12,14 +12,9 @@ internal sealed class IPAddressConverter : JsonConverter<IPAddress>
         if (reader.TokenType is not JsonTokenType.String and not JsonTokenType.Null)
             throw new JsonException("Expected string or null as the JSON token type.");
 
-        IPAddress? value = null;
-
         var text = reader.GetString();
 
-        if (text is not null)
-            value = IPAddress.Parse(text);
-
-        return value;
+        return string.IsNullOrWhiteSpace(text) ? IPAddress.None : IPAddress.Parse(text);
     }
 
     /// <inheritdoc/>
