@@ -40,9 +40,9 @@ internal static class SupportedCapabilitiesIniConverter
     /// A <see cref="JsonDocument"/> containing the equivalent 'SupportedCapabilities' JSON structure.
     /// </returns>
     /// <exception cref="FormatException">
-    /// Thrown when the INI content contains an unknown or invalid section, an unknown setting,
-    /// an invalid key-value entry, an entry outside a section, a duplicate entry,
-    /// an invalid capability value or conflicting scalar and object values.
+    /// Thrown when the INI content is malformed, contains an invalid section, entry or capability value,
+    /// or defines an invalid settings hierarchy.
+    /// Unknown settings and topics are ignored.
     /// </exception>
     public static JsonDocument ToJsonDocument(string iniContent)
         => ToJsonDocument(iniContent, CreateDefaultSupportedCapabilitiesJson());
@@ -53,8 +53,9 @@ internal static class SupportedCapabilitiesIniConverter
     /// <param name="document">The 'SupportedCapabilities' JSON document to convert.</param>
     /// <returns>The equivalent 'SupportedCapabilities' INI template content.</returns>
     /// <exception cref="InvalidOperationException">
-    /// Thrown when <paramref name="document"/> is not a JSON object, when a known section is not a JSON object
-    /// or when the JSON contains an unsupported top-level section.
+    /// Thrown when <paramref name="document"/> does not contain a valid 'SupportedCapabilities' JSON structure,
+    /// including when the root element is not an object, a section is not an object, an unsupported top-level
+    /// section is present or a capability value is not "Enabled" or "Disabled".
     /// </exception>
     public static string ToTemplateIni(JsonDocument document)
     {
