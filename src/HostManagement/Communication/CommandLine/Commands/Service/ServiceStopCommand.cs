@@ -13,15 +13,22 @@ internal sealed class ServiceStopCommand : ServiceControlCommandBase
     /// Initializes a new <see cref="ServiceStopCommand"/>.
     /// </summary>
     /// <param name="systemdUnitNameArgument">The systemd unit name argument.</param>
-    public ServiceStopCommand(Argument<string> systemdUnitNameArgument)
-        : base(CliStrings.Service.StopCommandName, CliStrings.Service.StopCommandDescription)
+    /// <param name="systemdUnitDelayArgument">The systemd unit delay argument.</param>
+    public ServiceStopCommand(Argument<string> systemdUnitNameArgument, Argument<int> systemdUnitDelayArgument)
+        : base(
+            CliStrings.Service.StopCommandName,
+            CliStrings.Service.StopCommandDescription + " " + CliStrings.Service.OptionalDelayCanBeSpecified)
     {
         Add(systemdUnitNameArgument);
+        Add(systemdUnitDelayArgument);
 
         SetAction((parseResult, cancellationToken)
-            => StopHandler(parseResult.GetRequiredValue(systemdUnitNameArgument), cancellationToken));
+            => StopHandler(
+                parseResult.GetRequiredValue(systemdUnitNameArgument),
+                parseResult.GetValue(systemdUnitDelayArgument),
+                cancellationToken));
     }
 
-    private static async Task StopHandler(string systemdUnitName, CancellationToken cancellationToken)
-        => await ControlSystemdUnitHandler(systemdUnitName, ServiceControlAction.Stop, cancellationToken);
+    private static async Task StopHandler(string name, int delay, CancellationToken cancellationToken)
+        => await ControlSystemdUnitHandler(name, delay, ServiceControlAction.Stop, cancellationToken);
 }

@@ -1,10 +1,13 @@
 using System.Globalization;
 using System.Text;
+using System.Text.Json;
 using HostManagement.Scripts;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
+using HostManagement.Shared.Contracts.Service;
 using HostManagement.Shared.Enums;
 using Microsoft.Extensions.Logging;
+using SharedJsonContext = HostManagement.Shared.Contracts.SourceGenerationContext;
 
 namespace HostManagement.Services;
 
@@ -83,33 +86,33 @@ internal sealed partial class SystemdUnitService(
     /// <summary>
     /// Starts the specified systemd unit.
     /// </summary>
-    /// <param name="systemdUnit">The systemd unit to start.</param>
+    /// <param name="messageContent">The message content.</param>
     /// <returns><see cref="ServiceControlResult"/></returns>
-    public async Task<ServiceControlResult> StartSystemdUnit(string systemdUnit)
+    public async Task<ServiceControlResult> StartSystemdUnit(string messageContent)
         => await ControlSystemdUnit(
-            systemdUnit,
+            messageContent,
             ServiceControlAction.Start,
             CompositeFormat.Parse(ServicesResources.SystemdUnitStartFailed));
 
     /// <summary>
     /// Stops the specified systemd unit.
     /// </summary>
-    /// <param name="systemdUnit">The systemd unit to stop.</param>
+    /// <param name="messageContent">The message content.</param>
     /// <returns><see cref="ServiceControlResult"/></returns>
-    public async Task<ServiceControlResult> StopSystemdUnit(string systemdUnit)
+    public async Task<ServiceControlResult> StopSystemdUnit(string messageContent)
         => await ControlSystemdUnit(
-            systemdUnit,
+            messageContent,
             ServiceControlAction.Stop,
             CompositeFormat.Parse(ServicesResources.SystemdUnitStopFailed));
 
     /// <summary>
     /// Restarts the specified systemd unit.
     /// </summary>
-    /// <param name="systemdUnit">The systemd unit to restart.</param>
+    /// <param name="messageContent">The message content.</param>
     /// <returns><see cref="ServiceControlResult"/></returns>
-    public async Task<ServiceControlResult> RestartSystemdUnit(string systemdUnit)
+    public async Task<ServiceControlResult> RestartSystemdUnit(string messageContent)
         => await ControlSystemdUnit(
-            systemdUnit,
+            messageContent,
             ServiceControlAction.Restart,
             CompositeFormat.Parse(ServicesResources.SystemdUnitRestartFailed));
 
@@ -131,20 +134,47 @@ internal sealed partial class SystemdUnitService(
     }
 
     private async Task<ServiceControlResult> ControlSystemdUnit(
-        string systemdUnit,
+        string messageContent,
         ServiceControlAction controlAction,
         CompositeFormat controlFailedMessage)
     {
+        var name = "unknown";
+        var delay = 0;
+
         try
         {
+            var serviceControlRequest = JsonSerializer
+                .Deserialize(messageContent, SharedJsonContext.Default.ServiceControlRequest);
+
+            if (serviceControlRequest is null)
+            {
+                return LogErrorAndReturnServiceControlResult(
+                    controlFailedMessage,
+                    "unknown",
+                    $"JSON string could not be deserialized to '{nameof(ServiceControlRequest)}'." +
+                    Environment.NewLine +
+                    $"JSON string was: '{messageContent}'");
+            }
+
+            name = serviceControlRequest.Name;
+            delay = serviceControlRequest.DelayInSeconds;
+
+            if (delay < 0)
+            {
+                return LogErrorAndReturnServiceControlResult(
+                    controlFailedMessage,
+                    name,
+                    ServicesResources.DelayInvalid);
+            }
+
             var isNotAllowedService = !_configurableServices
-                .Any(configurableService => IsWildcardMatch(systemdUnit, configurableService));
+                .Any(configurableService => IsWildcardMatch(name, configurableService));
 
             if (isNotAllowedService)
             {
                 return LogErrorAndReturnServiceControlResult(
                     CompositeFormat.Parse(ServicesResources.SystemdUnitNotAllowed),
-                    systemdUnit);
+                    name);
             }
 
             var result = new Result();
@@ -152,13 +182,15 @@ internal sealed partial class SystemdUnitService(
             switch (controlAction)
             {
                 case ServiceControlAction.Start:
-                    result = await SetSystemdUnitState(_scriptHandler, systemdUnit, ServiceControlAction.Start);
+                    result = await SetSystemdUnitState(name, delay, ServiceControlAction.Start);
                     break;
+
                 case ServiceControlAction.Stop:
-                    result = await SetSystemdUnitState(_scriptHandler, systemdUnit, ServiceControlAction.Stop);
+                    result = await SetSystemdUnitState(name, delay, ServiceControlAction.Stop);
                     break;
+
                 case ServiceControlAction.Restart:
-                    result = await SetSystemdUnitState(_scriptHandler, systemdUnit, ServiceControlAction.Restart);
+                    result = await SetSystemdUnitState(name, delay, ServiceControlAction.Restart);
                     break;
             }
 
@@ -166,33 +198,35 @@ internal sealed partial class SystemdUnitService(
             {
                 return LogErrorAndReturnServiceControlResult(
                     controlFailedMessage,
-                    systemdUnit,
+                    name,
                     result.FormattedMessages);
             }
+
+            var actionString = controlAction.ToString().ToLowerInvariant();
 
             return new ServiceControlResult
             {
                 Status = OperationStatus.Success,
-                Message = string.Empty,
+                Message = delay > 0
+                    ? $"Systemd unit '{name}' will be {actionString}ed in {delay} seconds."
+                    : $"Systemd unit '{name}' has been {actionString}ed."
             };
         }
         catch (Exception ex)
         {
-            return LogErrorAndReturnServiceControlResult(controlFailedMessage, systemdUnit, null, ex);
+            return LogErrorAndReturnServiceControlResult(controlFailedMessage, name, null, ex);
         }
     }
 
-    private static async Task<Result> SetSystemdUnitState(
-        IScriptHandler scriptHandler,
-        string name,
-        ServiceControlAction controlAction)
+    private async Task<Result> SetSystemdUnitState(string name, int delay, ServiceControlAction controlAction)
     {
         var scriptOptions = new ScriptOptions();
 
         scriptOptions.Add(ScriptOptionNames.SetSystemdUnitState.Name, name);
         scriptOptions.Add(ScriptOptionNames.SetSystemdUnitState.State, controlAction.ToString());
+        scriptOptions.Add(ScriptOptionNames.SetSystemdUnitState.Delay, delay);
 
-        return await scriptHandler.ExecuteSetSystemdUnitStateScript(scriptOptions);
+        return await _scriptHandler.ExecuteSetSystemdUnitStateScript(scriptOptions);
     }
 
     private GetServiceStateResult LogErrorAndReturnGetServiceStateResult(
@@ -227,9 +261,8 @@ internal sealed partial class SystemdUnitService(
         string? additionalMessage = null,
         Exception? additionalException = null)
     {
-        var simpleMessage = string.Format(CultureInfo.InvariantCulture, failedMessage, systemdUnit);
         var message =
-            simpleMessage +
+            string.Format(CultureInfo.InvariantCulture, failedMessage, systemdUnit) +
             (additionalMessage is not null
                 ? Environment.NewLine + additionalMessage
                 : string.Empty);
@@ -242,7 +275,7 @@ internal sealed partial class SystemdUnitService(
         return new ServiceControlResult
         {
             Status = OperationStatus.Error,
-            Message = simpleMessage,
+            Message = message,
         };
     }
 

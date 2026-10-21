@@ -1,4 +1,5 @@
 using HostManagement.Shared.Communication.Capabilities;
+using HostManagement.Shared.Contracts.Service;
 using HostManagement.Shared.Contracts.System;
 
 namespace HostManagement.Shared.Communication;
@@ -115,7 +116,8 @@ public static partial class Topics
     /// The topic to start a systemd unit, e.g. of type 'service'.
     /// </summary>
     /// <remarks>
-    /// The name of the service must be specified as the message content.
+    /// The name of the service must be specified (with an optional delay) with the <see cref="ServiceControlRequest"/>
+    /// type as the message content.
     /// </remarks>
     [SupportedTopic]
     [RequiresContent]
@@ -125,7 +127,8 @@ public static partial class Topics
     /// The topic to stop a systemd unit, e.g. of type 'service'.
     /// </summary>
     /// <remarks>
-    /// The name of the service must be specified as the message content.
+    /// The name of the service must be specified (with an optional delay) with the <see cref="ServiceControlRequest"/>
+    /// type as the message content.
     /// </remarks>
     [SupportedTopic]
     [RequiresContent]
@@ -135,7 +138,8 @@ public static partial class Topics
     /// The topic to restart a systemd unit, e.g. of type 'service'.
     /// </summary>
     /// <remarks>
-    /// The name of the service must be specified as the message content.
+    /// The name of the service must be specified (with an optional delay) with the <see cref="ServiceControlRequest"/>
+    /// type as the message content.
     /// </remarks>
     [SupportedTopic]
     [RequiresContent]

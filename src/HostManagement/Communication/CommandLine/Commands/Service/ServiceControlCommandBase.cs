@@ -1,7 +1,10 @@
+using System.Text.Json;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Communication.CommandLine.Resources;
+using HostManagement.Shared.Contracts.Service;
 using HostManagement.Shared.Enums;
+using SharedJsonContext = HostManagement.Shared.Contracts.SourceGenerationContext;
 
 namespace HostManagement.Communication.CommandLine.Commands.Service;
 
@@ -12,29 +15,35 @@ internal abstract class ServiceControlCommandBase(string name, string descriptio
     : ServiceCommandBase(name, description)
 {
     private protected static async Task ControlSystemdUnitHandler(
-        string systemdUnitName,
-        ServiceControlAction controlAction,
+        string name,
+        int delay,
+        ServiceControlAction action,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(systemdUnitName))
+        if (string.IsNullOrWhiteSpace(name))
         {
-            SimpleOutput.WriteLineError(CliStrings.Service.Empty, systemdUnitName);
+            SimpleOutput.WriteLineError(CliStrings.Service.Empty, name);
             return;
         }
 
-        var normalizedUnitName = GetSystemdUnitWithUnitType(systemdUnitName);
+        var normalizedName = GetSystemdUnitWithUnitType(name);
 
-        if (!await NamedPipeRequestHelper.ControlSystemdUnit(normalizedUnitName, controlAction, cancellationToken))
+        var messageContent = JsonSerializer.Serialize(
+            new ServiceControlRequest
+            {
+                Name = normalizedName,
+                DelayInSeconds = delay
+            },
+            SharedJsonContext.Default.ServiceControlRequest);
+
+        if (!await NamedPipeRequestHelper.ControlSystemdUnit(messageContent, action, cancellationToken))
             return;
 
-        var successMessage = controlAction switch
-        {
-            ServiceControlAction.Start => CliStrings.Service.Started,
-            ServiceControlAction.Stop => CliStrings.Service.Stopped,
-            ServiceControlAction.Restart => CliStrings.Service.Restarted,
-            _ => throw new ArgumentOutOfRangeException(nameof(controlAction), controlAction, null)
-        };
+        var actionString = action.ToString().ToLowerInvariant();
 
-        SimpleOutput.WriteLine(successMessage, systemdUnitName);
+        if (delay > 0)
+            SimpleOutput.WriteLine(CliStrings.Service.WillBeControlled, normalizedName, actionString, delay);
+        else
+            SimpleOutput.WriteLine(CliStrings.Service.Controlled, normalizedName, actionString);
     }
 }

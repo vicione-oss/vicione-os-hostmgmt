@@ -9,6 +9,7 @@ using HostManagement.Shared.Communication.Serialization;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Contracts.NetworkStatus;
+using HostManagement.Shared.Contracts.Service;
 using HostManagement.Shared.Enums;
 using HostManagement.Shared.Serialization;
 using Microsoft.Extensions.Logging;
@@ -309,12 +310,15 @@ internal static class NamedPipeRequestHelper
     /// <summary>
     /// Sends a named pipe request to start, stop or restart a systemd unit.
     /// </summary>
-    /// <param name="systemdUnitName">The systemd unit name.</param>
+    /// <param name="messageContent">
+    /// The name of the service must be specified (with an optional delay) with the <see cref="ServiceControlRequest"/>
+    /// type as the message content.
+    /// </param>
     /// <param name="controlAction">The control action.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns><see langword="true"/> if successful, otherwise <see langword="false"/></returns>
     internal static async Task<bool> ControlSystemdUnit(
-        string systemdUnitName,
+        string messageContent,
         ServiceControlAction controlAction,
         CancellationToken cancellationToken)
     {
@@ -329,7 +333,7 @@ internal static class NamedPipeRequestHelper
         var serviceControlResult = await SendNamedPipeRequest(
             CommunicationJsonContext.Default.ServiceControlResult,
             topic,
-            systemdUnitName,
+            messageContent,
             cancellationToken);
 
         if (serviceControlResult.Status == OperationStatus.Error)

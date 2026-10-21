@@ -26,6 +26,7 @@ readonly ERR_CODE_3="Failed to start systemd unit '%s'."
 readonly ERR_CODE_4="Failed to stop systemd unit '%s'."
 readonly ERR_CODE_5="Failed to restart systemd unit '%s'."
 readonly ERR_CODE_6="Systemd unit '%s' did not become active after restart."
+readonly ERR_CODE_7="Systemd unit '%s' was not found."
 
 #######################################
 # Constants
@@ -43,18 +44,40 @@ readonly RESTART="Restart"
 
 SYSTEMD_UNIT_NAME=""
 SYSTEMD_UNIT_STATE=""
+SYSTEMD_UNIT_DELAY="0"
 
 #######################################
 # Methods
 #######################################
 
 usage() {
-    echo "Usage: $0 --name <systemd-unit-name> --state <${ENABLED}|${DISABLED}|${START}|${STOP}|${RESTART}>"
+    echo "Usage: $0 --name <systemd-unit-name> --state <${ENABLED}|${DISABLED}|${START}|${STOP}|${RESTART}> [--delay <delay-in-seconds>]"
     echo
     echo "Options:"
-    echo "  --name      - The name of the systemd unit."
-    echo "  --state     - The desired state: ${ENABLED}, ${DISABLED}, or ${START}, ${STOP}, ${RESTART}."
+    echo "  --name  - The name of the systemd unit."
+    echo "  --state - The desired state: ${ENABLED}, ${DISABLED}, or ${START}, ${STOP}, ${RESTART}."
+    echo "  --delay - The delay in seconds. (optional, must be > 0 if specified, only for ${START}, ${STOP}, ${RESTART})"
     exit 0
+}
+
+assert_systemd_unit_exists() {
+    local load_state
+    load_state=$(systemctl show -p LoadState --value "$SYSTEMD_UNIT_NAME")
+
+    if [[ "$load_state" == "not-found" ]]; then
+        err "$(printf "$ERR_CODE_7" "$SYSTEMD_UNIT_NAME")" 7
+    fi
+}
+
+schedule_delayed_action() {
+    local action="$1"
+
+    assert_systemd_unit_exists
+
+    # Respond to caller and start background process for delayed start/stop/restart action
+    echo "Systemd unit '${SYSTEMD_UNIT_NAME}' will be ${action}ed in ${SYSTEMD_UNIT_DELAY} seconds."
+
+    nohup bash -c 'sleep "$1"; systemctl "$2" "$3"' -- "$SYSTEMD_UNIT_DELAY" "$action" "$SYSTEMD_UNIT_NAME" >/dev/null 2>&1 &
 }
 
 wait_for_systemd_unit() {
@@ -80,6 +103,11 @@ wait_for_systemd_unit() {
 }
 
 start() {
+    if [[ "$SYSTEMD_UNIT_DELAY" -gt 0 ]]; then
+        schedule_delayed_action "start"
+        return
+    fi
+
     # just start the systemd unit:
     # if it's already running, the script just exits
     # if not, the unit will be started
@@ -89,6 +117,11 @@ start() {
 }
 
 stop() {
+    if [[ "$SYSTEMD_UNIT_DELAY" -gt 0 ]]; then
+        schedule_delayed_action "stop"
+        return
+    fi
+
     # just stop the systemd unit:
     # if it's already stopped, the script just exits
     # if not, the unit will be stopped
@@ -98,6 +131,11 @@ stop() {
 }
 
 restart() {
+    if [[ "$SYSTEMD_UNIT_DELAY" -gt 0 ]]; then
+        schedule_delayed_action "restart"
+        return
+    fi
+
     # restart is a temporary action and not a present state in the 'SystemConfiguration.json'
     # since we can start and stop systemd units "temporarily", this action does not need to
     # check the state of the unit
@@ -151,6 +189,10 @@ main() {
                 SYSTEMD_UNIT_STATE="${2:-}"
                 shift 2
                 ;;
+            --delay)
+                SYSTEMD_UNIT_DELAY="${2:-0}"
+                shift 2
+                ;;
             *)
                 usage
                 ;;
@@ -167,6 +209,11 @@ main() {
        [[ "$SYSTEMD_UNIT_STATE" != "$START" ]] &&
        [[ "$SYSTEMD_UNIT_STATE" != "$STOP" ]] &&
        [[ "$SYSTEMD_UNIT_STATE" != "$RESTART" ]]; then
+        usage
+    fi
+
+    # Only positve numbers, no leading +/-, no decimal points
+    if ! [[ "$SYSTEMD_UNIT_DELAY" =~ ^[0-9][0-9]*$ ]]; then
         usage
     fi
 
