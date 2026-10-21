@@ -17,7 +17,7 @@ internal sealed class GetNTPSyncStatusRequestHandler(ILogger logger) : RequestHa
     public override string Topic => Topics.GetNTPSyncStatus;
 
     /// <summary>
-    /// Handles the get NTP fallback information request.
+    /// Handles the get NTP sync status request.
     /// </summary>
     /// <inheritdoc/>
     /// <exception cref="InvalidOperationException"/>
