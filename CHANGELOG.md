@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Shared Communication: `TopicContracts` and `EventTopicContracts` bind every topic to its request and response contracts, letting the compiler infer the message types from the topic
   - Shared Communication: `PipeClientExtensions` provides `SendRequestAsync` and `SendOperationAsync`, the latter returning an error result instead of throwing when the response content is malformed. A caller-provided correlation ID is an optional argument rather than a separate overload
   - Shared Communication: `CallbackHandlerRegistry.RegisterHandler` and `RegisterRawHandler` take a callback, so an event handler class is only needed when the handler has state of its own
+- Shared Communication: Added `PipeRequestFailedException`, thrown by `SendRequestAsync` with HostManagement's reason when a request fails; `SendOperationAsync` returns that reason in its error result
 
 ### Changed
 
@@ -67,6 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed network interface reset mutating the cached configuration, which prevented network changes from being applied
 - Fixed a request on a raw text topic with missing required content reporting "The method or operation is not implemented" instead of naming the missing content
+- CLI: Fixed a failed request showing a deserialization error instead of HostManagement's reason
 
 ## [2.0.0-beta1] - 2026-09-30
 

@@ -17,6 +17,10 @@ public class PipeClientExtensionsTests
     private const string TestServiceName = "ssh";
     private const string ActiveState = "active";
 
+    private const string FailureReason =
+        "Handle request for topic 'GetServiceState' failed (Conversation ID: 8d0f4c6e-2b1a-4f53-9a7e-3c5d1e2f4a6b). " +
+        "Service name is empty.";
+
     public class SendRequestAsyncWithResponseContract
     {
         [Fact]
@@ -44,6 +48,43 @@ public class PipeClientExtensionsTests
 
             // Assert
             await act.Should().ThrowAsync<JsonException>();
+        }
+
+        [Fact]
+        public async Task ShouldThrowRequestFailed_WhenResponseIsPlainResponse()
+        {
+            // Arrange
+            var response = CreateResponse(SerializedFailureResponse());
+            await using var client = CreateClientReturning(response);
+
+            // Act
+            var act = async () => await client.SendRequestAsync<GetServiceStateResult>(
+                TestTopic,
+                TestServiceName,
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            // Assert
+            var exception = (await act.Should().ThrowAsync<PipeRequestFailedException>().WithMessage(FailureReason)).Which;
+
+            exception.Topic.Should().Be(TestTopic);
+            exception.ConversationId.Should().Be(response.ConversationId);
+            exception.InnerException.Should().BeOfType<JsonException>();
+        }
+
+        [Fact]
+        public async Task ShouldThrowJsonException_WhenResponseIsNeitherContractNorPlainResponse()
+        {
+            // Arrange
+            await using var client = CreateClientReturning("""{"ResultType":"SomeOtherResult","Message":"Failed."}""");
+
+            // Act
+            var act = async () => await client.SendRequestAsync<GetServiceStateResult>(
+                TestTopic,
+                TestServiceName,
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            // Assert
+            await act.Should().ThrowExactlyAsync<JsonException>();
         }
 
         [Fact]
@@ -195,6 +236,24 @@ public class PipeClientExtensionsTests
             // Assert
             result.Status.Should().Be(OperationStatus.Error);
             result.Message.Should().Contain("could not be deserialized");
+            result.ActiveState.Should().Be("unknown");
+        }
+
+        [Fact]
+        public async Task ShouldReturnErrorResultWithReason_WhenResponseIsPlainResponse()
+        {
+            // Arrange
+            await using var client = CreateClientReturning(SerializedFailureResponse());
+
+            // Act
+            var result = await client.SendOperationAsync<GetServiceStateResult>(
+                TestTopic,
+                TestServiceName,
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            // Assert
+            result.Status.Should().Be(OperationStatus.Error);
+            result.Message.Should().Be(FailureReason);
             result.ActiveState.Should().Be("unknown");
         }
 
@@ -417,12 +476,15 @@ public class PipeClientExtensionsTests
     }
 
     private static IPipeClient CreateClientReturning(string responseContent)
+        => CreateClientReturning(CreateResponse(responseContent));
+
+    private static IPipeClient CreateClientReturning(NamedPipeMessage response)
     {
         var client = Substitute.For<IPipeClient>();
 
         client
             .SendRequestAsync(Arg.Any<string>(), Arg.Any<string>(), cancellationToken: Arg.Any<CancellationToken>())
-            .Returns(CreateResponse(responseContent));
+            .Returns(response);
 
         return client;
     }
@@ -440,6 +502,8 @@ public class PipeClientExtensionsTests
         Message = "Service state read.",
         ActiveState = ActiveState
     });
+
+    private static string SerializedFailureResponse() => MessageSerializer.Serialize(new Response { Message = FailureReason });
 
     private static string SerializedSystemControlResult() => MessageSerializer.Serialize(new SystemControlResult
     {
