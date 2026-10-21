@@ -43,7 +43,7 @@ public class SupportedCapabilitiesIniConverterTests
         public static TheoryData<string, string> InvalidIniDocuments =>
         [
             new (
-                "SomeKey=Enabled",
+                "SomeKey=enabled",
                 "INI entry at line 1 is not inside a section."),
 
             new (
@@ -51,55 +51,43 @@ public class SupportedCapabilitiesIniConverterTests
                 "Invalid empty INI section at line 1."),
 
             new (
-                "[Unknown]\nSomeKey=Enabled",
+                "[Unknown]\nSomeKey=enabled",
                 "Unknown supported capabilities INI section 'Unknown' at line 1."),
 
             new (
-                "[Settings]\nCapability=Enabled",
+                "[Settings]\nCapability=enabled",
                 "Unsupported INI property 'Capability' at line 2. Configure child settings explicitly instead."),
 
             new (
-                "[Settings]\nUnknownKey=Enabled",
-                "Unknown supported setting 'UnknownKey'."),
-
-            new (
-                "[Settings]\nDNS=Enabled",
+                "[Settings]\nDNS=enabled",
                 "Setting 'DNS' has child settings and cannot be configured directly. Configure child settings in '[Settings.DNS]'."),
 
             new(
-                "[Settings..DNS]\nHostname=Enabled",
+                "[Settings..DNS]\nHostname=enabled",
                 "Invalid INI section 'Settings..DNS' at line 1."),
 
             new (
-                "[Settings.DNS]\nUnknownKey=Enabled",
-                "Unknown setting 'DNS.UnknownKey'."),
-
-            new (
-                "[Settings.DNS.Hostname]\nChild=Enabled",
+                "[Settings.DNS.Hostname]\nChild=enabled",
                 "The setting 'DNS.Hostname' does not support a child setting."),
 
             new(
-                "[Settings.DNS]\n.Hostname=Enabled",
+                "[Settings.DNS]\n.Hostname=enabled",
                 "Invalid INI key '.Hostname' at line 2."),
 
             new(
-                "[Settings.DNS]\nHostname.=Enabled",
+                "[Settings.DNS]\nHostname.=enabled",
                 "Invalid INI key 'Hostname.' at line 2."),
 
             new (
-                "[Settings.DNS]\nHostname=Enabled\nHostname=Disabled",
+                "[Settings.DNS]\nHostname=enabled\nHostname=disabled",
                 "Duplicate INI property 'Capability' at line 3."),
 
             new (
-                "[Topics]\nUnknownKey=Enabled",
-                "Unknown supported topic 'UnknownKey'."),
-
-            new (
-                "[Topics.Invalid]\nSomeKey=Enabled",
+                "[Topics.Invalid]\nSomeKey=enabled",
                 "Invalid INI section 'Topics.Invalid' at line 1."),
 
             new (
-                "[Topics]\nSomeKey=Enabled\nSomeKey=Disabled",
+                "[Topics]\nSomeKey=enabled\nSomeKey=disabled",
                 "Duplicate INI property 'SomeKey' at line 3."),
 
             new (
@@ -107,7 +95,7 @@ public class SupportedCapabilitiesIniConverterTests
                 "Invalid INI entry at line 2."),
 
             new(
-                "[Topics]\n=Enabled",
+                "[Topics]\n=enabled",
                 "Invalid INI entry at line 2."),
 
             new (
@@ -138,7 +126,7 @@ public class SupportedCapabilitiesIniConverterTests
             const string IniContent =
                 """
                 [Settings.DNS]
-                Hostname=Enabled
+                Hostname=enabled
                 """;
 
             // Act
@@ -157,7 +145,7 @@ public class SupportedCapabilitiesIniConverterTests
             const string IniContent =
                 """
                 [Topics]
-                GetServiceState=Enabled
+                GetServiceState=enabled
                 """;
 
             // Act
@@ -167,6 +155,55 @@ public class SupportedCapabilitiesIniConverterTests
             act.Should()
                 .Throw<InvalidOperationException>()
                 .WithMessage("The default 'SupportedCapabilities' JSON must contain a 'Topics' object.");
+        }
+
+        [Fact]
+        public void ShouldNotThrow_WhenIniDocumentContainsUnknownSetting()
+        {
+            // Arrange
+            const string IniContent =
+                """
+                [Settings]
+                TopLevelUnknownKey=enabled
+
+                [Settings.NetworkInterfaces.NetworkInterfaceDetail.CommonInformation]
+                UserDefinedMAC=disabled
+
+                [Settings.DNS]
+                ChildUnknownKey=disabled
+                """;
+
+            var defaultCapabilitiesJsonObject = CreateTestDefaultSupportedCapabilitiesJsonObject();
+
+            // Act
+            var act = () => SupportedCapabilitiesIniConverter.ToJsonDocument(
+                IniContent,
+                defaultCapabilitiesJsonObject);
+
+            // Assert
+            act.Should().NotThrow();
+        }
+
+        [Fact]
+        public void ShouldNotThrow_WhenIniDocumentContainsUnknownTopic()
+        {
+            // Arrange
+            const string IniContent =
+                """
+                [Topics]
+                UnknownKey=enabled
+                AnotherUnknownKey=disabled
+                """;
+
+            var defaultCapabilitiesJsonObject = CreateTestDefaultSupportedCapabilitiesJsonObject();
+
+            // Act
+            var act = () => SupportedCapabilitiesIniConverter.ToJsonDocument(
+                IniContent,
+                defaultCapabilitiesJsonObject);
+
+            // Assert
+            act.Should().NotThrow();
         }
 
         [Fact]
@@ -190,7 +227,7 @@ public class SupportedCapabilitiesIniConverterTests
                 """
                 [Topics]
                 GetServiceState=enabled
-                GetSystemConfiguration=DISABLED
+                GetSystemConfiguration=disabled
                 """;
 
             // Act
@@ -243,7 +280,7 @@ public class SupportedCapabilitiesIniConverterTests
 
                 [Topics]
                 GetServiceState=enabled
-                GetSystemConfiguration=DISABLED
+                GetSystemConfiguration=disabled
                 """;
 
             // Act

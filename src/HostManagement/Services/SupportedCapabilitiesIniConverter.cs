@@ -240,7 +240,10 @@ internal static class SupportedCapabilitiesIniConverter
                 throw new FormatException($"Configured setting '{configuredSetting.Key}' must be an object.");
 
             if (defaultSettings[configuredSetting.Key] is not JsonObject defaultSetting)
-                throw new FormatException($"Unknown supported setting '{configuredSetting.Key}'.");
+            {
+                // To ensure best compatibility, just ignore unknown supported settings
+                continue;
+            }
 
             settingsJson[configuredSetting.Key] = BuildSettingJson(
                 configuredSetting.Key,
@@ -258,7 +261,10 @@ internal static class SupportedCapabilitiesIniConverter
         foreach (var configuredTopic in configuredTopics)
         {
             if (!defaultTopics.ContainsKey(configuredTopic.Key))
-                throw new FormatException($"Unknown supported topic '{configuredTopic.Key}'.");
+            {
+                // To ensure best compatibility, just ignore unknown supported topics
+                continue;
+            }
 
             topicsJson[configuredTopic.Key] = configuredTopic.Value?.DeepClone();
         }
@@ -303,7 +309,10 @@ internal static class SupportedCapabilitiesIniConverter
                 throw new FormatException($"Configured setting '{childSettingPath}' must be an object.");
 
             if (defaultSetting[configuredChild.Key] is not JsonObject defaultChildSetting)
-                throw new FormatException($"Unknown setting '{childSettingPath}'.");
+            {
+                // To ensure best compatibility, just ignore unknown supported child settings
+                continue;
+            }
 
             var childSettingJson = BuildSettingJson(childSettingPath, configuredChildSetting, defaultChildSetting);
 
