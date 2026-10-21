@@ -1,19 +1,16 @@
 using System.Net.NetworkInformation;
-using System.Text.Json.Serialization.Metadata;
 using HostManagement.Communication.CommandLine.Output;
-using HostManagement.Shared;
+using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Communication.NamedPipe.Client;
-using HostManagement.Shared.Communication.Serialization;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Network;
 using HostManagement.Shared.Contracts.NetworkStatus;
 using HostManagement.Shared.Contracts.Service;
+using HostManagement.Shared.Contracts.System;
 using HostManagement.Shared.Enums;
-using HostManagement.Shared.Serialization;
 using Microsoft.Extensions.Logging;
-using CommunicationJsonContext = HostManagement.Shared.Communication.Contracts.SourceGenerationContext;
 
 namespace HostManagement.Communication.CommandLine.Helper;
 
@@ -32,13 +29,11 @@ internal static class NamedPipeRequestHelper
     /// could not be loaded.</returns>
     internal static async Task<SystemConfiguration?> GetConfiguration(CancellationToken cancellationToken)
     {
-        var topic = Topics.GetSystemConfiguration;
+        var topic = TopicContracts.GetSystemConfiguration;
 
-        var getConfigResult = await SendNamedPipeRequest(
-            CommunicationJsonContext.Default.GetSystemConfigurationResult,
+        var getConfigResult = await s_pipeClient.SendOperationAsync(
             topic,
-            null,
-            cancellationToken);
+            cancellationToken: cancellationToken);
 
         if (getConfigResult.Status == OperationStatus.Error ||
             getConfigResult.Configuration is null)
@@ -61,26 +56,20 @@ internal static class NamedPipeRequestHelper
     /// <returns><see langword="true"/> if successful, otherwise <see langword="false"/></returns>
     internal static async Task<bool> SetConfiguration(SystemConfiguration config, CancellationToken cancellationToken)
     {
-        var topic = Topics.SetSystemConfiguration;
-        string? systemConfigurationJson;
+        var topic = TopicContracts.SetSystemConfiguration;
+        SetSystemConfigurationResult setConfigResult;
 
         try
         {
-            systemConfigurationJson = SystemConfigurationSerializer.Serialize(config);
+            setConfigResult = await s_pipeClient.SendOperationAsync(topic, config, cancellationToken: cancellationToken);
         }
-        catch (Exception ex)
+        catch (NotSupportedException ex)
         {
             var message = $"Could not serialize system configuration for request with topic '{topic}'. {ex.Message}";
 
             SimpleOutput.WriteLineError(message);
             return false;
         }
-
-        var setConfigResult = await SendNamedPipeRequest(
-            CommunicationJsonContext.Default.SetSystemConfigurationResult,
-            topic,
-            systemConfigurationJson,
-            cancellationToken);
 
         if (setConfigResult.Status == OperationStatus.Error)
         {
@@ -97,20 +86,19 @@ internal static class NamedPipeRequestHelper
     /// <summary>
     /// Sends a named pipe request to install the specified signed Debian package.
     /// </summary>
-    /// <param name="messageContent">The message content containing the package and signature file paths.</param>
+    /// <param name="signedDebianPackage">The package and signature file paths.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns><see langword="true"/> if successful, otherwise <see langword="false"/></returns>
     internal static async Task<bool> InstallSignedDebianPackage(
-        string messageContent,
+        SignedDebianPackage signedDebianPackage,
         CancellationToken cancellationToken)
     {
-        var topic = Topics.InstallSignedDebianPackage;
+        var topic = TopicContracts.InstallSignedDebianPackage;
 
-        var installDebianPackageResult = await SendNamedPipeRequest(
-            CommunicationJsonContext.Default.SystemControlResult,
+        var installDebianPackageResult = await s_pipeClient.SendOperationAsync(
             topic,
-            messageContent,
-            cancellationToken);
+            signedDebianPackage,
+            cancellationToken: cancellationToken);
 
         if (installDebianPackageResult.Status == OperationStatus.Error)
         {
@@ -134,13 +122,11 @@ internal static class NamedPipeRequestHelper
     /// <returns>The list of fallback NTP servers or an empty list if the request failed.</returns>
     internal static async Task<List<string>> GetNTPFallbackInformation(CancellationToken cancellationToken)
     {
-        var topic = Topics.GetNTPFallbackInformation;
+        var topic = TopicContracts.GetNTPFallbackInformation;
 
-        var ntpFallbackInformationResult = await SendNamedPipeRequest(
-            CommunicationJsonContext.Default.GetNTPFallbackInformationResult,
+        var ntpFallbackInformationResult = await s_pipeClient.SendOperationAsync(
             topic,
-            null,
-            cancellationToken);
+            cancellationToken: cancellationToken);
 
         if (ntpFallbackInformationResult.Status == OperationStatus.Error)
         {
@@ -153,13 +139,11 @@ internal static class NamedPipeRequestHelper
 
     internal static async Task<NTPSyncStatus?> GetNTPSyncStatus(CancellationToken cancellationToken)
     {
-        var topic = Topics.GetNTPSyncStatus;
+        var topic = TopicContracts.GetNTPSyncStatus;
 
-        var ntpSyncStatusResult = await SendNamedPipeRequest(
-            CommunicationJsonContext.Default.GetNTPSyncStatusResult,
+        var ntpSyncStatusResult = await s_pipeClient.SendOperationAsync(
             topic,
-            null,
-            cancellationToken);
+            cancellationToken: cancellationToken);
 
         if (ntpSyncStatusResult.Status == OperationStatus.Error)
             OutputError(topic, ntpSyncStatusResult);
@@ -178,13 +162,12 @@ internal static class NamedPipeRequestHelper
         string interfaceName,
         CancellationToken cancellationToken)
     {
-        var topic = Topics.GetOriginalPhysicalAddress;
+        var topic = TopicContracts.GetOriginalPhysicalAddress;
 
-        var originalPhysicalAddressResult = await SendNamedPipeRequest(
-            CommunicationJsonContext.Default.GetOriginalPhysicalAddressResult,
+        var originalPhysicalAddressResult = await s_pipeClient.SendOperationAsync(
             topic,
             interfaceName,
-            cancellationToken);
+            cancellationToken: cancellationToken);
 
         if (originalPhysicalAddressResult.Status == OperationStatus.Error ||
             originalPhysicalAddressResult.OriginalPhysicalAddress is null)
@@ -207,13 +190,12 @@ internal static class NamedPipeRequestHelper
         string interfaceName,
         CancellationToken cancellationToken)
     {
-        var topic = Topics.GetNetworkStatusInformation;
+        var topic = TopicContracts.GetNetworkStatusInformation;
 
-        var networkStatusResult = await SendNamedPipeRequest(
-            CommunicationJsonContext.Default.GetNetworkStatusInformationResult,
+        var networkStatusResult = await s_pipeClient.SendOperationAsync(
             topic,
             interfaceName,
-            cancellationToken);
+            cancellationToken: cancellationToken);
 
         if (networkStatusResult.Status == OperationStatus.Error)
         {
@@ -236,7 +218,7 @@ internal static class NamedPipeRequestHelper
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The <see cref="DHCPLease"/> or <see langword="null"/> if the request failed.</returns>
     internal static async Task<DHCPLease?> GetDHCPLeaseInformation(string interfaceName, CancellationToken cancellationToken)
-        => await GetDHCPLease(Topics.GetDHCPLeaseInformation, interfaceName, cancellationToken);
+        => await GetDHCPLease(TopicContracts.GetDHCPLeaseInformation, interfaceName, cancellationToken);
 
     /// <summary>
     /// Sends a named pipe request to renew the DHCP lease.
@@ -245,7 +227,7 @@ internal static class NamedPipeRequestHelper
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The <see cref="DHCPLease"/> or <see langword="null"/> if renewing the DHCP lease failed.</returns>
     internal static async Task<DHCPLease?> RenewDHCPLease(string interfaceName, CancellationToken cancellationToken)
-        => await GetDHCPLease(Topics.RenewDHCPLease, interfaceName, cancellationToken);
+        => await GetDHCPLease(TopicContracts.RenewDHCPLease, interfaceName, cancellationToken);
 
     /// <summary>
     /// Sends a named pipe request to reset the specified network interface to its default configuration.
@@ -254,7 +236,7 @@ internal static class NamedPipeRequestHelper
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns><see langword="true"/> if successful, otherwise <see langword="false"/></returns>
     internal static async Task<bool> ResetNetworkInterface(string interfaceName, CancellationToken cancellationToken)
-        => await ControlSystem(Topics.ResetNetworkInterface, interfaceName, cancellationToken);
+        => await ControlSystem(TopicContracts.ResetNetworkInterface, interfaceName, cancellationToken);
 
     /// <summary>
     /// Sends a named pipe request to redeploy the application scripts.
@@ -263,13 +245,11 @@ internal static class NamedPipeRequestHelper
     /// <returns><see langword="true"/> if successful, otherwise <see langword="false"/></returns>
     internal static async Task<bool> RedeployScripts(CancellationToken cancellationToken)
     {
-        var topic = Topics.RedeployScripts;
+        var topic = TopicContracts.RedeployScripts;
 
-        var redeployScriptsResult = await SendNamedPipeRequest(
-            CommunicationJsonContext.Default.RedeployScriptsResult,
+        var redeployScriptsResult = await s_pipeClient.SendOperationAsync(
             topic,
-            null,
-            cancellationToken);
+            cancellationToken: cancellationToken);
 
         if (redeployScriptsResult.Status == OperationStatus.Error)
         {
@@ -290,13 +270,12 @@ internal static class NamedPipeRequestHelper
         string systemdUnitName,
         CancellationToken cancellationToken)
     {
-        var topic = Topics.GetServiceState;
+        var topic = TopicContracts.GetServiceState;
 
-        var getServiceStateResult = await SendNamedPipeRequest(
-            CommunicationJsonContext.Default.GetServiceStateResult,
+        var getServiceStateResult = await s_pipeClient.SendOperationAsync(
             topic,
             systemdUnitName,
-            cancellationToken);
+            cancellationToken: cancellationToken);
 
         if (getServiceStateResult.Status == OperationStatus.Error)
         {
@@ -310,31 +289,27 @@ internal static class NamedPipeRequestHelper
     /// <summary>
     /// Sends a named pipe request to start, stop or restart a systemd unit.
     /// </summary>
-    /// <param name="messageContent">
-    /// The name of the service must be specified (with an optional delay) with the <see cref="ServiceControlRequest"/>
-    /// type as the message content.
-    /// </param>
+    /// <param name="request">The name of the systemd unit and an optional delay.</param>
     /// <param name="controlAction">The control action.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns><see langword="true"/> if successful, otherwise <see langword="false"/></returns>
     internal static async Task<bool> ControlSystemdUnit(
-        string messageContent,
+        ServiceControlRequest request,
         ServiceControlAction controlAction,
         CancellationToken cancellationToken)
     {
         var topic = controlAction switch
         {
-            ServiceControlAction.Start => Topics.StartService,
-            ServiceControlAction.Stop => Topics.StopService,
-            ServiceControlAction.Restart => Topics.RestartService,
+            ServiceControlAction.Start => TopicContracts.StartService,
+            ServiceControlAction.Stop => TopicContracts.StopService,
+            ServiceControlAction.Restart => TopicContracts.RestartService,
             _ => throw new ArgumentOutOfRangeException(nameof(controlAction), controlAction, null)
         };
 
-        var serviceControlResult = await SendNamedPipeRequest(
-            CommunicationJsonContext.Default.ServiceControlResult,
+        var serviceControlResult = await s_pipeClient.SendOperationAsync(
             topic,
-            messageContent,
-            cancellationToken);
+            request,
+            cancellationToken: cancellationToken);
 
         if (serviceControlResult.Status == OperationStatus.Error)
         {
@@ -351,7 +326,7 @@ internal static class NamedPipeRequestHelper
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns><see langword="true"/> if successful, otherwise <see langword="false"/></returns>
     internal static async Task<bool> ResetSystem(CancellationToken cancellationToken)
-        => await ControlSystem(Topics.ResetSystem, null, cancellationToken);
+        => await ControlSystem(TopicContracts.ResetSystem, null, cancellationToken);
 
     /// <summary>
     /// Sends a named pipe request to restart the system.
@@ -360,7 +335,7 @@ internal static class NamedPipeRequestHelper
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>An optional message.</returns>
     internal static async Task<string?> RestartSystem(int delayInSeconds, CancellationToken cancellationToken)
-        => await ShutdownOrRestart(Topics.RestartSystem, delayInSeconds, cancellationToken);
+        => await ShutdownOrRestart(TopicContracts.RestartSystem, delayInSeconds, cancellationToken);
 
     /// <summary>
     /// Sends a named pipe request to shutdown the system.
@@ -369,7 +344,7 @@ internal static class NamedPipeRequestHelper
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>An optional message.</returns>
     internal static async Task<string?> ShutdownSystem(int delayInSeconds, CancellationToken cancellationToken)
-        => await ShutdownOrRestart(Topics.ShutdownSystem, delayInSeconds, cancellationToken);
+        => await ShutdownOrRestart(TopicContracts.ShutdownSystem, delayInSeconds, cancellationToken);
 
     /// <summary>
     /// Sends a named pipe request to update the system.
@@ -378,15 +353,17 @@ internal static class NamedPipeRequestHelper
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns><see langword="true"/> if successful, otherwise <see langword="false"/></returns>
     internal static async Task<bool> UpdateSystem(string filePath, CancellationToken cancellationToken)
-        => await ControlSystem(Topics.UpdateSystem, filePath, cancellationToken);
+        => await ControlSystem(TopicContracts.UpdateSystem, filePath, cancellationToken);
 
-    private static async Task<bool> ControlSystem(string topic, string? content, CancellationToken cancellationToken)
+    private static async Task<bool> ControlSystem(
+        TopicContract<SystemControlResult> topic,
+        string? content,
+        CancellationToken cancellationToken)
     {
-        var systemControlResult = await SendNamedPipeRequest(
-            CommunicationJsonContext.Default.SystemControlResult,
+        var systemControlResult = await s_pipeClient.SendOperationAsync(
             topic,
-            content,
-            cancellationToken);
+            content ?? string.Empty,
+            cancellationToken: cancellationToken);
 
         if (systemControlResult.Status == OperationStatus.Error)
         {
@@ -398,15 +375,14 @@ internal static class NamedPipeRequestHelper
     }
 
     private static async Task<DHCPLease?> GetDHCPLease(
-        string topic,
+        TopicContract<GetDHCPLeaseInformationResult> topic,
         string interfaceName,
         CancellationToken cancellationToken)
     {
-        var getDHCPLeaseInformationResult = await SendNamedPipeRequest(
-            CommunicationJsonContext.Default.GetDHCPLeaseInformationResult,
+        var getDHCPLeaseInformationResult = await s_pipeClient.SendOperationAsync(
             topic,
             interfaceName,
-            cancellationToken);
+            cancellationToken: cancellationToken);
 
         if (getDHCPLeaseInformationResult.Status == OperationStatus.Error)
         {
@@ -418,15 +394,14 @@ internal static class NamedPipeRequestHelper
     }
 
     private static async Task<string?> ShutdownOrRestart(
-        string topic,
+        TopicContract<SystemControlResult> topic,
         int delayInSeconds,
         CancellationToken cancellationToken)
     {
-        var systemControlResult = await SendNamedPipeRequest(
-            CommunicationJsonContext.Default.SystemControlResult,
+        var systemControlResult = await s_pipeClient.SendOperationAsync(
             topic,
             delayInSeconds.ToString(),
-            cancellationToken);
+            cancellationToken: cancellationToken);
 
         if (systemControlResult.Status == OperationStatus.Error)
         {
@@ -435,20 +410,6 @@ internal static class NamedPipeRequestHelper
         }
 
         return systemControlResult.Message;
-    }
-
-    private static async Task<T> SendNamedPipeRequest<T>(
-        JsonTypeInfo<T> jsonTypeInfo,
-        string topic,
-        string? content,
-        CancellationToken cancellationToken)
-            where T : OperationResult, IOperationResultFactory<T>
-    {
-        var namedPipeMessage = content is null
-            ? await s_pipeClient.SendRequestAsync(topic, cancellationToken: cancellationToken)
-            : await s_pipeClient.SendRequestAsync(topic, content, cancellationToken: cancellationToken);
-
-        return DeserializeNamedPipeMessageContent(jsonTypeInfo, namedPipeMessage);
     }
 
     private static PipeClient CreatePipeClientAndConnectToServer()
@@ -461,22 +422,7 @@ internal static class NamedPipeRequestHelper
         return pipeClient;
     }
 
-    private static T DeserializeNamedPipeMessageContent<T>(JsonTypeInfo<T> jsonTypeInfo, NamedPipeMessage message)
-        where T : OperationResult, IOperationResultFactory<T>
-    {
-        try
-        {
-            return SourceGeneratedTypeSerializer.Deserialize(message.Content, jsonTypeInfo);
-        }
-        catch (Exception ex)
-        {
-            return T.CreateErrorResult(
-                $"Named pipe message content could not be deserialized for topic '{message.Topic}' " +
-                $"(Conversation ID: {message.ConversationId}). {ex.Message}");
-        }
-    }
-
-    private static void OutputError(string topic, OperationResult operationResult)
+    private static void OutputError(MessageContract topic, OperationResult operationResult)
     {
         var message = operationResult.Message
             ?? $"Named pipe request for topic '{topic}' returned an error result but the message was null.";
@@ -484,7 +430,7 @@ internal static class NamedPipeRequestHelper
         SimpleOutput.WriteLineError(message);
     }
 
-    private static void OutputWarning(string topic, OperationResult operationResult)
+    private static void OutputWarning(MessageContract topic, OperationResult operationResult)
     {
         var message = operationResult.Message
             ?? $"Named pipe request for topic '{topic}' returned a warning result but the message was null.";

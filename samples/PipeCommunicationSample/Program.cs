@@ -1,8 +1,11 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using HostManagement.Shared;
+using HostManagement.Shared.Communication;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Communication.NamedPipe.Client;
+using HostManagement.Shared.Contracts;
+using HostManagement.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace PipeCommunicationSample;
@@ -184,7 +187,60 @@ internal sealed class Program
         }
 
         Console.WriteLine();
-        await DoSendPipeRequest(topic, content).ConfigureAwait(false);
+        await DoSetSystemConfiguration(content).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Sends the system configuration and reads the strongly typed result.
+    /// </summary>
+    private static async Task DoSetSystemConfiguration(string content)
+    {
+        try
+        {
+            var knownActionTracker = new KnownActionTracker(TimeSpan.FromMinutes(5));
+            var registry = CreateCallbackHandlerRegistry(knownActionTracker);
+
+            await using var client = new PipeClient(PipeName, s_logger, registry);
+            _ = await client.TryConnectAsync();
+
+            var configuration = MessageSerializer.Deserialize<SystemConfiguration>(content);
+
+            // The topic carries its request and response contracts, so neither type is named here.
+            var result = await client.SendOperationAsync(TopicContracts.SetSystemConfiguration, configuration);
+
+            Console.WriteLine();
+            Console.WriteLine($"{result.Status}: {result.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
+    }
+
+    /// <summary>
+    /// Creates a registry showing the three ways to handle a server event.
+    /// </summary>
+    private static CallbackHandlerRegistry CreateCallbackHandlerRegistry(KnownActionTracker knownActionTracker)
+    {
+        var registry = new CallbackHandlerRegistry();
+
+        // A class handling the raw message content.
+        registry.RegisterHandler(new TestCallbackHandler(knownActionTracker));
+
+        // A class handling a deserialized message.
+        registry.RegisterHandler(new SystemConfigurationChangedCallbackHandler());
+
+        // A callback bound to a typed event topic, without implementing a handler class.
+        // The contract of this topic is raw text, so the message arrives unchanged.
+        registry.RegisterHandler(EventTopicContracts.PipeServerShutdown, (reason, _, _) =>
+        {
+            Console.WriteLine();
+            Console.WriteLine($"Server is shutting down: {reason}");
+
+            return Task.CompletedTask;
+        });
+
+        return registry;
     }
 
     private static async Task DoSendPipeRequest(string topic, string content)
@@ -192,16 +248,12 @@ internal sealed class Program
         try
         {
             var knownActionTracker = new KnownActionTracker(TimeSpan.FromMinutes(5));
-            var registry = new CallbackHandlerRegistry();
-
-            registry.RegisterRawHandler("test", new TestCallbackHandler(knownActionTracker).HandleRawAsync);
-            registry.RegisterHandler(
-                PipeEvents.SystemConfigurationChanged,
-                new SystemConfigurationChangedCallbackHandler());
+            var registry = CreateCallbackHandlerRegistry(knownActionTracker);
 
             await using var client = new PipeClient(PipeName, s_logger, registry);
             _ = await client.TryConnectAsync();
 
+            // The topic is only known at runtime here, so the raw response content is printed as-is.
             var response = await client.SendRequestAsync(topic, content);
 
             Console.WriteLine();
@@ -218,12 +270,7 @@ internal sealed class Program
         try
         {
             var knownActionTracker = new KnownActionTracker(TimeSpan.FromMinutes(5));
-
-            var registry = new CallbackHandlerRegistry();
-            registry.RegisterRawHandler("test", new TestCallbackHandler(knownActionTracker).HandleRawAsync);
-            registry.RegisterHandler(
-                PipeEvents.SystemConfigurationChanged,
-                new SystemConfigurationChangedCallbackHandler());
+            var registry = CreateCallbackHandlerRegistry(knownActionTracker);
 
             await using var client = new PipeClient(PipeName, s_logger, registry);
 
