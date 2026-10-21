@@ -1,8 +1,7 @@
-using System.Text.Json.Serialization.Metadata;
 using HostManagement.Services;
 using HostManagement.Shared;
 using HostManagement.Shared.Communication.Contracts;
-using HostManagement.Shared.Communication.Serialization;
+using HostManagement.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipe.RequestHandlers;
@@ -17,9 +16,6 @@ internal sealed class UpdateSystemRequestHandler(ILogger logger) : RequestHandle
     /// The topic of the <see cref="UpdateSystemRequestHandler"/>.
     /// </summary>
     public override string Topic => Topics.UpdateSystem;
-
-    public override JsonTypeInfo<SystemControlResult> TypedJsonTypeInfo
-        => SourceGenerationContext.Default.SystemControlResult;
 
     /// <summary>
     /// Handles the update system request.
@@ -37,6 +33,6 @@ internal sealed class UpdateSystemRequestHandler(ILogger logger) : RequestHandle
 
         var result = await service.UpdateSystem(messageContent).ConfigureAwait(false);
 
-        return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
+        return MessageSerializer.Serialize(result);
     }
 }

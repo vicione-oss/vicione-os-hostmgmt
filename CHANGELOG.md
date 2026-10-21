@@ -47,14 +47,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Aligned every namespace with its folder, and removed the using directives that became unnecessary
 - Replaced the `PipeRequest`/`PipeEvent` descriptors with `TopicContracts` and `EventTopicContracts`, which resolve the JSON metadata from the contract type instead of carrying it per topic
 - `TopicsGenerator` reads the namespace of the `Topics` class it completes instead of hard-coding it, so moving the class can no longer turn the generated part into a separate class of the same name
+- Simplified `IRequestHandler`: a request handler declares its topic and how to handle the request
+  - The JSON metadata of the response type is resolved through the `MessageTypeRegistry`, so `TypedJsonTypeInfo` is gone
+  - `JsonTypeInfo` and `CreateErrorInstance` were replaced by `CreateErrorResponseContent`, which handlers of raw text topics can override
+  - Removed `IRequestHandler<T>`, which was never referenced
 
 ### Removed
 
 - Removed the `HostManagement.Shared.Communication.SourceGeneration` project (its generators moved to `HostManagement.Shared.SourceGeneration`)
+- Shared Communication: Removed `SourceGeneratedTypeSerializer` (replaced by `MessageSerializer`, which resolves the JSON metadata itself)
+- Shared: Removed `SystemConfigurationSerializer` (replaced by `MessageSerializer`; its stream overloads had no callers)
 
 ### Fixed
 
 - Fixed network interface reset mutating the cached configuration, which prevented network changes from being applied
+- Fixed a request on a raw text topic with missing required content reporting "The method or operation is not implemented" instead of naming the missing content
 
 ## [2.0.0-beta1] - 2026-09-30
 

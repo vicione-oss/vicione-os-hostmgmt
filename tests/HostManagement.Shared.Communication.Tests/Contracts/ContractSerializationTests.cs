@@ -2,13 +2,13 @@ using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using AwesomeAssertions;
 using HostManagement.Shared.Communication.Contracts;
-using HostManagement.Shared.Communication.Serialization;
+using HostManagement.Shared.Serialization;
 using Xunit;
 using SourceGenerationContext = HostManagement.Shared.Communication.Contracts.SourceGenerationContext;
 
-namespace HostManagement.Shared.Communication.Tests;
+namespace HostManagement.Shared.Communication.Tests.Contracts;
 
-public class SourceGeneratedTypeSerializerTests
+public class ContractSerializationTests
 {
     private const string IndentedSampleDHCPLeaseJson =
         """
@@ -415,7 +415,7 @@ public class SourceGeneratedTypeSerializerTests
         [s_systemControlContext, """{"ResultType":"SystemControlResult","Status":"Success","Message":"Success"}"""]
     ];
 
-    public class Deserialize : SourceGeneratedTypeSerializerTests
+    public class Deserialize : ContractSerializationTests
     {
         [Theory]
         [MemberData(nameof(JsonNullData))]
@@ -424,16 +424,19 @@ public class SourceGeneratedTypeSerializerTests
             JsonTypeInfo<TType> jsonTypeInfo,
             string json)
         {
+            // Arrange
+            MessageTypeRegistry.GetTypeInfo<TType>().Should().BeSameAs(jsonTypeInfo);
+
             // Act
-            var result = () => SourceGeneratedTypeSerializer.Deserialize(json, jsonTypeInfo);
+            var result = () => MessageSerializer.Deserialize<TType>(json);
 
             // Assert
             result.Should()
-                .Throw<InvalidOperationException>()
+                .Throw<JsonException>()
                 .WithMessage(
-                    $"JSON string could not be deserialized to '{jsonTypeInfoTypeName}'." +
+                    $"Message content could not be deserialized to '{jsonTypeInfoTypeName}'." +
                     Environment.NewLine +
-                    $"JSON string was: 'null'");
+                    "Message content was: 'null'");
         }
 
         [Theory]
@@ -443,8 +446,11 @@ public class SourceGeneratedTypeSerializerTests
             JsonTypeInfo<TType> jsonTypeInfo,
             string json)
         {
+            // Arrange
+            MessageTypeRegistry.GetTypeInfo<TType>().Should().BeSameAs(jsonTypeInfo);
+
             // Act
-            var result = () => SourceGeneratedTypeSerializer.Deserialize(json, jsonTypeInfo);
+            var result = () => MessageSerializer.Deserialize<TType>(json);
 
             // Assert
             result.Should()
@@ -461,8 +467,11 @@ public class SourceGeneratedTypeSerializerTests
             JsonTypeInfo<TType> jsonTypeInfo,
             string json)
         {
+            // Arrange
+            MessageTypeRegistry.GetTypeInfo<TType>().Should().BeSameAs(jsonTypeInfo);
+
             // Act
-            var result = () => SourceGeneratedTypeSerializer.Deserialize(json, jsonTypeInfo);
+            var result = () => MessageSerializer.Deserialize<TType>(json);
 
             // Assert
             result.Should()
@@ -478,8 +487,11 @@ public class SourceGeneratedTypeSerializerTests
             JsonTypeInfo<TType> jsonTypeInfo,
             string json)
         {
+            // Arrange
+            MessageTypeRegistry.GetTypeInfo<TType>().Should().BeSameAs(jsonTypeInfo);
+
             // Act
-            var result = () => SourceGeneratedTypeSerializer.Deserialize(json, jsonTypeInfo);
+            var result = () => MessageSerializer.Deserialize<TType>(json);
 
             // Assert
             result.Should()
@@ -493,8 +505,11 @@ public class SourceGeneratedTypeSerializerTests
             JsonTypeInfo<TType> jsonTypeInfo,
             string json)
         {
+            // Arrange
+            MessageTypeRegistry.GetTypeInfo<TType>().Should().BeSameAs(jsonTypeInfo);
+
             // Act
-            var result = () => SourceGeneratedTypeSerializer.Deserialize(json, jsonTypeInfo);
+            var result = () => MessageSerializer.Deserialize<TType>(json);
 
             // Assert
             result.Should()
@@ -508,8 +523,11 @@ public class SourceGeneratedTypeSerializerTests
             JsonTypeInfo<TType> jsonTypeInfo,
             string json)
         {
+            // Arrange
+            MessageTypeRegistry.GetTypeInfo<TType>().Should().BeSameAs(jsonTypeInfo);
+
             // Act
-            var result = () => SourceGeneratedTypeSerializer.Deserialize(json, jsonTypeInfo);
+            var result = () => MessageSerializer.Deserialize<TType>(json);
 
             // Assert
             result.Should()
@@ -523,15 +541,18 @@ public class SourceGeneratedTypeSerializerTests
             JsonTypeInfo<TType> jsonTypeInfo,
             string json)
         {
+            // Arrange
+            MessageTypeRegistry.GetTypeInfo<TType>().Should().BeSameAs(jsonTypeInfo);
+
             // Act
-            var result = SourceGeneratedTypeSerializer.Deserialize(json, jsonTypeInfo);
+            var result = MessageSerializer.Deserialize<TType>(json);
 
             // Assert
             result.Should().BeOfType<TType>();
         }
     }
 
-    public class Serialize : SourceGeneratedTypeSerializerTests
+    public class Serialize : ContractSerializationTests
     {
         [Theory]
         [MemberData(nameof(ValidMemberData))]
@@ -540,10 +561,11 @@ public class SourceGeneratedTypeSerializerTests
             string json)
         {
             // Arrange
-            var deserializedType = SourceGeneratedTypeSerializer.Deserialize(json, jsonTypeInfo);
+            MessageTypeRegistry.GetTypeInfo<TType>().Should().BeSameAs(jsonTypeInfo);
+            var deserializedType = MessageSerializer.Deserialize<TType>(json);
 
             // Act
-            var result = SourceGeneratedTypeSerializer.Serialize(deserializedType, jsonTypeInfo);
+            var result = MessageSerializer.Serialize(deserializedType);
 
             // Assert
             result.Should().Be(json);

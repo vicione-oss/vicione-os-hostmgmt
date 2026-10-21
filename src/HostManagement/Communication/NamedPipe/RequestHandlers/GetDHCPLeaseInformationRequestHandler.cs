@@ -1,8 +1,7 @@
-using System.Text.Json.Serialization.Metadata;
 using HostManagement.Services;
 using HostManagement.Shared;
 using HostManagement.Shared.Communication.Contracts;
-using HostManagement.Shared.Communication.Serialization;
+using HostManagement.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipe.RequestHandlers;
@@ -18,9 +17,6 @@ internal sealed class GetDHCPLeaseInformationRequestHandler(ILogger logger)
     /// </summary>
     public override string Topic => Topics.GetDHCPLeaseInformation;
 
-    public override JsonTypeInfo<GetDHCPLeaseInformationResult> TypedJsonTypeInfo
-        => SourceGenerationContext.Default.GetDHCPLeaseInformationResult;
-
     /// <summary>
     /// Handles the get DHCP lease information request.
     /// </summary>
@@ -34,6 +30,6 @@ internal sealed class GetDHCPLeaseInformationRequestHandler(ILogger logger)
         var service = new DHCPLeaseService(logger, new ScriptHandler());
         var result = await service.GetDHCPLeaseInformation(messageContent, cancellationToken).ConfigureAwait(false);
 
-        return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
+        return MessageSerializer.Serialize(result);
     }
 }

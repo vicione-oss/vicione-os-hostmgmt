@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Text.Json;
 using HostManagement.Communication.NamedPipe.Extensions;
 using HostManagement.Configuration;
 using HostManagement.Shared;
@@ -146,8 +145,7 @@ internal sealed partial class RequestHandlerRegistry
 
     private static NamedPipeMessage CreateErrorResponse(NamedPipeMessage message, IRequestHandler handler, string error)
     {
-        var responseContent = JsonSerializer.Serialize(handler.CreateErrorInstance(error), handler.JsonTypeInfo);
-        return message.CreateResponse(responseContent);
+        return message.CreateResponse(handler.CreateErrorResponseContent(error));
     }
 
     private static string GetRequestCanceledMessage(NamedPipeMessage message)
