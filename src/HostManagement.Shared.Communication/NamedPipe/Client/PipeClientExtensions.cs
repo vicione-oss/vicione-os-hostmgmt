@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Serialization;
@@ -51,7 +52,8 @@ public static class PipeClientExtensions
         /// or when sending the request fails due to an I/O error.
         /// </exception>
         /// <exception cref="JsonException">
-        /// Thrown when the response content is not valid JSON for <typeparamref name="TResponse"/>.
+        /// Thrown when the response content is neither valid JSON for <typeparamref name="TResponse"/>
+        /// nor a plain <see cref="Response"/>.
         /// </exception>
         /// <exception cref="ObjectDisposedException">
         /// Thrown when the client or the underlying connection has been disposed.
@@ -59,6 +61,10 @@ public static class PipeClientExtensions
         /// <exception cref="OperationCanceledException">
         /// Thrown when the operation is canceled via <paramref name="cancellationToken"/>,
         /// or when the pipe is closed while awaiting the response.
+        /// </exception>
+        /// <exception cref="PipeRequestFailedException">
+        /// Thrown when HostManagement answered with a plain <see cref="Response"/>, because the request failed on its
+        /// side. The exception message is the reason reported by HostManagement.
         /// </exception>
         public async Task<TResponse> SendRequestAsync<TResponse>(
             string topic,
@@ -72,7 +78,14 @@ public static class PipeClientExtensions
                 .SendRequestAsync(topic, content, correlationId, cancellationToken)
                 .ConfigureAwait(false);
 
-            return MessageSerializer.Deserialize<TResponse>(response.Content);
+            try
+            {
+                return MessageSerializer.Deserialize<TResponse>(response.Content);
+            }
+            catch (JsonException ex) when (TryReadFailureReason(response.Content, out var reason))
+            {
+                throw new PipeRequestFailedException(response.Topic, response.ConversationId, reason, ex);
+            }
         }
 
         /// <summary>
@@ -107,7 +120,8 @@ public static class PipeClientExtensions
         /// or when sending the request fails due to an I/O error.
         /// </exception>
         /// <exception cref="JsonException">
-        /// Thrown when the response content is not valid JSON for <typeparamref name="TResponse"/>.
+        /// Thrown when the response content is neither valid JSON for <typeparamref name="TResponse"/>
+        /// nor a plain <see cref="Response"/>.
         /// </exception>
         /// <exception cref="ObjectDisposedException">
         /// Thrown when the client or the underlying connection has been disposed.
@@ -115,6 +129,10 @@ public static class PipeClientExtensions
         /// <exception cref="OperationCanceledException">
         /// Thrown when the operation is canceled via <paramref name="cancellationToken"/>,
         /// or when the pipe is closed while awaiting the response.
+        /// </exception>
+        /// <exception cref="PipeRequestFailedException">
+        /// Thrown when HostManagement answered with a plain <see cref="Response"/>, because the request failed on its
+        /// side. The exception message is the reason reported by HostManagement.
         /// </exception>
         public async Task<TResponse> SendRequestAsync<TRequest, TResponse>(
             string topic,
@@ -153,7 +171,9 @@ public static class PipeClientExtensions
         /// <see cref="IOperationResultFactory{T}.CreateErrorResult"/> if the response content could not be deserialized.
         /// </returns>
         /// <remarks>
-        /// Unlike the typed request methods this method does not throw when the response content is malformed.
+        /// Unlike the typed request methods this method does not throw when the response content is malformed or
+        /// when HostManagement answered with a plain <see cref="Response"/> because the request failed on its side.
+        /// The error result then carries the deserialization error or the reason reported by HostManagement.
         /// Failures to send the request, and a missing contract registration for <typeparamref name="TResponse"/>,
         /// are still propagated.
         /// </remarks>
@@ -196,8 +216,10 @@ public static class PipeClientExtensions
             catch (Exception ex) when (ex is JsonException or NotSupportedException)
             {
                 return TResponse.CreateErrorResult(
-                    $"Named pipe message content could not be deserialized for topic '{response.Topic}' " +
-                    $"(Conversation ID: {response.ConversationId}). {ex.Message}");
+                    TryReadFailureReason(response.Content, out var reason)
+                        ? reason
+                        : $"Named pipe message content could not be deserialized for topic '{response.Topic}' " +
+                          $"(Conversation ID: {response.ConversationId}). {ex.Message}");
             }
         }
 
@@ -395,6 +417,23 @@ public static class PipeClientExtensions
             return await client
                 .SendOperationAsync<TRequest, TResponse>(topic.Topic, content, correlationId, cancellationToken)
                 .ConfigureAwait(false);
+        }
+    }
+
+    // HostManagement answers with a plain 'Response' that carries only the reason when the request failed on its side,
+    // e.g. when no handler is registered for the topic or the handler threw. A response contract never deserializes
+    // as one, because the context disallows unmapped members such as 'ResultType'.
+    private static bool TryReadFailureReason(string content, [NotNullWhen(true)] out string? reason)
+    {
+        try
+        {
+            reason = MessageSerializer.Deserialize<Response>(content).Message;
+            return true;
+        }
+        catch (JsonException)
+        {
+            reason = null;
+            return false;
         }
     }
 }
