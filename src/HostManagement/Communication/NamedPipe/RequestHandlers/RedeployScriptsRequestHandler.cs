@@ -1,9 +1,8 @@
-using System.Text.Json.Serialization.Metadata;
 using HostManagement.Scripts;
-using HostManagement.Shared.Communication;
+using HostManagement.Shared;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
-using HostManagement.Shared.Communication.Serialization;
+using HostManagement.Shared.Serialization;
 
 namespace HostManagement.Communication.NamedPipe.RequestHandlers;
 
@@ -16,9 +15,6 @@ internal sealed class RedeployScriptsRequestHandler : RequestHandler<RedeployScr
     /// The topic of the <see cref="RedeployScriptsRequestHandler"/>.
     /// </summary>
     public override string Topic => Topics.RedeployScripts;
-
-    public override JsonTypeInfo<RedeployScriptsResult> TypedJsonTypeInfo
-        => SourceGenerationContext.Default.RedeployScriptsResult;
 
     /// <summary>
     /// Handles the redeploy scripts request.
@@ -64,7 +60,7 @@ internal sealed class RedeployScriptsRequestHandler : RequestHandler<RedeployScr
             };
         }
 
-        var serializeResult = SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
+        var serializeResult = MessageSerializer.Serialize(result);
 
         return Task.FromResult(serializeResult);
     }

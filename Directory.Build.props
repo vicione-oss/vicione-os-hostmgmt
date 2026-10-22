@@ -23,6 +23,8 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
     <!-- NuGet lock file -->
+    <!-- Run 'mise run restore-lock' to regenerate the lock files. A forced re-evaluation adds the host platform's
+         runtime identifier on non-Linux machines, which the task avoids. -->
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <RestoreLockedMode Condition="'$(CI)' == 'true'">true</RestoreLockedMode>
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>

@@ -1,5 +1,5 @@
-using System.Text.Json.Serialization.Metadata;
 using HostManagement.Shared.Communication.Contracts;
+using HostManagement.Shared.Serialization;
 
 namespace HostManagement.Communication.NamedPipe.RequestHandlers;
 
@@ -7,15 +7,22 @@ namespace HostManagement.Communication.NamedPipe.RequestHandlers;
 /// Represents the abstract base class for a strongly typed request handler.
 /// </summary>
 /// <typeparam name="T">The strongly typed response type.</typeparam>
-internal abstract class RequestHandler<T> : IRequestHandler<T> where T : OperationResult, IOperationResultFactory<T>
+/// <remarks>
+/// The JSON metadata for <typeparamref name="T"/> is resolved through the <see cref="MessageTypeRegistry"/>,
+/// so a handler only declares its topic and how to handle the request.
+/// </remarks>
+internal abstract class RequestHandler<T> : IRequestHandler where T : OperationResult, IOperationResultFactory<T>
 {
+    /// <inheritdoc/>
     public abstract string Topic { get; }
 
-    public abstract JsonTypeInfo<T> TypedJsonTypeInfo { get; }
+    /// <inheritdoc/>
+    public abstract Task<string> HandleAsync(
+        string messageContent,
+        Guid correlationId,
+        CancellationToken cancellationToken);
 
-    public JsonTypeInfo JsonTypeInfo => TypedJsonTypeInfo;
-
-    public abstract Task<string> HandleAsync(string messageContent, Guid correlationId, CancellationToken cancellationToken);
-    public virtual T CreateTypedErrorInstance(string message) => T.CreateErrorResult(message);
-    OperationResult IRequestHandler.CreateErrorInstance(string message) => CreateTypedErrorInstance(message);
+    /// <inheritdoc/>
+    public virtual string CreateErrorResponseContent(string message)
+        => MessageSerializer.Serialize(T.CreateErrorResult(message));
 }

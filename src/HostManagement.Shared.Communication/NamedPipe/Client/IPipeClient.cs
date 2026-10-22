@@ -1,4 +1,3 @@
-using System.Text.Json;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 
@@ -47,29 +46,6 @@ public interface IPipeClient : IAsyncDisposable
     /// </exception>
     Task<NamedPipeMessage> SendRequestAsync(
         string topic,
-        string content = "",
-        Guid? correlationId = null,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Sends a request using a strongly typed request descriptor and deserializes the response.
-    /// </summary>
-    /// <typeparam name="TResponse">The response type.</typeparam>
-    /// <param name="request">The request descriptor containing the topic and source-generated response metadata.</param>
-    /// <param name="content">The JSON serialized request content.</param>
-    /// <param name="correlationId">
-    /// The optional correlation ID to use as the request's conversation ID.
-    /// When omitted, a new ID is generated. A provided value must not be <see cref="Guid.Empty"/>.
-    /// </param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The deserialized response content.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="request"/> is null.</exception>
-    /// <exception cref="ArgumentException">
-    /// Thrown when <paramref name="correlationId"/> is <see cref="Guid.Empty"/>.
-    /// </exception>
-    /// <exception cref="JsonException">Thrown when the response cannot be deserialized.</exception>
-    Task<TResponse> SendRequestAsync<TResponse>(
-        PipeRequest<TResponse> request,
         string content = "",
         Guid? correlationId = null,
         CancellationToken cancellationToken = default);

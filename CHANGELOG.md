@@ -13,6 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLI: Added `syslog` command group with commands `status`, `set`, `disable`, `enable` and `clear`
 - Added NTP sync status as topic (`GetNTPSyncStatus`) and in CLI (`ntp status` command)
 - **Breaking:** Added optional delay to service commands. Callers now need to send a serialized `ServiceControlRequest` in the message content.
+- Added the `restore-lock` mise task to regenerate the NuGet lock files without the host platform runtime identifier
+- Added typed message contracts, so sending a request or handling an event no longer requires naming a `JsonTypeInfo`
+  - Shared: `MessageTypeRegistry` maps a message contract type to its source-generated `JsonTypeInfo`. Every assembly registers its own `JsonSerializerContext`, so consumers never register one; `AddContext` remains available for their own contracts
+  - Shared: `MessageSerializer` serializes and deserializes message contents, passing `string` through unchanged so raw text keeps its exact content
+  - Shared Communication: `TopicContracts` and `EventTopicContracts` bind every topic to its request and response contracts, letting the compiler infer the message types from the topic
+  - Shared Communication: `PipeClientExtensions` provides `SendRequestAsync` and `SendOperationAsync`, the latter returning an error result instead of throwing when the response content is malformed. A caller-provided correlation ID is an optional argument rather than a separate overload
+  - Shared Communication: `CallbackHandlerRegistry.RegisterHandler` and `RegisterRawHandler` take a callback, so an event handler class is only needed when the handler has state of its own
+- Shared Communication: Added `PipeRequestFailedException`, thrown by `SendRequestAsync` with HostManagement's reason when a request fails; `SendOperationAsync` returns that reason in its error result
 
 ### Changed
 
@@ -30,10 +38,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLI: Aligned `service` command description to other top-level commands
 - CLI: Swapped order of `system` and `deployment` command groups
 - Improved compatibility when reading `SupportedCapabilities.conf` (unknown settings or topics no longer throw an exception)
+- Shared: Moved `Topics`, `EventTopics` and `RequiresContentAttribute` to `HostManagement.Shared`, and `SupportedTopicAttribute` to `HostManagement.Shared.Capabilities`, so the capability schema is generated upstream of the JSON serializer context
+  - The namespaces follow: `Topics`, `EventTopics` and `RequiresContentAttribute` move from `HostManagement.Shared.Communication` to `HostManagement.Shared`, and the generated `SupportedCapabilities` and `SupportedTopics` from `HostManagement.Shared.Communication.Capabilities` to `HostManagement.Shared.Capabilities`
+- Pipe Sample: Reads the strongly typed result when setting the system configuration and shows all three callback registration forms
+- CLI: Sends all named pipe requests via the typed topic contracts
+  - `InstallSignedDebianPackage` takes a `SignedDebianPackage` instead of pre-serialized JSON
+  - `SetConfiguration` sends the `SystemConfiguration` instead of pre-serialized JSON
+  - `ControlSystemdUnit` sends the `ServiceControlRequest` instead of pre-serialized JSON
+- Aligned every namespace with its folder, and removed the using directives that became unnecessary
+- Replaced the `PipeRequest`/`PipeEvent` descriptors with `TopicContracts` and `EventTopicContracts`, which resolve the JSON metadata from the contract type instead of carrying it per topic
+- `TopicsGenerator` reads the namespace of the `Topics` class it completes instead of hard-coding it, so moving the class can no longer turn the generated part into a separate class of the same name
+- Simplified `IRequestHandler`: a request handler declares its topic and how to handle the request
+  - The JSON metadata of the response type is resolved through the `MessageTypeRegistry`, so `TypedJsonTypeInfo` is gone
+  - `JsonTypeInfo` and `CreateErrorInstance` were replaced by `CreateErrorResponseContent`, which handlers of raw text topics can override
+  - Removed `IRequestHandler<T>`, which was never referenced
+- Changed the named pipe wire format to carry the message payload outside the header
+  - A frame is now the varint-encoded header length, the JSON-serialized `MessageHeader`, the varint-encoded payload length and the payload bytes
+  - The payload was previously the content of a JSON envelope, so it was escaped a second time and unescaped on receipt. Measured on system configuration payloads: about 42 % fewer bytes on the wire and about 78 % fewer allocations per send and receive
+  - A header length of `0` now indicates end-of-stream, so a payload length of `0` is a message without content (previously not expressible)
+  - The maximum message size applies to the payload only, no longer to the serialized envelope
+
+### Removed
+
+- Removed the `HostManagement.Shared.Communication.SourceGeneration` project (its generators moved to `HostManagement.Shared.SourceGeneration`)
+- Shared Communication: Removed `SourceGeneratedTypeSerializer` (replaced by `MessageSerializer`, which resolves the JSON metadata itself)
+- Shared: Removed `SystemConfigurationSerializer` (replaced by `MessageSerializer`; its stream overloads had no callers)
 
 ### Fixed
 
 - Fixed network interface reset mutating the cached configuration, which prevented network changes from being applied
+- Fixed a request on a raw text topic with missing required content reporting "The method or operation is not implemented" instead of naming the missing content
+- CLI: Fixed a failed request showing a deserialization error instead of HostManagement's reason
 
 ## [2.0.0-beta1] - 2026-09-30
 

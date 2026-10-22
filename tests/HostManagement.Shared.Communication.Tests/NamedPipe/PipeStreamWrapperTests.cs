@@ -6,6 +6,7 @@ using AwesomeAssertions;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Communication.NamedPipe;
+using HostManagement.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
@@ -134,7 +135,20 @@ public class PipeStreamWrapperTests
 
             var maxMessageBytes = 1_024;
             var messagePayloadLength = 10_000;
-            var buffer = Utilities.GetVarInt(messagePayloadLength);
+
+            // A valid header followed by an oversized payload length, so the payload buffer is never allocated.
+            var header = SerializeHeader(CreateEventMessage());
+            var headerLengthPrefix = Utilities.GetVarInt(header.Length);
+            var payloadLengthPrefix = Utilities.GetVarInt(messagePayloadLength);
+
+            var buffer = new byte[headerLengthPrefix.Length + header.Length + payloadLengthPrefix.Length];
+            var offset = 0;
+
+            foreach (var part in new[] { headerLengthPrefix, header, payloadLengthPrefix })
+            {
+                Buffer.BlockCopy(part, 0, buffer, offset, part.Length);
+                offset += part.Length;
+            }
 
             using var fakeStream = new FakePipeStream(buffer);
             using var wrapper = new PipeStreamWrapper(fakeStream, loggerSubstitute, maxMessageBytes);
@@ -176,12 +190,11 @@ public class PipeStreamWrapperTests
         }
 
         [Fact]
-        public async Task ShouldThrow_WhenPayloadInvalidJson()
+        public async Task ShouldThrow_WhenHeaderInvalidJson()
         {
             // Arrange
             var loggerSubstitute = CreateLoggerSubstitute();
-            var payload = Encoding.UTF8.GetBytes("not-json");
-            var buffer = BuildFramedBuffer(payload);
+            var buffer = BuildFramedBuffer(Encoding.UTF8.GetBytes("not-json"), Encoding.UTF8.GetBytes("content"));
 
             using var fakeStream = new FakePipeStream(buffer);
             using var wrapper = new PipeStreamWrapper(fakeStream, loggerSubstitute, maxMessageBytes: 256);
@@ -193,6 +206,49 @@ public class PipeStreamWrapperTests
             await func.Should().ThrowAsync<JsonException>();
         }
 
+        [Theory]
+        [InlineData("not-json at all")]
+        [InlineData("{ broken json")]
+        [InlineData("pong")]
+        public async Task ShouldReturnContentUnchanged_WhenPayloadIsNotJson(string content)
+        {
+            // The payload is carried outside the header, so the wrapper never parses it as JSON.
+
+            // Arrange
+            var loggerSubstitute = CreateLoggerSubstitute();
+            var buffer = BuildFramedBuffer(CreateEventMessage(content));
+
+            using var fakeStream = new FakePipeStream(buffer);
+            using var wrapper = new PipeStreamWrapper(fakeStream, loggerSubstitute, maxMessageBytes: 256);
+
+            // Act
+            var result = await wrapper.ReadMessageAsync(TestContext.Current.CancellationToken);
+
+            // Assert
+            result.Content.Should().Be(content);
+            result.Topic.Should().Be(TestTopic);
+        }
+
+        [Fact]
+        public async Task ShouldReturnEmptyContent_WhenPayloadLengthIsZero()
+        {
+            // A payload length of 0 is a message without content; end-of-stream is signalled by a header length of 0.
+
+            // Arrange
+            var loggerSubstitute = CreateLoggerSubstitute();
+            var buffer = BuildFramedBuffer(CreateEventMessage(string.Empty));
+
+            using var fakeStream = new FakePipeStream(buffer);
+            using var wrapper = new PipeStreamWrapper(fakeStream, loggerSubstitute, maxMessageBytes: 256);
+
+            // Act
+            var result = await wrapper.ReadMessageAsync(TestContext.Current.CancellationToken);
+
+            // Assert
+            result.Content.Should().BeEmpty();
+            result.Topic.Should().Be(TestTopic);
+        }
+
         [Fact]
         public async Task ShouldReturnMessage_WhenPayloadLengthEqualsMaximum()
         {
@@ -200,17 +256,12 @@ public class PipeStreamWrapperTests
             var loggerSubstitute = CreateLoggerSubstitute();
             var maxMessageBytes = 256;
 
-            // Total JSON shall be max bytes
+            // The limit applies to the payload only, so the content itself may fill it exactly.
             var content = new string('x', maxMessageBytes);
-            while (Encoding.UTF8.GetByteCount(JsonSerializer.Serialize(CreateEventMessage(content))) > maxMessageBytes)
-                content = content[..^1];
-
             var message = CreateEventMessage(content);
-            var json = JsonSerializer.Serialize(message);
-            var payload = Encoding.UTF8.GetBytes(json);
 
-            payload.Length.Should().BeLessThanOrEqualTo(maxMessageBytes, "Payload must not exceed the configured maximum.");
-            var buffer = BuildFramedBuffer(payload);
+            Encoding.UTF8.GetByteCount(content).Should().Be(maxMessageBytes);
+            var buffer = BuildFramedBuffer(message);
 
             using var fakeStream = new FakePipeStream(buffer);
             using var wrapper = new PipeStreamWrapper(fakeStream, loggerSubstitute, maxMessageBytes);
@@ -234,10 +285,7 @@ public class PipeStreamWrapperTests
 
             var content = new string('x', maxMessageBytes - 123);
             var message = CreateEventMessage(content);
-
-            var json = JsonSerializer.Serialize(message);
-            var payload = Encoding.UTF8.GetBytes(json);
-            var buffer = BuildFramedBuffer(payload);
+            var buffer = BuildFramedBuffer(message);
 
             using var fakeStream = new FakePipeStream(buffer);
             using var wrapper = new PipeStreamWrapper(fakeStream, loggerSubstitute, maxMessageBytes);
@@ -285,10 +333,12 @@ public class PipeStreamWrapperTests
             var maxMessageBytes = 128;
             using var wrapper = new PipeStreamWrapper(fakeStream, loggerSubstitute, maxMessageBytes);
 
-            var content = new string('x', maxMessageBytes); // This will create a payload > max bytes
+            // The limit applies to the payload only, so the content has to exceed it on its own.
+            var content = new string('x', maxMessageBytes + 1);
             var message = CreateEventMessage(content);
 
-            var expectedErrorMessage = $"Outbound message exceeds maximum size (* > {maxMessageBytes} bytes).";
+            var expectedErrorMessage =
+                $"Outbound message exceeds maximum size ({maxMessageBytes + 1} > {maxMessageBytes} bytes).";
 
             // Act + Assert
             var func = async () => await wrapper.SendMessageAsync(message);
@@ -513,6 +563,27 @@ public class PipeStreamWrapperTests
             written.Should().NotBeEmpty();
         }
 
+        [Fact]
+        public async Task ShouldWriteFrameSmallerThanAJsonEnvelope_WhenContentIsJson()
+        {
+            // The payload is carried outside the header, so it is not escaped a second time.
+
+            // Arrange
+            var loggerSubstitute = CreateLoggerSubstitute();
+            using var stream = new CapturingPipeStream();
+            using var wrapper = new PipeStreamWrapper(stream, loggerSubstitute);
+
+            var content = MessageSerializer.Serialize(new Response { Message = new string('x', 2_000) });
+            var message = CreateEventMessage(content);
+
+            // Act
+            await wrapper.SendMessageAsync(message, TestContext.Current.CancellationToken);
+
+            // Assert
+            var envelopeLength = Encoding.UTF8.GetByteCount(JsonSerializer.Serialize(message));
+
+            stream.Written.Length.Should().BeLessThan(envelopeLength);
+        }
 
         private sealed class BlockingWritePipeStream : PipeStream
         {
@@ -604,44 +675,6 @@ public class PipeStreamWrapperTests
             }
         }
 
-        private sealed class CapturingPipeStream : PipeStream
-        {
-            private readonly MemoryStream _capture = new();
-            public CapturingPipeStream() : base(PipeDirection.InOut, PipeTransmissionMode.Byte, 0) { }
-
-            public byte[] Written => _capture.ToArray();
-            public override bool CanRead => false;
-            public override bool CanWrite => true;
-            public override bool CanSeek => false;
-            public override bool CanTimeout => false;
-            public override long Length => _capture.Length;
-            public override long Position { get => _capture.Position; set => throw new NotSupportedException(); }
-
-            public override void Flush() { }
-            public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
-            public override void SetLength(long value) => throw new NotSupportedException();
-            public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
-            public override int ReadByte() => throw new NotSupportedException();
-            public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
-                => throw new NotSupportedException();
-
-            public override ValueTask<int> ReadAsync(Memory<byte> destination, CancellationToken cancellationToken = default)
-                => throw new NotSupportedException();
-
-            public override void Write(byte[] buffer, int offset, int count) => _capture.Write(buffer, offset, count);
-            public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
-            {
-                _capture.Write(buffer, offset, count);
-                return Task.CompletedTask;
-            }
-
-            public override ValueTask WriteAsync(ReadOnlyMemory<byte> source, CancellationToken cancellationToken = default)
-            {
-                _capture.Write(source.Span);
-                return ValueTask.CompletedTask;
-            }
-        }
-
         private sealed class ThrowingOnWritePipeStream(Func<Exception> factory)
             : PipeStream(PipeDirection.InOut, PipeTransmissionMode.Byte, 0)
         {
@@ -676,14 +709,111 @@ public class PipeStreamWrapperTests
         }
     }
 
-    private static byte[] BuildFramedBuffer(byte[] payload)
+    public class Framing
     {
-        var lengthPrefix = Utilities.GetVarInt(payload.Length);
-        var framed = new byte[lengthPrefix.Length + payload.Length];
-        Buffer.BlockCopy(lengthPrefix, 0, framed, 0, lengthPrefix.Length);
-        Buffer.BlockCopy(payload, 0, framed, lengthPrefix.Length, payload.Length);
+        [Theory]
+        [InlineData("ping")]
+        [InlineData("")]
+        [InlineData("""{"looks":"like json"}""")]
+        [InlineData("quotes \" and backslash \\ and newline \n")]
+        [InlineData("ümlaut ✓ 日本語")]
+        public async Task ShouldReadBackContentUnchanged_WhenMessageWasSent(string content)
+        {
+            // Arrange
+            var loggerSubstitute = CreateLoggerSubstitute();
+            var sent = CreateEventMessage(content);
+
+            using var writeStream = new CapturingPipeStream();
+            using var writer = new PipeStreamWrapper(writeStream, loggerSubstitute);
+
+            // Act
+            await writer.SendMessageAsync(sent, TestContext.Current.CancellationToken);
+
+            using var readStream = new FakePipeStream(writeStream.Written);
+            using var reader = new PipeStreamWrapper(readStream, loggerSubstitute);
+
+            var received = await reader.ReadMessageAsync(TestContext.Current.CancellationToken);
+
+            // Assert
+            received.Content.Should().Be(content);
+            received.Topic.Should().Be(sent.Topic);
+            received.Type.Should().Be(sent.Type);
+            received.ConversationId.Should().Be(sent.ConversationId);
+        }
+
+
+    }
+
+    private sealed class CapturingPipeStream : PipeStream
+    {
+        private readonly MemoryStream _capture = new();
+        public CapturingPipeStream() : base(PipeDirection.InOut, PipeTransmissionMode.Byte, 0) { }
+
+        public byte[] Written => _capture.ToArray();
+        public override bool CanRead => false;
+        public override bool CanWrite => true;
+        public override bool CanSeek => false;
+        public override bool CanTimeout => false;
+        public override long Length => _capture.Length;
+        public override long Position { get => _capture.Position; set => throw new NotSupportedException(); }
+
+        public override void Flush() { }
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+        public override int ReadByte() => throw new NotSupportedException();
+        public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+            => throw new NotSupportedException();
+
+        public override ValueTask<int> ReadAsync(Memory<byte> destination, CancellationToken cancellationToken = default)
+            => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count) => _capture.Write(buffer, offset, count);
+        public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        {
+            _capture.Write(buffer, offset, count);
+            return Task.CompletedTask;
+        }
+
+        public override ValueTask WriteAsync(ReadOnlyMemory<byte> source, CancellationToken cancellationToken = default)
+        {
+            _capture.Write(source.Span);
+            return ValueTask.CompletedTask;
+        }
+    }
+
+    /// <summary>
+    /// Builds a frame: varint header length, JSON header, varint payload length, payload bytes.
+    /// </summary>
+    private static byte[] BuildFramedBuffer(NamedPipeMessage message)
+        => BuildFramedBuffer(SerializeHeader(message), Encoding.UTF8.GetBytes(message.Content));
+
+    private static byte[] BuildFramedBuffer(byte[] header, byte[] payload)
+    {
+        var headerLengthPrefix = Utilities.GetVarInt(header.Length);
+        var payloadLengthPrefix = Utilities.GetVarInt(payload.Length);
+
+        var framed = new byte[headerLengthPrefix.Length + header.Length + payloadLengthPrefix.Length + payload.Length];
+        var offset = 0;
+
+        foreach (var part in new[] { headerLengthPrefix, header, payloadLengthPrefix, payload })
+        {
+            Buffer.BlockCopy(part, 0, framed, offset, part.Length);
+            offset += part.Length;
+        }
+
         return framed;
     }
+
+    private static byte[] SerializeHeader(NamedPipeMessage message)
+        => JsonSerializer.SerializeToUtf8Bytes(
+            new MessageHeader
+            {
+                ConversationId = message.ConversationId,
+                Topic = message.Topic,
+                Type = message.Type
+            },
+            SourceGenerationContext.Default.MessageHeader);
 
     private static NamedPipeMessage CreateEventMessage(string content = TestEventContent) => new()
     {

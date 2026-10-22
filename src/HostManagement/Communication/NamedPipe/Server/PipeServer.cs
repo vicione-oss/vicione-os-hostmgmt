@@ -4,7 +4,7 @@ using System.IO.Pipes;
 using HostManagement.Communication.NamedPipe.Extensions;
 using HostManagement.Communication.NamedPipe.RequestHandlers;
 using HostManagement.Configuration;
-using HostManagement.Shared.Communication;
+using HostManagement.Shared;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Communication.NamedPipe;

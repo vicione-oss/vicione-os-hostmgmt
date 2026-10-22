@@ -3,10 +3,10 @@ using AwesomeAssertions;
 using HostManagement.Communication.NamedPipe.RequestHandlers;
 using HostManagement.Configuration;
 using HostManagement.Services;
-using HostManagement.Shared.Communication;
+using HostManagement.Shared;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
-using HostManagement.Shared.Communication.Serialization;
+using HostManagement.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
@@ -22,7 +22,7 @@ public sealed class GetSupportedCapabilitiesRequestHandlerTests
         """;
 
     [Fact]
-    public void ShouldExposeExpectedTopicAndJsonTypeInfo()
+    public void ShouldExposeExpectedTopic()
     {
         // Arrange
         using var service = CreateCapabilitiesService();
@@ -30,7 +30,6 @@ public sealed class GetSupportedCapabilitiesRequestHandlerTests
 
         // Assert
         sut.Topic.Should().Be(Topics.GetSupportedCapabilities);
-        sut.TypedJsonTypeInfo.Should().BeSameAs(CapabilitySourceGenerationContext.Default.GetSupportedCapabilitiesResult);
     }
 
     [Fact]
@@ -44,7 +43,7 @@ public sealed class GetSupportedCapabilitiesRequestHandlerTests
         var serializedResult = await sut.HandleAsync(string.Empty, Guid.Empty, CancellationToken.None);
 
         // Assert
-        var result = SourceGeneratedTypeSerializer.Deserialize(serializedResult, sut.TypedJsonTypeInfo);
+        var result = MessageSerializer.Deserialize<GetSupportedCapabilitiesResult>(serializedResult);
 
         result.Status.Should().Be(OperationStatus.Error);
         result.SupportedCapabilities.Should().NotBeNull();
@@ -65,7 +64,7 @@ public sealed class GetSupportedCapabilitiesRequestHandlerTests
         var serializedResult = await sut.HandleAsync(string.Empty, Guid.Empty, CancellationToken.None);
 
         // Assert
-        var result = SourceGeneratedTypeSerializer.Deserialize(serializedResult, sut.TypedJsonTypeInfo);
+        var result = MessageSerializer.Deserialize<GetSupportedCapabilitiesResult>(serializedResult);
 
         result.Status.Should().Be(OperationStatus.Success);
         result.SupportedCapabilities.Should().NotBeNull();

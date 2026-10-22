@@ -1,4 +1,4 @@
-using HostManagement.Shared.Communication.Capabilities;
+using HostManagement.Shared.Capabilities;
 using HostManagement.Shared.Communication.Enums;
 
 namespace HostManagement.Shared.Communication.Contracts;

@@ -1,5 +1,7 @@
+using System.Buffers;
 using System.IO.Pipes;
 using System.Net.Sockets;
+using System.Text;
 using System.Text.Json;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Extensions;
@@ -9,23 +11,28 @@ namespace HostManagement.Shared.Communication.NamedPipe;
 
 /// <inheritdoc cref="IPipeStreamWrapper"/>
 /// <remarks>
-/// Messages are transferred as a varint-encoded payload length, followed by the serialized JSON payload.
-/// <paramref name="maxMessageBytes"/> applies only to the serialized JSON payload.
+/// A message is transferred as a frame of four parts: the varint-encoded header length, the JSON-serialized
+/// <see cref="MessageHeader"/>, the varint-encoded payload length and the payload bytes.
+/// <para>
+/// The payload is the message content encoded as UTF-8 and is carried outside the header, so it is written verbatim.
+/// A single JSON envelope holding the content as a string would escape it a second time, which inflates the frame by
+/// roughly 70 % for JSON content and costs an additional escape and unescape pass over the whole payload.
+/// </para>
+/// <paramref name="maxMessageBytes"/> applies only to the payload.
 /// <list type="bullet">
 /// <item>
 /// If the payload length is greater than <paramref name="maxMessageBytes"/>, inbound messages are rejected before the
-/// payload buffer is allocated and outbound messages are rejected after serialization and before writing to the pipe.
+/// payload buffer is allocated and outbound messages are rejected before anything is written to the pipe.
 /// </item>
 /// <item>
-/// A payload length of <c>0</c> is currently reserved to indicate end-of-stream. Empty payload messages are therefore
-/// not part of the protocol at the moment.
+/// A header length of <c>0</c> indicates end-of-stream. A payload length of <c>0</c> is a message without content.
 /// </item>
 /// </list>
 /// </remarks>
 /// <param name="stream">The raw pipe stream.</param>
 /// <param name="logger">An <see cref="ILogger"/> implementation.</param>
-/// <param name="maxMessageBytes">The maximum allowed size of a JSON-serialized message payload in bytes (excluding the
-/// varint length prefix). Must be greater than zero. Defaults to <see cref="DefaultMaxMessageBytes"/>.
+/// <param name="maxMessageBytes">The maximum allowed size of a message payload in bytes (excluding the header and the
+/// varint length prefixes). Must be greater than zero. Defaults to <see cref="DefaultMaxMessageBytes"/>.
 /// </param>
 public sealed partial class PipeStreamWrapper(
     PipeStream stream,
@@ -34,10 +41,21 @@ public sealed partial class PipeStreamWrapper(
     : IPipeStreamWrapper
 {
     /// <summary>
-    /// The default maximum message size in bytes for the serialized JSON payload (2 MiB).
-    /// The varint length prefix is not included in this value.
+    /// The default maximum message size in bytes for the message payload (2 MiB).
+    /// The header and the varint length prefixes are not included in this value.
     /// </summary>
     public const int DefaultMaxMessageBytes = 2 * 1024 * 1024;
+
+    /// <summary>
+    /// The maximum allowed size of a serialized message header in bytes.
+    /// A header carries only the conversation ID, the topic and the message type.
+    /// </summary>
+    private const int MaxHeaderBytes = 4 * 1024;
+
+    /// <summary>
+    /// The initial size of the buffers used to assemble a frame header, chosen to fit a header without resizing.
+    /// </summary>
+    private const int InitialHeaderBufferBytes = 256;
 
     // Prevents more than one thread from writing to the pipe stream at once
     private readonly SemaphoreSlim _writeLock = new(1, 1);
@@ -71,8 +89,8 @@ public sealed partial class PipeStreamWrapper(
     }
 
     /// <summary>
-    /// Gets the maximum allowed size of the serialized JSON payload in bytes.
-    /// The varint length prefix is not included in this limit.
+    /// Gets the maximum allowed size of the message payload in bytes.
+    /// The header and the varint length prefixes are not included in this limit.
     /// </summary>
     public int MaxMessageBytes => _maxMessageBytes;
 
@@ -109,51 +127,94 @@ public sealed partial class PipeStreamWrapper(
 
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _internalCts.Token);
 
-        // Read the payload length prefix first so oversized inbound messages can be rejected
-        // before allocating the payload buffer.
-        var messagePayloadLength = await _stream.ReadVarIntAsync(linkedCts.Token).ConfigureAwait(false);
+        var header = await ReadHeaderAsync(linkedCts.Token).ConfigureAwait(false);
+        var content = await ReadPayloadAsync(linkedCts.Token).ConfigureAwait(false);
 
-        // A payload length of 0 is currently reserved to signal end-of-stream / closed pipe.
-        // Empty payload messages are therefore not supported by the protocol at the moment.
-        // If empty messages are introduced in the future, this behavior must be changed.
-        if (messagePayloadLength == 0)
+        return new NamedPipeMessage
+        {
+            ConversationId = header.ConversationId,
+            Topic = header.Topic,
+            Type = header.Type,
+            Content = content
+        };
+    }
+
+    private async Task<MessageHeader> ReadHeaderAsync(CancellationToken cancellationToken)
+    {
+        var headerLength = await _stream.ReadVarIntAsync(cancellationToken).ConfigureAwait(false);
+
+        // A header length of 0 signals end-of-stream / closed pipe. A serialized header is never empty,
+        // which leaves a payload length of 0 free to mean a message without content.
+        if (headerLength == 0)
             ClosePipe();
 
-        if (messagePayloadLength > _maxMessageBytes)
+        if (headerLength > MaxHeaderBytes)
         {
             throw new InvalidOperationException(
-                $"Inbound message exceeds maximum size ({messagePayloadLength} > {_maxMessageBytes} bytes).");
+                $"Inbound message header exceeds maximum size ({headerLength} > {MaxHeaderBytes} bytes).");
         }
 
-        var messagePayloadBytes = new byte[messagePayloadLength];
-        var payloadBytesRead = 0;
+        var headerBytes = ArrayPool<byte>.Shared.Rent(headerLength);
 
-        while (payloadBytesRead < messagePayloadLength)
+        try
+        {
+            await ReadExactlyAsync(headerBytes.AsMemory(0, headerLength), cancellationToken).ConfigureAwait(false);
+
+            return JsonSerializer.Deserialize(
+                headerBytes.AsSpan(0, headerLength),
+                SourceGenerationContext.Default.MessageHeader)
+                    ?? throw new InvalidOperationException("Could not read message header from stream.");
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(headerBytes);
+        }
+    }
+
+    private async Task<string> ReadPayloadAsync(CancellationToken cancellationToken)
+    {
+        // The payload length is read before the buffer is allocated so oversized messages are rejected early.
+        var payloadLength = await _stream.ReadVarIntAsync(cancellationToken).ConfigureAwait(false);
+
+        if (payloadLength > _maxMessageBytes)
+        {
+            throw new InvalidOperationException(
+                $"Inbound message exceeds maximum size ({payloadLength} > {_maxMessageBytes} bytes).");
+        }
+
+        if (payloadLength == 0)
+            return string.Empty;
+
+        var payloadBytes = ArrayPool<byte>.Shared.Rent(payloadLength);
+
+        try
+        {
+            await ReadExactlyAsync(payloadBytes.AsMemory(0, payloadLength), cancellationToken).ConfigureAwait(false);
+
+            // The payload is the content verbatim, so it is decoded instead of being parsed out of a JSON envelope.
+            return Encoding.UTF8.GetString(payloadBytes.AsSpan(0, payloadLength));
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(payloadBytes);
+        }
+    }
+
+    private async Task ReadExactlyAsync(Memory<byte> buffer, CancellationToken cancellationToken)
+    {
+        var bytesRead = 0;
+
+        while (bytesRead < buffer.Length)
         {
             var readBytes = await _stream
-                .ReadAsync(
-                    messagePayloadBytes.AsMemory(payloadBytesRead, messagePayloadLength - payloadBytesRead),
-                    linkedCts.Token)
+                .ReadAsync(buffer[bytesRead..], cancellationToken)
                 .ConfigureAwait(false);
 
             if (readBytes == 0)
                 ClosePipe();
 
-            payloadBytesRead += readBytes;
+            bytesRead += readBytes;
         }
-
-        // We've read in the whole message. Now parse it out into a message object.
-        using var messageStream = new MemoryStream(messagePayloadBytes);
-
-        var namedPipeMessage = await JsonSerializer
-            .DeserializeAsync(
-                messageStream,
-                SourceGenerationContext.Default.NamedPipeMessage,
-                linkedCts.Token)
-            .ConfigureAwait(false)
-            ?? throw new InvalidOperationException("Could not read message from stream.");
-
-        return namedPipeMessage;
     }
 
     /// <inheritdoc/>
@@ -161,23 +222,11 @@ public sealed partial class PipeStreamWrapper(
     {
         ThrowIfDisposed();
 
+        ArgumentNullException.ThrowIfNull(message);
+
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _internalCts.Token);
 
-        // MemoryStream won't need to resize it's array and reallocate memory
-        // for most outgoing messages (~ 240 - 1000 bytes).
-        using var messageStream = new MemoryStream(512);
-
-        // Serialize to an in-memory buffer first so the exact payload size is known before anything
-        // is written to the pipe.
-        await JsonSerializer
-            .SerializeAsync(
-                messageStream,
-                message,
-                SourceGenerationContext.Default.NamedPipeMessage,
-                linkedCts.Token)
-            .ConfigureAwait(false);
-
-        var payloadLength = (int)messageStream.Length;
+        var payloadLength = Encoding.UTF8.GetByteCount(message.Content);
 
         if (payloadLength > _maxMessageBytes)
         {
@@ -185,22 +234,28 @@ public sealed partial class PipeStreamWrapper(
                 $"Outbound message exceeds maximum size ({payloadLength} > {_maxMessageBytes} bytes).");
         }
 
-        var messageLengthBytes = Utilities.GetVarInt(payloadLength);
+        // The frame prefix (header length, header, payload length) is small and is assembled in one buffer, so the
+        // payload itself is written straight from its own buffer instead of being copied into the frame.
+        var prefixWriter = new ArrayBufferWriter<byte>(InitialHeaderBufferBytes);
+
+        WriteFramePrefix(prefixWriter, message, payloadLength);
+
+        var payloadBytes = ArrayPool<byte>.Shared.Rent(payloadLength);
         var writeLockTaken = false;
 
         try
         {
+            Encoding.UTF8.GetBytes(message.Content, payloadBytes);
+
             await _writeLock.WaitAsync(linkedCts.Token).ConfigureAwait(false);
             writeLockTaken = true;
 
             ThrowIfDisposed();
 
-            // Write out the message length
-            await _stream.WriteAsync(messageLengthBytes, linkedCts.Token).ConfigureAwait(false);
+            await _stream.WriteAsync(prefixWriter.WrittenMemory, linkedCts.Token).ConfigureAwait(false);
 
-            // Write the message payload
-            var buffer = messageStream.GetBuffer();
-            await _stream.WriteAsync(buffer.AsMemory(0, payloadLength), linkedCts.Token).ConfigureAwait(false);
+            if (payloadLength > 0)
+                await _stream.WriteAsync(payloadBytes.AsMemory(0, payloadLength), linkedCts.Token).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -241,6 +296,8 @@ public sealed partial class PipeStreamWrapper(
         }
         finally
         {
+            ArrayPool<byte>.Shared.Return(payloadBytes);
+
             if (writeLockTaken)
             {
                 try { _writeLock.Release(); }
@@ -248,6 +305,26 @@ public sealed partial class PipeStreamWrapper(
                 catch (ObjectDisposedException) { }
             }
         }
+    }
+
+    private static void WriteFramePrefix(ArrayBufferWriter<byte> writer, NamedPipeMessage message, int payloadLength)
+    {
+        var header = new MessageHeader
+        {
+            ConversationId = message.ConversationId,
+            Topic = message.Topic,
+            Type = message.Type
+        };
+
+        // The header is serialized first so its exact length is known before the length prefix is written.
+        var headerWriter = new ArrayBufferWriter<byte>(InitialHeaderBufferBytes);
+
+        using (var jsonWriter = new Utf8JsonWriter(headerWriter))
+            JsonSerializer.Serialize(jsonWriter, header, SourceGenerationContext.Default.MessageHeader);
+
+        writer.Write(Utilities.GetVarInt(headerWriter.WrittenCount));
+        writer.Write(headerWriter.WrittenSpan);
+        writer.Write(Utilities.GetVarInt(payloadLength));
     }
 
     private void ClosePipe()

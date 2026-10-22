@@ -1,120 +1,332 @@
+using System.Text.Json;
 using AwesomeAssertions;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using HostManagement.Shared.Communication.NamedPipe.Client;
-using HostManagement.Shared.Communication.Serialization;
+using HostManagement.Shared.Contracts;
+using HostManagement.Shared.Serialization;
 using Xunit;
 
 namespace HostManagement.Shared.Communication.Tests.NamedPipe.Client;
 
 public class CallbackHandlerRegistryTests
 {
-    private const string TestTopic = "raw-event";
-
-    public class HandleCallbackAsync
-    {
-        [Fact]
-        public async Task ShouldReturnFalseAndRaiseEvent_WhenHandlerIsMissing()
-        {
-            // Arrange
-            var registry = new CallbackHandlerRegistry();
-            NamedPipeMessage? missingMessage = null;
-            registry.OnMissingHandler += message => missingMessage = message;
-            var message = new NamedPipeMessage
-            {
-                Topic = TestTopic,
-                Type = MessageType.Event,
-                Content = "test"
-            };
-
-            // Act
-            var result = await registry.HandleCallbackAsync(message, CancellationToken.None);
-
-            // Assert
-            result.Should().BeFalse();
-            missingMessage.Should().BeSameAs(message);
-        }
-    }
+    private const string TestTopic = "test";
+    private const string ActiveState = "active";
 
     public class RegisterHandler
     {
         [Fact]
-        public async Task ShouldDeserializeAndInvokeHandler_WhenTypedHandlerRegistered()
+        public void ShouldThrow_WhenHandlerNull()
         {
             // Arrange
             var registry = new CallbackHandlerRegistry();
-            var handler = new SystemConfigurationChangedHandler();
-            var expectedMessage = GetSystemConfigurationResult.CreateErrorResult("Test error");
+
+            // Act
+            var act = () => registry.RegisterHandler(null!);
+
+            // Assert
+            act.Should().Throw<ArgumentNullException>().WithParameterName("handler");
+        }
+
+        [Fact]
+        public void ShouldReturnFalse_WhenTopicAlreadyRegistered()
+        {
+            // Arrange
+            var registry = new CallbackHandlerRegistry();
+            registry.RegisterHandler(new RawHandler(TestTopic));
+
+            // Act
+            var result = registry.RegisterHandler(new RawHandler(TestTopic));
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task ShouldDeserializeMessage_WhenTypedHandlerRegistered()
+        {
+            // Arrange
+            var registry = new CallbackHandlerRegistry();
+            var handler = new TypedHandler(TestTopic);
+
+            registry.RegisterHandler(handler);
+
+            // Act
+            var result = await registry.HandleCallbackAsync(
+                CreateEvent(SerializedServiceStateResult()),
+                TestContext.Current.CancellationToken);
+
+            // Assert
+            result.Should().BeTrue();
+            handler.Received!.ActiveState.Should().Be(ActiveState);
+        }
+    }
+
+    public class RegisterHandlerWithCallback
+    {
+        [Fact]
+        public void ShouldThrow_WhenTopicNull()
+        {
+            // Arrange
+            var registry = new CallbackHandlerRegistry();
+
+            // Act
+            var act = () => registry.RegisterHandler<GetServiceStateResult>((string)null!, (_, _, _) => Task.CompletedTask);
+
+            // Assert
+            act.Should().Throw<ArgumentNullException>().WithParameterName("topic");
+        }
+
+        [Fact]
+        public void ShouldThrow_WhenCallbackNull()
+        {
+            // Arrange
+            var registry = new CallbackHandlerRegistry();
+
+            // Act
+            var act = () => registry.RegisterHandler<GetServiceStateResult>(TestTopic, null!);
+
+            // Assert
+            act.Should().Throw<ArgumentNullException>().WithParameterName("handleAsync");
+        }
+
+        [Fact]
+        public async Task ShouldThrow_WhenMessageContentMalformed()
+        {
+            // Arrange
+            var registry = new CallbackHandlerRegistry();
+            registry.RegisterHandler<GetServiceStateResult>(TestTopic, (_, _, _) => Task.CompletedTask);
+
+            // Act
+            var act = async () => await registry.HandleCallbackAsync(CreateEvent("not json"), TestContext.Current.CancellationToken);
+
+            // Assert
+            await act.Should().ThrowAsync<JsonException>();
+        }
+
+        [Fact]
+        public async Task ShouldInvokeCallbackWithDeserializedMessage_WhenCallbackRegistered()
+        {
+            // Arrange
+            var registry = new CallbackHandlerRegistry();
+            var correlationId = Guid.NewGuid();
+
+            GetServiceStateResult? received = null;
+            Guid receivedCorrelationId = default;
+
+            registry.RegisterHandler<GetServiceStateResult>(TestTopic, (message, id, _) =>
+            {
+                received = message;
+                receivedCorrelationId = id;
+                return Task.CompletedTask;
+            });
+
+            // Act
+            var result = await registry
+                .HandleCallbackAsync(
+                    CreateEvent(SerializedServiceStateResult(), correlationId),
+                    TestContext.Current.CancellationToken);
+
+            // Assert
+            result.Should().BeTrue();
+            received!.ActiveState.Should().Be(ActiveState);
+            receivedCorrelationId.Should().Be(correlationId);
+        }
+    }
+
+    public class RegisterHandlerWithEventContract
+    {
+        [Fact]
+        public void ShouldThrow_WhenTopicNull()
+        {
+            // Arrange
+            var registry = new CallbackHandlerRegistry();
+
+            // Act
+            var act = () => registry.RegisterHandler(
+                (EventContract<GetSystemConfigurationResult>)null!,
+                (_, _, _) => Task.CompletedTask);
+
+            // Assert
+            act.Should().Throw<ArgumentNullException>().WithParameterName("topic");
+        }
+
+        [Fact]
+        public async Task ShouldInvokeCallbackWithDeserializedMessage_WhenEventContractGiven()
+        {
+            // Arrange
+            var registry = new CallbackHandlerRegistry();
+            GetSystemConfigurationResult? received = null;
+
+            registry.RegisterHandler(EventTopicContracts.SystemConfigurationChanged, (message, _, _) =>
+            {
+                received = message;
+                return Task.CompletedTask;
+            });
+
+            var content = MessageSerializer.Serialize(
+                GetSystemConfigurationResult.CreateSuccessResult("changed", new SystemConfiguration()));
+
             var message = new NamedPipeMessage
             {
                 Topic = EventTopics.SystemConfigurationChanged,
                 Type = MessageType.Event,
-                Content = SourceGeneratedTypeSerializer.Serialize(
-                    expectedMessage,
-                    SourceGenerationContext.Default.GetSystemConfigurationResult)
+                Content = content
             };
 
-            registry.RegisterHandler(PipeEvents.SystemConfigurationChanged, handler).Should().BeTrue();
-
             // Act
-            var result = await registry.HandleCallbackAsync(message, CancellationToken.None);
+            var result = await registry.HandleCallbackAsync(message, TestContext.Current.CancellationToken);
 
             // Assert
             result.Should().BeTrue();
-            handler.Message.Should().BeEquivalentTo(expectedMessage);
-            handler.CorrelationId.Should().Be(message.ConversationId);
+            received!.Message.Should().Be("changed");
+        }
+
+        [Theory]
+        [InlineData("Service is stopping")]
+        [InlineData("")]
+        public async Task ShouldInvokeCallbackWithUnchangedContent_WhenEventContractIsRawText(string reason)
+        {
+            // Arrange
+            var registry = new CallbackHandlerRegistry();
+            string? received = null;
+
+            registry.RegisterHandler(EventTopicContracts.PipeServerShutdown, (message, _, _) =>
+            {
+                received = message;
+                return Task.CompletedTask;
+            });
+
+            var message = new NamedPipeMessage
+            {
+                Topic = EventTopics.PipeServerShutdown,
+                Type = MessageType.Event,
+                Content = reason
+            };
+
+            // Act
+            var result = await registry.HandleCallbackAsync(message, TestContext.Current.CancellationToken);
+
+            // Assert
+            result.Should().BeTrue();
+            received.Should().Be(reason);
         }
     }
 
     public class RegisterRawHandler
     {
         [Fact]
-        public async Task ShouldInvokeHandler_WhenRawHandlerRegistered()
+        public void ShouldThrow_WhenTopicNull()
         {
             // Arrange
             var registry = new CallbackHandlerRegistry();
-            string? receivedContent = null;
-            Guid receivedCorrelationId = default;
-            var message = new NamedPipeMessage
-            {
-                Topic = TestTopic,
-                Type = MessageType.Event,
-                Content = "raw-content"
-            };
-
-            registry.RegisterRawHandler(
-                TestTopic,
-                (content, correlationId, _) =>
-                {
-                    receivedContent = content;
-                    receivedCorrelationId = correlationId;
-                    return Task.CompletedTask;
-                }).Should().BeTrue();
 
             // Act
-            var result = await registry.HandleCallbackAsync(message, CancellationToken.None);
+            var act = () => registry.RegisterRawHandler(null!, (_, _, _) => Task.CompletedTask);
+
+            // Assert
+            act.Should().Throw<ArgumentNullException>().WithParameterName("topic");
+        }
+
+        [Fact]
+        public void ShouldThrow_WhenCallbackNull()
+        {
+            // Arrange
+            var registry = new CallbackHandlerRegistry();
+
+            // Act
+            var act = () => registry.RegisterRawHandler(TestTopic, null!);
+
+            // Assert
+            act.Should().Throw<ArgumentNullException>().WithParameterName("handleRawAsync");
+        }
+
+        [Theory]
+        [InlineData("tadaaaaa!")]
+        [InlineData("")]
+        [InlineData("{ not json")]
+        public async Task ShouldInvokeCallbackWithUnchangedContent_WhenCallbackRegistered(string content)
+        {
+            // Arrange
+            var registry = new CallbackHandlerRegistry();
+            string? received = null;
+
+            registry.RegisterRawHandler(TestTopic, (messageContent, _, _) =>
+            {
+                received = messageContent;
+                return Task.CompletedTask;
+            });
+
+            // Act
+            var result = await registry.HandleCallbackAsync(CreateEvent(content), TestContext.Current.CancellationToken);
 
             // Assert
             result.Should().BeTrue();
-            receivedContent.Should().Be(message.Content);
-            receivedCorrelationId.Should().Be(message.ConversationId);
+            received.Should().Be(content);
         }
     }
 
-    private sealed class SystemConfigurationChangedHandler : ICallbackHandler<GetSystemConfigurationResult>
+    public class HandleCallbackAsync
     {
-        public Guid CorrelationId { get; private set; }
+        [Fact]
+        public async Task ShouldReturnFalseAndRaiseEvent_WhenNoHandlerRegistered()
+        {
+            // Arrange
+            var registry = new CallbackHandlerRegistry();
+            NamedPipeMessage? missingHandlerMessage = null;
 
-        public GetSystemConfigurationResult? Message { get; private set; }
+            registry.OnMissingHandler += message => missingHandlerMessage = message;
+
+            // Act
+            var result = await registry.HandleCallbackAsync(CreateEvent("content"), TestContext.Current.CancellationToken);
+
+            // Assert
+            result.Should().BeFalse();
+            missingHandlerMessage!.Topic.Should().Be(TestTopic);
+        }
+    }
+
+    private static string SerializedServiceStateResult() => MessageSerializer.Serialize(new GetServiceStateResult
+    {
+        Status = OperationStatus.Success,
+        Message = "Service state read.",
+        ActiveState = ActiveState
+    });
+
+    private static NamedPipeMessage CreateEvent(string content, Guid correlationId = default) => new()
+    {
+        ConversationId = correlationId,
+        Topic = TestTopic,
+        Type = MessageType.Event,
+        Content = content
+    };
+
+    private sealed class RawHandler(string topic) : ICallbackHandler
+    {
+        public string Topic => topic;
+
+        public string? Received { get; private set; }
+
+        public Task HandleRawAsync(string messageContent, Guid correlationId, CancellationToken cancellationToken)
+        {
+            Received = messageContent;
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class TypedHandler(string topic) : ICallbackHandler<GetServiceStateResult>
+    {
+        public string Topic => topic;
+
+        public GetServiceStateResult? Received { get; private set; }
 
         public Task HandleAsync(
-            GetSystemConfigurationResult message,
+            GetServiceStateResult message,
             Guid correlationId,
             CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            Message = message;
-            CorrelationId = correlationId;
+            Received = message;
             return Task.CompletedTask;
         }
     }

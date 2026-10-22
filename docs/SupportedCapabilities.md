@@ -195,18 +195,17 @@ It also contains an `ApplyCapabilities` method, which delegates runtime configur
 
 ### JSON source generation
 
-Capability serialization uses the `CapabilitySourceGenerationContext`, which contains **JSON metadata** for capability-related types. In this case: `GetSupportedCapabilitiesResult`.
+`GetSupportedCapabilitiesResult` gets its **JSON metadata** from the `SourceGenerationContext` of `HostManagement.Shared.Communication`, like every other communication contract.
 
-The context is part of `HostManagement.Shared.Communication.CapabilitySerialization`. It is included as an **additional assembly** in the existing `HostManagement.Shared.Communication` NuGet package.\
-It is needed, because JSON source generation must be done after our own source generation. Here in particular for `GetSupportedCapabilitiesResult`.
+This requires the capability schema to be generated in `HostManagement.Shared`, one assembly upstream: a source generator cannot see the output of another source generator in the same compilation, so `SupportedCapabilities` has to reach the JSON source generator as a referenced type.
 
 ### Containing NuGet packages
 
 | Type                             | Containing NuGet / Namespace        |
 | -------------------------------- | ----------------------------------- |
 | `GetSupportedCapabilitiesResult` | HostManagement.Shared.Communication |
-| `SupportedCapabilities`          | HostManagement.Shared.Communication |
-| `SupportedTopics`                | HostManagement.Shared.Communication |
+| `SupportedCapabilities`          | HostManagement.Shared               |
+| `SupportedTopics`                | HostManagement.Shared               |
 | `SupportedSettings`              | HostManagement.Shared               |
 
 ## Using SupportedCapabilities

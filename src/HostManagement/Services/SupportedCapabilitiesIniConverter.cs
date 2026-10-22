@@ -2,7 +2,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using HostManagement.Shared.Capabilities;
-using HostManagement.Shared.Communication.Capabilities;
 using HostManagement.Shared.Communication.Contracts;
 
 namespace HostManagement.Services;
@@ -225,7 +224,7 @@ internal static class SupportedCapabilitiesIniConverter
     {
         var supportedCapabilitiesJson = JsonSerializer.Serialize(
             new SupportedCapabilities(),
-            CapabilitySourceGenerationContext.Default.SupportedCapabilities);
+            SourceGenerationContext.Default.SupportedCapabilities);
 
         return JsonNode.Parse(supportedCapabilitiesJson)?.AsObject()
             ?? throw new InvalidOperationException("The default 'SupportedCapabilities' JSON must be an object.");

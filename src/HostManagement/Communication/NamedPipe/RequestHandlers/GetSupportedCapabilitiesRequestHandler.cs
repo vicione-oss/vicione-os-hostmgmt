@@ -1,8 +1,7 @@
-using System.Text.Json.Serialization.Metadata;
 using HostManagement.Services;
-using HostManagement.Shared.Communication;
+using HostManagement.Shared;
 using HostManagement.Shared.Communication.Contracts;
-using HostManagement.Shared.Communication.Serialization;
+using HostManagement.Shared.Serialization;
 
 namespace HostManagement.Communication.NamedPipe.RequestHandlers;
 
@@ -18,9 +17,6 @@ internal sealed class GetSupportedCapabilitiesRequestHandler(SupportedCapabiliti
     /// </summary>
     public override string Topic => Topics.GetSupportedCapabilities;
 
-    public override JsonTypeInfo<GetSupportedCapabilitiesResult> TypedJsonTypeInfo
-        => CapabilitySourceGenerationContext.Default.GetSupportedCapabilitiesResult;
-
     /// <summary>
     /// Handles the get supported capabilities request.
     /// </summary>
@@ -32,6 +28,6 @@ internal sealed class GetSupportedCapabilitiesRequestHandler(SupportedCapabiliti
         CancellationToken cancellationToken)
     {
         var result = await capabilitiesService.GetSupportedCapabilities(cancellationToken);
-        return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
+        return MessageSerializer.Serialize(result);
     }
 }

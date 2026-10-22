@@ -1,13 +1,11 @@
-using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
 using AwesomeAssertions;
 using HostManagement.Communication.NamedPipe.RequestHandlers;
 using HostManagement.Configuration;
+using HostManagement.Shared;
 using HostManagement.Shared.Capabilities;
-using HostManagement.Shared.Communication;
-using HostManagement.Shared.Communication.Capabilities;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
+using HostManagement.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
@@ -17,8 +15,6 @@ namespace HostManagement.Tests.Communication.NamedPipe.RequestHandlers;
 public sealed class RequestHandlerRegistryTests
 {
     private const string ExceptionMessage = "Unit-Test-Error";
-    private static readonly JsonTypeInfo<GetNetworkStatusInformationResult> s_networkStatusJsonTypeInfo =
-        SourceGenerationContext.Default.GetNetworkStatusInformationResult;
 
     private static RequestHandlerRegistry CreateSut(
         TargetEnvironment targetEnvironment,
@@ -210,7 +206,7 @@ public sealed class RequestHandlerRegistryTests
             // Assert
             handler.WasHandleCalled.Should().BeFalse();
 
-            var result = JsonSerializer.Deserialize(response.Content, s_networkStatusJsonTypeInfo);
+            var result = MessageSerializer.Deserialize<GetNetworkStatusInformationResult>(response.Content);
 
             result.Should().NotBeNull();
             result.Status.Should().Be(OperationStatus.Error);
@@ -241,7 +237,7 @@ public sealed class RequestHandlerRegistryTests
             // Assert
             handler.WasHandleCalled.Should().BeFalse();
 
-            var result = JsonSerializer.Deserialize(response.Content, s_networkStatusJsonTypeInfo);
+            var result = MessageSerializer.Deserialize<GetNetworkStatusInformationResult>(response.Content);
 
             result.Should().NotBeNull();
             result.Status.Should().Be(OperationStatus.Error);
@@ -275,7 +271,7 @@ public sealed class RequestHandlerRegistryTests
             response.Should().NotBeNull();
             handler.WasHandleCalled.Should().BeFalse();
 
-            var result = JsonSerializer.Deserialize(response.Content, s_networkStatusJsonTypeInfo);
+            var result = MessageSerializer.Deserialize<GetNetworkStatusInformationResult>(response.Content);
 
             result.Should().NotBeNull();
             result.Status.Should().Be(OperationStatus.Error);
@@ -312,7 +308,7 @@ public sealed class RequestHandlerRegistryTests
             response.Should().NotBeNull();
             handler.WasHandleCalled.Should().BeFalse();
 
-            var result = JsonSerializer.Deserialize(response.Content, s_networkStatusJsonTypeInfo);
+            var result = MessageSerializer.Deserialize<GetNetworkStatusInformationResult>(response.Content);
 
             result.Should().NotBeNull();
             result.Status.Should().Be(OperationStatus.Error);
@@ -541,12 +537,6 @@ public sealed class RequestHandlerRegistryTests
         public string HandleResult { get; } = handleResult ?? string.Empty;
         public bool WasHandleCalled { get; private set; }
         public override string Topic { get; } = topic;
-
-        public override JsonTypeInfo<GetNetworkStatusInformationResult> TypedJsonTypeInfo
-            => s_networkStatusJsonTypeInfo;
-
-        public override GetNetworkStatusInformationResult CreateTypedErrorInstance(string message)
-            => GetNetworkStatusInformationResult.CreateErrorResult(message);
 
         public override Task<string> HandleAsync(
             string messageContent,

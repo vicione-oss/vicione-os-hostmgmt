@@ -1,7 +1,6 @@
-using System.Text.Json.Serialization.Metadata;
-using HostManagement.Shared.Communication;
+using HostManagement.Shared;
 using HostManagement.Shared.Communication.Contracts;
-using HostManagement.Shared.Communication.Serialization;
+using HostManagement.Shared.Serialization;
 using HostManagement.SystemConfig;
 
 namespace HostManagement.Communication.NamedPipe.RequestHandlers;
@@ -18,9 +17,6 @@ internal sealed class GetSystemConfigurationRequestHandler(SystemConfigurationSe
     /// </summary>
     public override string Topic => Topics.GetSystemConfiguration;
 
-    public override JsonTypeInfo<GetSystemConfigurationResult> TypedJsonTypeInfo
-        => SourceGenerationContext.Default.GetSystemConfigurationResult;
-
     /// <summary>
     /// Handles the get system configuration request.
     /// </summary>
@@ -33,6 +29,6 @@ internal sealed class GetSystemConfigurationRequestHandler(SystemConfigurationSe
     {
         var result = await configurationService.GetConfiguration(cancellationToken).ConfigureAwait(false);
 
-        return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
+        return MessageSerializer.Serialize(result);
     }
 }

@@ -19,3 +19,13 @@ env = {
   EXPORT_PATH = "local/cli_help",
   FILENAME = "cli_help_export.md"
 }
+
+[tasks.restore-lock]
+description = "Regenerates the NuGet lock files after project or package references changed"
+
+# The runtime identifier is pinned to a target platform on purpose. HostManagement publishes AOT, so without a pinned
+# identifier the SDK adds the host platform (for example 'win-x64') to the restore graph, and '--force-evaluate' would
+# write that platform into 'packages.lock.json'. Pinning keeps the lock files identical regardless of the machine.
+# The pinned value does not limit the lock files to 'linux-x64': 'RuntimeIdentifiers' in 'Directory.Build.props' keeps
+# every target platform, including 'linux-arm64', in the restore graph independent of it.
+run = 'dotnet restore HostManagement.slnx --force-evaluate --property RuntimeIdentifier=linux-x64'

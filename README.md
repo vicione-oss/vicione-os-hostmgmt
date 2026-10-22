@@ -210,25 +210,21 @@ flowchart TD
   HostManagement --> HostManagementConfiguration["HostManagement.Configuration"]
   HostManagement --> HostManagementScripts["HostManagement.Scripts"]
   HostManagement --> HostManagementSharedCommunication["HostManagement.Shared.Communication"]
-  HostManagement --> HostManagementSharedCommunicationCapabilitySerialization["HostManagement.Shared.Communication.CapabilitySerialization"]
 
   HostManagementSharedCommunication --> HostManagementShared["HostManagement.Shared"]
-  HostManagementSharedCommunicationCapabilitySerialization --> HostManagementSharedCommunication
 
   %% Compile‑time dependencies (source generators)
   HostManagementShared -.->|Analyzer| HostManagementSharedSourceGeneration["HostManagement.Shared.SourceGeneration"]
-  HostManagementSharedCommunication -.->|Analyzer| HostManagementSharedCommunicationSourceGeneration["HostManagement.Shared.Communication.SourceGeneration"]
 
   %% NuGets
   HostManagementShared -.->|NuGet package| HostManagementSharedNuGet["NuGet: HostManagement.Shared"]
   HostManagementSharedCommunication -.->|NuGet package| HostManagementSharedCommunicationNuGet["NuGet: HostManagement.Shared.Communication"]
-  HostManagementSharedCommunicationCapabilitySerialization -.->|Additional assembly in same package| HostManagementSharedCommunicationNuGet
 
   classDef nuGet stroke:#000,stroke-width:1px
   class HostManagementSharedNuGet,HostManagementSharedCommunicationNuGet nuGet
 
   classDef generator stroke:#bbb,stroke-width:1px,stroke-dasharray: 5 5
-  class HostManagementSharedSourceGeneration,HostManagementSharedCommunicationSourceGeneration generator
+  class HostManagementSharedSourceGeneration generator
 ```
 
 <details>
@@ -295,26 +291,24 @@ flowchart TD
   │
   │
   ├── HostManagement.Shared                                        <-- Subproject for the components used in HostManagement and in the ViciOne Suite
+  │   ├── Capabilities                                             <-- Attributes for the generated capability schema ('SupportedCapabilities')
   │   ├── Contracts                                                <-- Public data model of the system configuration
   │   ├── Serialization                                            <-- Serialization logic
-  │   └── Validation                                               <-- Validation of the system configuration
-  │       └── Validators                                           <-- Folder for validation classes
+  │   ├── Validation                                               <-- Validation of the system configuration
+  │   │   └── Validators                                           <-- Folder for validation classes
+  │   │
+  │   ├── EventTopics.cs                                           <-- Topics of the server events of the named pipe communication
+  │   └── Topics.cs                                                <-- Topics of the requests of the named pipe communication
   │
   │
-  ├── HostManagement.Shared.SourceGeneration                       <-- Source generator for 'SupportedSettings'
+  ├── HostManagement.Shared.SourceGeneration                       <-- Source generators for 'Topics', 'SupportedSettings', 'SupportedTopics' and 'SupportedCapabilities'
   │
   │
-  ├── HostManagement.Shared.Communication                          <-- Subproject for named pipe communication between HostManagement and ViciOne Suite
-  │   ├── Contracts                                                <-- Data model for communication
-  │   └── NamedPipe                                                <-- Named pipe implementation (for communication of ViciOne Suite with HostManagement)
-  │   │   └── Client                                               <-- Pipe client implementation
-  │   └── Serialization                                            <-- Serialization logic
-  │
-  │
-  ├── HostManagement.Shared.Communication.CapabilitySerialization  <-- Capability serialization for capability-related types, e.g. 'GetSupportedCapabilitiesResult'
-  │
-  │
-  └── HostManagement.Shared.Communication.SourceGeneration         <-- Source generator for communication, 'SupportedTopics' and 'SupportedCapabilities'
+  └── HostManagement.Shared.Communication                          <-- Subproject for named pipe communication between HostManagement and ViciOne Suite
+      ├── Contracts                                                <-- Data model for communication
+      ├── NamedPipe                                                <-- Named pipe implementation (for communication of ViciOne Suite with HostManagement)
+      │   └── Client                                               <-- Pipe client implementation
+      └── Serialization                                            <-- Serialization logic
   </pre>
 
 </details>
@@ -361,11 +355,6 @@ When a **shell script** is executed, it returns a response indicating whether th
 ### HostManagement.Shared.Communication
 
 `HostManagement.Shared.Communication` contains a shared **library** for **communication** via **named pipes**. This library is used by both **HostManagement** and the **ViciOne Suite**.
-
-### HostManagement.Shared.Communication.CapabilitySerialization
-
-`HostManagement.Shared.Communication.CapabilitySerialization` is included as an additional assembly in the existing `HostManagement.Shared.Communication` NuGet package.\
-It is needed, because JSON source generation must be done after our own source generation. Here in particular for `GetSupportedCapabilitiesResult`.
 
 ## Contributing
 

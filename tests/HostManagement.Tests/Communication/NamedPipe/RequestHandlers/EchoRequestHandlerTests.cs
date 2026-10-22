@@ -1,6 +1,6 @@
 using AwesomeAssertions;
 using HostManagement.Communication.NamedPipe.RequestHandlers;
-using HostManagement.Shared.Communication;
+using HostManagement.Shared;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
@@ -13,20 +13,21 @@ public sealed class EchoRequestHandlerTests
     public void ShouldReturnEchoTopic_WhenCalled()
         => new EchoRequestHandler(Substitute.For<ILogger>()).Topic.Should().Be(Topics.Echo);
 
-    [Fact]
-    public void ShouldThrowNotImplementedException_WhenJsonTypeInfoCalled()
+    [Theory]
+    [InlineData("Handle request for topic 'echo' failed. Message content is required.")]
+    [InlineData("")]
+    public void ShouldReturnMessageUnchanged_WhenCreateErrorResponseContentCalled(string message)
     {
-        var sut = new EchoRequestHandler(Substitute.For<ILogger>());
-        var func = () => sut.JsonTypeInfo;
-        func.Should().Throw<NotImplementedException>();
-    }
+        // The echo topic exchanges raw text, so the error must not be wrapped in an operation result.
 
-    [Fact]
-    public void ShouldThrowNotImplementedException_WhenCreateErrorInstanceCalled()
-    {
+        // Arrange
         var sut = new EchoRequestHandler(Substitute.For<ILogger>());
-        var func = () => sut.CreateErrorInstance("error");
-        func.Should().Throw<NotImplementedException>();
+
+        // Act
+        var result = sut.CreateErrorResponseContent(message);
+
+        // Assert
+        result.Should().Be(message);
     }
 
     public sealed class HandleAsync

@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using HostManagement.Communication.CommandLine.Output;
 using Microsoft.Extensions.Logging;
 using Xunit;
 

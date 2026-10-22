@@ -1,6 +1,6 @@
 using System.Text.Json;
 using HostManagement.Services;
-using HostManagement.Shared.Communication.Capabilities;
+using HostManagement.Shared.Capabilities;
 using HostManagement.Shared.Communication.Contracts;
 
 namespace HostManagement.Communication.CommandLine;
@@ -22,7 +22,7 @@ internal class SupportedCapabilitiesTemplate
     {
         var supportedCapabilitiesJson = JsonSerializer.Serialize(
             new SupportedCapabilities(),
-            CapabilitySourceGenerationContext.Default.SupportedCapabilities);
+            SourceGenerationContext.Default.SupportedCapabilities);
 
         using var document = JsonDocument.Parse(supportedCapabilitiesJson);
 

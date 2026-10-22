@@ -1,26 +1,4 @@
-using System.Text.Json.Serialization.Metadata;
-using HostManagement.Shared.Communication.Contracts;
-
 namespace HostManagement.Communication.NamedPipe.RequestHandlers;
-
-/// <summary>
-/// Represents a generic request handler with a strongly typed response.
-/// </summary>
-/// <typeparam name="T">The strongly typed response type.</typeparam>
-internal interface IRequestHandler<T> : IRequestHandler where T : OperationResult
-{
-    /// <summary>
-    /// The JSON type info for <typeparamref name="T"/>.
-    /// </summary>
-    JsonTypeInfo<T> TypedJsonTypeInfo { get; }
-
-    /// <summary>
-    /// Creates an error instance of <typeparamref name="T"/>.
-    /// </summary>
-    /// <param name="message">The error message.</param>
-    /// <returns>The instance.</returns>
-    T CreateTypedErrorInstance(string message);
-}
 
 /// <summary>
 /// Represents a request handler.
@@ -33,16 +11,13 @@ internal interface IRequestHandler
     string Topic { get; }
 
     /// <summary>
-    /// The JSON type info.
-    /// </summary>
-    JsonTypeInfo JsonTypeInfo { get; }
-
-    /// <summary>
-    /// Creates an error instance of the handler's response type in a type-safe, AOT-friendly way.
+    /// Creates the response content reporting that the request could not be handled.
     /// </summary>
     /// <param name="message">The error message.</param>
-    /// <returns><see cref="OperationResult"/></returns>
-    OperationResult CreateErrorInstance(string message);
+    /// <returns>
+    /// The serialized error result, or the raw error message for topics that exchange raw text.
+    /// </returns>
+    string CreateErrorResponseContent(string message);
 
     /// <summary>
     /// The method handling a message.

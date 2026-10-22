@@ -1,10 +1,8 @@
 using System.CommandLine;
-using System.Text.Json;
 using HostManagement.Communication.CommandLine.Helper;
 using HostManagement.Communication.CommandLine.Output;
 using HostManagement.Communication.CommandLine.Resources;
 using HostManagement.Shared.Contracts.System;
-using SharedJsonContext = HostManagement.Shared.Contracts.SourceGenerationContext;
 
 
 namespace HostManagement.Communication.CommandLine.Commands.System;
@@ -37,15 +35,13 @@ internal sealed class InstallSignedDebianPackageCommand : Command
         string signatureFilePath,
         CancellationToken cancellationToken)
     {
-        var messageContent = JsonSerializer.Serialize(
-            new SignedDebianPackage
-            {
-                FilePath = filePath,
-                SignatureFilePath = signatureFilePath
-            },
-            SharedJsonContext.Default.SignedDebianPackage);
+        var signedDebianPackage = new SignedDebianPackage
+        {
+            FilePath = filePath,
+            SignatureFilePath = signatureFilePath
+        };
 
-        if (!await NamedPipeRequestHelper.InstallSignedDebianPackage(messageContent, cancellationToken))
+        if (!await NamedPipeRequestHelper.InstallSignedDebianPackage(signedDebianPackage, cancellationToken))
             return;
 
         SimpleOutput.WriteLine(CliStrings.System.InstallPackageSuccessful, filePath);

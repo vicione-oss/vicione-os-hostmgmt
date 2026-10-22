@@ -1,7 +1,6 @@
-using HostManagement.Communication.CommandLine.Output;
 using Microsoft.Extensions.Logging;
 
-namespace HostManagement;
+namespace HostManagement.Communication.CommandLine.Output;
 
 /// <summary>
 /// Provides command line logging for the application using <see cref="SimpleOutput"/>.

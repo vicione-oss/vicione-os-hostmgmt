@@ -1,7 +1,6 @@
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
-using HostManagement.Shared.Communication.Serialization;
-using SourceGenerationContext = HostManagement.Shared.Communication.Contracts.SourceGenerationContext;
+using HostManagement.Shared.Serialization;
 
 namespace HostManagement.Communication.NamedPipe.Extensions;
 
@@ -18,8 +17,7 @@ internal static class NamedPipeMessageExtensions
     /// <returns><see cref="NamedPipeMessage"/></returns>
     public static NamedPipeMessage CreateDefaultResponse(this NamedPipeMessage request, string message)
     {
-        var content = SourceGeneratedTypeSerializer
-            .Serialize(new Response { Message = message }, SourceGenerationContext.Default.Response);
+        var content = MessageSerializer.Serialize(new Response { Message = message });
 
         return request.CreateResponse(content);
     }

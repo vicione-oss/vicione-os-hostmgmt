@@ -2,7 +2,7 @@ using System.IO.Abstractions.TestingHelpers;
 using AwesomeAssertions;
 using HostManagement.Configuration;
 using HostManagement.Services;
-using HostManagement.Shared.Communication.Capabilities;
+using HostManagement.Shared.Capabilities;
 using HostManagement.Shared.Communication.Enums;
 using Microsoft.Extensions.Logging;
 using NSubstitute;

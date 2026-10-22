@@ -261,7 +261,6 @@
           "HostManagement.Configuration": "[1.0.0, )",
           "HostManagement.Scripts": "[1.0.0, )",
           "HostManagement.Shared.Communication": "[1.0.0, )",
-          "HostManagement.Shared.Communication.CapabilitySerialization": "[1.0.0, )",
           "Microsoft.Extensions.Configuration.EnvironmentVariables": "[10.0.13, )",
           "System.CommandLine": "[2.0.13, )",
           "minisign-net": "[1.0.0, )"
@@ -299,12 +298,6 @@
         "type": "Project",
         "dependencies": {
           "HostManagement.Shared": "[1.0.0, )"
-        }
-      },
-      "hostmanagement.shared.communication.capabilityserialization": {
-        "type": "Project",
-        "dependencies": {
-          "HostManagement.Shared.Communication": "[1.0.0, )"
         }
       },
       "Microsoft.Extensions.Configuration.EnvironmentVariables": {

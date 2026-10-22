@@ -1,6 +1,6 @@
 using System.IO.Abstractions;
 using HostManagement.Configuration;
-using HostManagement.Shared.Communication.Capabilities;
+using HostManagement.Shared.Capabilities;
 using HostManagement.Shared.Communication.Contracts;
 using HostManagement.Shared.Communication.Enums;
 using Microsoft.Extensions.Logging;

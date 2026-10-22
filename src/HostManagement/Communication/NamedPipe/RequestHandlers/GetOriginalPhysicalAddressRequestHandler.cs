@@ -1,8 +1,7 @@
-using System.Text.Json.Serialization.Metadata;
 using HostManagement.Services;
-using HostManagement.Shared.Communication;
+using HostManagement.Shared;
 using HostManagement.Shared.Communication.Contracts;
-using HostManagement.Shared.Communication.Serialization;
+using HostManagement.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipe.RequestHandlers;
@@ -14,9 +13,6 @@ internal sealed class GetOriginalPhysicalAddressRequestHandler(ILogger logger)
     /// The topic of the <see cref="GetOriginalPhysicalAddressRequestHandler"/>.
     /// </summary>
     public override string Topic => Topics.GetOriginalPhysicalAddress;
-
-    public override JsonTypeInfo<GetOriginalPhysicalAddressResult> TypedJsonTypeInfo
-        => SourceGenerationContext.Default.GetOriginalPhysicalAddressResult;
 
     /// <summary>
     /// Handles the get original physical address request.
@@ -31,6 +27,6 @@ internal sealed class GetOriginalPhysicalAddressRequestHandler(ILogger logger)
         var service = new PhysicalAddressService(logger, new ScriptHandler());
         var result = await service.GetOriginalPhysicalAddress(messageContent, cancellationToken).ConfigureAwait(false);
 
-        return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
+        return MessageSerializer.Serialize(result);
     }
 }

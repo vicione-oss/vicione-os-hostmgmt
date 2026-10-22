@@ -1,9 +1,8 @@
-using System.Text.Json.Serialization.Metadata;
 using HostManagement.Configuration;
 using HostManagement.Services;
-using HostManagement.Shared.Communication;
+using HostManagement.Shared;
 using HostManagement.Shared.Communication.Contracts;
-using HostManagement.Shared.Communication.Serialization;
+using HostManagement.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace HostManagement.Communication.NamedPipe.RequestHandlers;
@@ -18,9 +17,6 @@ internal sealed class StartServiceRequestHandler(ILogger logger) : RequestHandle
     /// The topic of the <see cref="StartServiceRequestHandler"/>.
     /// </summary>
     public override string Topic => Topics.StartService;
-
-    public override JsonTypeInfo<ServiceControlResult> TypedJsonTypeInfo
-        => SourceGenerationContext.Default.ServiceControlResult;
 
     /// <summary>
     /// Handles the start service request.
@@ -37,6 +33,6 @@ internal sealed class StartServiceRequestHandler(ILogger logger) : RequestHandle
 
         var result = await service.StartSystemdUnit(messageContent).ConfigureAwait(false);
 
-        return SourceGeneratedTypeSerializer.Serialize(result, TypedJsonTypeInfo);
+        return MessageSerializer.Serialize(result);
     }
 }
