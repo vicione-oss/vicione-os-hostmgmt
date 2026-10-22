@@ -197,6 +197,8 @@ The [PipeCommunicationSample] serves as a test and demo of named pipe communicat
 
 The request-processing architecture, including script execution and system configuration flows, is documented in [docs/Architecture.md].
 
+How `SetSystemConfiguration` handles omitted properties and collection entries, is described in [docs/ConfigurationUpdateSemantics.md].
+
 ## Project Structure
 
 The project is divided into several main components:
@@ -465,6 +467,7 @@ The full license text is available in [`LICENSE.txt`](./LICENSE.txt).
 [Concept]: docs/Concept.md
 [DNS Validation]: docs/DNSValidation.md
 [docs/Architecture.md]: docs/Architecture.md
+[docs/ConfigurationUpdateSemantics.md]: docs/Architecture.md#configuration-update-semantics
 [docs/EnvironmentVariables.md]: docs/EnvironmentVariables.md
 [docs/HostManagementServiceStartup.md]: docs/HostManagementServiceStartup.md
 [docs/ScriptResponse.md]: docs/ScriptResponse.md

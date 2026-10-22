@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using AwesomeAssertions;
 using HostManagement.Shared.Contracts;
 using HostManagement.Shared.Contracts.Syslog;
@@ -311,6 +312,40 @@ public class SystemConfigurationSerializationTests
                     "Message content could not be deserialized to 'SystemConfiguration'." +
                     Environment.NewLine +
                     $"Message content was: '{literalNullJson}'");
+        }
+
+        [Fact]
+        public void ShouldIgnoreUnknownProperties_WhenDeserializingNewerConfiguration()
+        {
+            // Arrange
+            var payload = JsonNode.Parse(s_sampleNonIndentedSystemConfigurationJson)!.AsObject();
+            payload["NewConfigurationSection"] = new JsonObject { ["Enabled"] = true };
+            payload["NetworkDNSSettings"]!.AsObject()["NewDnsSetting"] = "new-value";
+            payload["NetworkInterfaces"]!.AsArray()[0]!.AsObject()["NewInterfaceSetting"] = true;
+            payload["Syslog"]!.AsObject()["NewSyslogSetting"] = true;
+
+            // Act
+            var result = MessageSerializer.Deserialize<SystemConfiguration>(payload.ToJsonString());
+
+            // Assert
+            result.NetworkDNSSettings.Hostname.Should().Be("hostname");
+            result.NetworkInterfaces[0].CommonInformation.Name.Should().Be("lan1");
+            result.Syslog.ConnectionRetrySeconds.Should().Be(30);
+        }
+
+        [Fact]
+        public void ShouldRejectInvalidKnownValue_WhenDeserializingNewerConfiguration()
+        {
+            // Arrange
+            var payload = JsonNode.Parse(s_sampleNonIndentedSystemConfigurationJson)!.AsObject();
+            payload["NewConfigurationSection"] = true;
+            payload["NetworkDNSSettings"]!.AsObject()["MulticastDNSEnabled"] = "not-a-boolean";
+
+            // Act
+            var act = () => MessageSerializer.Deserialize<SystemConfiguration>(payload.ToJsonString());
+
+            // Assert
+            act.Should().Throw<JsonException>();
         }
 
         [Fact]

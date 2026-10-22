@@ -19,6 +19,10 @@ public class SystemConfiguration : IEquatable<SystemConfiguration>
     /// <summary>
     /// The version of the system configuration.
     /// </summary>
+    /// <remarks>
+    /// See <c>docs/Architecture.md</c> in the HostManagement repository for details about
+    /// contract versioning and compatibility. For example compatible additions may keep the current version.
+    /// </remarks>
     [JsonRequired]
     public int Version { get; init; } = 2;
 

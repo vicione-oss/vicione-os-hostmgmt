@@ -72,7 +72,7 @@ public class PipeClientExtensionsTests
         }
 
         [Fact]
-        public async Task ShouldThrowJsonException_WhenResponseIsNeitherContractNorPlainResponse()
+        public async Task ShouldThrowRequestFailed_WhenResponseIsNeitherContractNorPlainResponse()
         {
             // Arrange
             await using var client = CreateClientReturning("""{"ResultType":"SomeOtherResult","Message":"Failed."}""");
@@ -84,7 +84,7 @@ public class PipeClientExtensionsTests
                 cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
-            await act.Should().ThrowExactlyAsync<JsonException>();
+            await act.Should().ThrowExactlyAsync<PipeRequestFailedException>();
         }
 
         [Fact]

@@ -8,7 +8,7 @@ namespace HostManagement.Shared.Communication.Contracts;
 /// </summary>
 [JsonSourceGenerationOptions(
     RespectNullableAnnotations = true,
-    UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
+    UnmappedMemberHandling = JsonUnmappedMemberHandling.Skip,
     UseStringEnumConverter = true)]
 [JsonSerializable(typeof(MessageHeader))]
 [JsonSerializable(typeof(NamedPipeMessage))]

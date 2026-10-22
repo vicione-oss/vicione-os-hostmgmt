@@ -7,18 +7,36 @@ namespace HostManagement.Tests.SystemConfig;
 
 internal sealed class SystemConfigurationServiceContext
 {
+    private readonly string _interfaceName;
+
     internal IPersistence Persistence { get; } = Substitute.For<IPersistence>();
     internal IScriptHandler ScriptHandler { get; } = Substitute.For<IScriptHandler>();
     internal ILogger Logger { get; } = Substitute.For<ILogger>();
     internal SupportedSettings SupportedSettings { get; } = new();
     internal SystemConfigurationService Sut { get; }
 
+    internal void ConfigureValidNetworkInterface()
+    {
+        ScriptHandler.ExecuteGetNetworkInterfacesCommonInformationScript(Arg.Any<ScriptOptions>())
+            .ReturnsForAnyArgs((
+                Result.SuccessResult,
+                [new() { Name = _interfaceName, Enabled = true }]));
+
+        ScriptHandler.ExecuteGetInterfaceSettingsScript(Arg.Any<string>())
+            .ReturnsForAnyArgs((
+                Result.SuccessResult,
+                new() { DHCPEnabled = true },
+                new()));
+    }
+
 #pragma warning disable CA1506
     internal SystemConfigurationServiceContext(string interfaceName, string hostname)
     {
+        _interfaceName = interfaceName;
+
         const string ServiceName = "test.service";
 
-        var rawInterfacesString = $"{interfaceName}            UP             00:50:56:36:6d:33 <BROADCAST,MULTICAST,UP,LOWER_UP>";
+        var rawInterfacesString = $"{_interfaceName}            UP             00:50:56:36:6d:33 <BROADCAST,MULTICAST,UP,LOWER_UP>";
 
         ScriptHandler.ExecuteIsNetworkInterfaceAvailableScript(Arg.Any<string>()).Returns(Result.SuccessResult);
         ScriptHandler.ExecuteGetOriginalPhysicalAddressScript(Arg.Any<string>()).Returns((Result.SuccessResult, "00:50:56:36:6d:aa"));

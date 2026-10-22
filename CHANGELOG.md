@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Shared Communication: `PipeClientExtensions` provides `SendRequestAsync` and `SendOperationAsync`, the latter returning an error result instead of throwing when the response content is malformed. A caller-provided correlation ID is an optional argument rather than a separate overload
   - Shared Communication: `CallbackHandlerRegistry.RegisterHandler` and `RegisterRawHandler` take a callback, so an event handler class is only needed when the handler has state of its own
 - Shared Communication: Added `PipeRequestFailedException`, thrown by `SendRequestAsync` with HostManagement's reason when a request fails; `SendOperationAsync` returns that reason in its error result
+- Added forward compatibility for clients using an older contract version
+  - `SetSystemConfiguration` merges the submitted properties into the current configuration instead of replacing it, so omitted settings (including settings unknown to the client) are preserved
+  - Collections are merged or replaced according to documented rules (`NetworkInterfaces` and `Services` are merged by name, `IPv4Details`, `StaticHosts.Hosts` and value lists are replaced)
+  - The configuration-changed event contains the effective merged configuration
 
 ### Changed
 
@@ -57,6 +61,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - The payload was previously the content of a JSON envelope, so it was escaped a second time and unescaped on receipt. Measured on system configuration payloads: about 42 % fewer bytes on the wire and about 78 % fewer allocations per send and receive
   - A header length of `0` now indicates end-of-stream, so a payload length of `0` is a message without content (previously not expressible)
   - The maximum message size applies to the payload only, no longer to the serialized envelope
+- `SetSystemConfiguration` now requires the `Version` property and rejects missing, invalid, older and newer contract versions (rejected requests are not applied or persisted and do not publish a configuration-changed event)
+- `SetSystemConfiguration` now rejects unknown properties in submitted configuration updates
+- Configuration responses are now deserialized ignoring unknown properties
 
 ### Removed
 
