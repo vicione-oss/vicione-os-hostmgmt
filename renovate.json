@@ -167,6 +167,12 @@
             }
         },
         {
+            "description": "GitLab CI: track markdownlint-cli2 image",
+            "matchManagers": [ "gitlabci" ],
+            "matchDepNames": [ "davidanson/markdownlint-cli2" ],
+            "enabled": true
+        },
+        {
             "description": "Shared settings for .NET and CI component updates",
             "matchJsonata": [ "groupName = '.NET'", "groupName = 'CI components'" ],
             "separateMajorMinor": false,
