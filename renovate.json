@@ -109,13 +109,7 @@
             ],
             "enabled": true,
             "groupName": "test tooling",
-            "groupSlug": "test-tooling",
-            "separateMajorMinor": false,
-            "separateMultipleMajor": false,
-            "separateMultipleMinor": false,
-            "separateMinorPatch": false,
-            "addLabels": [ "Renovate::Frozen" ],
-            "stopUpdatingLabel": "Renovate::Frozen"
+            "groupSlug": "test-tooling"
         },
         {
             "description": "NuGet: TestableIO packages pinned to $(TestableIOVersion)",
@@ -170,11 +164,13 @@
             "description": "GitLab CI: track markdownlint-cli2 image",
             "matchManagers": [ "gitlabci" ],
             "matchDepNames": [ "davidanson/markdownlint-cli2" ],
+            "groupName": "markdownlint-cli2",
+            "groupSlug": "markdownlint-cli2",
             "enabled": true
         },
         {
-            "description": "Shared settings for .NET and CI component updates",
-            "matchJsonata": [ "groupName = '.NET'", "groupName = 'CI components'" ],
+            "description": "Shared settings for matched package rules",
+            "matchJsonata": [ "groupName = '.NET'", "groupName = 'CI components'", "groupName = 'markdownlint-cli2'", "groupName = 'test tooling'" ],
             "separateMajorMinor": false,
             "separateMultipleMajor": false,
             "separateMultipleMinor": false,
