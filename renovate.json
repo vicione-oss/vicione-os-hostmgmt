@@ -6,6 +6,7 @@
     "dependencyDashboard": true,
     "dependencyDashboardApproval": true,
     "configMigration": true,
+    "draftPR": true,
     "pruneStaleBranches": false,
     "prTitleStrict": true,
     "enabledManagers": [
