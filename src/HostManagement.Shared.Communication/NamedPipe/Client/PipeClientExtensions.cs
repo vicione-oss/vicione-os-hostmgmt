@@ -421,18 +421,27 @@ public static class PipeClientExtensions
     }
 
     // HostManagement answers with a plain 'Response' that carries only the reason when the request failed on its side,
-    // e.g. when no handler is registered for the topic or the handler threw. A response contract never deserializes
-    // as one, because the context disallows unmapped members such as 'ResultType'.
+    // e.g. when no handler is registered for the topic or the handler threw. Unknown members are skipped, so a
+    // response contract with a 'Message' would deserialize as one too; only content without a 'ResultType' is one.
     private static bool TryReadFailureReason(string content, [NotNullWhen(true)] out string? reason)
     {
+        reason = null;
+
         try
         {
+            using var document = JsonDocument.Parse(content);
+
+            if (document.RootElement.ValueKind is not JsonValueKind.Object ||
+                document.RootElement.TryGetProperty(nameof(OperationResult.ResultType), out _))
+            {
+                return false;
+            }
+
             reason = MessageSerializer.Deserialize<Response>(content).Message;
             return true;
         }
         catch (JsonException)
         {
-            reason = null;
             return false;
         }
     }
