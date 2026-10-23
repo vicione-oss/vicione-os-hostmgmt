@@ -18,6 +18,12 @@
         "dependencyDashboardApproval": true
     },
     "osvVulnerabilityAlerts": true,
+    "gitlabci": {
+        "managerFilePatterns": [
+            "/(^|/)\\.gitlab-ci\\.ya?ml$/",
+            "/(^|/)\\.gitlab-ci\\.pipeline\\.ya?ml$/"
+        ]
+    },
     "customManagers": [
         {
             "customType": "regex",
