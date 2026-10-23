@@ -5,6 +5,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Shared Communication: Fixed `SendRequestAsync` and `SendOperationAsync` reporting a response contract they cannot read as a failed request with the contract's own message as the reason
+
 ## [2.0.0-beta2] - 2026-10-22
 
 ### Added

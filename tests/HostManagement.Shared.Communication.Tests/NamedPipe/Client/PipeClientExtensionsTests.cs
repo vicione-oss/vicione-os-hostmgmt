@@ -71,11 +71,13 @@ public class PipeClientExtensionsTests
             exception.InnerException.Should().BeOfType<JsonException>();
         }
 
-        [Fact]
-        public async Task ShouldThrowRequestFailed_WhenResponseIsNeitherContractNorPlainResponse()
+        [Theory]
+        [InlineData("""{"ResultType":"SomeOtherResult","Message":"Failed."}""")]
+        [InlineData("""{"ResultType":"GetServiceStateResult","Status":"NotAValidOperationStatus","Message":"Failed.","ActiveState":"active"}""")]
+        public async Task ShouldThrowJsonException_WhenResponseIsNeitherContractNorPlainResponse(string responseContent)
         {
             // Arrange
-            await using var client = CreateClientReturning("""{"ResultType":"SomeOtherResult","Message":"Failed."}""");
+            await using var client = CreateClientReturning(responseContent);
 
             // Act
             var act = async () => await client.SendRequestAsync<GetServiceStateResult>(
@@ -84,7 +86,7 @@ public class PipeClientExtensionsTests
                 cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
-            await act.Should().ThrowExactlyAsync<PipeRequestFailedException>();
+            await act.Should().ThrowExactlyAsync<JsonException>();
         }
 
         [Fact]
@@ -222,6 +224,7 @@ public class PipeClientExtensionsTests
         [InlineData("not json")]
         [InlineData("")]
         [InlineData("{\"ResultType\":\"SomeOtherResult\"}")]
+        [InlineData("{\"ResultType\":\"SomeOtherResult\",\"Message\":\"Failed.\"}")]
         public async Task ShouldReturnErrorResult_WhenResponseContentMalformed(string responseContent)
         {
             // Arrange
